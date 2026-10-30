@@ -532,7 +532,8 @@ def calculate_all_bipol_projects(mass_res: dict, sizing_res: dict, geom_res: dic
     takeoff = perf_res['takeoff']['distance_to_15m']
     takeoff_req = params.get('takeoff_distance_m')
     takeoff_ok = powered and takeoff is not None and bool(takeoff_req) and takeoff <= takeoff_req
-    range_ok = powered and range_km_m3 is not None and range_km_m3 >= params['range_km']
+    mission_range_km = perf_res.get('mission_range', {}).get('total_available_km', range_km_m3)
+    range_ok = powered and perf_res.get('mission_range', {}).get('passed', mission_range_km is not None and mission_range_km >= params['range_km'])
     verdict = lambda ok: 'Spełnione wymaganie projektu' if ok else 'Niespełnione wymaganie projektu'
     table_5_1_critical = [
         dict(param='Rozpiętość skrzydeł b [m]', project_assumed=params.get('wingspan_m')
@@ -552,9 +553,9 @@ def calculate_all_bipol_projects(mass_res: dict, sizing_res: dict, geom_res: dic
              actual_calc=perf_res['climb']['wy_max_ms'] if powered else None,
              comment=verdict(climb_ok) if powered else 'Nie dotyczy wznoszenia z napędem.'),
         dict(param='Całkowita długość startu do 15 m [m]', project_assumed=takeoff_req if powered else None,
-             actual_calc=takeoff if powered else None, comment=verdict(takeoff_ok) if powered else 'Nie rozpatrywano samodzielnego startu.'),
+             actual_calc=takeoff if powered else None, comment='Nie wyznaczono operacji na wodzie.' if params.get('operating_surface') == 'water' else verdict(takeoff_ok) if powered else 'Nie rozpatrywano samodzielnego startu.'),
         dict(param='Zasięg przy wymaganej prędkości [km]', project_assumed=params['range_km'] if powered else None,
-             actual_calc=range_km_m3, comment=verdict(range_ok) if powered else 'Nie dotyczy zasięgu paliwowego.'),
+             actual_calc=mission_range_km, comment=verdict(range_ok) if powered else 'Nie dotyczy zasięgu paliwowego.'),
     ]
     performance_recommendation = ('Sprawdź wyniki lotu ślizgowego i sposób startu.' if not powered else
         'Przyjęte wymagania przelotu, wznoszenia, startu i zasięgu spełniono w modelu wstępnym; sprawdź pozostałe kryteria.'

@@ -69,8 +69,8 @@ def calculate_aerodynamics(geom: dict, params: dict, m0: float = None):
 
     delta_cz_slat, delta_cx_slat = fd['slat_lift'], fd['slat_drag']
 
-    cz_max_to = round(cz_max_clean + flap_configurations['takeoff']['delta_cz'] + delta_cz_slat * 0.5, 2)
-    cz_max_lnd = round(cz_max_clean + flap_configurations['landing']['delta_cz'] + delta_cz_slat, 2)
+    cz_max_to = cz_max_clean + flap_configurations['takeoff']['delta_cz'] + delta_cz_slat * 0.5
+    cz_max_lnd = cz_max_clean + flap_configurations['landing']['delta_cz'] + delta_cz_slat
 
     delta_cx0_to = flap_configurations['takeoff']['delta_cx0'] + delta_cx_slat * 0.5
     delta_cx0_lnd = flap_configurations['landing']['delta_cx0'] + delta_cx_slat
@@ -190,32 +190,32 @@ def calculate_aerodynamics(geom: dict, params: dict, m0: float = None):
         })
 
     return {
-        "k_clean": round(k_clean, 5),
-        "cx0_clean": round(cx0_clean, 4),
-        "cx0_buildup_theoretical": round(cx0_clean, 4),
+        "k_clean": k_clean,
+        "cx0_clean": cx0_clean,
+        "cx0_buildup_theoretical": cx0_clean,
         "component_drag_buildup": component_drag_buildup,
-        "oswald_e": round(oswald_e, 3),
-        "lambda_e": round(lambda_e, 2),
-        "cx0_to": round(cx0_to, 4),
-        "cx0_lnd": round(cx0_lnd, 4),
-        "k_to": round(k_to, 5),
-        "k_lnd": round(k_lnd, 5),
-        "k_max": round(k_max, 2),
-        "k_econ": round(k_econ, 2),
-        "e_energy_max": round(e_energy_max, 1),
-        "k_jet_range": round(k_jet_range, 2),
-        "cz_opt": round(cz_opt, 3),
-        "cx_opt": round(cx_opt, 4),
-        "cz_econ": round(cz_econ, 3),
-        "cx_econ": round(cx_econ, 4),
-        "cz_jet_range": round(cz_jet_range, 3),
-        "cx_jet_range": round(cx_jet_range, 4),
-        "a_w_rad": round(a_w_rad, 4),
-        "a_w_deg": round(a_w_deg, 4),
-        "a_w_paturski_rad": round(a_w_paturski_rad, 4),
-        "a_w_paturski_deg": round(a_w_paturski_deg, 4),
-        "tau_glauert": round(tau_glauert, 4),
-        "delta_glauert": round(delta_glauert, 4),
+        "oswald_e": oswald_e,
+        "lambda_e": lambda_e,
+        "cx0_to": cx0_to,
+        "cx0_lnd": cx0_lnd,
+        "k_to": k_to,
+        "k_lnd": k_lnd,
+        "k_max": k_max,
+        "k_econ": k_econ,
+        "e_energy_max": e_energy_max,
+        "k_jet_range": k_jet_range,
+        "cz_opt": cz_opt,
+        "cx_opt": cx_opt,
+        "cz_econ": cz_econ,
+        "cx_econ": cx_econ,
+        "cz_jet_range": cz_jet_range,
+        "cx_jet_range": cx_jet_range,
+        "a_w_rad": a_w_rad,
+        "a_w_deg": a_w_deg,
+        "a_w_paturski_rad": a_w_paturski_rad,
+        "a_w_paturski_deg": a_w_paturski_deg,
+        "tau_glauert": tau_glauert,
+        "delta_glauert": delta_glauert,
         "cz_max_clean": cz_max_clean,
         "cz_max_to": cz_max_to,
         "cz_max_lnd": cz_max_lnd,

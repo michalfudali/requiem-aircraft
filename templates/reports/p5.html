@@ -1,6 +1,6 @@
 {% import 'reports/calc.html' as c %}
 {% set perf=res.performance %}{% set glide=perf.glide %}
-<p>Osiągi obliczono dla masy startowej {{ res.mass.m0|reportnum(1) }} kg w atmosferze ISA, z geometrią i biegunową uzyskanymi w poprzednich etapach [2, 4]. Prędkości lotu ślizgowego podano jako TAS.</p>
+<p>Wznoszenie i prędkości przeciągnięcia obliczono przy masie startowej {{ res.mass.m0|reportnum(1) }} kg w atmosferze ISA. Przelot korzysta z mas na początku i końcu danego odcinka misji, a podejście i lądowanie z masy do lądowania {{ perf.landing.mass_kg|reportnum(1) }} kg. Geometria i biegunowa pochodzą z poprzednich etapów [2, 4]. Prędkości lotu ślizgowego podano jako TAS.</p>
 <h3>Prędkości charakterystyczne</h3>
 {{ c.section(sheet, 'p5.speeds') }}
 <table><caption>Prędkości charakterystyczne na poziomie morza</caption><thead><tr><th>Wielkość</th><th class="number">Prędkość [km/h]</th></tr></thead><tbody>{% for label,value in [('Przeciągnięcie — konfiguracja gładka',perf.speeds.vs_clean_kmh),('Przeciągnięcie — konfiguracja do lądowania',perf.speeds.vs_lnd_kmh),('Podejście do lądowania',perf.speeds.v_app_kmh)] %}<tr><td>{{ label }}</td><td class="number">{{ value|reportnum(1) }}</td></tr>{% endfor %}{% if doc.powered %}<tr><td>Prędkość maksymalna</td><td class="number">{{ perf.speeds.v_max_sl_kmh|reportnum(1) }}</td></tr>{% endif %}</tbody></table>
@@ -12,15 +12,20 @@
 <table><caption>Zmiana osiągów wraz z wysokością</caption><thead><tr><th class="number">H [m]</th><th class="number">w_y,max [m/s]</th><th class="number">Vmin [km/h]</th><th class="number">Vmax [km/h]</th><th class="number">Czas wzn. [min]</th></tr></thead><tbody>{% for row in p_data.offer_chart %}<tr><td class="number">{{ row.h_m|reportnum(0) }}</td><td class="number">{{ row.wy_max_ms|reportnum(2) }}</td><td class="number">{{ row.v_min_kmh|reportnum(1) }}</td><td class="number">{{ row.v_max_kmh|reportnum(1) }}</td><td class="number">{{ row.time_to_climb_min|reportnum(1) if row.wy_max_ms > 0 else '—' }}</td></tr>{% endfor %}</tbody></table>
 <p>{{ p_data.paturski_p6.table_6_2_climb_and_ceilings.time_method }} Wynik ograniczają przyjęta charakterystyka napędu i zakres wysokości modelu.</p>
 <h3>Start</h3>
+{% if res.params.operating_surface == 'water' %}<p>{{ perf.takeoff.note }}</p>{% else %}
 <p>Start obejmuje rozbieg ze stałym średnim przyspieszeniem, łuk przejściowy przy \(V_{tr}\) i wznoszenie przy \(V_2\) do wysokości 15 m (ISA, poziom morza, bez współczynników operacyjnych).</p>
 {{ c.section(sheet, 'p5.takeoff') }}
 {% endif %}
+{% endif %}
 <h3>Lądowanie</h3>
+{% if res.params.operating_surface == 'water' %}<p>{{ perf.landing.note }}</p>{% else %}
 <p>Lądowanie obliczono dla masy na końcu misji: odcinek powietrzny (podejście pod kątem 3,5° i wyrównanie), dobieg swobodny przez 1,5 s i hamowanie.</p>
 {{ c.section(sheet, 'p5.landing') }}
+{% endif %}
 <table><caption>Obliczeniowe długości i czas startu oraz lądowania</caption><thead><tr><th>Wielkość</th><th class="number">Droga [m]</th><th class="number">Czas [s]</th></tr></thead><tbody>{% for label,value,time in [('Rozbieg',perf.takeoff.ground_roll_m,perf.takeoff.ground_roll_time_s),('Start nad przeszkodę 15 m',perf.takeoff.distance_to_15m,perf.takeoff.time_to_15m_s),('Dobieg',perf.landing.ground_roll_m,none),('Lądowanie znad przeszkody 15 m',perf.landing.distance_from_15m,none)] %}<tr><td>{{ label }}</td><td class="number">{{ value|reportnum(1) }}</td><td class="number">{{ time|reportnum(1) }}</td></tr>{% endfor %}</tbody></table>
 {% if doc.powered %}
 <h3>Zasięg i długotrwałość</h3>
+{% if perf.mission_range.legs|length > 1 %}<table><caption>Weryfikacja całej trasy z paliwem przypisanym do odcinków</caption><thead><tr><th>Odcinek</th><th>Wymagany [km]</th><th>Osiągalny [km]</th><th>Ocena</th></tr></thead><tbody>{% for leg in perf.mission_range.legs %}<tr><td>{{ leg.label }}</td><td>{{ leg.required_km|reportnum(1) }}</td><td>{{ leg.available_km|reportnum(1) }}</td><td>{{ 'Spełnione' if leg.passed else 'Niespełnione' }}</td></tr>{% endfor %}</tbody></table><p>Poniższe metody porównano dla pierwszego odcinka przelotu. Paliwo powrotu, zadania i rezerwy nie jest ponownie przypisywane do dolotu.</p>{% endif %}
 <p>Zasięg przy wymaganej prędkości i wysokości przelotu obliczono metodą stałej wysokości i prędkości (całka arctan, Paturski, Projekt 6) dla paliwa fazy przelotu z bilansu P2. Rezerwy nie spala się po raz drugi.</p>
 {{ c.section(sheet, 'p5.range') }}
 {% set ra = p_data.paturski_p6.range_endurance_6_5 %}{% if ra.by_altitude %}<table class="compact-table"><caption>Zasięg i długotrwałość na trzech wysokościach</caption><thead><tr><th>Wysokość</th><th class="number">h [m]</th><th class="number">Zakres V [km/h]</th><th class="number">T max [h]</th><th class="number">przy V [km/h]</th><th class="number">L max [km]</th><th class="number">przy V [km/h]</th></tr></thead><tbody>{% for row in ra.by_altitude %}<tr><td>{{ row.label }}</td><td class="number">{{ row.h_m|reportnum(0) }}</td><td class="number">{{ row.v_min_kmh|reportnum(0) }}–{{ row.v_max_kmh|reportnum(0) }}</td><td class="number">{{ row.t_max_h|reportnum(2) }}</td><td class="number">{{ row.v_t_max_kmh|reportnum(0) }}</td><td class="number">{{ row.l_max_km|reportnum(0) }}</td><td class="number">{{ row.v_l_max_kmh|reportnum(0) }}</td></tr>{% endfor %}</tbody></table>

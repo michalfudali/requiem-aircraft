@@ -84,7 +84,12 @@ def calculate_mass_sizing(params: dict):
                 m6_loiter=phases['loiter'],m7_landing=phases['landing']))
     # BIPOL_1, s. 4: the same balance written out iteration by iteration for the report.
     from calculations.mass_iteration import guideline_trace
+    trace_params = p
+    trace_start = params.get('mass_iteration_start_kg')
+    if p.get('_mission_polar') and trace_start is None:
+        trace_start = 1.1 * result['m0']
+        trace_params = dict(p, _mass_trace_start_rule='1,1·m0 rozwiązania przedziałowego; odtworzenie toku obliczeń')
     result['guideline_traces'] = {
-        method: guideline_trace(p, payload, crew, method, params.get('mass_iteration_start_kg'))
+        method: guideline_trace(trace_params, payload, crew, method, trace_start)
         for method, info in result['sizing_methods'].items() if info['applicable']}
     return result

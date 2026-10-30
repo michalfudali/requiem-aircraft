@@ -15,28 +15,12 @@ from calculations.validation import validate_parameters
 from calculations.glide import calculate_glide_polar
 from calculations.runway import refine_takeoff_sizing
 from calculations.instructor import review_coursework
-from calculations.official_topics import validate_topic_geometry
+from calculations.official_topics import validate_topic_geometry, check_topic_requirements
+from calculations.design_solver import resolve_design
+from calculations.model_scope import assessment, is_water
 from calculations.constraints import resolve_and_lock_parameters, finalize_parameter_states, get_initial_constraint_suggestions, WING_PLANFORMS
 
-def run_bipol_project(params: dict):
-    """
-    Wykonuje pełny ciąg obliczeniowy projektu BIPOL I (etapy P1 - P6).
-    """
-    # Normalizacja domeny: napęd odrzutowy nie występuje w konfiguracji ciągnącej w nosie kadłuba (GA tractor)
-    params = validate_parameters(params)
-    params, law_corrections = normalize_occupants(params)
-    params["_law_corrections"] = law_corrections
-    params, param_states, constraint_warnings = resolve_and_lock_parameters(params, params.get("locked_params", []))
-    if params.get("engine_type") == "jet" and params.get("engine_location") in ("nose", "retractable", "none"):
-        params["engine_location"] = "wing" if params.get("aircraft_type") == "jet_transport" else "rear"
-
-    lift = high_lift(params)
-    for key in ('cz_max_to', 'cz_max_lnd'):
-        params[key] = lift[key]
-        param_states[key] = dict(state='derived', value=lift[key],
-            formula='Model mechanizacji 20°/40°', sources=['cz_max_clean','flap_type','slat_type'])
-
-    # Etap P1 i P2: Bilans masowy (szacowanie MTOW)
+def _size_airframe(params, param_states):
     mass_res = calculate_mass_sizing(params)
     if params.get('preliminary_polar_mode','input') != 'input':
         params['cx0'] = mass_res['preliminary_polar']['cx0']
@@ -60,7 +44,10 @@ def run_bipol_project(params: dict):
     # before propulsion, stall checks and reports consume the coefficients.
     for _ in range(20):
         lift = high_lift(params, geometry=geom_res)
-        if all(params[key] == lift[key] for key in ('cz_max_to', 'cz_max_lnd')):
+        if all(abs(params[key] - lift[key]) < 1e-9 for key in ('cz_max_to', 'cz_max_lnd')):
+            for key in ('cz_max_to', 'cz_max_lnd'):
+                params[key] = lift[key]
+                param_states[key]['value'] = lift[key]
             break
         for key in ('cz_max_to', 'cz_max_lnd'):
             params[key] = lift[key]
@@ -97,6 +84,30 @@ def run_bipol_project(params: dict):
         raise ValueError('Nie uzyskano spójnego położenia skrzydła i ramion usterzenia; zmień układ lub założenia geometrii.')
     
     refine_takeoff_sizing(sizing_res, geom_res, aero_res, params, m0)
+    return mass_res, sizing_res, geom_res, aero_res
+
+
+def run_bipol_project(params: dict):
+    """
+    Wykonuje pełny ciąg obliczeniowy projektu BIPOL I (etapy P1 - P6).
+    """
+    # Normalizacja domeny: napęd odrzutowy nie występuje w konfiguracji ciągnącej w nosie kadłuba (GA tractor)
+    params = validate_parameters(params)
+    params, law_corrections = normalize_occupants(params)
+    params["_law_corrections"] = law_corrections
+    params, param_states, constraint_warnings = resolve_and_lock_parameters(params, params.get("locked_params", []))
+    if params.get("engine_type") == "jet" and params.get("engine_location") in ("nose", "retractable", "none"):
+        params["engine_location"] = "wing" if params.get("aircraft_type") == "jet_transport" else "rear"
+
+    lift = high_lift(params)
+    for key in ('cz_max_to', 'cz_max_lnd'):
+        params[key] = lift[key]
+        param_states[key] = dict(state='derived', value=lift[key],
+            formula='Model mechanizacji 20°/40°', sources=['cz_max_clean','flap_type','slat_type'])
+
+    # Etap P1 i P2: Bilans masowy (szacowanie MTOW)
+    mass_res, sizing_res, geom_res, aero_res, design_iteration = resolve_design(params, param_states, _size_airframe)
+    m0 = mass_res["m0"]
     finalize_parameter_states(params, param_states, mass_res, sizing_res, geom_res)
 
     # Etap P5: Osiągi samolotu (prędkości, wznoszenie, pułap, start, lądowanie)
@@ -110,7 +121,12 @@ def run_bipol_project(params: dict):
     balance_res = calculate_balance_and_stability(mass_res, geom_res, aero_res, params)
     
     # Ocena zgodności z wymaganiami taktyczno-technicznymi
-    checks = []
+    model_scope = assessment(params, mass_res)
+    checks = check_topic_requirements(params, sizing_res) + model_scope['checks']
+    if design_iteration["mode"] == "coupled":
+        checks.append(dict(parameter="Zbieżność masy, geometrii i biegunowej misji",
+            required=f"Błąd względny ≤ {design_iteration['tolerance']:.4g}", actual=f"{design_iteration['iterations']} iteracji",
+            passed=design_iteration["converged"], note=design_iteration["failure"] or "Bilans paliwa przy zadanej TAS i wysokości, z końcową biegunową P4."))
     # 1. Zgodność z prędkością przeciągnięcia
     req_v_stall = float(params.get("v_stall_kmh", 100.0))
     act_v_stall = perf_res["speeds"]["vs_lnd_kmh"]
@@ -139,12 +155,12 @@ def run_bipol_project(params: dict):
             required=f"{params['cruise_speed_kmh']:g} km/h TAS na {params['cruise_altitude_m']:g} m",
             actual=f"Cz={cruise['cl']:.3f}; nadmiar mocy {cruise['available_w']-cruise['required_w']:.0f} W",
             passed=cruise['cl'] <= cruise['cl_max'] and cruise['climb_ms'] >= 0,
-            note='Sprawdzenie przy MTOW: poniżej Czmax oraz moc dostępna co najmniej równa wymaganej.'))
-        mission_range = perf_res['paturski_p6']['range_endurance_6_5']['range_at_requested_speed_km']
+            note='Sprawdzenie przy masie początku przelotu z bilansu misji: poniżej Czmax oraz moc dostępna co najmniej równa wymaganej.'))
+        mission_range = perf_res['mission_range']['total_available_km']
         checks.append(dict(parameter='Zasięg przy wymaganej prędkości i wysokości',
             required=f"≥ {params['range_km']:g} km", actual=f'{mission_range:g} km' if mission_range is not None else 'Lot nieosiągalny',
-            passed=mission_range is not None and mission_range >= params['range_km'],
-            note='Biegunowa P4 i paliwo fazy przelotu z bilansu P2; rezerwy nie są spalane po raz drugi.'))
+            passed=perf_res['mission_range']['passed'],
+            note='Biegunowa P4 i paliwo każdego odcinka przelotu z bilansu P2; dolot i powrót oceniane osobno, bez zużycia rezerwy.'))
     if perf_res['speeds']['mach_cruise'] > .75:
         checks.append(dict(parameter='Zakres modelu aerodynamicznego przy dużej prędkości',
             required='Dane oporu falowego i profilu', actual=f"M={perf_res['speeds']['mach_cruise']:.3f}",
@@ -156,14 +172,14 @@ def run_bipol_project(params: dict):
         act_to = perf_res['takeoff']['distance_to_15m']
         checks.append(dict(parameter='Całkowita długość startu do 15 m',
             required=f'≤ {req_to:g} m' if req_to else 'Podaj założenie',
-            actual=f'{act_to:g} m' if act_to is not None else 'Start nieosiągalny',
+            actual=f'{act_to:g} m' if act_to is not None else 'Nie wyznaczono — operacje na wodzie' if is_water(params) else 'Start nieosiągalny',
             passed=bool(req_to and act_to is not None and act_to <= req_to),
             note='Rozbieg + odcinek powietrzny do wysokości 15 m.'))
     req_lnd = params.get('landing_distance_m', 0)
     act_lnd = perf_res['landing']['distance_from_15m']
     checks.append(dict(parameter='Całkowita długość lądowania znad 15 m',
-        required=f'≤ {req_lnd:g} m' if req_lnd else 'Podaj założenie', actual=f'{act_lnd:g} m',
-        passed=bool(req_lnd and act_lnd <= req_lnd), note='Podejście + wyrównanie + dobieg do zatrzymania.'))
+        required=f'≤ {req_lnd:g} m' if req_lnd else 'Podaj założenie', actual=f'{act_lnd:g} m' if act_lnd is not None else 'Nie wyznaczono — operacje na wodzie',
+        passed=bool(req_lnd and act_lnd is not None and act_lnd <= req_lnd), note='Podejście + wyrównanie + dobieg do zatrzymania.'))
 
     # 4. Zapas stateczności statycznej w skrajnym tylnym położeniu ŚM
     act_sm = balance_res["stability"]["static_margin_aft_pct"]
@@ -202,6 +218,8 @@ def run_bipol_project(params: dict):
 
     result = {
         "status": "success",
+        "design_iteration": design_iteration,
+        "model_scope": model_scope,
         "params": params,
         "mass": mass_res,
         "sizing": sizing_res,

@@ -908,7 +908,7 @@
                   <ul>
                     <li><strong>Projekt nr 2 (Aerodynamika płata, wzory 2.1–2.27):</strong> Korekta oporu profilu od liczby Reynoldsa \(C_{x,min2} = C_{x,min1}(Re_1/10^7)^{0.11}\), poprawka liniowa \(\Delta C_{x,Re}(C_z)\), współczynniki korekcyjne Glauerta \(\tau(\Lambda/a_\infty, \lambda)\) i \(\delta(\Lambda/a_\infty, \lambda, \beta_{25})\), opór techniczny \(\Delta C_{x,tech} = 0.15 C'_{x\infty,min}\) oraz pochodna płata \(a = \frac{a_\infty}{1 + \frac{a_\infty}{\pi\Lambda}(1+\tau)}\).</li>
                     <li><strong>Projekt nr 3 (Aerodynamika samolotu + Tabele A, B, C, wzory 3.1–3.11):</strong> Powierzchnia omywana kadłuba \(S_{ck} = 2.85 l_k \sqrt{S_k}\), siła nośna usterzenia z równowagi podłużnej \(C_{zH} = \frac{C_{m,SA} + C_z(\bar{x}_{SC} - \bar{x}_{SA})}{\kappa'_H}\), wzrost oporu szkodliwego \(C'_{x,szk} = (C_{x,szk})_{min}(1 + |C_z|/\zeta)\), interferencja \(K_{interf} \in \{0.02\text{ jet}, 0.04\text{ prop}\}\) oraz funkcja energetyczna \(E = (C'_z)^3 / C_x^2\).</li>
-                    <li><strong>Projekt nr 4 (Lot szybowy, wzory 4.1–4.12):</strong> Dokładne równania dla \(\gamma \in [0^\circ, 90^\circ]\): \(V = \sqrt{\frac{2mg}{\rho S}\frac{1}{C_z^2+C_x^2}}\), \(w = \sqrt{\frac{2mg}{\rho S}\frac{C_x^2}{(C_z^2+C_x^2)^3}}\) oraz relacje analityczne \(V_{opt}/V_{ek} = \sqrt[4]{3} \approx 1.3161\), \(w_{opt}/w_{ek} = \frac{\sqrt{3\sqrt{3}}}{2} \approx 1.1401\).</li>
+                    <li><strong>Projekt nr 4 (Lot szybowy, wzory 4.1–4.12):</strong> Dokładne równania dla \(\gamma \in [0^\circ, 90^\circ]\): \(V = \sqrt{\frac{2mg}{\rho S\sqrt{C_z^2+C_x^2}}}\), \(w = V\frac{C_x}{\sqrt{C_z^2+C_x^2}}\) oraz relacje analityczne \(V_{opt}/V_{ek} = \sqrt[4]{3} \approx 1.3161\), \(w_{opt}/w_{ek} = \frac{\sqrt{3\sqrt{3}}}{2} \approx 1.1401\).</li>
                     <li><strong>Projekt nr 5 (Zespół napędowy, wzory 5.1–5.20):</strong> Cecha bezśrednicowa śmigła \(C_D = V_d \sqrt[5]{\frac{\rho_d}{N_d n_{sd}^2}}\), średnica \(D = \frac{V_d}{J n_{sd}}\), liczba Macha końcówki \(\text{Ma}_{kl} \le 0.80/0.90\); charakterystyka wysokościowa tłokowa \(N(h)=N(0)\frac{\sigma-k}{1-k}\), turbośmigłowa \(N_0 \sigma^{0.6}\), odrzutowa \(P_r^*(h)=P_{r0}\sigma^{0.85}(1 - K_P \text{Ma})\).</li>
                     <li><strong>Projekt nr 6 (Osiągi samolotu, wzory 6.1–6.38):</strong> Kryterium metody mocy \(q_N = m_{max}/N_{max} > 6\text{ kg/kW}\) (\(q_{Pr} > 300\text{ kg/kN}\)), Tabela 6.2 wykresu ofertowego z \(V_\gamma\), \(1/w_{max}\) i całką czasu wznoszenia \(t_h = \frac{h_t}{w_{max}(0)}\ln\frac{1}{1-h/h_t}\), oraz Tabela 6.3 zasięgu \(L(V)\) i długotrwałości \(T(V)\).</li>
                   </ul>
@@ -2416,14 +2416,14 @@
   </script>
   <script src="/static/js/symbols.js?v=1"></script>
   <script src="/static/js/studio-core.js?v=2"></script>
-  <script src="/static/js/aircraft-preview.js?v=4"></script>
+  <script src="/static/js/aircraft-preview.js?v=5"></script>
   <script src="/static/js/studio-visuals.js?v=2"></script>
   <script src="/static/js/didactic_data.js?v=13"></script>
   <script src="/static/js/charts.js?v=15"></script>
-  <script src="/static/js/app.js?v=23"></script>
+  <script src="/static/js/app.js?v=24"></script>
 <script src="/static/js/didactic_modes.js?v=1"></script>
   <script src="/static/js/constraints-ui.js?v=5"></script>
-  <script src="/static/js/design-basis.js?v=5"></script>
+  <script src="/static/js/design-basis.js?v=6"></script>
   <script src="/static/js/parameter-report.js?v=1"></script>
   <script src="/static/js/studio.js?v=8"></script>
   <script src="/static/js/aircraft-project.js?v=1"></script>

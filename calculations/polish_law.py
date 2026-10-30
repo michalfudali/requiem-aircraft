@@ -8,9 +8,6 @@ Przyjęte obciążenia i uproszczona obwiednia są założeniami dydaktycznymi.
 Źródła: https://www.easa.europa.eu/en/downloads/22283/en
 https://www.easa.europa.eu/en/domains/drones-air-mobility/operating-drone
 """
-import math
-
-from calculations.atmosphere import isa_atmosphere
 
 KT_TO_KMH = 1.852
 KMH_TO_KT = 1.0 / 1.852
@@ -767,20 +764,12 @@ def check_compliance(params: dict, mass_res: dict, geom_res: dict = None, perf_r
         if known:
             high_speed = float(params["vmo_kcas"]) > 250 or float(params["mmo"]) > 0.6
             perf_lvl = "High Speed" if high_speed else "Low Speed"
-        elif (envelope_res or {}).get("terms", {}).get("v_c_ms"):
-            # VNO/VMO may not exceed VC (CS 23.1505), so a low VC proves the Low Speed level.
-            terms = envelope_res["terms"]
-            vc_kt = terms["v_c_ms"] * 3.6 * KMH_TO_KT
-            mc = terms["v_c_ms"] / math.sqrt(terms["sigma_cr"]) / isa_atmosphere(params.get("cruise_altitude_m", 0))["a"]
-            if vc_kt <= 250 and mc <= 0.6:
-                known = True
-                perf_lvl = f"Low Speed (VNO/VMO ≤ VC = {vc_kt:.0f} KEAS, MC = {mc:.2f})"
         checks.append(_chk(
             "Poziom osiągów CS 23.2005(c)",
             "VMO/VNO ≤ 250 KCAS i MMO ≤ 0,6 dla Low Speed",
             perf_lvl,
             known,
-            "EASA CS 23.2005(c), CS 23.1505; Vcr (TAS) nie określa poziomu osiągów", "warning"
+            "EASA CS 23.2005(c); obliczeniowe VC (EAS) nie zastępuje ustalonych VMO/VNO (CAS) i MMO", "warning"
         ))
     if sub["unmanned"]:
         checks.append(_chk(

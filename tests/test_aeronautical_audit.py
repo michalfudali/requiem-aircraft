@@ -92,10 +92,10 @@ def test_heavy_payload_topics_are_transport_category_with_two_pilots():
     assert not any('pasażerów' in c['name'] for c in r['easa_compliance']['checks'])
 
 
-def test_low_design_cruising_speed_proves_the_low_speed_level():
+def test_design_cruising_speed_does_not_replace_operational_cas_and_mach_limits():
     level = lambda num: run_bipol_project(topic(num))['easa_compliance']['easa_performance_level']
-    assert level(40).startswith('Low Speed')  # VNO ≤ VC ≈ 125 KEAS
-    assert level(49).startswith('Nie określono')  # VC > 250 KEAS: the designer must state VMO/MMO
+    assert level(40).startswith('Nie określono')
+    assert level(49).startswith('Nie określono')
     r = run_bipol_project(dict(topic(49), vmo_kcas=240, mmo=.55))
     assert r['easa_compliance']['easa_performance_level'] == 'Low Speed'
 

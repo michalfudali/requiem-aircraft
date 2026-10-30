@@ -37,6 +37,7 @@ def validate_bipol1(p):
         'raymer_family': tuple(RAYMER), 'cx0_reference_class': tuple(CX0_RANGES),
         'climb_fraction_mode': ('auto','corke','reading'),
         'trend_year_basis': ('production','certification'),
+        'design_iteration_mode': ('preliminary', 'coupled'),
     }
     for key, allowed in options.items():
         if key in p and p[key] not in allowed:
@@ -96,9 +97,10 @@ def preliminary_polar(p):
     else:
         ratio, cx0 = None, p.get('cx0', .025)
         # Existing aerodynamic input is a preliminary estimate, not a graph reading.
-        cx0 += .002 if p.get('wing_config') == 'braced_high' else 0
-        cx0 += .0025 if p.get('flap_type') == 'junkers' else 0
-        cx0 += .003 if p.get('slat_type') == 'fixed_slot' else 0
+        if not p.get('preliminary_polar_includes_configuration'):
+            cx0 += .002 if p.get('wing_config') == 'braced_high' else 0
+            cx0 += .0025 if p.get('flap_type') == 'junkers' else 0
+            cx0 += .003 if p.get('slat_type') == 'fixed_slot' else 0
         kmax = .5*math.sqrt(math.pi*ar*e/cx0)
     from calculations.preliminary import classify_bipol_cx0
     inferred_class = classify_bipol_cx0(p)
@@ -159,6 +161,8 @@ def empty_mass_law(p):
     meta.update(A=a, C=c, k_vs=kvs)
 
     def share(m):
+        if m <= 0 or not math.isfinite(m):
+            raise ValueError('Iteracja masy wymaga dodatniej, skończonej masy startowej.')
         try:
             value = a*m**c*kvs
         except OverflowError:
@@ -217,7 +221,16 @@ def mission_model(p, kmax):
         distance = p['outbound_range_km']+back
     if back > distance:
         raise ValueError('Odcinek powrotny nie może być dłuższy niż całkowity zasięg misji.')
-    def cruise(km):
+    coupled = p.get('design_iteration_mode') == 'coupled' and bool(p.get('_mission_polar')) and powered
+    def cruise(km, mass=None, takeoff_mass=None):
+        if coupled and mass is not None:
+            from calculations.mission_cruise import mass_after_cruise
+            # A 0.1% explicit route margin avoids presenting rounding as compliance.
+            polar = dict(p['_mission_polar'])
+            if p.get('wing_input_mode') == 'loading':
+                polar['S'] *= takeoff_mass / polar['reference_mass_kg']
+            end = mass_after_cruise(mass, km * 1000 * 1.001, p, polar)
+            return end / mass if end is not None else 0.0
         return math.exp(-km*1000/scale) if powered else 1.
     loiter_speed = p.get('loiter_speed_kmh',p.get('cruise_speed_kmh',250))/3.6
     # p. 6 is not superseded by the lecture's CRUISE-only factor .94.
@@ -248,16 +261,19 @@ def mission_model(p, kmax):
         phase('warmup','Rozruch (uwzględniony w starcie)')
         phase('takeoff','Start i kołowanie',factors['takeoff'])
         phase('climb','Wznoszenie i rozpędzanie',climb)
-        phase('cruise','Lot do celu' if back or drop else 'Przelot',cruise(distance-back))
+        phase('cruise','Lot do celu' if back or drop else 'Przelot',cruise(distance-back,current,m0))
         if task_time:
             phase('task','Zadanie przy maksymalnym ciągu / mocy',burn=task_fuel)
         if drop:
             phase('drop','Zrzut ładunku',release=drop)
         if back:
-            phase('return','Lot powrotny',cruise(back))
+            phase('return','Lot powrotny',cruise(back,current,m0))
         phase('descent','Zniżanie (bez osobnego narzutu paliwa)')
         phase('loiter','Krążenie / patrol',loiter)
         phase('landing','Lądowanie i kołowanie',factors['landing'])
+        if coupled:
+            factors['cruise'] = math.prod(s['fuel_fraction'] for s in phases if s['key'] in ('cruise', 'return'))
+            factors['total_mff'] = math.prod(factors[key] for key in ('warmup','takeoff','climb','cruise','descent','loiter','landing'))
         return dict(phases=phases,landing_mass=current,burn=fuel_burn,
                     fuel=reserve*fuel_burn,reserve=(reserve-1)*fuel_burn)
     return simulate, dict(method=method,corke=corke,factors=factors,range_scale=scale,
@@ -327,6 +343,8 @@ def solve_mass(p, payload, crew):
                   fuel_burn_kg=flight['burn'],reserve_fuel_kg=flight['reserve'],preliminary_polar=polar,
                   fuel_fractions_detail=mission['factors'],mass_method=mission['method'],
                   mission_assumptions=dict(phase_model='galinski',reserve_factor=mission['reserve'],
+                    cruise_model='constant_tas_altitude' if p.get('_mission_polar') else 'preliminary_ld',
+                    cruise_route_margin=1.001 if p.get('_mission_polar') else 1.0,
                     ld_factor=p.get('mission_ld_factor',.94),k_max_preliminary=polar['kmax'],
                     mass_residual_relative=abs(m0-me-useful-flight['fuel'])/m0,
                     empty_mass_residual_relative=relative,corke=mission['corke'],
@@ -339,8 +357,14 @@ def solve_mass(p, payload, crew):
         result['fuel_fractions_detail']['task'] = task['fuel_fraction']
         result['fuel_fractions_detail']['total_mff'] *= task['fuel_fraction']
     result['payload_range'] = []
+    if p.get('_mission_polar'):
+        used = dict(p['_mission_polar'])
+        if p.get('wing_input_mode') == 'loading':
+            used['S'] *= m0 / used['reference_mass_kg']
+        result['mission_assumptions']['cruise_polar'] = used
+        result['payload_range_note'] = 'Analiza ładunek–zasięg wymaga ponownego całkowania przy zachowanej pojemności paliwa; nie użyto uproszczenia stałego K.'
     n = int(p.get('n_pax',0))
-    if n and math.isfinite(mission['range_scale']) and not drop and not mission['task_fuel']:
+    if n and math.isfinite(mission['range_scale']) and not drop and not mission['task_fuel'] and not p.get('_mission_polar'):
         other = mission['factors']['total_mff']/mission['factors']['cruise']
         for count in sorted({n,max(0,n-1),n//2,0},reverse=True):
             load = count*(p.get('m_pax',80)+p.get('m_bag',0))+p.get('m_cargo',0)

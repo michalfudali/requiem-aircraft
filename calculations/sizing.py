@@ -64,6 +64,9 @@ def calculate_matching_chart(params: dict, m0: float = None, mass: dict = None):
     s_to = float(params.get("takeoff_distance_m") or 0.0)
     s_run = float(params.get("takeoff_run_m", 500.0))
     s_l = float(params.get("landing_distance_m") or 0.0)
+    water = params.get('operating_surface') == 'water'
+    if water:
+        s_to = s_l = 0.0
     wy_req = float(params.get("climb_rate_ms", 5.0))
 
     v_cr_kmh = float(params.get("cruise_speed_kmh", 240.0))
@@ -78,11 +81,11 @@ def calculate_matching_chart(params: dict, m0: float = None, mass: dict = None):
     slat_type = params.get("slat_type", "none")
 
     cx0 = cx0_base
-    if wing_config == "braced_high":
+    if wing_config == "braced_high" and not params.get('preliminary_polar_includes_configuration'):
         cx0 += 0.0020
-    if flap_type == "junkers":
+    if flap_type == "junkers" and not params.get('preliminary_polar_includes_configuration'):
         cx0 += 0.0025
-    if slat_type == "fixed_slot":
+    if slat_type == "fixed_slot" and not params.get('preliminary_polar_includes_configuration'):
         cx0 += 0.0030
 
     cz_max_to = float(params.get("cz_max_to", 1.8))
@@ -129,7 +132,7 @@ def calculate_matching_chart(params: dict, m0: float = None, mass: dict = None):
     if fixed_area and m0 is not None:
         ws_design, limit_by = float(m0) * G0 / fixed_area, "zadana powierzchnia skrzydła"
     else:
-        ws_design = round(ws_limit, 1)
+        ws_design = ws_limit
 
     # 3. Wznoszenie (wzory 6–9) przy V = Vmin + 0,25(Vmax − Vmin); Vmax przyjęto równą Vprzel
     v_climb_ms = v_min_ms + 0.25 * max(0.0, v_cr_ms - v_min_ms)
@@ -154,7 +157,9 @@ def calculate_matching_chart(params: dict, m0: float = None, mass: dict = None):
 
     def requirements(ws):
         """T/W (jet) or P/W [W/N] (prop) for take-off, climb and cruise at one W/S."""
-        if s_to:
+        if water:
+            tw_to = 0.0  # excluded constraint, not a prediction of water take-off
+        elif s_to:
             tw_to = takeoff_tw(ws, cz_max_to, s_to)
         else:  # zastępczo: rozbieg, gdy nie podano długości startu na 15 m
             tw_to = (1.21 * ws) / (G0 * RHO0 * cz_max_to * max(30.0, s_run)) + MU_GROUND
@@ -215,7 +220,7 @@ def calculate_matching_chart(params: dict, m0: float = None, mass: dict = None):
         "curve_climb": curve_climb,
         "curve_cruise": curve_cruise,
         "climb_min": round(climb_min, 4) if climb_min is not None else None,
-        "takeoff_basis": "15m" if s_to else "ground_roll",
+        "takeoff_basis": "unmodelled_water" if water else "15m" if s_to else "ground_roll",
         # Unrounded intermediate values of the design point, shown step by step in reports.
         "terms": {
             "cx0": cx0, "cx0_base": cx0_base, "k_ind": k_ind, "aspect_ratio": AR, "oswald_e": e,

@@ -44,11 +44,16 @@ def review_coursework(result):
     if k_p2:
         aero = result['aerodynamics']
         k_p4, cx0_p4 = aero['k_max'], aero['cx0_clean']
-        check('polar_consistency', f'Spójność biegunowej P2 i P4 (Kmax ±{POLAR_CONSISTENCY_TOLERANCE:.0%})',
+        if mass['mission_assumptions'].get('cruise_model') == 'constant_tas_altitude':
+            check('polar_consistency', 'Domknięcie bilansu misji z biegunową P4',
+                  result['design_iteration']['converged'],
+                  f"{result['design_iteration']['iterations']} iteracji masy, geometrii i oporu przy zadanej TAS i wysokości.")
+        else:
+            check('polar_consistency', f'Spójność biegunowej P2 i P4 (Kmax ±{POLAR_CONSISTENCY_TOLERANCE:.0%})',
               abs(k_p2 - k_p4) <= POLAR_CONSISTENCY_TOLERANCE * k_p4,
               f"P2: Kmax = {k_p2:.1f} (Cx0 = {p['cx0']:.4f}, e = {p['oswald_e']:.2f}); "
               f"P4: Kmax = {k_p4:.1f} (Cx0 = {cx0_p4:.4f}, e = {aero['oswald_e']:.2f}). "
-              'Przy większej różnicy przyjmij w założeniach P2 wartości z P4 i powtórz bilans masy.')
+                  'Przy większej różnicy przyjmij w założeniach P2 wartości z P4 i powtórz bilans masy.')
     if p['engine_type'] != 'none':
         drive_key = 'thrust_to_weight' if p['engine_type'] == 'jet' else 'power_loading_kg_kw'
         climb = next(c for c in trends['relationships'] if c['x_key'] == drive_key and c['y_key'] == 'climb_rate_ms')

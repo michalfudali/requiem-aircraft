@@ -316,9 +316,10 @@ def paturski_project_2_wing(geom_res: dict, params: dict, m0: float = None) -> d
     }
 
 
-def trimmed_polar(model: dict, x_cg_bar: float) -> list:
+def trimmed_polar(model: dict, x_cg_bar: float, rounded=True) -> list:
     """Tabela 2.2 Paturskiego: biegunowa samolotu wyważonego usterzeniem poziomym
     przy środku masy w x_cg_bar (ułamek ŚCA, od noska)."""
+    display = lambda value, digits: round(value, digits) if rounded else value
     cz_max_clean = model["cz_max_clean"]
     AR = model["aspect_ratio"]
     a_inf_deg, alpha_0_deg = model["a_inf_deg"], model["alpha_0_deg"]
@@ -355,22 +356,22 @@ def trimmed_polar(model: dict, x_cg_bar: float) -> list:
 
         table_2_2.append({
             "lp": idx,
-            "cz_inf": round(cz_inf, 3),
-            "cx_inf": round(cx_inf_1, 5),
-            "alpha_inf_deg": round(alpha_inf_deg, 2),
-            "cx_inf_prime": round(cx_inf_prime, 5),
-            "alpha_i_deg": round(alpha_i_deg, 2),
-            "alpha_p_deg": round(alpha_p_deg, 2),
-            "cx_i": round(cx_i, 5),
-            "cx_p_prime": round(cx_p_prime, 5),
-            "cz_h": round(cz_h, 4),
-            "cx_h": round(cx_h, 5),
-            "cx_szk_prime": round(cx_szk_prime, 5),
-            "cx_total": round(cx_total, 5),
-            "delta_cz_h": round(delta_cz_h, 4),
-            "cz_prime": round(cz_prime, 4),
-            "k_ld": round(k_val, 2),
-            "e_energy": round(e_energy, 2),
+            "cz_inf": display(cz_inf, 3),
+            "cx_inf": display(cx_inf_1, 5),
+            "alpha_inf_deg": display(alpha_inf_deg, 2),
+            "cx_inf_prime": display(cx_inf_prime, 5),
+            "alpha_i_deg": display(alpha_i_deg, 2),
+            "alpha_p_deg": display(alpha_p_deg, 2),
+            "cx_i": display(cx_i, 5),
+            "cx_p_prime": display(cx_p_prime, 5),
+            "cz_h": display(cz_h, 4),
+            "cx_h": display(cx_h, 5),
+            "cx_szk_prime": display(cx_szk_prime, 5),
+            "cx_total": display(cx_total, 5),
+            "delta_cz_h": display(delta_cz_h, 4),
+            "cz_prime": display(cz_prime, 4),
+            "k_ld": display(k_val, 2),
+            "e_energy": display(e_energy, 2),
         })
     return table_2_2
 
@@ -724,7 +725,7 @@ def paturski_project_3_aircraft_aero(geom_res: dict, params: dict, m0: float = N
     cx_min_2 = trim_model["cx_min_2"]
     delta_cx_tech = trim_model["delta_cx_tech"]
 
-    fit_pts = [r for r in table_2_2 if 0.0 <= r["cz_inf"] <= 0.85 * cz_max_clean]
+    fit_pts = [r for r in trimmed_polar(trim_model, x_sc_bar, rounded=False) if 0.0 <= r["cz_inf"] <= 0.85 * cz_max_clean]
     n_fit = len(fit_pts)
     sum_x = sum(r["cz_prime"] ** 2 for r in fit_pts)
     sum_y = sum(r["cx_total"] for r in fit_pts)
@@ -851,10 +852,10 @@ def paturski_project_3_aircraft_aero(geom_res: dict, params: dict, m0: float = N
         "analytical_polar_fit": {
             "n_fit": n_fit, "sum_x": sum_x, "sum_y": sum_y, "sum_xx": sum_xx, "sum_xy": sum_xy,
             "cz_fit_max": 0.85 * cz_max_clean, "slope_raw": slope_k, "cx0_raw": cx0_approx,
-            "cx0_approx": round(cx0_approx, 4),
-            "slope_d_cx_d_cz2": round(slope_k, 5),
-            "lambda_e_approx": round(lambda_e_approx, 2),
-            "oswald_e_approx": round(oswald_e_approx, 3),
+            "cx0_approx": cx0_approx,
+            "slope_d_cx_d_cz2": slope_k,
+            "lambda_e_approx": lambda_e_approx,
+            "oswald_e_approx": oswald_e_approx,
         },
         "statistical_benchmarks_abc": statistical_benchmarks_abc,
     }

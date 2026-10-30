@@ -34,6 +34,8 @@ NUMERIC_LIMITS = {
     "ce_ch": (0.05, 1), "cr_cv": (0.05, 1),
     "mass_initial_guess": (1, 1000000), "payload_drop_kg": (0, 500000),
     "mass_iteration_start_kg": (1, 1000000),
+    "water_displacement_volume_m3": (0, 10000),
+    "cargo_bay_length_m": (0, 100), "cargo_bay_width_m": (0, 20), "cargo_bay_height_m": (0, 20),
     "return_range_km": (0, 30000), "outbound_range_km": (0, 30000), "max_power_time_min": (0, 1440),
     "max_power_kw": (0, 1000000), "max_thrust_kn": (0, 10000), "max_power_sfc": (0.001, 1000),
     "loiter_speed_kmh": (1, 1200), "climb_start_speed_kmh": (1, 1200),
@@ -65,6 +67,8 @@ DEFAULTS = {
     "takeoff_distance_m": 0, "landing_distance_m": 0,
     "mass_method": "auto", "empty_mass_model": "class_correlation",
     "mass_initial_guess": 5000, "payload_drop_kg": 0, "return_range_km": 0,
+    "design_iteration_mode": "preliminary", "operating_surface": "land",
+    "cargo_bay_length_m": 0, "cargo_bay_width_m": 0, "cargo_bay_height_m": 0,
     "max_power_time_min": 0, "preliminary_polar_mode": "input",
     "climb_fraction_mode": "auto", "trend_year_basis": "certification",
 }
@@ -74,6 +78,10 @@ def validate_parameters(data):
     if not isinstance(data, dict):
         raise ValueError("Parametry projektu muszą być obiektem JSON.")
     p = {**DEFAULTS, **data}
+    if p['operating_surface'] not in ('land', 'water'):
+        raise ValueError('Nieznane środowisko startu i lądowania.')
+    if 'preliminary_polar_includes_configuration' in p and not isinstance(p['preliminary_polar_includes_configuration'], bool):
+        raise ValueError('Źródło biegunowej P4: wymagany znacznik logiczny.')
     if 'coursework' in p:
         from calculations.coursework import validate_coursework
         validate_coursework(p['coursework'])
@@ -126,6 +134,9 @@ def validate_parameters(data):
         if key in ("n_pax", "n_crew", "n_engines") and not number.is_integer():
             raise ValueError(f"Pole {key}: liczba osób musi być całkowita.")
         p[key] = number
+    dimensions = [p[key] for key in ('cargo_bay_length_m', 'cargo_bay_width_m', 'cargo_bay_height_m')]
+    if any(dimensions) and not all(dimensions):
+        raise ValueError('Podaj wszystkie trzy wymiary ładowni albo pozostaw wszystkie równe zero.')
     if p["aircraft_type"] not in ("piston_ga", "turboprop_regional", "jet_business", "jet_transport", "uav", "motoglider", "glider"):
         raise ValueError("Nieznana klasa konstrukcyjna samolotu.")
     if p["engine_type"] not in ("prop", "jet", "none"):

@@ -144,6 +144,8 @@ def report_document(results, sections, overrides=None, folder_cover=False):
             f'Obliczony rozbieg wynosi {number(perf["takeoff"]["ground_roll_m"], 1)} m, '
             f'a start nad przeszkodę 15 m wymaga {number(perf["takeoff"]["distance_to_15m"], 1)} m. '
             'Z wymaganiem porównano całkowitą długość startu, łącznie z odcinkiem powietrznym.')
+        if p.get('operating_surface') == 'water':
+            conclusions['p5'][-1] = perf['takeoff']['note']
     else:
         glide = perf['glide']
         conclusions['p5'].append(
@@ -228,5 +230,5 @@ def report_document(results, sections, overrides=None, folder_cover=False):
             'folder_cover': folder_cover, 'powered': powered, 'conclusions': conclusions,
             'checks': checks, 'failed': failed, 'pending': pending, 'summary': summary,
             'geometry_sample': list(geometry_sample.values()),
-            'concept': concept,
+            'concept': concept, 'scope_limitations': results.get('model_scope', {}).get('limitations', []),
             'title': TITLES[sections[0]] if len(sections) == 1 else 'Projekt wstępny statku powietrznego'}

@@ -31,7 +31,7 @@ wyniki → weryfikacja → raport zbiorczy, sprawozdanie P6 i eksport DOCX.
 | Temat 95 | Czteromiejscowa turystyczna łódź latająca dostawała 1000 kg ładunku i napęd turbośmigłowy, co dawało około 6 t. | Napęd tłokowy pchający, bez ładunku: 1551 kg (Lake Renegade: 1383 kg). |
 | Temat 31 | Jednomiejscowy holownik miał jednego pasażera. | Brak pasażerów. |
 | Odrzutowe pasażerskie | Skos 12° z profilu VLJ przy M ≈ 0,77. | Skos 25° (CRJ, E-Jet, A320: 23–27°). |
-| Poziom osiągów CS 23.2005(c) | Interfejs nie ma pól VMO/MMO, więc każdy projekt CS-23 miał to wymaganie niespełnione. | VNO/VMO nie może przekroczyć VC (CS 23.1505). VC ≤ 250 KEAS i MC ≤ 0,6 z obwiedni P6 wystarcza więc do poziomu Low Speed. Szybsze projekty nadal wymagają podania VMO/MMO. |
+| Poziom osiągów CS 23.2005(c) | Brak ustalonych VMO/VNO (KCAS) i MMO wymaga uzupełnienia danych. | Korekta po audycie: obliczeniowe VC w EAS nie zastępuje granic operacyjnych w CAS ani MMO. Bez tych danych program nie deklaruje poziomu osiągów. |
 | Frachtowce CS-25 | Ostrzeżenie „co najmniej 10 pasażerów” pojawiało się dla samolotu bez pasażerów. | Powyżej 8618 kg o CS-25 decyduje masa, więc to zalecenie jest pomijane. |
 
 ## Kwestie metodyczne do decyzji

@@ -327,7 +327,8 @@ def coursework_iterate_polar():
     params = baseline['params']
     aero = baseline['aerodynamics']
     updated = {**params, 'cx0': aero['cx0_clean'], 'oswald_e': aero['oswald_e'],
-               'preliminary_polar_mode': 'input'}
+               'preliminary_polar_mode': 'input', 'design_iteration_mode': 'coupled',
+               'preliminary_polar_includes_configuration': True}
     result = run_bipol_project(updated)
     return jsonify(result=result, before=baseline['submission_review']['polar'],
                    after=result['submission_review']['polar'],

@@ -19,6 +19,8 @@ from calculations.atmosphere import isa_atmosphere, G0, RHO0
 from calculations.paturski_ml import paturski_project_6_performance
 from calculations.runway import takeoff_distance
 from calculations.flight_model import flight_point, level_flight_envelope, mission_masses
+from calculations.model_scope import is_water, suppress_water_distances
+from calculations.mission_cruise import assess_mission_range
 
 
 def calculate_performance(m0: float, geom: dict, aero: dict, sizing: dict, params: dict, mass_result: dict = None):
@@ -164,11 +166,13 @@ def calculate_performance(m0: float, geom: dict, aero: dict, sizing: dict, param
     psi_dot_deg_s = math.degrees(psi_dot_rad_s)
     t_turn_360_s = (2.0 * math.pi) / psi_dot_rad_s if psi_dot_rad_s > 0 else None
 
-    return {
+    result = {
         "terms": dict(ws=ws, W=W, vs_clean=vs_clean_ms, vs_to=vs_to_ms, vs_lnd=vs_lnd_ms,
                       v_max_sl=v_max_sl_ms, p_avail_w=P0_avail, t_avail_n=T0_avail),
-        "cruise_check": dict(flight_point(params, sizing, m0, S, cx0, k_clean, h_cr, v_cr_req_ms),
-            altitude_m=h_cr, tas_kmh=v_cr_req_kmh, cl_max=cz_max_clean),
+        "cruise_check": dict(flight_point(params, sizing, mission_masses(mass_result)['cruise_start'] if mass_result else m0,
+            S, cx0, k_clean, h_cr, v_cr_req_ms),
+            altitude_m=h_cr, tas_kmh=v_cr_req_kmh, cl_max=cz_max_clean,
+            mass_kg=mission_masses(mass_result)['cruise_start'] if mass_result else m0),
         "level_flight_available_sl": sl_flight['available'] and not is_glider,
         "speeds": {
             "vs_clean_kmh": round(vs_clean_ms * 3.6, 1),
@@ -231,3 +235,8 @@ def calculate_performance(m0: float, geom: dict, aero: dict, sizing: dict, param
         },
         "paturski_p6": p6
     }
+    if is_water(params):
+        suppress_water_distances(result)
+    if mass_result:
+        result['mission_range'] = assess_mission_range(params, mass_result, geom, aero, sizing)
+    return result

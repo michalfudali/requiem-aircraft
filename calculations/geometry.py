@@ -156,6 +156,20 @@ def calculate_geometry(m0: float, ws: float, params: dict):
         cabin_length = max(2, math.ceil(n_pax / seats_abreast)) * .80
         fuselage_len = cabin_length + 4 * fuselage_diam
         
+    cargo_dimensions = [float(params.get(key, 0)) for key in
+                        ('cargo_bay_length_m', 'cargo_bay_width_m', 'cargo_bay_height_m')]
+    cargo_bay = None
+    if all(cargo_dimensions):
+        cargo_length, cargo_width, cargo_height = cargo_dimensions
+        layout_length, layout_diameter = fuselage_len, fuselage_diam
+        # Circular outer envelope of the rectangular usable cross section.
+        # 0.30 m is an explicit diametral allowance, not a structural sizing.
+        fuselage_diam = max(fuselage_diam, math.hypot(cargo_width, cargo_height) + .30)
+        fuselage_len = max(fuselage_len, cargo_length + 4*fuselage_diam)
+        cargo_bay = dict(length_m=cargo_length, width_m=cargo_width, height_m=cargo_height,
+                         volume_m3=cargo_length*cargo_width*cargo_height,
+                         layout_length_m=layout_length, layout_diameter_m=layout_diameter,
+                         shell_diametral_allowance_m=.30)
     fuselage_fineness = fuselage_len / fuselage_diam
     
     # 3. Geometria usterzenia poziomego (UP) metodą współczynnika objętościowego VH
@@ -373,7 +387,7 @@ def calculate_geometry(m0: float, ws: float, params: dict):
             "type": params.get('slat_type', 'none'),
             "y_in_m": round(max(fuselage_diam*.6, half_span*.08), 3),
             "y_out_m": round(half_span*.94, 3),
-            "s_equipped_over_s": round(max(0, segment_area(min(half_span*.94, max(fuselage_diam*.6, half_span*.08)), half_span*.94)) / S, 5)
+            "s_equipped_over_s": max(0, segment_area(min(half_span*.94, max(fuselage_diam*.6, half_span*.08)), half_span*.94)) / S
                 if params.get('slat_type', 'none') != 'none' else 0.0,
         },
         "flaps": {
@@ -387,7 +401,7 @@ def calculate_geometry(m0: float, ws: float, params: dict):
             "y_in_m": round(y_f_in, 2),
             "y_out_m": round(y_f_out, 2),
             "S_flapped_m2": round(s_flapped_wing, 2),
-            "s_flapped_over_s": round(s_flapped_wing / S, 5),
+            "s_flapped_over_s": s_flapped_wing / S,
             "S_flap_surface_m2": round(s_flap_surface, 2),
             "s_flap_over_s": round(s_flap_surface / S, 3),
         },
@@ -444,17 +458,17 @@ def calculate_geometry(m0: float, ws: float, params: dict):
             # Input mode as used here; parameter states later copy S and b back into params.
             "span_fixed": req_span_val > 0.5,
             "area_fixed": bool(params.get("wing_area_m2")),
-            "S": round(S, 2),
-            "S_exposed": round(s_exposed, 2),
-            "S_wet": round(s_wet_wing, 2),
-            "b": round(b, 2),
-            "AR": round(AR, 2),
-            "eta": round(eta, 3),
-            "cr": round(cr, 3),
-            "ct": round(ct, 3),
-            "mac": round(mac, 3),
-            "y_mac": round(y_mac, 2),
-            "x_le_mac": round(x_le_mac, 2),
+            "S": S,
+            "S_exposed": s_exposed,
+            "S_wet": s_wet_wing,
+            "b": b,
+            "AR": AR,
+            "eta": eta,
+            "cr": cr,
+            "ct": ct,
+            "mac": mac,
+            "y_mac": y_mac,
+            "x_le_mac": x_le_mac,
             "sweep_deg": sweep_deg,
             "dihedral_deg": dihedral_deg,
             "wing_config": wing_config,
@@ -465,35 +479,37 @@ def calculate_geometry(m0: float, ws: float, params: dict):
         },
         "fuselage": {
             "seats_abreast": seats_abreast if ac_type in ('turboprop_regional', 'jet_business', 'jet_transport') else None,
-            "sizing_note":"Kabina: rozstaw rzędów 0,80 m, fotel 0,48 m; przejście i poszycie oraz 4 średnice na nos i ogon. Układ roboczy, wymaga projektu kabiny." if ac_type in ('turboprop_regional','jet_business','jet_transport') else "Wstępna proporcja zależna od rozpiętości; wymaga sprawdzenia zabudowy.",
-            "length": round(fuselage_len, 2),
-            "diameter": round(fuselage_diam, 2),
-            "fineness": round(fuselage_fineness, 2),
-            "S_wet": round(s_wet_fus, 2)
+            "sizing_note": ("Obwiednia ładowni: D ≥ √(szerokość² + wysokość²) + 0,30 m; L ≥ długość ładowni + 4D. Wymiary użytkowe są założeniami, wymagają sprawdzenia rampy, prześwitów i konstrukcji."
+                            if cargo_bay else "Kabina: rozstaw rzędów 0,80 m, fotel 0,48 m; przejście i poszycie oraz 4 średnice na nos i ogon. Układ roboczy, wymaga projektu kabiny." if ac_type in ('turboprop_regional','jet_business','jet_transport') else "Wstępna proporcja zależna od rozpiętości; wymaga sprawdzenia zabudowy."),
+            "cargo_bay": cargo_bay,
+            "length": fuselage_len,
+            "diameter": fuselage_diam,
+            "fineness": fuselage_fineness,
+            "S_wet": s_wet_fus
         },
         "horizontal_tail": {
             "x_ac_m": .90 * fuselage_len,
-            "S_h": round(S_h, 2),
-            "S_wet": round(s_wet_htail, 2),
-            "b_h": round(b_h, 2),
-            "AR_h": round(ar_h, 2),
-            "cr_h": round(cr_h, 3),
-            "ct_h": round(ct_h, 3),
-            "mac_h": round(mac_h, 3),
-            "l_h": round(l_h, 2),
+            "S_h": S_h,
+            "S_wet": s_wet_htail,
+            "b_h": b_h,
+            "AR_h": ar_h,
+            "cr_h": cr_h,
+            "ct_h": ct_h,
+            "mac_h": mac_h,
+            "l_h": l_h,
             "vh_coeff": vh_coeff,
             "ce_over_ch": round(float(params.get("elevator_chord_ratio", params.get("ce_ch", 0.35))), 3)
         },
         "vertical_tail": {
             "x_ac_m": .90 * fuselage_len,
-            "S_v": round(S_v, 2),
-            "S_wet": round(s_wet_vtail, 2),
-            "h_v": round(h_v, 2),
-            "AR_v": round(ar_v, 2),
-            "cr_v": round(cr_v, 3),
-            "ct_v": round(ct_v, 3),
-            "mac_v": round(mac_v, 3),
-            "l_v": round(l_v, 2),
+            "S_v": S_v,
+            "S_wet": s_wet_vtail,
+            "h_v": h_v,
+            "AR_v": ar_v,
+            "cr_v": cr_v,
+            "ct_v": ct_v,
+            "mac_v": mac_v,
+            "l_v": l_v,
             "vv_coeff": vv_coeff,
             "cr_over_cv": round(float(params.get("rudder_chord_ratio", params.get("cr_cv", 0.35))), 3)
         },
@@ -502,14 +518,14 @@ def calculate_geometry(m0: float, ws: float, params: dict):
             "track": gear_track
         },
         "wetted_area": {
-            "total_m2": round(s_wet_total, 2),
+            "total_m2": s_wet_total,
             "swet_over_s": round(s_wet_total / S, 2)
         },
         "schrenk": schrenk_data,
         "schrenk_Pinpoint": {
-            "max_cz1": round(max_cz1_schrenk, 3),
-            "stall_eta_span": round(stall_eta_span, 3),
-            "stall_y_m": round(stall_y_m, 2)
+            "max_cz1": max_cz1_schrenk,
+            "stall_eta_span": stall_eta_span,
+            "stall_y_m": stall_y_m
         },
         "control_surfaces": control_surfaces
     }

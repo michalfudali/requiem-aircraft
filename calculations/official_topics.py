@@ -384,6 +384,13 @@ def topic_parameters(topic):
                      'cs23_commuter' if passengers > 9 else 'cs23_level3' if passengers > 6 else
                      'cs23_level2' if passengers > 1 else 'cs23_level1')
     p.update(_low_speed_seed(topic, d, title))
+    p['operating_surface'] = 'water' if topic['num'] in (93, 94, 95, 96, 97, 98, 110) else 'land'
+    p['design_iteration_mode'] = 'coupled'
+    if topic['num'] in (71, 74):
+        # Explicit preliminary bay envelope for the vehicle-carrying concept.
+        # These are design assumptions; ramp clearance and a particular vehicle
+        # version remain separate checks, rather than a passenger-only cabin.
+        p.update(cargo_bay_length_m=8.5, cargo_bay_width_m=3.2, cargo_bay_height_m=3.2)
     if d['aircraft_type'] == 'jet_transport':
         # Cruise near M 0.77 needs a swept wing (CRJ, E-Jet, A320: 23–27°), not the VLJ's 12°.
         p['sweep_quarter_deg'] = 25.0
@@ -417,5 +424,56 @@ def validate_topic_geometry(params, geometry):
                          'Zachowaj tę rozpiętość albo wybierz własny temat.')
 
 
+def topic_requirements(topic):
+    """Requirements come from the server's catalogue, never from a submitted copy."""
+    p, title = topic['parameters'], topic['title'].lower()
+    required = {key: p[key] for key in ('n_pax', 'n_engines', 'engine_type', 'operating_surface')}
+    if 'akrobac' in title:
+        required['category'] = 'cs23_aerobatic'
+    if any(word in title for word in ('górnopłat', 'dolnopłat')):
+        required['wing_config'] = 'high' if 'górnopłat' in title else 'low'
+    if 'tandem' in title or 'obok siebie' in title:
+        required['seats_config'] = 'tandem' if 'tandem' in title else 'side'
+    match = re.search(r'moc silnika do\s*(\d+)\s*kw', title)
+    if match:
+        required['power_per_engine_max_kw'] = float(match.group(1))
+    if p['m_cargo']:
+        required['cargo_min_kg'] = p['m_cargo']
+    return required
+
+
+def check_topic_requirements(params, sizing):
+    if params.get('topic_origin') != 'official':
+        return []
+    topic = next((t for t in ALL_TOPICS if str(t['num']) == str(params.get('topic_id'))), None)
+    if topic is None:
+        return [dict(parameter='[Temat] Numer oficjalnego tematu', required='Temat z katalogu',
+                     actual=str(params.get('topic_id')), passed=False,
+                     note='Wybierz istniejący temat albo oznacz projekt jako własny.')]
+    requirements = topic_requirements(topic)
+    labels = dict(n_pax='Liczba pasażerów', n_engines='Liczba silników', engine_type='Rodzaj napędu',
+                  operating_surface='Środowisko startu i lądowania', category='Przeznaczenie akrobacyjne',
+                  wing_config='Układ skrzydła', seats_config='Rozmieszczenie miejsc')
+    checks = [dict(parameter=f"[Temat {topic['num']}] {labels[key]}", required=str(expected),
+                   actual=str(params.get(key)), passed=params.get(key) == expected,
+                   note='Wymaganie oficjalnego tematu. Odstępstwo wymaga zmiany tematu lub projektu własnego.')
+              for key, expected in requirements.items() if key in labels]
+    if 'power_per_engine_max_kw' in requirements:
+        power = sizing['design_point'].get('power_kw')
+        limit = requirements['power_per_engine_max_kw'] * requirements['n_engines']
+        checks.append(dict(parameter=f"[Temat {topic['num']}] Maksymalna moc zainstalowana",
+                           required=f'≤ {limit:g} kW', actual=f'{power:g} kW' if power is not None else 'Nie wyznaczono',
+                           passed=power is not None and power <= limit + 1e-6,
+                           note='Limit mocy jednego silnika z treści tematu × wymagana liczba silników.'))
+    if 'cargo_min_kg' in requirements:
+        cargo = params.get('m_cargo', 0)
+        checks.append(dict(parameter=f"[Temat {topic['num']}] Ładunek zadaniowy",
+                           required=f"≥ {requirements['cargo_min_kg']:g} kg", actual=f'{cargo:g} kg',
+                           passed=cargo >= requirements['cargo_min_kg'],
+                           note='Sprawdzenie masy ładunku nie potwierdza wymiarów, mocowania ani przestrzeni ładunkowej.'))
+    return checks
+
+
 for _topic in ALL_TOPICS:
     _topic['parameters'] = topic_parameters(_topic)
+    _topic['requirements'] = topic_requirements(_topic)

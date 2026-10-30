@@ -80,7 +80,7 @@ def refine_takeoff_sizing(sizing, geom, aero, params, mass):
     """
     target = params.get('takeoff_distance_m', 0)
     engine = params['engine_type']
-    if not target or engine == 'none':
+    if not target or engine == 'none' or params.get('operating_surface') == 'water':
         return
     dp = sizing['design_point']
     requirement = required_takeoff_loading(mass * G0 / geom['wing']['S'], aero['cz_max_to'], aero['cx0_to'],

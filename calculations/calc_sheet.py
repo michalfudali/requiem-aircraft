@@ -584,7 +584,30 @@ def _p2(s, r):
                    check=lambda v: v.R_km - v.R_pow)
             legs.append(('r_RET', r'\frac{m_5}{m_4}', 'R_pow', phases['return']['fraction'], 'Lot powrotny'))
         for key, sym, dist, value, label in legs:
-            if jet:
+            if ma.get('cruise_model') == 'constant_tas_altitude':
+                if key == 'r_CR':
+                    from calculations.mission_cruise import coefficients
+                    polar = ma['cruise_polar']
+                    a, b, consumption = coefficients(p, polar)
+                    s.given('S_mis', r'S_{mis}', polar['S'], M2, 4, 'Powierzchnia ostatniej iteracji misji', 'Domknięcie P2–P4')
+                    s.given('CD0_mis', r'C_{x0,mis}', polar['cx0'], '', 7, 'Opór zerowy ostatniej iteracji misji', 'Biegunowa P4')
+                    s.given('k_mis', r'k_{mis}', polar['k'], '', 7, 'Opór indukowany ostatniej iteracji misji', 'Biegunowa P4')
+                    s.given('rho_mis', r'\rho_{mis}', isa_atmosphere(p['cruise_altitude_m'])['rho'], r'\mathrm{kg/m^3}', 5, 'Gęstość w przelocie', 'ISA')
+                    s.calc('a_mis', 'a', r'\tfrac12\rho V^2 S C_{x0}', r'0{,}5[[rho_mis]][[V_cr]]^2[[S_mis]][[CD0_mis]]',
+                           a, r'\mathrm{N}', 4, 'Stała składowa oporu D=a+b m²', check=lambda v: .5*v.rho_mis*v.V_cr**2*v.S_mis*v.CD0_mis)
+                    s.calc('b_mis', 'b', r'\frac{k g^2}{\tfrac12\rho V^2 S}', r'\frac{[[k_mis]][[g]]^2}{0{,}5[[rho_mis]][[V_cr]]^2[[S_mis]]}',
+                           b, r'\mathrm{N/kg^2}', 8, 'Składowa oporu zależna od masy', check=lambda v: v.k_mis*v.g**2/(.5*v.rho_mis*v.V_cr**2*v.S_mis))
+                    s.given('c_mis', r'c_x', consumption, r'\mathrm{kg/(N\,m)}', 10, 'Przelicznik paliwa na drogę: cT/(gV) dla odrzutowego, cP/η dla śmigłowego', 'Jednostki SFC')
+                    s.given('margin_R', r'k_R', 1.001, '', 3, 'Jawny margines długości trasy', 'Założenie obliczeniowe')
+                phase = phases['cruise' if key == 'r_CR' else 'return']
+                s.given(key+'_start', r'm_{p,'+key+'}', phase['mass_start_kg'], KG, 3, 'Masa na początku odcinka', 'Poprzednia faza misji')
+                s.calc(key+'_end', r'm_{k,'+key+'}', r'\sqrt{a/b}\tan\left(\arctan(m_p\sqrt{b/a})-1000R k_R c_x\sqrt{ab}\right)',
+                       rf'\sqrt{{[[a_mis]]/[[b_mis]]}}\tan\left(\arctan([[{key}_start]]\sqrt{{[[b_mis]]/[[a_mis]]}})-1000[[{dist}]][[margin_R]][[c_mis]]\sqrt{{[[a_mis]][[b_mis]]}}\right)',
+                       phase['mass_end_kg'], KG, 3, label + ' — całka bilansu paliwa przy stałej TAS i wysokości',
+                       check=lambda v, q=key, d=dist: math.sqrt(v.a_mis/v.b_mis)*math.tan(math.atan(getattr(v,q+'_start')*math.sqrt(v.b_mis/v.a_mis))-1000*getattr(v,d)*v.margin_R*v.c_mis*math.sqrt(v.a_mis*v.b_mis)))
+                s.calc(key, sym, r'm_k/m_p', rf'[[{key}_end]]/[[{key}_start]]', value, '', 6,
+                       label + ' — stosunek mas', check=lambda v, q=key: getattr(v,q+'_end')/getattr(v,q+'_start'))
+            elif jet:
                 s.calc(key, sym, r'\exp\left(-\frac{1000\,R\,c_T}{V_{cr}K_{przel}}\right)',
                        rf'\exp\left(-\frac{{1000\cdot[[{dist}]]\cdot[[c_T]]}}{{[[V_cr]]\cdot[[K_przel]]}}\right)', value, '', 5,
                        label + ' (równanie Bregueta dla napędu odrzutowego)', SOURCES['B1'] + ', s. 5',
@@ -793,7 +816,11 @@ def _p2_matching(s, r):
            check=lambda v: v.G_wzn + 2 * math.sqrt(getattr(v, cx0_key) * v.k_1))
     at = t['at_design']
     # Start
-    if t['s_to']:
+    if p.get('operating_surface') == 'water':
+        tw_to = 0.0
+        s.given('TW_TO', r'(T/W)_{TO}', 0.0, '', 1,
+                'Ograniczenie startu lądowego wyłączone; operacji wodnych nie wyznaczono', 'Zakres modelu')
+    elif t['s_to']:
         s.given('s_TO', r's_{TO}', t['s_to'], M, 0, 'Długość startu do wysokości 15 m', 'Wymagania tematu')
         s.calc('TOP', 'TOP', r'\frac{W/S}{C_{z\,max,TO}\,\sigma}', r'\frac{[[WS]]}{[[Cz_TO]]\cdot1}', dp['ws'] / t['cz_max_to'], NM2, 1,
                'Parametr startu', SOURCES['B2'] + ', wzór (2)', check=lambda v: v.WS / v.Cz_TO)
@@ -830,7 +857,16 @@ def _p2_matching(s, r):
                r'1{,}06\cdot\max\left\{[[TW_TO]];\;[[TW_wzn]];\;[[TW_cr_inst]]\right\}', tw0, '', 3,
                'Stosunek ciągu do ciężaru z wykresu doboru (6% zapasu)', SOURCES['B2'],
                check=lambda v: round(1.06 * max(v.TW_TO, v.TW_wzn, v.TW_cr_inst), 3))
-        if sz.get('takeoff_model_requirement') is not None:
+        if sz.get('flight_model_requirement') is not None:
+            s.given('TW_P4', r'(T/W)_{P4}', sz['flight_model_requirement']['required_rating']/(mass['m0']*G0), '', 5,
+                    'Wymaganie przelotu i wznoszenia z końcowej biegunowej P4', 'Równowaga sił i mocy')
+            s.given('TW_TO_check', r'(T/W)_{TO,mod}', sz.get('takeoff_model_requirement', 0), '', 5,
+                    'Wymaganie modelu startu; zero oznacza wyłączenie ograniczenia, gdy model nie ma zastosowania', 'P5')
+            s.calc('TW', r'T/W', r'\max\{(T/W)_{dob};1{,}06(T/W)_{P4};1{,}06(T/W)_{TO,mod}\}',
+                   r'\max\{[[TW_dob]];1{,}06[[TW_P4]];1{,}06[[TW_TO_check]]\}', dp['tw'], '', 5,
+                   'Przyjęty ciąg względny po sprawdzeniu P4 i P5',
+                   check=lambda v: max(v.TW_dob, 1.06*v.TW_P4, 1.06*v.TW_TO_check))
+        elif sz.get('takeoff_model_requirement') is not None:
             s.given('TW_mod', r'\left(\tfrac{T}{W}\right)_{TO,mod}', sz['takeoff_model_requirement'], '', 4,
                     'Ciąg względny z modelu startu P5 dla wymaganej drogi (rozwiązanie numeryczne)', SOURCES['ML'] + ', P6')
             s.calc('TW', r'\frac{T}{W}', r'\max\left\{\left(\tfrac{T}{W}\right)_{dob};\;1{,}06\left(\tfrac{T}{W}\right)_{TO,mod}\right\}',
@@ -863,7 +899,16 @@ def _p2_matching(s, r):
         s.calc('P_dob', r'N_{dob}', r'\frac{(N/W)_{dob}\,m_0 g}{1000}', r'\frac{[[PW_dob]]\cdot[[m0]]\cdot[[g]]}{1000}', p_dob, KW, 1,
                'Moc z wykresu doboru', check=lambda v: v.PW_dob * v.m0 * v.g / 1000)
         required = dp['required_power_kw']
-        if sz.get('takeoff_model_requirement') is not None:
+        if sz.get('flight_model_requirement') is not None:
+            s.given('P_P4', r'N_{P4}', sz['flight_model_requirement']['required_rating']/1000, KW, 3,
+                    'Wymaganie mocy na wale z końcowej biegunowej P4 (przelot i wznoszenie)', 'Równowaga sił i mocy')
+            s.given('PW_TO_check', r'(N/W)_{TO,mod}', sz.get('takeoff_model_requirement', 0), r'\mathrm{W/N}', 5,
+                    'Wymaganie modelu startu; zero oznacza wyłączenie ograniczenia, gdy model nie ma zastosowania', 'P5')
+            s.calc('P_wym', r'N_{wym}', r'\max\{N_{dob};1{,}08N_{P4};1{,}08(N/W)_{TO,mod}m_0g/1000\}',
+                   r'\max\{[[P_dob]];1{,}08[[P_P4]];1{,}08[[PW_TO_check]][[m0]][[g]]/1000\}', required, KW, 2,
+                   'Moc wymagana po sprawdzeniu P4 i P5',
+                   check=lambda v: max(v.P_dob, 1.08*v.P_P4, 1.08*v.PW_TO_check*v.m0*v.g/1000))
+        elif sz.get('takeoff_model_requirement') is not None:
             s.given('PW_mod', r'\left(\tfrac{N}{W}\right)_{TO,mod}', sz['takeoff_model_requirement'], r'\mathrm{W/N}', 3,
                     'Moc względna z modelu startu P5 dla wymaganej drogi (rozwiązanie numeryczne)', SOURCES['ML'] + ', P6')
             s.calc('P_wym', r'N_{wym}', r'\max\left\{N_{dob};\;\frac{1{,}08\,(N/W)_{TO,mod}\,m_0g}{1000}\right\}',
@@ -1055,7 +1100,24 @@ def _p3(s, r):
 
     s.section('p3', 'fuselage', 'Wymiary kadłuba', 'Proporcje wstępne programu (do sprawdzenia rysunkiem zabudowy)')
     ac = p.get('aircraft_type', 'piston_ga')
-    if ac in ('glider', 'motoglider'):
+    if fus.get('cargo_bay'):
+        bay = fus['cargo_bay']
+        for key, symbol, value, label in [
+            ('l_layout', 'l_{kab}', bay['layout_length_m'], 'Długość z bazowego układu kabiny'),
+            ('d_layout', 'd_{kab}', bay['layout_diameter_m'], 'Średnica z bazowego układu kabiny'),
+            ('l_bay', 'l_{lad}', bay['length_m'], 'Długość użytkowa ładowni'),
+            ('w_bay', 'w_{lad}', bay['width_m'], 'Szerokość użytkowa ładowni'),
+            ('h_bay', 'h_{lad}', bay['height_m'], 'Wysokość użytkowa ładowni'),
+            ('shell_bay', r'\Delta d', bay['shell_diametral_allowance_m'], 'Wstępny naddatek średnicy na konstrukcję')]:
+            s.given(key, symbol, value, M, 2, label, 'Jawne założenia zabudowy, do sprawdzenia rysunkiem')
+        s.calc('d_k', 'd_k', r'\max\{d_{kab};\sqrt{w_{lad}^2+h_{lad}^2}+\Delta d\}',
+               r'\max\{[[d_layout]];\sqrt{[[w_bay]]^2+[[h_bay]]^2}+[[shell_bay]]\}', fus['diameter'], M, 3,
+               'Obwiednia kołowa przekroju użytkowego ładowni',
+               check=lambda v: max(v.d_layout, math.hypot(v.w_bay, v.h_bay)+v.shell_bay))
+        s.calc('l_k', 'l_k', r'\max\{l_{kab};l_{lad}+4d_k\}', r'\max\{[[l_layout]];[[l_bay]]+4[[d_k]]\}',
+               fus['length'], M, 3, 'Długość kadłuba z ładownią, nosem i ogonem',
+               check=lambda v: max(v.l_layout, v.l_bay+4*v.d_k))
+    elif ac in ('glider', 'motoglider'):
         s.calc('l_k', 'l_k', r'\max\left(5{,}5;\;0{,}45\,b\right)', r'\max\left(5{,}5;\;0{,}45\cdot[[b]]\right)', fus['length'], M, 2,
                'Długość kadłuba', check=lambda v: max(5.5, .45 * v.b), tolerance=.011)
         s.given('d_k', 'd_k', fus['diameter'], M, 2, 'Średnica zastępcza przekroju kabiny (układ i liczba miejsc)', 'Wymiary kabin szybowcowych')
@@ -1685,6 +1747,8 @@ def _p5_takeoff(s, r):
 
 
 def _p5_landing(s, r):
+    if r['params'].get('operating_surface') == 'water':
+        return
     perf = r['performance']
     ld, t = perf['landing'], perf['landing']['terms']
     s.section('p5', 'landing', 'Lądowanie znad przeszkody 15 m', SOURCES['ML'] + ', P6')

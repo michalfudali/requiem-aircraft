@@ -51,6 +51,7 @@
     </section>
     {% endfor %}
     <section class="report-end" id="report-summary">
+      {% if doc.scope_limitations %}<h2>Zakres wymagający odrębnej weryfikacji</h2><ul>{% for note in doc.scope_limitations %}<li>{{ note }}</li>{% endfor %}</ul>{% endif %}
       <h2>Podsumowanie i zgodność z wymaganiami</h2>
       <p>Wyniki dotyczą wariantu „{{ params.name }}” i zakresu {{ selected_sections|join(', ')|upper }}. Najważniejsze parametry przekazywane do kolejnych etapów zestawiono poniżej.</p>
       <table><caption>Parametry wynikowe rozpatrywanego wariantu</caption><thead><tr><th>Wielkość</th><th class="number">Wartość</th><th>Jednostka</th></tr></thead><tbody>{% for label,value,unit,digits in doc.summary %}<tr><td>{{ label }}</td><td class="number">{{ value|reportnum(digits) }}</td><td>{{ unit }}</td></tr>{% endfor %}</tbody></table>

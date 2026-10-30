@@ -202,14 +202,16 @@
       const propRadius=Math.max(.1,diameter/2,concept?fw*(passenger ? .78 : .72):0);
       const length=Math.max(fw*1.1,L*(jet ? .12 : passenger ? .105 : .10));
       let engines;
-      if (loc==='wing') engines=[-1,1].map(sign=>{
-        const y=sign*Math.max(fw*.95,half*.32);
+      const count=Math.max(1,Math.min(8,Math.trunc(Number(p.n_engines ?? (loc==='wing'||jet?2:1)))));
+      const stations=Array.from({length:count},(_,i)=>i-(count-1)/2);
+      if (loc==='wing') engines=stations.map(station=>{
+        const y=station*2*Math.max(fw*.95,half*.32)/Math.max(1,count/2);
         return {x:leading(Math.abs(y))-length*.65,y,z:wingZ+Math.abs(y)*Math.tan(w.dihedral_deg*rad)-fw*(jet ? .52 : .28),pusher:false};
       });
-      else if (loc==='rear' && jet) engines=[-1,1].map(sign=>({x:L*.68,y:sign*fw*.72,z:fw*.12,pusher:false}));
-      else if (loc==='retractable') engines=[{x:L*.51,y:0,z:fw*.6+propRadius,pusher:true}];
-      else if (loc==='rear') engines=[{x:L*.68,y:0,z:fw*.7,pusher:true}];
-      else engines=[{x:-fw*.06,y:0,z:0,pusher:false}];
+      else if (loc==='rear' && jet) engines=stations.map(station=>({x:L*.68,y:station*fw*1.44,z:fw*.12,pusher:false}));
+      else if (loc==='retractable') engines=stations.map(station=>({x:L*.51,y:station*fw*1.44,z:fw*.6+propRadius,pusher:true}));
+      else if (loc==='rear') engines=stations.map(station=>({x:L*.68,y:station*fw*1.44,z:fw*.7,pusher:true}));
+      else engines=stations.map(station=>({x:-fw*.06,y:station*fw*1.44,z:0,pusher:false}));
       for (const engine of engines) {
         const {x,y,z,pusher}=engine, radius=fw*(jet ? .29 : loc==='nose' ? .34 : .24);
         lathe([[x,radius*.73],[x+length*.08,radius*.92],[x+length*.22,radius],[x+length*.58,radius*.97],
@@ -241,7 +243,7 @@
     const track=concept?(passenger?fw*1.2:Math.min(finite(g.gear?.track,fw*1.8),fw*2.5)):finite(g.gear?.track,fw*1.3), ground=-fw*.95;
     const wheels=concept&&sailplane?[[L*.31,0,fw*.14,-fw*.46],[L*.92,0,fw*.045,-fw*.13]]
       :[[L*.47,-track/2,fw*.115,ground],[L*.47,track/2,fw*.115,ground],[L*.14,0,fw*.085,ground]];
-    for (const [x,y,radius,wheelZ] of wheels) {
+    for (const [x,y,radius,wheelZ] of p.operating_surface==='water'?[]:wheels) {
       const rootY=p.gear_attachment==='wing'?y:y*.4;
       if(Math.abs(wheelZ+fw*.15)>.001)strut([x,rootY,-fw*.15],[x,y,wheelZ],fw*.022);
       lathe([[y-fw*.04,radius],[y+fw*.04,radius]],[x,0,wheelZ],'gear','Koło podwozia','y');

@@ -3,7 +3,9 @@
   'use strict';
   const $ = id => document.getElementById(id);
   const extraKeys = ['gear_attachment','gear_retraction','wing_input_mode','payload_input_mode','power_input_mode','wingspan_m',
-    'takeoff_distance_m','landing_distance_m','wing_area_m2','m_payload','engine_power_kw','n_engines','wing_planform','dihedral_deg','aileron_type'];
+    'takeoff_distance_m','landing_distance_m','wing_area_m2','m_payload','engine_power_kw','n_engines','wing_planform','dihedral_deg','aileron_type',
+    'operating_surface','design_iteration_mode','water_displacement_volume_m3',
+    'cargo_bay_length_m','cargo_bay_width_m','cargo_bay_height_m'];
   const wingSources = {loading:['aspect_ratio'],span_aspect:['wingspan_m','aspect_ratio'],
     span_area:['wingspan_m','wing_area_m2'],area_aspect:['wing_area_m2','aspect_ratio']};
   let wizardBase = {};
@@ -24,6 +26,8 @@
     if (!prefix && button) {button.disabled=isDerived;button.title=isDerived?formula:'Przypnij jako założenie';}
   }
   function sync(prefix='') {
+    document.querySelectorAll(`[data-water-scope="${prefix}"]`).forEach(el=>el.hidden=value(prefix,'operating_surface')!=='water');
+    document.querySelectorAll(`[data-cargo-scope="${prefix}"]`).forEach(el=>el.hidden=number(prefix,'m_cargo')<=0);
     const mode=value(prefix,'wing_input_mode') || 'loading';
     const b=number(prefix,'wingspan_m'), s=number(prefix,'wing_area_m2'), ar=number(prefix,'aspect_ratio');
     if (mode==='span_aspect') {
@@ -101,6 +105,10 @@
   }
   function restore(params) {
     const p=infer(params);window.userLockedParams=new Set(p.locked_params||[]);
+    set('','operating_surface',p.operating_surface||'land');
+    set('','design_iteration_mode',p.design_iteration_mode||'preliminary');
+    set('','water_displacement_volume_m3',p.water_displacement_volume_m3||0);
+    for(const key of ['cargo_bay_length_m','cargo_bay_width_m','cargo_bay_height_m'])set('',key,p[key]||0);
     for (const key of extraKeys) if(key in p)set('',key,p[key]);
     if(!('wing_area_m2' in p))set('','wing_area_m2',0);
     if(!('wingspan_m' in p))set('','wingspan_m',p.span_limit||0);
@@ -154,7 +162,10 @@
     if(!topic){delete wizardBase.topic_id;delete wizardBase.topic_origin;topicNote();return;}
     if($('wizardCatalogSource'))$('wizardCatalogSource').hidden=true;
     wizardBase=structuredClone(topic.parameters);
+    set('wiz_','water_displacement_volume_m3',0);
+    for(const key of ['cargo_bay_length_m','cargo_bay_width_m','cargo_bay_height_m'])set('wiz_',key,0);
     for(const [key,val] of Object.entries(wizardBase))set('wiz_',key,val);
+    set('wiz_','n_engines',wizardBase.engine_type==='none'?0:(wizardBase.n_engines ?? defaultEngines('wiz_')));
     document.querySelectorAll('[data-wizard-assumption]').forEach(input=>input.checked=wizardBase.locked_params.includes(input.dataset.wizardAssumption));
     set('wiz_basis_','range_km', wizardBase.range_km || value('wiz_','range_km'));
     set('wiz_basis_','cruise_speed_kmh', wizardBase.cruise_speed_kmh || value('wiz_','cruise_speed_kmh'));
@@ -216,6 +227,7 @@
   }
   function classDefaults(prefix='') {
     const base=prefix?wizardBase:formBaseParams;
+    delete base.preliminary_polar_includes_configuration;
     delete base.topic_id;delete base.topic_origin;
     if(prefix){set('wiz_','topic','');topicNote();}
     if(prefix){if($('wizTrendProvenanceBasis'))$('wizTrendProvenanceBasis').hidden=true;if($('wizTrendProvenanceGeometry'))$('wizTrendProvenanceGeometry').hidden=true;window.BipolTrendProvenance?.previewInWizard?.();}

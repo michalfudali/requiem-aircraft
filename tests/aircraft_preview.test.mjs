@@ -13,6 +13,25 @@ function result(overrides = {}) {
 }
 const points = (model, part) => model.faces.filter(face=>face.part===part).flatMap(face=>face.points);
 
+test('rendered propulsion honours one, two and four engines in every mounting location', () => {
+  for (const engine_type of ['prop','jet']) for (const engine_location of ['nose','wing','rear','retractable']) {
+    const one=preview.model(result({engine_type,engine_location,n_engines:1}));
+    const label=engine_type==='jet'?'Gondola silnika odrzutowego':'Osłona silnika śmigłowego';
+    const single=one.faces.filter(face=>face.label===label).length;
+    assert.ok(single>0);
+    for(const n_engines of [2,4]){
+      const multiple=preview.model(result({engine_type,engine_location,n_engines}));
+      assert.equal(multiple.faces.filter(face=>face.label===label).length,single*n_engines);
+      assert.ok(new Set(points(multiple,'engine').map(p=>p[1])).size>new Set(points(one,'engine').map(p=>p[1])).size);
+    }
+  }
+});
+
+test('a water-only aircraft is not shown with a wheel undercarriage', () => {
+  assert.equal(points(preview.model(result({operating_surface:'water'})),'gear').length,0);
+  assert.ok(points(preview.model(result({operating_surface:'land'})),'gear').length>0);
+});
+
 test('propulsion follows engine type and location, without inventing a glider engine', () => {
   for (const loc of ['nose','wing','rear','retractable']) {
     const prop=preview.model(result({engine_location:loc}));

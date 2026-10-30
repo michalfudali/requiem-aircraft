@@ -33,4 +33,4 @@ def high_lift(params, clean_e=.8, geometry=None):
         delta_cx0_lnd=drag_lnd, e_to=e_to or clean_e, e_lnd=e_lnd or clean_e,
         slat_lift=slat_lift, slat_drag=slat_drag,
         flap_area_fraction=flap_area, slat_area_fraction=slat_area,
-        cz_max_to=round(cl+lift_to+.5*slat_lift, 2), cz_max_lnd=round(cl+lift_lnd+slat_lift, 2))
+        cz_max_to=cl+lift_to+.5*slat_lift, cz_max_lnd=cl+lift_lnd+slat_lift)

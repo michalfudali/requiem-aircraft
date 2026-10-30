@@ -997,6 +997,12 @@ async function performCalculation() {
 
 function updateUI(res) {
   if (!res) return;
+  const scopeCard=document.getElementById('studioModelScope'), scopeList=document.getElementById('studioModelScopeList');
+  if(scopeCard&&scopeList){
+    const notes=res.model_scope?.limitations||[];
+    scopeCard.hidden=notes.length===0;scopeList.replaceChildren();
+    for(const note of notes){const item=document.createElement('li');item.textContent=note;scopeList.appendChild(item);}
+  }
   // 1. Zaktualizuj KPI główne z bezpieczną obsługą brakujących wartości
   try {
     const kpiM0 = document.getElementById('kpi_m0');
@@ -1494,8 +1500,8 @@ function populateP5Tables(res) {
     p5Speeds.innerHTML = `
       <tr><td>Prędkość przeciągnięcia z klapami do lądowania</td><td><b>V_s0</b></td><td class="num"><b>${vLnd.toFixed(1)}</b></td><td class="num">${(vLnd/3.6).toFixed(1)}</td><td class="num">&mdash;</td><td>Ograniczenie przepisowe lądowania (Vs0 &le; zadana)</td></tr>
       <tr><td>Prędkość przeciągnięcia w konfiguracji gładkiej</td><td><b>V_s1</b></td><td class="num"><b>${vClean.toFixed(1)}</b></td><td class="num">${(vClean/3.6).toFixed(1)}</td><td class="num">&mdash;</td><td>Baza do wyznaczenia prędkości oderwania i manewrowej</td></tr>
-      <tr><td>Prędkość oderwania przy starcie (1.12 &bull; Vs_TO)</td><td><b>V_LOF</b></td><td class="num"><b>${(sp.v_lof_kmh ?? 0).toFixed(1)}</b></td><td class="num">${((sp.v_lof_kmh ?? 0)/3.6).toFixed(1)}</td><td class="num">&mdash;</td><td>Bezpieczny margines prędkości przy oderwaniu kół</td></tr>
-      <tr><td>Prędkość podejścia do lądowania (1.3 &bull; Vs0)</td><td><b>V_app</b></td><td class="num"><b>${(sp.v_app_kmh ?? 0).toFixed(1)}</b></td><td class="num">${((sp.v_app_kmh ?? 0)/3.6).toFixed(1)}</td><td class="num">&mdash;</td><td>Podejście po ścieżce schodzenia (H = 15 m)</td></tr>
+      <tr><td>Prędkość oderwania przy starcie (1.15 &bull; Vs_TO)</td><td><b>V_LOF</b></td><td class="num"><b>${(sp.v_lof_kmh ?? 0).toFixed(1)}</b></td><td class="num">${((sp.v_lof_kmh ?? 0)/3.6).toFixed(1)}</td><td class="num">&mdash;</td><td>Bezpieczny margines prędkości przy oderwaniu kół</td></tr>
+      <tr><td>Prędkość podejścia do lądowania (1.3 &bull; Vs przy masie do lądowania)</td><td><b>V_app</b></td><td class="num"><b>${(sp.v_app_kmh ?? 0).toFixed(1)}</b></td><td class="num">${((sp.v_app_kmh ?? 0)/3.6).toFixed(1)}</td><td class="num">&mdash;</td><td>Podejście po ścieżce schodzenia (H = 15 m)</td></tr>
       <tr><td>Prędkość przelotowa obliczeniowa</td><td><b>V_cr</b></td><td class="num"><b>${vCr.toFixed(1)}</b></td><td class="num">${(vCr/3.6).toFixed(1)}</td><td class="num"><b>M ${machCr.toFixed(3)}</b></td><td>Standardowa prędkość marszowa w fazie przelotu</td></tr>
       <tr><td>Maksymalna prędkość lotu poziomego przy ziemi</td><td><b>V_max</b></td><td class="num"><b>${vMax.toFixed(1)}</b></td><td class="num">${(vMax/3.6).toFixed(1)}</td><td class="num"><b>M ${(vMax/1225).toFixed(3)}</b></td><td>Punkt zrównania mocy rozporządzalnej i niezbędnej (w_y = 0)</td></tr>
     `;
@@ -1522,7 +1528,8 @@ function populateP5Tables(res) {
     const to = res.performance?.takeoff || {};
     const lnd = res.performance?.landing || {};
     const runwayNumber=v=>v==null?'nieosiągalny':Number(v).toFixed(1);
-    p5Tolnd.innerHTML = `
+    p5Tolnd.innerHTML = res.params.operating_surface==='water'
+      ? `<tr><td colspan="4">${escapeHtml(to.note||'Operacji na wodzie nie wyznaczono.')}</td></tr>` : `
       <tr><td><b>1. Rozbieg samolotu</b> (Ground Roll S_g)</td><td class="num"><b>${runwayNumber(to.ground_roll_m)}</b></td><td>0 &rarr; V_LOF (efekt ziemi McCormicka)</td><td>Fiszdon / Raymer &bull; tarcie toczne i opór w efekcie ziemi</td></tr>
       <tr><td><b>2. Odcinek przejściowy i wznoszenie</b> (S_tr + S_climb)</td><td class="num"><b>${(to.air_distance_m ?? ((to.distance_to_15m ?? 0) - (to.ground_roll_m ?? 0))).toFixed(1)}</b></td><td>V_LOF &rarr; V₂ (kąt &gamma; = ${(to.climb_angle_deg ?? 0).toFixed(1)}&deg;)</td><td>Łuk wyrównania R_tr (${(to.transition_m ?? 0).toFixed(1)} m) + wznoszenie (${(to.climb_to_15m_m ?? 0).toFixed(1)} m)</td></tr>
       <tr style="background:#f8fafc;"><td><b>Całkowita droga startu nad H = 15 m</b></td><td class="num"><b>${runwayNumber(to.distance_to_15m)}</b></td><td>Wysokość ekranu H = 15 m (50 ft)</td><td>Wymóg certyfikacyjny CS-23.53</td></tr>
