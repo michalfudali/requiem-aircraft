@@ -60,8 +60,11 @@ def review_coursework(result):
         check('climb_data', 'Dane do zależności wznoszenia od obciążenia napędu',
               len(climb['points']) >= MIN_AIRCRAFT,
               f"{len(climb['points'])} par. Brakujące wartości można wczytać z CSV wraz ze źródłem.")
+        refined = mass['mission_assumptions'].get('ld_source') == 'p4_cruise'
         check('cruise', 'Doskonałość przelotowa 0,94 Kmax',
               abs(mass['mission_assumptions']['ld_factor'] - CRUISE_LD_FACTOR) < 1e-9,
+              'Bilans uściślony: pierwsze oszacowanie 0,94 Kmax zastąpiono doskonałością z biegunowej P4 '
+              f"przy wymaganej prędkości (K = {mass['ld_cruise_used']:.2f})." if refined else
               'Założenie do równania Bregueta, odrębne od doskonałości przy zadanej prędkości.')
         check('start_fraction', 'Ułamek masy po starcie 0,970–0,975',
               .970 <= mass['fuel_fractions_detail']['takeoff'] <= .975,

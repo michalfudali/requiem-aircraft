@@ -143,5 +143,7 @@ def _iterate_proportion(rows, simulate, share, m0, useful):
         rows.append(row)
         if relative <= TOLERANCE and abs(nxt - m0) < MASS_RESOLUTION:
             return
+        if row['next_m0'] <= 0:
+            raise ValueError('Korekta daje niedodatnią masę startową; bilans paliwa i masy pustej nie ma rozwiązania.')
         m0 = row['next_m0']
     raise ValueError('Iteracje wzoru (5) nie osiągnęły zbieżności.')

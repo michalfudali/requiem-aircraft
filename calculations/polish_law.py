@@ -420,7 +420,7 @@ AIRCRAFT_TYPE_ALLOWED = {
     "cs23_level2": ["piston_ga", "turboprop_regional", "jet_business"],
     "cs23_level3": ["piston_ga", "turboprop_regional", "jet_business"],
     "cs23_commuter": ["turboprop_regional", "piston_ga", "jet_business"],
-    "cs23_aerobatic": ["piston_ga", "turboprop_regional"],
+    "cs23_aerobatic": ["piston_ga", "turboprop_regional", "jet_business"],
     "cs_vla": ["piston_ga"],
     "cs_lsa": ["piston_ga"],
     "cs25_transport": ["jet_transport", "turboprop_regional", "jet_business"],

@@ -1,0 +1,143 @@
+{
+  "master_base": "7af59a6",
+  "python_tests": 1173,
+  "javascript_tests": 36,
+  "topics_numerically_checked": 110,
+  "browser_scenarios": [
+    {
+      "topic": 7,
+      "passed": true,
+      "mtow_kg": 411.7,
+      "range_km": 600,
+      "physics_checks": 32,
+      "offline_formulas": 702,
+      "formula_errors": 0
+    },
+    {
+      "topic": 17,
+      "passed": true,
+      "mtow_kg": 581.5,
+      "range_km": 550,
+      "physics_checks": 32,
+      "offline_formulas": 701,
+      "formula_errors": 0
+    },
+    {
+      "topic": 20,
+      "passed": true,
+      "mtow_kg": 1454.4,
+      "range_km": 1200,
+      "physics_checks": 32,
+      "offline_formulas": 707,
+      "formula_errors": 0
+    },
+    {
+      "topic": 28,
+      "passed": true,
+      "mtow_kg": 483.3,
+      "range_km": 700,
+      "physics_checks": 32,
+      "offline_formulas": 701,
+      "formula_errors": 0
+    },
+    {
+      "topic": 32,
+      "passed": true,
+      "mtow_kg": 828.0,
+      "range_km": 750,
+      "physics_checks": 32,
+      "offline_formulas": 704,
+      "formula_errors": 0
+    },
+    {
+      "topic": 42,
+      "passed": true,
+      "mtow_kg": 1636.3,
+      "range_km": 900,
+      "physics_checks": 32,
+      "offline_formulas": 709,
+      "formula_errors": 0
+    },
+    {
+      "topic": 43,
+      "passed": true,
+      "mtow_kg": 1939.7,
+      "range_km": 1200,
+      "physics_checks": 32,
+      "offline_formulas": 709,
+      "formula_errors": 0
+    },
+    {
+      "topic": 63,
+      "passed": true,
+      "mtow_kg": 19726.6,
+      "range_km": 3000,
+      "physics_checks": 32,
+      "offline_formulas": 716,
+      "formula_errors": 0
+    },
+    {
+      "topic": 68,
+      "passed": true,
+      "mtow_kg": 12826.6,
+      "range_km": 1800,
+      "physics_checks": 32,
+      "offline_formulas": 716,
+      "formula_errors": 0
+    },
+    {
+      "topic": 82,
+      "passed": true,
+      "mtow_kg": 43210.2,
+      "range_km": 2200,
+      "physics_checks": 32,
+      "offline_formulas": 713,
+      "formula_errors": 0
+    },
+    {
+      "topic": 94,
+      "passed": true,
+      "mtow_kg": 15346.2,
+      "range_km": 800,
+      "physics_checks": 32,
+      "offline_formulas": 657,
+      "formula_errors": 0
+    },
+    {
+      "topic": 95,
+      "passed": true,
+      "mtow_kg": 1572.8,
+      "range_km": 900,
+      "physics_checks": 32,
+      "offline_formulas": 652,
+      "formula_errors": 0
+    },
+    {
+      "topic": 101,
+      "passed": true,
+      "mtow_kg": 8896.6,
+      "range_km": 1400,
+      "physics_checks": 32,
+      "offline_formulas": 707,
+      "formula_errors": 0
+    },
+    {
+      "topic": 71,
+      "passed": true,
+      "mtow_kg": 94614.3,
+      "range_km": 1800,
+      "physics_checks": 32,
+      "offline_formulas": 716,
+      "formula_errors": 0
+    },
+    {
+      "topic": 74,
+      "passed": true,
+      "mtow_kg": 94614.3,
+      "range_km": 1800,
+      "physics_checks": 32,
+      "offline_formulas": 716,
+      "formula_errors": 0
+    }
+  ]
+}

@@ -12,4 +12,24 @@
   <section class="studio-card"><div class="studio-card-heading"><div><h2>Najpierw uzupełnij</h2><p id="courseworkReadiness">Oczekiwanie na obliczenia.</p></div><button type="button" class="btn btn-primary" data-studio-action="recalculate">Przelicz i sprawdź</button></div><p id="courseworkFreshness" role="status" aria-live="polite"></p><div id="courseworkPriority"></div></section>
   <section class="studio-card"><h2>Opracowania P1–P6</h2><p>Każdy z 21 podpunktów ma własny zakres i miejsce na odniesienie do Twojego opracowania. „Do przeglądu” oznacza deklarację autora przy braku wykrytych przeszkód. Ocenę merytoryczną wystawia prowadzący. Po zmianie wariantu odniesienia wymagają ponownego sprawdzenia.</p><label class="studio-field coursework-filter" for="courseworkFilter">Pokaż<select id="courseworkFilter"><option value="remaining">Do uzupełnienia</option><option value="all">Wszystkie podpunkty</option><option value="mandatory">Obowiązkowe</option><option value="optional">Opcjonalne</option></select></label><div id="courseworkItems"></div></section>
   <section class="studio-card"><h2>Przygotuj obronę projektu</h2><p>Umiej wyjaśnić wybór próby, bilans paliwa i rezerwy, ograniczenie aktywne na wykresie doboru, zmianę ŚC, pochodzenie biegunowej, różnice między zakładanymi i otrzymanymi osiągami oraz wybór metody obwiedni. Każdy przyjęty parametr poprzyj źródłem lub obliczeniem.</p><button type="button" class="btn btn-outline" data-studio-target="tab-reports">Przygotuj raport z listą braków</button><p class="studio-fine-print">Raport zawiera przegląd podpunktów z wybranego zakresu, odniesienia autora i identyfikator wariantu. Punkty i prywatny plan ocen pozostają w projekcie JSON.</p></section>
+  <section class="studio-card" id="courseworkEngineeringAuditCard">
+    <div class="studio-card-heading">
+      <div>
+        <h2>🛡️ Audyt Inżynierski & Pułapki Konstrukcyjne</h2>
+        <p id="courseworkAuditSubtitle">Krytyczne sprawdzenia kątów podwozia, ochrony ogona, przeciągnięcia wg Schrenka i asymetrii ciągu.</p>
+      </div>
+      <span class="badge" id="courseworkAuditBadge">-</span>
+    </div>
+    <div id="courseworkAuditList" class="audit-checks-grid"></div>
+  </section>
+
+  <section class="studio-card" id="courseworkDefenseQuestionsCard">
+    <div class="studio-card-heading">
+      <div>
+        <h2>🎓 Zejściówka Simulator: Pytania Prowadzącego na Obronie</h2>
+        <p>Spersonalizowane pytania egzaminacyjne i wzorcowe odpowiedzi wygenerowane dla Twoich obliczeń.</p>
+      </div>
+    </div>
+    <div id="courseworkDefenseQuestionsList" class="defense-questions-list"></div>
+  </section>
 </section>

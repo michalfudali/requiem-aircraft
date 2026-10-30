@@ -9,7 +9,8 @@
   const dp=s.design_point, jet=s.engine_type==='jet';
   const wsEnds=[s.ws_values[0],s.ws_values[s.ws_values.length-1]];
   chart('repMatching', {title:'Diagram doboru', xLabel:'W/S [N/m²]', yLabel:jet?'T/W [—]':'P/W [W/N]',
-    series:[[s.takeoff_basis==='15m'?'Start na 15 m':'Rozbieg',s.curve_takeoff],['Wznoszenie',s.curve_climb],['Przelot',s.curve_cruise]].map(([name,ys],i)=>({name,dash:i===1,data:s.ws_values.map((x,j)=>[x,ys[j]])}))
+    series:[[s.takeoff_basis==='15m'?'Start na 15 m':'Rozbieg',s.curve_takeoff],['Wznoszenie',s.curve_climb],['Przelot',s.curve_cruise],
+      ...(s.curve_vmax?[['Vmax przy ziemi',s.curve_vmax]]:[]),...(s.curve_tow?[['Holowanie szybowca',s.curve_tow]]:[])].map(([name,ys],i)=>({name,dash:i===1,data:s.ws_values.map((x,j)=>[x,ys[j]])}))
       .concat(s.climb_min==null?[]:[{name:'Minimum wznoszenia (8)',dash:true,data:wsEnds.map(x=>[x,s.climb_min])}]),
     vertical:[{x:s.ws_stall_max,label:'Vmin'},...(s.ws_landing==null?[]:[{x:s.ws_landing,label:'Lądowanie'}]),
       ...(s.ws_max_range==null?[]:[{x:s.ws_max_range,label:'Max zasięg'}])],

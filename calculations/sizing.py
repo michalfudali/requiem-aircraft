@@ -155,6 +155,28 @@ def calculate_matching_chart(params: dict, m0: float = None, mass: dict = None):
     steps = 40
     ws_values = [ws_min + i * (ws_max - ws_min) / steps for i in range(steps + 1)]
 
+    # 5. Optional mission requirements: maximum speed at sea level (racing, aerobatic) and
+    #    climb with a glider in tow, which carries the glider's drag and climbs its weight too.
+    v_max_req_ms = float(params.get("v_max_required_kmh") or 0.0) / 3.6
+    q_vmax = 0.5 * RHO0 * v_max_req_ms ** 2
+    m_glider = float(params.get("tow_glider_mass_kg") or 0.0) if engine_type == "prop" else 0.0
+    v_tow_ms = float(params.get("tow_speed_kmh", 120.0)) / 3.6
+    q_tow = 0.5 * RHO0 * v_tow_ms ** 2
+    w_tow = float(params.get("tow_climb_rate_ms", 3.0))
+    ld_glider = float(params.get("tow_glider_ld", 25.0))
+    tow_ratio = m_glider / float(m0) if (m_glider and m0) else 0.0
+
+    def extra_requirements(ws):
+        """Vmax at sea level and climb in tow, in the units of the matching chart (None when not required)."""
+        vmax = tow = None
+        if v_max_req_ms and engine_type != "none":
+            tw = climb_tw(ws, q_vmax, cx0, k_ind, 0.0) / max(1e-6, propulsion_lapse(params, 0.0, v_max_req_ms))
+            vmax = tw if engine_type == "jet" else tw * v_max_req_ms / eta_p
+        if tow_ratio:
+            tw = climb_tw(ws, q_tow, cx0, k_ind, 0.0) + tow_ratio / ld_glider + (1.0 + tow_ratio) * w_tow / v_tow_ms
+            tow = tw * v_tow_ms / eta_p
+        return vmax, tow
+
     def requirements(ws):
         """T/W (jet) or P/W [W/N] (prop) for take-off, climb and cruise at one W/S."""
         if water:
@@ -171,14 +193,14 @@ def calculate_matching_chart(params: dict, m0: float = None, mass: dict = None):
                 tw_cl * v_climb_ms / eta_p,
                 tw_cr_alt * v_cr_ms / (eta_p * max(1e-6, propulsion_lapse(params, h_cr, v_cr_ms))))
 
-    curve_takeoff, curve_climb, curve_cruise = [], [], []
+    curve_takeoff, curve_climb, curve_cruise, curve_vmax, curve_tow = [], [], [], [], []
     for ws in ws_values:
         if engine_type == "none":
-            values = (0.0, 0.0, 0.0)
+            values = (0.0, 0.0, 0.0, None, None)
         else:
-            values = requirements(ws)
+            values = requirements(ws) + extra_requirements(ws)
         digits = 4 if engine_type == "jet" else 2
-        for curve, value in zip((curve_takeoff, curve_climb, curve_cruise), values):
+        for curve, value in zip((curve_takeoff, curve_climb, curve_cruise, curve_vmax, curve_tow), values):
             curve.append(None if value is None else round(value, digits))
 
     climb_min = None
@@ -188,6 +210,11 @@ def calculate_matching_chart(params: dict, m0: float = None, mass: dict = None):
     if engine_type != "none":
         climb_min = tw_climb_min if engine_type == "jet" else tw_climb_min * v_climb_ms / eta_p
         at_design = dict(zip(("start", "wznoszenie", "przelot"), requirements(ws_design)))
+        vmax_at_design, tow_at_design = extra_requirements(ws_design)
+        if vmax_at_design is not None:
+            at_design["prędkość maksymalna"] = vmax_at_design
+        if tow_at_design is not None:
+            at_design["holowanie szybowca"] = tow_at_design
         if at_design["start"] is None:
             raise ValueError(
                 f"Zadana długość startu na 15 m ({s_to:g} m) jest za krótka przy W/S = {ws_design:.0f} N/m² "
@@ -219,6 +246,8 @@ def calculate_matching_chart(params: dict, m0: float = None, mass: dict = None):
         "curve_takeoff": curve_takeoff,
         "curve_climb": curve_climb,
         "curve_cruise": curve_cruise,
+        "curve_vmax": curve_vmax if v_max_req_ms and engine_type != "none" else None,
+        "curve_tow": curve_tow if tow_ratio else None,
         "climb_min": round(climb_min, 4) if climb_min is not None else None,
         "takeoff_basis": "unmodelled_water" if water else "15m" if s_to else "ground_roll",
         # Unrounded intermediate values of the design point, shown step by step in reports.
@@ -234,6 +263,9 @@ def calculate_matching_chart(params: dict, m0: float = None, mass: dict = None):
             "s_to": s_to, "s_run": s_run, "s_l": s_l, "climb_rate_ms": wy_req,
             "cz_max_to": cz_max_to, "cz_max_lnd": cz_max_lnd,
             "at_design": at_design, "margin": 1.06 if engine_type == "jet" else 1.08,
+            "v_max_required_ms": v_max_req_ms or None, "tow_glider_mass_kg": m_glider or None,
+            "tow_speed_ms": v_tow_ms if m_glider else None, "tow_climb_rate_ms": w_tow if m_glider else None,
+            "tow_glider_ld": ld_glider if m_glider else None,
         },
         "assumptions": {
             "source": "BIPOL_2.pdf (C. Galiński, Studium wykonalności), wzory (1)–(12)",

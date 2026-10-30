@@ -155,6 +155,9 @@ def empty_mass_law(p):
         basis = SUBCATEGORIES[resolve_category(p.get('category','normal'))]['load_basis']
         mod = (.972 if p.get('wing_config') == 'braced_high' else 1)
         mod *= 1.045 if basis == 'cs23_aerobatic' else 1.018 if basis in ('cs23_utility','cs22_utility') else 1
+        # LTF-UL / Annex I aircraft: two-seat 600 kg ULs weigh 290–330 kg empty (mₑ/m₀ ≈ 0.48–0.55),
+        # about 15 % below the certified light aircraft behind the piston class correlation.
+        mod *= .85 if basis == 'ltf_ul' else 1
         mod *= 1 + .006*max(0, p.get('aspect_ratio',8)-9)
         mod *= 1.012 if p.get('flap_type') in ('fowler','double_slotted') else 1
         meta.update(structural_modifier=mod, source='Korelacja klasy; do zastąpienia analizą własnej próby.')
@@ -173,12 +176,32 @@ def empty_mass_law(p):
     return share, meta
 
 
+def refined_cruise_ld(p):
+    """K at the required cruise from the P4 polar, valid only for the speed and altitude it was found at."""
+    ld = p.get('cruise_ld_p4')
+    basis = (p.get('cruise_ld_p4_speed_kmh'), p.get('cruise_ld_p4_altitude_m'))
+    if not ld or None in basis:
+        return None
+    same = (abs(basis[0] - p.get('cruise_speed_kmh', 250)) < .05
+            and abs(basis[1] - p.get('cruise_altitude_m', 3000)) < .5)
+    return float(ld) if same else None
+
+
+def cruise_ld_from_range(p, range_km, m_start, m_end):
+    """Mean L/D that makes Breguet's equation reproduce a cruise flown at constant speed and altitude."""
+    speed = p.get('cruise_speed_kmh', 250)/3.6
+    sfc = p.get('sfc', .62 if p.get('engine_type') == 'jet' else 265)
+    per_ld = speed/(sfc/3600) if p.get('engine_type') == 'jet' else p.get('prop_efficiency', .82)/(sfc/3.6e9*G0)
+    return range_km*1000/(per_ld*math.log(m_start/m_end))
+
+
 def mission_model(p, kmax):
     engine = p.get('engine_type','prop')
     powered = engine != 'none' and p.get('aircraft_type') != 'glider'
     speed = p.get('cruise_speed_kmh',250)/3.6
     eta = p.get('prop_efficiency',.82)
-    ld = kmax*p.get('mission_ld_factor',.94)
+    # First estimate per the course guideline; refined sizing uses the P4 polar at the required cruise.
+    ld = refined_cruise_ld(p) or kmax*p.get('mission_ld_factor',.94)
     sfc = p.get('sfc', .62 if engine == 'jet' else 265)
     # Jet input 1/h is TSFC*g. Prop input g/kWh becomes kg/Ws.
     ct = sfc/3600 if engine == 'jet' else 0
@@ -346,6 +369,7 @@ def solve_mass(p, payload, crew):
                     cruise_model='constant_tas_altitude' if p.get('_mission_polar') else 'preliminary_ld',
                     cruise_route_margin=1.001 if p.get('_mission_polar') else 1.0,
                     ld_factor=p.get('mission_ld_factor',.94),k_max_preliminary=polar['kmax'],
+                    ld_source='p4_integrated' if p.get('_mission_polar') else 'p4_cruise' if refined_cruise_ld(p) else 'guideline',
                     mass_residual_relative=abs(m0-me-useful-flight['fuel'])/m0,
                     empty_mass_residual_relative=relative,corke=mission['corke'],
                     loiter_ld=mission['loiter_ld'],loiter_speed_kmh=mission['loiter_speed_kmh'],

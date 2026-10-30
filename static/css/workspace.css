@@ -83,7 +83,7 @@ body[data-workspace-view=semester] .quiet-return { display:flex; }
 .quiet-help-content>summary { padding:10px 12px; cursor:pointer; font-size:13px; color:#54717c; }
 .quiet-help-content>div { padding:10px 12px; }
 .studio-layout:not(.show-inline-hints) .quiet-inputs .derived-value-badge { display:none!important; }
-.studio-layout:not(.show-inline-hints) .kpi-grid .info-circle-icon { display:none; }
+.studio-layout:not(.show-inline-hints):not(.mode-didactic) .kpi-grid .info-circle-icon { display:none; }
 .quiet-section-tabs { display:flex; gap:6px; padding:4px; margin:20px 0; border-bottom:1px solid #dce6e9; overflow-x:auto; }
 .quiet-section-tabs button { color:#54717d; background:transparent; border:0; border-radius:6px; padding:11px 17px; cursor:pointer; font:inherit; font-size:14px; white-space:nowrap; }
 .quiet-section-tabs button[aria-selected=true] { color:#10786e; background:#e7f3f0; font-weight:600; }

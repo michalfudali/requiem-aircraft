@@ -124,6 +124,24 @@ def calculate_geometry(m0: float, ws: float, params: dict):
             return cr * (y_val ** 2) / 2.0 - ((cr - ct) / half_span) * (y_val ** 3) / 3.0
 
     # 2. Geometria kadłuba (wstępne oszacowanie z liczby pasażerów i rozpiętości)
+    # Freighters: the hold volume follows from the payload density (C-295 ≈ 140, C-130 ≈ 180 kg/m³),
+    # with height 0.9·width, length 4·width and room for an LD-3 container (2.0 m wide).
+    hold = None
+    hold_density = float(params.get('cargo_hold_density_kg_m3') or 0)
+    cargo_mass = float(params.get('m_cargo') or 0)
+    cargo_dimensions = [float(params.get(key, 0)) for key in
+                        ('cargo_bay_length_m', 'cargo_bay_width_m', 'cargo_bay_height_m')]
+    if all(cargo_dimensions):
+        length, width, height = cargo_dimensions
+        volume = length*width*height
+        hold = dict(volume_m3=volume, width=width, height=height, length=length,
+                    density_kg_m3=cargo_mass/volume, basis='explicit_dimensions')
+    elif hold_density and cargo_mass and ac_type in ('turboprop_regional', 'jet_business', 'jet_transport'):
+        volume = cargo_mass / hold_density
+        width = max(2.0, (volume / 3.6) ** (1 / 3))
+        hold = dict(volume_m3=volume, width=width, height=.9*width,
+                    length=volume/(.9*width**2), density_kg_m3=hold_density,
+                    basis='assumed_payload_density')
     if ac_type in ("glider", "motoglider"):
         fuselage_len = max(5.5, 0.45 * b)
         # Średnica zastępcza przekroju czołowego kabiny (z owiewką): jednomiejscowy
@@ -156,11 +174,9 @@ def calculate_geometry(m0: float, ws: float, params: dict):
         cabin_length = max(2, math.ceil(n_pax / seats_abreast)) * .80
         fuselage_len = cabin_length + 4 * fuselage_diam
         
-    cargo_dimensions = [float(params.get(key, 0)) for key in
-                        ('cargo_bay_length_m', 'cargo_bay_width_m', 'cargo_bay_height_m')]
     cargo_bay = None
-    if all(cargo_dimensions):
-        cargo_length, cargo_width, cargo_height = cargo_dimensions
+    if hold:
+        cargo_length, cargo_width, cargo_height = hold['length'], hold['width'], hold['height']
         layout_length, layout_diameter = fuselage_len, fuselage_diam
         # Circular outer envelope of the rectangular usable cross section.
         # 0.30 m is an explicit diametral allowance, not a structural sizing.
@@ -169,6 +185,7 @@ def calculate_geometry(m0: float, ws: float, params: dict):
         cargo_bay = dict(length_m=cargo_length, width_m=cargo_width, height_m=cargo_height,
                          volume_m3=cargo_length*cargo_width*cargo_height,
                          layout_length_m=layout_length, layout_diameter_m=layout_diameter,
+                         basis=hold['basis'],
                          shell_diametral_allowance_m=.30)
     fuselage_fineness = fuselage_len / fuselage_diam
     
@@ -485,7 +502,8 @@ def calculate_geometry(m0: float, ws: float, params: dict):
             "length": fuselage_len,
             "diameter": fuselage_diam,
             "fineness": fuselage_fineness,
-            "S_wet": s_wet_fus
+            "S_wet": s_wet_fus,
+            "cargo_hold": hold,
         },
         "horizontal_tail": {
             "x_ac_m": .90 * fuselage_len,

@@ -23,11 +23,13 @@ function initCanvas(canvasId) {
   return { canvas, ctx, width: cssWidth, height: cssHeight };
 }
 
-// 1. MATCHING CHART (W/S vs T/W or P/W)
+// 1. MATCHING CHART (W/S vs T/W or P/W) - With Interactive Feasible Region & Inspector
 function drawMatchingChart(canvasId, sizing) {
   const c = initCanvas(canvasId);
   if (!c) return;
-  const { ctx, width, height } = c;
+  const { canvas, ctx, width, height } = c;
+  canvas._matchingSizing = sizing;
+
   if (sizing.engine_type === 'none') {
     ctx.clearRect(0, 0, width, height);
     ctx.fillStyle = '#526b77'; ctx.font = '13px sans-serif'; ctx.textAlign = 'center';
@@ -36,155 +38,319 @@ function drawMatchingChart(canvasId, sizing) {
     return;
   }
 
-  
   const pad = { top: 30, right: 30, bottom: 45, left: 60 };
   const plotW = width - pad.left - pad.right;
   const plotH = height - pad.top - pad.bottom;
-  
-  ctx.clearRect(0, 0, width, height);
-  
+
   const wsVals = sizing.ws_values;
   const xMin = Math.min(...wsVals);
   const xMax = Math.max(...wsVals);
-  
+
   const isJet = sizing.engine_type === 'jet';
-  const allY = [...sizing.curve_takeoff, ...sizing.curve_climb, ...sizing.curve_cruise];
+  const allY = [...sizing.curve_takeoff, ...sizing.curve_climb, ...sizing.curve_cruise,
+    ...(sizing.curve_vmax || []), ...(sizing.curve_tow || [])];
   const yMin = 0;
   const yMax = Math.max(1, ...allY.filter(Number.isFinite)) * 1.15;
-  
+
   function toX(val) { return pad.left + ((val - xMin) / (xMax - xMin)) * plotW; }
   function toY(val) { return pad.top + plotH - ((val - yMin) / (yMax - yMin)) * plotH; }
-  
-  // Grid lines
-  ctx.strokeStyle = '#e2e8f0';
-  ctx.lineWidth = 1;
-  for (let i = 0; i <= 5; i++) {
-    const yVal = yMin + (i / 5) * (yMax - yMin);
-    const y = toY(yVal);
-    ctx.beginPath();
-    ctx.moveTo(pad.left, y);
-    ctx.lineTo(pad.left + plotW, y);
-    ctx.stroke();
-    
-    ctx.fillStyle = '#64748b';
-    ctx.font = '11px sans-serif';
-    ctx.textAlign = 'right';
-    BipolSymbols.fillText(ctx, yVal.toFixed(isJet ? 2 : 1), pad.left - 8, y + 4);
-  }
-  
-  for (let i = 0; i <= 5; i++) {
-    const xVal = xMin + (i / 5) * (xMax - xMin);
-    const x = toX(xVal);
-    ctx.beginPath();
-    ctx.moveTo(x, pad.top);
-    ctx.lineTo(x, pad.top + plotH);
-    ctx.stroke();
-    
-    ctx.fillStyle = '#64748b';
-    ctx.font = '11px sans-serif';
-    ctx.textAlign = 'center';
-    BipolSymbols.fillText(ctx, Math.round(xVal), x, pad.top + plotH + 18);
-  }
-  
-  // Axes labels
-  ctx.fillStyle = '#334155';
-  ctx.font = 'bold 11px sans-serif';
-  ctx.textAlign = 'center';
-  BipolSymbols.fillText(ctx, 'Obciążenie powierzchni W/S [N/m²]', pad.left + plotW / 2, height - 10);
-  
-  ctx.save();
-  ctx.translate(16, pad.top + plotH / 2);
-  ctx.rotate(-Math.PI / 2);
-  BipolSymbols.fillText(ctx, isJet ? 'Obciążenie ciągu T/W [-]' : 'Obciążenie mocy P/W [W/N]', 0, 0);
-  ctx.restore();
-  
-  // Draw Curves
-  function drawLine(yArr, color, label) {
-    ctx.strokeStyle = color;
-    ctx.lineWidth = 2.2;
-    ctx.beginPath();
-    let pen = false;
-    wsVals.forEach((ws, idx) => {
-      if(!Number.isFinite(yArr[idx])) {pen=false;return;}
-      const x = toX(ws);
-      const y = toY(yArr[idx]);
-      if (!pen) ctx.moveTo(x, y);
-      else ctx.lineTo(x, y);
-      pen=true;
-    });
-    ctx.stroke();
-  }
-  
-  const takeoffLabel = sizing.takeoff_basis === '15m' ? 'Start na 15 m' : 'Rozbieg (brak startu na 15 m)';
-  drawLine(sizing.curve_takeoff, '#dc2626', takeoffLabel);
-  drawLine(sizing.curve_climb, '#2563eb', 'Wznoszenie');
-  drawLine(sizing.curve_cruise, '#059669', 'Przelot');
+  function fromX(px) { return xMin + ((px - pad.left) / plotW) * (xMax - xMin); }
+  function fromY(py) { return yMin + ((pad.top + plotH - py) / plotH) * (yMax - yMin); }
 
-  // BIPOL_2: (8) minimum T/W for climb; (10) minimum speed; (3) landing; (11)/(12) best range
-  if (Number.isFinite(sizing.climb_min)) {
-    ctx.strokeStyle = '#2563eb';
-    ctx.setLineDash([2, 4]);
-    ctx.lineWidth = 1.5;
-    ctx.beginPath();
-    ctx.moveTo(pad.left, toY(sizing.climb_min));
-    ctx.lineTo(pad.left + plotW, toY(sizing.climb_min));
-    ctx.stroke();
-    ctx.setLineDash([]);
+  const wsLimit = Math.min(
+    Number.isFinite(sizing.ws_stall_max) ? sizing.ws_stall_max : xMax,
+    Number.isFinite(sizing.ws_landing) ? sizing.ws_landing : xMax
+  );
+
+  function getRequiredYAtWs(ws) {
+    if (ws < xMin || ws > xMax) return null;
+    // Linear interpolation along curve points
+    for (let i = 0; i < wsVals.length - 1; i++) {
+      if (ws >= wsVals[i] && ws <= wsVals[i + 1]) {
+        const factor = (ws - wsVals[i]) / (wsVals[i + 1] - wsVals[i]);
+        const getV = (arr) => arr && Number.isFinite(arr[i]) && Number.isFinite(arr[i + 1]) ? arr[i] + factor * (arr[i + 1] - arr[i]) : null;
+        const candidates = [
+          getV(sizing.curve_takeoff),
+          getV(sizing.curve_climb),
+          getV(sizing.curve_cruise),
+          getV(sizing.curve_vmax),
+          getV(sizing.curve_tow),
+          Number.isFinite(sizing.climb_min) ? sizing.climb_min : null
+        ].filter(Number.isFinite);
+        return candidates.length ? Math.max(...candidates) : 0;
+      }
+    }
+    return 0;
   }
-  const verticals = [
-    { ws: sizing.ws_stall_max, color: '#9333ea', dash: [4, 4] },
-    { ws: sizing.ws_landing, color: '#0f766e', dash: [8, 4] },
-    { ws: sizing.ws_max_range, color: '#64748b', dash: [2, 3] }
-  ];
-  verticals.forEach(({ ws, color, dash }) => {
-    if (!Number.isFinite(ws) || ws < xMin || ws > xMax) return;
-    ctx.strokeStyle = color;
-    ctx.setLineDash(dash);
-    ctx.lineWidth = 2;
+
+  function render(cursor = null) {
+    ctx.clearRect(0, 0, width, height);
+
+    // Grid lines
+    ctx.strokeStyle = '#e2e8f0';
+    ctx.lineWidth = 1;
+    for (let i = 0; i <= 5; i++) {
+      const yVal = yMin + (i / 5) * (yMax - yMin);
+      const y = toY(yVal);
+      ctx.beginPath();
+      ctx.moveTo(pad.left, y);
+      ctx.lineTo(pad.left + plotW, y);
+      ctx.stroke();
+
+      ctx.fillStyle = '#64748b';
+      ctx.font = '11px sans-serif';
+      ctx.textAlign = 'right';
+      BipolSymbols.fillText(ctx, yVal.toFixed(isJet ? 2 : 1), pad.left - 8, y + 4);
+    }
+
+    for (let i = 0; i <= 5; i++) {
+      const xVal = xMin + (i / 5) * (xMax - xMin);
+      const x = toX(xVal);
+      ctx.beginPath();
+      ctx.moveTo(x, pad.top);
+      ctx.lineTo(x, pad.top + plotH);
+      ctx.stroke();
+
+      ctx.fillStyle = '#64748b';
+      ctx.font = '11px sans-serif';
+      ctx.textAlign = 'center';
+      BipolSymbols.fillText(ctx, Math.round(xVal), x, pad.top + plotH + 18);
+    }
+
+    // Axes labels
+    ctx.fillStyle = '#334155';
+    ctx.font = 'bold 11px sans-serif';
+    ctx.textAlign = 'center';
+    BipolSymbols.fillText(ctx, 'Obciążenie powierzchni W/S [N/m²]', pad.left + plotW / 2, height - 10);
+
+    ctx.save();
+    ctx.translate(16, pad.top + plotH / 2);
+    ctx.rotate(-Math.PI / 2);
+    BipolSymbols.fillText(ctx, isJet ? 'Obciążenie ciągu T/W [-]' : 'Obciążenie mocy P/W [W/N]', 0, 0);
+    ctx.restore();
+
+    // 1. FEASIBLE DESIGN SPACE (Dopuszczalny obszar rozwiązań)
+    const feasiblePoints = [];
+    wsVals.forEach((ws, idx) => {
+      if (ws > wsLimit + 1e-3) return;
+      const candidates = [
+        sizing.curve_takeoff[idx],
+        sizing.curve_climb[idx],
+        sizing.curve_cruise[idx],
+        sizing.curve_vmax ? sizing.curve_vmax[idx] : null,
+        sizing.curve_tow ? sizing.curve_tow[idx] : null,
+        Number.isFinite(sizing.climb_min) ? sizing.climb_min : null
+      ].filter(Number.isFinite);
+      const reqY = candidates.length ? Math.max(...candidates) : 0;
+      feasiblePoints.push({ x: toX(ws), y: toY(reqY), ws, reqY });
+    });
+
+    if (feasiblePoints.length >= 2) {
+      ctx.save();
+      ctx.beginPath();
+      feasiblePoints.forEach((pt, i) => {
+        if (i === 0) ctx.moveTo(pt.x, pt.y);
+        else ctx.lineTo(pt.x, pt.y);
+      });
+      const lastPt = feasiblePoints[feasiblePoints.length - 1];
+      ctx.lineTo(lastPt.x, pad.top);
+      ctx.lineTo(feasiblePoints[0].x, pad.top);
+      ctx.closePath();
+
+      ctx.fillStyle = 'rgba(22, 140, 131, 0.09)';
+      ctx.fill();
+      ctx.strokeStyle = 'rgba(22, 140, 131, 0.35)';
+      ctx.lineWidth = 1;
+      ctx.setLineDash([4, 4]);
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      const midIdx = Math.floor(feasiblePoints.length / 2);
+      const midPt = feasiblePoints[midIdx];
+      const labelY = Math.max(pad.top + 28, (pad.top + midPt.y) / 2);
+      ctx.fillStyle = '#0f766e';
+      ctx.font = 'italic 10px sans-serif';
+      ctx.textAlign = 'center';
+      BipolSymbols.fillText(ctx, 'Dopuszczalny obszar rozwiązań (Feasible space)', midPt.x, labelY);
+      ctx.restore();
+    }
+
+    // 2. Draw Curves
+    function drawLine(yArr, color, label) {
+      ctx.strokeStyle = color;
+      ctx.lineWidth = 2.2;
+      ctx.beginPath();
+      let pen = false;
+      wsVals.forEach((ws, idx) => {
+        if (!Number.isFinite(yArr[idx])) { pen = false; return; }
+        const x = toX(ws);
+        const y = toY(yArr[idx]);
+        if (!pen) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+        pen = true;
+      });
+      ctx.stroke();
+    }
+
+    const takeoffLabel = sizing.takeoff_basis === '15m' ? 'Start na 15 m' : 'Rozbieg (brak startu na 15 m)';
+    drawLine(sizing.curve_takeoff, '#dc2626', takeoffLabel);
+    drawLine(sizing.curve_climb, '#2563eb', 'Wznoszenie');
+    drawLine(sizing.curve_cruise, '#059669', 'Przelot');
+    if (sizing.curve_vmax) drawLine(sizing.curve_vmax, '#c2410c', 'Vmax');
+    if (sizing.curve_tow) drawLine(sizing.curve_tow, '#db2777', 'Holowanie');
+
+    if (Number.isFinite(sizing.climb_min)) {
+      ctx.strokeStyle = '#2563eb';
+      ctx.setLineDash([2, 4]);
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.moveTo(pad.left, toY(sizing.climb_min));
+      ctx.lineTo(pad.left + plotW, toY(sizing.climb_min));
+      ctx.stroke();
+      ctx.setLineDash([]);
+    }
+
+    const verticals = [
+      { ws: sizing.ws_stall_max, color: '#9333ea', dash: [4, 4] },
+      { ws: sizing.ws_landing, color: '#0f766e', dash: [8, 4] },
+      { ws: sizing.ws_max_range, color: '#64748b', dash: [2, 3] }
+    ];
+    verticals.forEach(({ ws, color, dash }) => {
+      if (!Number.isFinite(ws) || ws < xMin || ws > xMax) return;
+      ctx.strokeStyle = color;
+      ctx.setLineDash(dash);
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(toX(ws), pad.top);
+      ctx.lineTo(toX(ws), pad.top + plotH);
+      ctx.stroke();
+      ctx.setLineDash([]);
+    });
+
+    // 3. Design Point
+    const dp = sizing.design_point;
+    const dpX = toX(dp.ws);
+    const dpY = toY(isJet ? dp.tw : dp.pw);
+
+    ctx.fillStyle = '#d97706';
     ctx.beginPath();
-    ctx.moveTo(toX(ws), pad.top);
-    ctx.lineTo(toX(ws), pad.top + plotH);
+    ctx.arc(dpX, dpY, 6, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = '#ffffff';
+    ctx.lineWidth = 2;
     ctx.stroke();
-    ctx.setLineDash([]);
-  });
-  
-  // Design Point
-  const dp = sizing.design_point;
-  const dpX = toX(dp.ws);
-  const dpY = toY(isJet ? dp.tw : dp.pw);
-  
-  ctx.fillStyle = '#d97706';
-  ctx.beginPath();
-  ctx.arc(dpX, dpY, 6, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.strokeStyle = '#ffffff';
-  ctx.lineWidth = 2;
-  ctx.stroke();
-  
-  ctx.fillStyle = '#b45309';
-  ctx.font = 'bold 11px sans-serif';
-  ctx.textAlign = 'left';
-  BipolSymbols.fillText(ctx, `Punkt projektowy (${dp.ws} N/m²)`, dpX + 8, dpY - 6);
-  
-  // Legend
-  const leg = [
-    { label: takeoffLabel, color: '#dc2626' },
-    { label: 'Wznoszenie (w_y)', color: '#2563eb' },
-    { label: 'Przelot (Vcr)', color: '#059669' },
-    { label: 'Vmin (Cz,max/1,1)', color: '#9333ea' },
-    ...(Number.isFinite(sizing.ws_landing) ? [{ label: 'Lądowanie', color: '#0f766e' }] : []),
-    ...(Number.isFinite(sizing.ws_max_range) ? [{ label: 'Max zasięg (B)', color: '#64748b' }] : [])
-  ];
-  let legX = pad.left + 10;
-  leg.forEach((item) => {
-    ctx.fillStyle = item.color;
-    ctx.fillRect(legX, pad.top + 6, 12, 4);
-    ctx.fillStyle = '#475569';
-    ctx.font = '10px sans-serif';
+
+    ctx.fillStyle = '#b45309';
+    ctx.font = 'bold 11px sans-serif';
     ctx.textAlign = 'left';
-    BipolSymbols.fillText(ctx, item.label, legX + 16, pad.top + 10);
-    legX += ctx.measureText(item.label).width + 28;
-  });
+    BipolSymbols.fillText(ctx, `Punkt projektowy (${dp.ws} N/m²)`, dpX + 8, dpY - 6);
+
+    // 4. Cursor Hover / Crosshairs
+    if (cursor && cursor.inPlot) {
+      const { cx, cy, ws, yVal } = cursor;
+      const reqY = getRequiredYAtWs(ws);
+      const isOk = ws <= wsLimit + 1e-2 && yVal >= reqY - 1e-4;
+
+      // Crosshairs
+      ctx.save();
+      ctx.strokeStyle = isOk ? 'rgba(16, 140, 131, 0.65)' : 'rgba(220, 38, 38, 0.65)';
+      ctx.lineWidth = 1;
+      ctx.setLineDash([3, 3]);
+      ctx.beginPath();
+      ctx.moveTo(pad.left, cy);
+      ctx.lineTo(pad.left + plotW, cy);
+      ctx.moveTo(cx, pad.top);
+      ctx.lineTo(cx, pad.top + plotH);
+      ctx.stroke();
+
+      // Circle at intersection
+      ctx.setLineDash([]);
+      ctx.fillStyle = isOk ? '#108c83' : '#dc2626';
+      ctx.beginPath();
+      ctx.arc(cx, cy, 4.5, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = '#fff';
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+
+      // Tooltip box
+      const tipText1 = `W/S: ${Math.round(ws)} N/m²`;
+      const tipText2 = isJet ? `T/W: ${yVal.toFixed(3)}` : `P/W: ${yVal.toFixed(1)} W/N`;
+      const tipStatus = isOk ? '✓ W obszarze dopuszczalnym' : (ws > wsLimit ? '❌ Przekroczone V_S / lądowanie' : '❌ Zbyt mała moc/ciąg');
+
+      ctx.font = '10px sans-serif';
+      const tw = Math.max(ctx.measureText(tipText1).width, ctx.measureText(tipText2).width, ctx.measureText(tipStatus).width) + 16;
+      const th = 48;
+      let tx = cx + 12;
+      let ty = cy - th - 8;
+      if (tx + tw > width - 10) tx = cx - tw - 12;
+      if (ty < pad.top) ty = cy + 12;
+
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.94)';
+      ctx.strokeStyle = isOk ? '#108c83' : '#dc2626';
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.roundRect ? ctx.roundRect(tx, ty, tw, th, 6) : ctx.rect(tx, ty, tw, th);
+      ctx.fill();
+      ctx.stroke();
+
+      ctx.fillStyle = '#1e293b';
+      ctx.textAlign = 'left';
+      ctx.fillText(`${tipText1} | ${tipText2}`, tx + 8, ty + 16);
+      ctx.fillStyle = isOk ? '#0f766e' : '#b91c1c';
+      ctx.font = 'bold 10px sans-serif';
+      ctx.fillText(tipStatus, tx + 8, ty + 34);
+      ctx.restore();
+    }
+
+    // 5. Legend
+    const leg = [
+      { label: takeoffLabel, color: '#dc2626' },
+      { label: 'Wznoszenie (w_y)', color: '#2563eb' },
+      { label: 'Przelot (Vcr)', color: '#059669' },
+      ...(sizing.curve_vmax ? [{ label: 'Vmax przy ziemi', color: '#c2410c' }] : []),
+      ...(sizing.curve_tow ? [{ label: 'Holowanie szybowca', color: '#db2777' }] : []),
+      { label: 'Vmin (Cz,max/1,1)', color: '#9333ea' },
+      ...(Number.isFinite(sizing.ws_landing) ? [{ label: 'Lądowanie', color: '#0f766e' }] : []),
+      ...(Number.isFinite(sizing.ws_max_range) ? [{ label: 'Max zasięg (B)', color: '#64748b' }] : [])
+    ];
+    let legX = pad.left + 10;
+    leg.forEach((item) => {
+      ctx.fillStyle = item.color;
+      ctx.fillRect(legX, pad.top + 6, 12, 4);
+      ctx.fillStyle = '#475569';
+      ctx.font = '10px sans-serif';
+      ctx.textAlign = 'left';
+      BipolSymbols.fillText(ctx, item.label, legX + 16, pad.top + 10);
+      legX += ctx.measureText(item.label).width + 28;
+    });
+  }
+
+  render();
+
+  // Attach interactive mouse listeners once
+  if (!canvas._hasMatchingListeners) {
+    canvas._hasMatchingListeners = true;
+    canvas.addEventListener('mousemove', (e) => {
+      const s = canvas._matchingSizing;
+      if (!s || s.engine_type === 'none') return;
+      const rect = canvas.getBoundingClientRect();
+      const cssX = e.clientX - rect.left;
+      const cssY = e.clientY - rect.top;
+      const inPlot = (cssX >= pad.left && cssX <= pad.left + plotW && cssY >= pad.top && cssY <= pad.top + plotH);
+      if (inPlot) {
+        const ws = fromX(cssX);
+        const yVal = fromY(cssY);
+        render({ inPlot: true, cx: cssX, cy: cssY, ws, yVal });
+      } else {
+        render(null);
+      }
+    });
+
+    canvas.addEventListener('mouseleave', () => {
+      render(null);
+    });
+  }
 }
 
 // 2. POLAR CHART Cz vs Cx
@@ -289,83 +455,232 @@ function drawPolarChart(canvasId, aero) {
   BipolSymbols.fillText(ctx, `K_max = ${aero.k_max}`, xOpt + 8, yOpt + 4);
 }
 
-// 3. SCHRENK LIFT DISTRIBUTION
+// 3. SCHRENK LIFT DISTRIBUTION - With Stall Origin Marker & Interactive Span Inspector
 function drawSchrenkChart(canvasId, schrenkData) {
   const c = initCanvas(canvasId);
-  if (!c) return;
-  const { ctx, width, height } = c;
-  
-  const pad = { top: 25, right: 30, bottom: 45, left: 55 };
+  if (!c || !schrenkData || !schrenkData.length) return;
+  const { canvas, ctx, width, height } = c;
+  canvas._schrenkData = schrenkData;
+
+  const pad = { top: 32, right: 30, bottom: 45, left: 55 };
   const plotW = width - pad.left - pad.right;
   const plotH = height - pad.top - pad.bottom;
-  
-  ctx.clearRect(0, 0, width, height);
-  
+
   const ySpanMax = 1.0;
-  const cMax = Math.max(...schrenkData.map(d => Math.max(d.c_geom, d.c_ellip))) * 1.15;
-  
+  const cMax = Math.max(...schrenkData.map(d => Math.max(d.c_geom || 0, d.c_ellip || 0))) * 1.15;
+
   function toX(val) { return pad.left + (val / ySpanMax) * plotW; }
   function toY(val) { return pad.top + plotH - (val / cMax) * plotH; }
-  
-  // Grid
-  ctx.strokeStyle = '#e2e8f0';
-  ctx.lineWidth = 1;
-  for (let i = 0; i <= 5; i++) {
-    const yVal = (i / 5) * cMax;
-    const y = toY(yVal);
+  function fromX(px) { return Math.max(0, Math.min(1, (px - pad.left) / plotW)); }
+
+  // Przekrój krytyczny (maksimum obciążenia lokalnego)
+  const critPt = schrenkData.reduce((prev, curr) => ((curr.cz_local_norm || 0) > (prev.cz_local_norm || 0) ? curr : prev), schrenkData[0]);
+
+  function render(cursor = null) {
+    ctx.clearRect(0, 0, width, height);
+
+    // Strefa lotek (Aileron Zone) - typowo eta od 0.65 do 1.0
+    const aileronXStart = toX(0.65);
+    const aileronW = toX(1.0) - aileronXStart;
+    ctx.fillStyle = 'rgba(249, 115, 22, 0.05)';
+    ctx.fillRect(aileronXStart, pad.top, aileronW, plotH);
+    ctx.strokeStyle = 'rgba(249, 115, 22, 0.25)';
+    ctx.lineWidth = 1;
+    ctx.setLineDash([2, 4]);
     ctx.beginPath();
-    ctx.moveTo(pad.left, y);
-    ctx.lineTo(pad.left + plotW, y);
-    ctx.stroke();
-    ctx.fillStyle = '#64748b';
-    ctx.font = '11px sans-serif';
-    ctx.textAlign = 'right';
-    BipolSymbols.fillText(ctx, yVal.toFixed(2), pad.left - 6, y + 4);
-  }
-  
-  for (let i = 0; i <= 5; i++) {
-    const xVal = i / 5;
-    const x = toX(xVal);
-    ctx.beginPath();
-    ctx.moveTo(x, pad.top);
-    ctx.lineTo(x, pad.top + plotH);
-    ctx.stroke();
-    ctx.fillStyle = '#64748b';
-    ctx.font = '11px sans-serif';
-    ctx.textAlign = 'center';
-    BipolSymbols.fillText(ctx, xVal.toFixed(1), x, pad.top + plotH + 18);
-  }
-  
-  ctx.fillStyle = '#334155';
-  ctx.font = 'bold 11px sans-serif';
-  ctx.textAlign = 'center';
-  BipolSymbols.fillText(ctx, 'Względna półrozpiętość η = y / (b/2) [-]', pad.left + plotW / 2, height - 10);
-  
-  ctx.save();
-  ctx.translate(16, pad.top + plotH / 2);
-  ctx.rotate(-Math.PI / 2);
-  BipolSymbols.fillText(ctx, 'Cięciwa c(y) [m]', 0, 0);
-  ctx.restore();
-  
-  function drawKrzywa(key, color, isDashed = false, width = 2) {
-    ctx.strokeStyle = color;
-    ctx.lineWidth = width;
-    if (isDashed) ctx.setLineDash([4, 4]);
-    else ctx.setLineDash([]);
-    ctx.beginPath();
-    schrenkData.forEach((d, idx) => {
-      const x = toX(d.eta_span);
-      const y = toY(d[key]);
-      if (idx === 0) ctx.moveTo(x, y);
-      else ctx.lineTo(x, y);
-    });
+    ctx.moveTo(aileronXStart, pad.top);
+    ctx.lineTo(aileronXStart, pad.top + plotH);
     ctx.stroke();
     ctx.setLineDash([]);
+
+    ctx.fillStyle = '#c2410c';
+    ctx.font = 'italic 10px sans-serif';
+    ctx.textAlign = 'right';
+    BipolSymbols.fillText(ctx, 'Strefa lotek (η ≥ 0.65)', toX(0.98), pad.top + 14);
+
+    // Grid
+    ctx.strokeStyle = '#e2e8f0';
+    ctx.lineWidth = 1;
+    for (let i = 0; i <= 5; i++) {
+      const yVal = (i / 5) * cMax;
+      const y = toY(yVal);
+      ctx.beginPath();
+      ctx.moveTo(pad.left, y);
+      ctx.lineTo(pad.left + plotW, y);
+      ctx.stroke();
+      ctx.fillStyle = '#64748b';
+      ctx.font = '11px sans-serif';
+      ctx.textAlign = 'right';
+      BipolSymbols.fillText(ctx, yVal.toFixed(2), pad.left - 6, y + 4);
+    }
+
+    for (let i = 0; i <= 5; i++) {
+      const xVal = i / 5;
+      const x = toX(xVal);
+      ctx.beginPath();
+      ctx.moveTo(x, pad.top);
+      ctx.lineTo(x, pad.top + plotH);
+      ctx.stroke();
+      ctx.fillStyle = '#64748b';
+      ctx.font = '11px sans-serif';
+      ctx.textAlign = 'center';
+      BipolSymbols.fillText(ctx, xVal.toFixed(1), x, pad.top + plotH + 18);
+    }
+
+    ctx.fillStyle = '#334155';
+    ctx.font = 'bold 11px sans-serif';
+    ctx.textAlign = 'center';
+    BipolSymbols.fillText(ctx, 'Względna półrozpiętość η = y / (b/2) [-]', pad.left + plotW / 2, height - 10);
+
+    ctx.save();
+    ctx.translate(16, pad.top + plotH / 2);
+    ctx.rotate(-Math.PI / 2);
+    BipolSymbols.fillText(ctx, 'Cięciwa c(y) [m]', 0, 0);
+    ctx.restore();
+
+    function drawKrzywa(key, color, isDashed = false, width = 2) {
+      ctx.strokeStyle = color;
+      ctx.lineWidth = width;
+      if (isDashed) ctx.setLineDash([4, 4]);
+      else ctx.setLineDash([]);
+      ctx.beginPath();
+      schrenkData.forEach((d, idx) => {
+        const x = toX(d.eta_span);
+        const y = toY(d[key]);
+        if (idx === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      });
+      ctx.stroke();
+      ctx.setLineDash([]);
+    }
+
+    drawKrzywa('c_geom', '#64748b', true, 1.8);
+    drawKrzywa('c_ellip', '#0284c7', true, 1.8);
+    drawKrzywa('c_schrenk', '#dc2626', false, 2.6);
+
+    // Znacznik punktu krytycznego przeciągnięcia
+    if (critPt) {
+      const critX = toX(critPt.eta_span);
+      const critY = toY(critPt.c_schrenk);
+
+      ctx.fillStyle = '#e11d48';
+      ctx.beginPath();
+      ctx.arc(critX, critY, 5, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = '#fff';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+
+      ctx.fillStyle = '#9f1239';
+      ctx.font = 'bold 10px sans-serif';
+      ctx.textAlign = critPt.eta_span > 0.6 ? 'right' : 'left';
+      const offset = critPt.eta_span > 0.6 ? -10 : 10;
+      BipolSymbols.fillText(ctx, `Początek przeciągnięcia (η = ${critPt.eta_span})`, critX + offset, critY - 8);
+    }
+
+    // Legend
+    const leg = [
+      { label: 'Obrys geometryczny c(y)', color: '#64748b' },
+      { label: 'Rozkład eliptyczny', color: '#0284c7' },
+      { label: 'Rozkład Schrenka', color: '#dc2626' }
+    ];
+    let legX = pad.left + 8;
+    leg.forEach((item) => {
+      ctx.fillStyle = item.color;
+      ctx.fillRect(legX, pad.top - 20, 12, 4);
+      ctx.fillStyle = '#475569';
+      ctx.font = '10px sans-serif';
+      ctx.textAlign = 'left';
+      BipolSymbols.fillText(ctx, item.label, legX + 16, pad.top - 16);
+      legX += ctx.measureText(item.label).width + 24;
+    });
+
+    // Cursor hover
+    if (cursor && cursor.inPlot) {
+      const { cx, pt } = cursor;
+      const x = toX(pt.eta_span);
+      const y = toY(pt.c_schrenk);
+
+      ctx.save();
+      ctx.strokeStyle = 'rgba(2, 132, 199, 0.6)';
+      ctx.lineWidth = 1;
+      ctx.setLineDash([3, 3]);
+      ctx.beginPath();
+      ctx.moveTo(x, pad.top);
+      ctx.lineTo(x, pad.top + plotH);
+      ctx.stroke();
+
+      ctx.fillStyle = '#0284c7';
+      ctx.setLineDash([]);
+      ctx.beginPath();
+      ctx.arc(x, y, 4, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = '#fff';
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+
+      // Tooltip
+      const t1 = `η = ${pt.eta_span} (y = ${pt.y} m)`;
+      const t2 = `c_Schrenk = ${pt.c_schrenk} m | c_geom = ${pt.c_geom} m`;
+      const t3 = `Cz,loc/Cz = ${pt.cz_local_norm || '---'} ${pt.eta_span >= 0.65 ? '(strefa lotek)' : '(przykadłubowa)'}`;
+
+      ctx.font = '10px sans-serif';
+      const tw = Math.max(ctx.measureText(t1).width, ctx.measureText(t2).width, ctx.measureText(t3).width) + 16;
+      const th = 48;
+      let tx = x + 12;
+      let ty = y - th - 8;
+      if (tx + tw > width - 10) tx = x - tw - 12;
+      if (ty < pad.top) ty = y + 12;
+
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.94)';
+      ctx.strokeStyle = '#0284c7';
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.roundRect ? ctx.roundRect(tx, ty, tw, th, 6) : ctx.rect(tx, ty, tw, th);
+      ctx.fill();
+      ctx.stroke();
+
+      ctx.fillStyle = '#0f172a';
+      ctx.textAlign = 'left';
+      ctx.fillText(t1, tx + 8, ty + 16);
+      ctx.fillText(t2, tx + 8, ty + 30);
+      ctx.fillStyle = pt.eta_span >= 0.65 ? '#c2410c' : '#0f766e';
+      ctx.font = 'bold 10px sans-serif';
+      ctx.fillText(t3, tx + 8, ty + 44);
+      ctx.restore();
+    }
   }
-  
-  drawKrzywa('c_geom', '#64748b', true, 1.8);
-  drawKrzywa('c_ellip', '#0284c7', true, 1.8);
-  drawKrzywa('c_schrenk', '#dc2626', false, 2.8);
+
+  render();
+
+  if (!canvas._hasSchrenkListeners) {
+    canvas._hasSchrenkListeners = true;
+    canvas.addEventListener('mousemove', (e) => {
+      const data = canvas._schrenkData;
+      if (!data || !data.length) return;
+      const rect = canvas.getBoundingClientRect();
+      const cssX = e.clientX - rect.left;
+      const cssY = e.clientY - rect.top;
+      const inPlot = (cssX >= pad.left && cssX <= pad.left + plotW && cssY >= pad.top && cssY <= pad.top + plotH);
+      if (inPlot) {
+        const eta = fromX(cssX);
+        // Find closest point in data
+        let closest = data[0];
+        let minDist = Math.abs(data[0].eta_span - eta);
+        for (let i = 1; i < data.length; i++) {
+          const dist = Math.abs(data[i].eta_span - eta);
+          if (dist < minDist) { minDist = dist; closest = data[i]; }
+        }
+        render({ inPlot: true, cx: cssX, cy: cssY, pt: closest });
+      } else {
+        render(null);
+      }
+    });
+
+    canvas.addEventListener('mouseleave', () => {
+      render(null);
+    });
+  }
 }
 
 // 4. RATE OF CLIMB wy(V)

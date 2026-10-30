@@ -197,7 +197,8 @@ def calculate_all_bipol_projects(mass_res: dict, sizing_res: dict, geom_res: dic
         ('Masa płatna m_payload', '+10%', {k: params.get(k, 0)*1.1 for k in ('m_pax','m_bag','m_cargo')}),
         ('Masa płatna m_payload', '-10%', {k: params.get(k, 0)*.9 for k in ('m_pax','m_bag','m_cargo')}),
         ('Zasięg obliczeniowy R', '+10%', {'range_km': params['range_km']*1.1}),
-        ('Doskonałość przelotowa K', '+10%', {'mission_ld_factor': params['mission_ld_factor']*1.1}),
+        ('Doskonałość przelotowa K', '+10%', {'cruise_ld_p4': params['cruise_ld_p4']*1.1} if params.get('cruise_ld_p4')
+                                             else {'mission_ld_factor': params['mission_ld_factor']*1.1}),
         ('Jednostkowe zużycie paliwa SFC', '+10%', {'sfc': params.get('sfc', 0)*1.1}),
     ]
     sensitivity_table = []
@@ -336,6 +337,23 @@ def calculate_all_bipol_projects(mass_res: dict, sizing_res: dict, geom_res: dic
     wing_alpha_table = [{"alpha_deg": r["alpha_p_deg"], "cz": r["cz_inf"], "cx": r["cx_p_prime"],
                          "cm_le": round(p2w["cm_sa_profile"] - p2w["x_sa_bar"] * r["cz_inf"], 4)}
                         for r in paturski_res["p3_aircraft_aero"]["table_2_2_complete"]]
+    from calculations.airfoils import generate_airfoil_200mm, generate_airfoil_svg
+    af_chosen = selected_airfoil_name
+    if params.get("aircraft_type") in ("glider", "motoglider"):
+        af_chosen = "Wortmann FX 61-163"
+    if params.get("generate_airfoil_200mm") or params.get("include_airfoil_200mm"):
+        af_table, af_note = generate_airfoil_200mm(af_chosen, tc_ratio=geom_res["wing"].get("tc_ratio", 0.12))
+        af_svg = generate_airfoil_svg(af_table)
+    else:
+        af_table = []
+        af_svg = ""
+        af_note = "Brak zweryfikowanych rzędnych wybranego profilu. Wczytaj je z dokumentacji profilu; tabeli innego profilu nie używa się do rysunku."
+
+    track_g = float(geom_res.get("gear", {}).get("track", 0.24 * b))
+    wheelbase_g = max(0.8, bal_res.get("arms", {}).get("gear", 0.45 * l_f) - 0.12 * l_f)
+    h_cg_g = max(0.4, zcg_mtow - (-0.80 * d_f))
+    dn_g = (track_g / 2.0) / math.sqrt(1.0 + (track_g / (2.0 * wheelbase_g)) ** 2)
+    turnover_angle_val = round(math.degrees(math.atan2(h_cg_g, dn_g)), 1)
     p3_data = {
         "geometry_trends": trend_analysis.get("geometry_trends_analysis"),
         "blueprint_checks": {
@@ -347,11 +365,12 @@ def calculate_all_bipol_projects(mass_res: dict, sizing_res: dict, geom_res: dic
             "prop_ground_clearance_m": None,
             "fan_intake_mach": None,
             "nacelle_ground_clearance_m": None,
-            "gear_turnover_angle_deg": None,
+            "gear_turnover_angle_deg": turnover_angle_val,
             "gear_cg_post_landing_mac_pct": None
         },
-        "airfoil_200mm_table": [],
-        "airfoil_coordinates_note": "Brak zweryfikowanych rzędnych wybranego profilu. Wczytaj je z dokumentacji profilu; tabeli innego profilu nie używa się do rysunku.",
+        "airfoil_200mm_table": af_table,
+        "airfoil_200mm_svg": af_svg,
+        "airfoil_coordinates_note": af_note,
         "table_3_1_components": table_3_1,
         "table_3_2_loading_states": bal_res["loading_states"],
         "inertia_moments": {
@@ -572,7 +591,7 @@ def calculate_all_bipol_projects(mass_res: dict, sizing_res: dict, geom_res: dic
             f"Na wysokości {h_cr:.0f} m potrzebna moc przelotowa {cruise['required_w'] / 1000:.0f} kW przekracza dostępną "
             f"{cruise['available_w'] / 1000:.0f} kW" + (f"; lot poziomy jest możliwy do około {ra_cr['v_max_kmh']:.0f} km/h" if ra_cr else "")
             + f". Biegunowa z P4 ma Cx0 = {aero_res['cx0_clean']:.4f}, a dobór napędu w P2 przyjął Cx0 = {params['cx0']:.4f}. "
-            "Przyjmij w P2 wartości z P4 albo zmniejsz prędkość lub wysokość przelotu.")
+            "Przyjmij w P2 wartości z P4 (bilans uściślony P2←P4) albo zmniejsz prędkość lub wysokość przelotu.")
     if powered and cruise_ok and not range_ok and k_assumed:
         m_mid = paturski_res["p6_performance_paturski"]["range_endurance_6_5"].get("m_obl_avg_kg", m0)
         cz_cr = 2.0 * m_mid * G0 / (isa_cr["rho"] * S * v_cr_ms ** 2)
@@ -582,7 +601,7 @@ def calculate_all_bipol_projects(mass_res: dict, sizing_res: dict, geom_res: dic
             f"Bilans masy (P2) przyjął w przelocie K = 0,94·Kmax = {k_bilans:.1f}. Biegunowa z P4 przy {v_cr_kmh:.0f} km/h "
             f"na {h_cr:.0f} m daje K = {k_cr:.1f} (Cz = {cz_cr:.3f})"
             + (f"; największy zasięg odpowiada około {ra_cr['v_l_max_kmh']:.0f} km/h" if ra_cr else "")
-            + ". Zmniejsz prędkość przelotową w stronę prędkości największego zasięgu albo powtórz bilans paliwa z doskonałością z P4.")
+            + ". Zmniejsz prędkość przelotową w stronę prędkości największego zasięgu albo utwórz wariant z bilansem uściślonym P2←P4, który dobiera paliwo przy tej doskonałości.")
     if powered and not climb_ok:
         performance_findings.append("Prędkość wznoszenia jest mniejsza od wymaganej: zwiększ moc (ciąg) albo zmniejsz obciążenie powierzchni.")
     if powered and not takeoff_ok and takeoff_req:

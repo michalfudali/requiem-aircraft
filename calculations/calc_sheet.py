@@ -541,10 +541,16 @@ def _p2(s, r):
                    r'\mathrm{kg/(W\,s)}', 4, 'Jednostkowe zużycie paliwa w jednostkach SI', check=lambda v: v.SFC / 3.6e9)
             s.given('eta_p', r'\eta_p', float(p.get('prop_efficiency', .82)), '', 2, 'Sprawność śmigła w przelocie',
                     SOURCES['B1'] + ': η ≈ 0,8')
-        s.given('k_K', 'k_K', ma['ld_factor'], '', 2, 'Udział maksymalnej doskonałości w przelocie',
-                'Wytyczne z zajęć: K = 0,94 Kmax')
-        s.calc('K_przel', r'K_{przel}', r'k_K K_{max}', r'[[k_K]]\cdot[[Kmax_1]]', trace['cruise_ld'] if trace else mass['ld_cruise_used'],
-               '', 3, 'Doskonałość w przelocie', check=lambda v: v.k_K * v.Kmax_1)
+        if ma.get('ld_source') == 'p4_cruise':
+            s.given('K_przel', r'K_{przel}', trace['cruise_ld'] if trace else mass['ld_cruise_used'], '', 3,
+                    'Doskonałość w przelocie', 'Bilans uściślony: biegunowa P4 przy wymaganej prędkości i wysokości',
+                    'Średnia doskonałość przelotu ze stałą prędkością (zasięg P5); zastępuje pierwsze oszacowanie 0,94 Kmax.')
+        else:
+            s.given('k_K', 'k_K', ma['ld_factor'], '', 2, 'Udział maksymalnej doskonałości w przelocie',
+                    'Wytyczne z zajęć: K = 0,94 Kmax')
+            s.calc('K_przel', r'K_{przel}', r'k_K K_{max}', r'[[k_K]]\cdot[[Kmax_1]]', trace['cruise_ld'] if trace else mass['ld_cruise_used'],
+                   '', 3, 'Porównawcza doskonałość studium wstępnego; przelot liczony osobno z całki P4' if ma.get('cruise_model') == 'constant_tas_altitude' else 'Doskonałość w przelocie',
+                   check=lambda v: v.k_K * v.Kmax_1)
         s.given('r_TO', r'\frac{m_1}{m_0}', mass['fuel_fractions_detail']['takeoff'], '', 3, 'Start i kołowanie',
                 SOURCES['B1'] + ', s. 4: 0,970–0,975')
         corke = ma['corke']
@@ -852,11 +858,13 @@ def _p2_matching(s, r):
                at['przelot'], '', 4, 'Przeliczenie na ciąg startowy (spadek ciągu z wysokością)',
                check=lambda v: v.TW_cr / v.phi_cr)
         req = [('TW_TO', 'start'), ('TW_wzn', 'wznoszenie'), ('TW_cr_inst', 'przelot')]
+        s.given('TW_extra', r'(T/W)_{zad}', max((v for k,v in at.items() if k not in ('start','wznoszenie','przelot')), default=0), '', 5,
+                'Dodatkowe ograniczenie misji: prędkość maksymalna lub holowanie; zero przy braku wymagania', 'Dodatkowe krzywe wykresu doboru P2')
         tw0 = round(max(at.values()) * 1.06, 3)
-        s.calc('TW_dob', r'\left(\tfrac{T}{W}\right)_{dob}', r'1{,}06\,\max\left\{\left(\tfrac{T}{W}\right)_{TO};\left(\tfrac{T}{W}\right)_{wzn};\left(\tfrac{T}{W}\right)_{cr,0}\right\}',
-               r'1{,}06\cdot\max\left\{[[TW_TO]];\;[[TW_wzn]];\;[[TW_cr_inst]]\right\}', tw0, '', 3,
+        s.calc('TW_dob', r'\left(\tfrac{T}{W}\right)_{dob}', r'1{,}06\,\max\{(T/W)_{TO};(T/W)_{wzn};(T/W)_{cr,0};(T/W)_{zad}\}',
+               r'1{,}06\cdot\max\left\{[[TW_TO]];\;[[TW_wzn]];\;[[TW_cr_inst]];\;[[TW_extra]]\right\}', tw0, '', 3,
                'Stosunek ciągu do ciężaru z wykresu doboru (6% zapasu)', SOURCES['B2'],
-               check=lambda v: round(1.06 * max(v.TW_TO, v.TW_wzn, v.TW_cr_inst), 3))
+               check=lambda v: round(1.06 * max(v.TW_TO, v.TW_wzn, v.TW_cr_inst, v.TW_extra), 3))
         if sz.get('flight_model_requirement') is not None:
             s.given('TW_P4', r'(T/W)_{P4}', sz['flight_model_requirement']['required_rating']/(mass['m0']*G0), '', 5,
                     'Wymaganie przelotu i wznoszenia z końcowej biegunowej P4', 'Równowaga sił i mocy')
@@ -891,10 +899,12 @@ def _p2_matching(s, r):
                r'[[TW_cr]]\cdot\frac{[[V_cr]]}{[[eta_p]]\cdot[[phi_cr]]}', at['przelot'], r'\mathrm{W/N}', 3,
                'Moc względna do przelotu (przeliczona na moc startową)', check=lambda v: v.TW_cr * v.V_cr / (v.eta_p * v.phi_cr))
         pw0 = round(max(at.values()) * 1.08, 2)
-        s.calc('PW_dob', r'\left(\tfrac{N}{W}\right)_{dob}', r'1{,}08\,\max\left\{\left(\tfrac{N}{W}\right)_{TO};\left(\tfrac{N}{W}\right)_{wzn};\left(\tfrac{N}{W}\right)_{cr}\right\}',
-               r'1{,}08\cdot\max\left\{[[PW_TO]];\;[[PW_wzn]];\;[[PW_cr]]\right\}', pw0, r'\mathrm{W/N}', 2,
+        s.given('PW_extra', r'(N/W)_{zad}', max((v for k,v in at.items() if k not in ('start','wznoszenie','przelot')), default=0), r'\mathrm{W/N}', 5,
+                'Dodatkowe ograniczenie misji: prędkość maksymalna lub holowanie; zero przy braku wymagania', 'Dodatkowe krzywe wykresu doboru P2')
+        s.calc('PW_dob', r'\left(\tfrac{N}{W}\right)_{dob}', r'1{,}08\,\max\{(N/W)_{TO};(N/W)_{wzn};(N/W)_{cr};(N/W)_{zad}\}',
+               r'1{,}08\cdot\max\left\{[[PW_TO]];\;[[PW_wzn]];\;[[PW_cr]];\;[[PW_extra]]\right\}', pw0, r'\mathrm{W/N}', 2,
                'Moc względna z wykresu doboru (8% zapasu)', SOURCES['B2'],
-               check=lambda v: round(1.08 * max(v.PW_TO, v.PW_wzn, v.PW_cr), 2))
+               check=lambda v: round(1.08 * max(v.PW_TO, v.PW_wzn, v.PW_cr, v.PW_extra), 2))
         p_dob = round(pw0 * mass['m0'] * G0 / 1000, 1)
         s.calc('P_dob', r'N_{dob}', r'\frac{(N/W)_{dob}\,m_0 g}{1000}', r'\frac{[[PW_dob]]\cdot[[m0]]\cdot[[g]]}{1000}', p_dob, KW, 1,
                'Moc z wykresu doboru', check=lambda v: v.PW_dob * v.m0 * v.g / 1000)

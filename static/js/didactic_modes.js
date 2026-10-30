@@ -111,18 +111,18 @@
       'To samo co V_H, ale dla statecznika pionowego (kierunkowego). Mówi, jak mocno samolot „trzyma kierunek”.',
       'Większy V_V = lepsza stateczność kierunkowa, ważna przy awarii silnika w dwusilnikowcu.',
       'GA: 0,035–0,05 | Dwusilnikowe: 0,06–0,08 | Szybowce: 0,02–0,03.'),
-    mass_method: E('Metoda masy', 'Jak liczona jest masa startowa (P2)',
-      'Wybór sposobu oszacowania masy: z prawa statystycznego (masa pusta zależy od masy startowej) albo ze stałego udziału masy pustej.',
-      'Metoda statystyczna jest dokładniejsza, stała proporcja — prostsza do ręcznego sprawdzenia.',
-      'Projekt P2: zwykle statystyczna (Raymer / własny trend).'),
+    mass_method: E('Metoda masy', 'Jak liczony jest bilans masy (P2)',
+      'Metoda proporcji mnoży ułamki masy kolejnych faz lotu (m_k/m_p) i od razu daje paliwo. Metoda iteracyjna liczy lot faza po fazie — jest potrzebna, gdy w locie zrzucany jest ładunek, bo wtedy ułamków faz nie można po prostu wymnożyć. „Automatycznie” wybiera iteracyjną tylko przy zrzucie.',
+      'Bez zrzutu obie metody dają ten sam wynik; ze zrzutem poprawna jest tylko iteracyjna.',
+      'Misja bez zrzutu: proporcji | Rolnicza, pożarnicza, desantowa: iteracyjna.'),
     empty_mass_model: E('Model m_e', 'Prawo masy pustej',
       'Wzór, który mówi, jaką część masy startowej stanowi pusty samolot (bez paliwa, ludzi i ładunku). Pochodzi z danych podobnych samolotów.',
       'Model z własnej bazy trendów jest najbardziej „Twój”; model z literatury — najszybszy.',
       'Typowo m_e/m₀ = 0,55–0,70 dla GA, 0,60–0,70 dla szybowców.'),
-    mass_initial_guess: E('m₀,start [kg]', 'Pierwsze przybliżenie masy',
-      'Liczba, od której program zaczyna zgadywanie masy startowej w pętli iteracji. Na wynik końcowy prawie nie wpływa.',
-      'Za duża lub za mała wartość wydłuży tylko iterację.',
-      'Wpisz masę podobnego samolotu z bazy.'),
+    mass_initial_guess: E('m₀,odn [kg]', 'Masa odniesienia do doboru próby',
+      'Masa, wokół której program wybiera najbliższe samoloty z bazy do regresji masy pustej. Działa tylko w modelu „Regresja wybranych samolotów”.',
+      'Inna masa odniesienia = inne samoloty w próbie, czyli inne A i C. Najlepiej, żeby była bliska wynikowej m₀.',
+      'Masa startowa podobnego samolotu z bazy albo m₀ z poprzedniego bilansu.'),
     empty_mass_a: E('A [-]', 'Współczynnik A prawa masy pustej',
       'Mnożnik we wzorze m_e/m₀ = A·m₀^C. Ustala „poziom” krzywej: ile waży pusty samolot danej klasy.',
       'Większe A = cięższa konstrukcja, większa masa startowa.',
@@ -163,30 +163,32 @@
       'Ile paliwa spala silnik na jednostkę mocy (lub ciągu), gdy pracuje na pełnej mocy. Zwykle więcej niż w przelocie.',
       'Wyższe zużycie = cięższy bilans paliwa startu.',
       'Tłokowe: 270–320 g/(kW·h) | Odrzutowe: 0,6–0,9 1/h.'),
-    climb_fraction_mode: E('Udział wznoszenia', 'Jak liczony jest ułamek masy na wznoszenie',
-      'Wybór, czy zużycie paliwa na wznoszenie bierzemy z tabeli statystycznej, czy liczymy z wysokości i prędkości (wykres Corke’a).',
-      'Metoda z wykresu jest dokładniejsza, tabelaryczna — szybsza.',
-      'Szkic P2: tabela | Dokładniej: wykres Corke’a.'),
+    climb_fraction_mode: E('Udział wznoszenia', 'Jak liczony jest ułamek masy na wznoszenie i rozpędzanie',
+      'Ułamek masy na wznoszenie i rozpędzanie pochodzi z wykresu Corke’a: program odczytuje go z Macha i wysokości na początku i na końcu. Możesz też wpisać własne odczyty rzędnych.',
+      '„Tylko wykres” zatrzyma obliczenie, gdy punkt leży poza krzywymi; tryb domyślny liczy wtedy oznaczone przybliżenie.',
+      'Domyślnie: wykres z przybliżeniem | Do sprawozdania: własne odczyty rzędnych.',
+      { formula: 'm_k/m_p = (W_m/W₀,₁) / (W_p/W₀,₁)' }),
     climb_start_altitude_m: E('H_0 [m]', 'Wysokość początku wznoszenia',
       'Wysokość lotniska, z którego samolot startuje (nad poziomem morza).',
-      'Wyżej położone lotnisko = rzadsze powietrze, dłuższy start.',
+      'Wyższa wysokość początkowa = mniej wysokości do nabrania, więc mniejszy ułamek paliwa na wznoszenie.',
       'Typowo 0–500 m.'),
     climb_start_speed_kmh: E('V_0 [km/h]', 'Prędkość początku wznoszenia',
       'Prędkość, od której liczymy wznoszenie na wykresie energii (zwykle prędkość tuż po starcie).',
-      'Wpływa tylko na odczyt z wykresu udziału paliwa na wznoszenie.',
+      'Wyższa prędkość początkowa = mniej energii do zdobycia, więc mniej paliwa na wznoszenie i rozpędzanie.',
       'Ok. 1,2–1,3 × prędkość przeciągnięcia.'),
     corke_start_ordinate: E('Odczyt 1', 'Rzędna początkowa z wykresu Corke’a',
       'Wartość odczytana z wykresu dla stanu na początku wznoszenia.',
-      'Służy do policzenia ułamka masy zużytego na wznoszenie.',
+      'Wyższa rzędna początkowa = mniejszy iloraz rzędnych, czyli więcej paliwa na wznoszenie.',
       'Odczytaj z wykresu dla H_0 i V_0.'),
     corke_end_ordinate: E('Odczyt 2', 'Rzędna końcowa z wykresu Corke’a',
       'Wartość odczytana z wykresu dla stanu na wysokości przelotu.',
-      'Większa różnica odczytów = więcej paliwa na wznoszenie.',
+      'Wyższa rzędna końcowa = większy iloraz rzędnych, czyli mniej paliwa na wznoszenie.',
       'Odczytaj z wykresu dla H i V_cr.'),
     preliminary_polar_mode: E('Biegunowa wstępna', 'Skąd bierzemy wstępną biegunową',
-      'Biegunowa to związek siły nośnej z oporem. Na początku projektu można ją oszacować ze szkicu (powierzchnia omywana), z rodziny Raymera albo z klasy porównawczej.',
-      'Metoda ze szkicu jest najbardziej „Twoja”, ale wymaga szkicu samolotu.',
-      'P1/P2: szkic lub Raymer.'),
+      'Biegunowa to związek siły nośnej z oporem. Na początku projektu bierzemy C_x0 z założeń, odczytujemy K_max z wykresu Raymera (z wydłużenia i S_wet/S ze szkicu) albo wpisujemy własny odczyt K_max.',
+      'Wykres Raymera wiąże biegunową z Twoim szkicem; C_x0 z założeń to tylko robocze oszacowanie.',
+      'P1/P2: wykres Raymera ze szkicu | Później: biegunowa z P4.',
+      { formula: 'C_x0 = π·Λ·e / (4·K_max²)' }),
     sketch_swet_ratio: E('S_wet/S [-]', 'Stosunek powierzchni omywanej do powierzchni skrzydła',
       'Ile razy cała zewnętrzna „skóra” samolotu (owiewana powietrzem) jest większa od powierzchni skrzydła. Odczytujesz to ze szkicu.',
       'Większy stosunek = więcej tarcia, większy opór szkodliwy, niższa doskonałość.',
@@ -203,10 +205,10 @@
       'Grupa samolotów, z której bierzemy typową wartość oporu szkodliwego C_x0 (tabele A, B, C Paturskiego).',
       'Bardziej „czysta” klasa = niższy opór, wyższa prędkość, mniejsza moc.',
       'Chowane podwozie: 0,020–0,025 | Stałe: 0,027–0,036.'),
-    trend_year_basis: E('Rok', 'Rok bazowy trendu',
-      'Rok, dla którego odczytujemy wartości z analizy trendów (np. jaki będzie typowy samolot w roku wejścia do służby).',
-      'Późniejszy rok = lżejsza, nowocześniejsza konstrukcja według trendu.',
-      'Zwykle bieżący rok lub planowany rok oblotu.'),
+    trend_year_basis: E('Daty', 'Znaczenie dat w analizie trendów',
+      'Którą datę samolotu bierzemy w trendach: rok certyfikacji wariantu (obecna baza) czy rok produkcji (jak w materiałach BIPOL_1).',
+      'Zmiana przesuwa samoloty na osi czasu i może zmienić, które z nich mieszczą się w filtrze lat.',
+      'Certyfikacja — obecna baza | Produkcja — według BIPOL_1.'),
     trend_source: E('Źródło', 'Skąd biorą się samoloty do trendu',
       'Zbiór samolotów porównawczych: wbudowana baza, własne dane lub oba naraz.',
       'Więcej podobnych samolotów = wiarygodniejszy trend.',
@@ -225,7 +227,7 @@
       'Np. 1970–2000.'),
     trend_year_max: E('Do roku', 'Najnowszy rocznik w trendzie',
       'Samoloty nowsze niż ten rok są pomijane.',
-      'Zwykle zostaw bieżący rok.',
+      'Wyższy rok = do trendu wchodzą też najnowsze konstrukcje.',
       'Bieżący rok.'),
     trend_weighting: E('Wagi', 'Jak ważone są samoloty w trendzie',
       'Czy każdy samolot liczy się tak samo, czy bardziej podobne (lub nowsze) mają większy wpływ na linię trendu.',
@@ -246,7 +248,123 @@
     mission_ld_factor: E('K_misji/K_max', 'Doskonałość w misji względem maksymalnej',
       'W prawdziwym przelocie samolot rzadko leci z najlepszą doskonałością. Ten współczynnik mówi, jaką jej część faktycznie osiąga.',
       'Wyższy współczynnik = mniej paliwa w obliczeniach.',
-      'Śmigłowe: 0,85–1,0 | Odrzutowe: 0,85–0,95.')
+      'Śmigłowe: 0,85–1,0 | Odrzutowe: 0,85–0,95.'),
+    // ---- BIPOL 1: prawo masy z dwóch punktów i źródła ----
+    mass_point_x1: E('x [kg]', 'Punkt linii trendu: masa startowa',
+      'Masa startowa odczytana z wykresu m_e/m₀ = f(m₀) w miejscu, przez które przechodzi linia trendu. Dwa punkty (x₁, y₁) i (x₂, y₂) wyznaczają prostą na wykresie logarytmicznym.',
+      'Punkty dalej od siebie = pewniejsze nachylenie C. Prawo obowiązuje tylko między x₁ a x₂.',
+      'Punkty po obu stronach spodziewanej m₀, np. 600 i 1500 kg dla małego GA.',
+      { formula: 'C = ln(y₁/y₂) / ln(x₁/x₂),   A = y₁ / x₁^C' }),
+    mass_point_y1: E('y = m_e/m₀ [-]', 'Punkt linii trendu: udział masy pustej',
+      'Jaką część masy startowej stanowi pusty samolot w punkcie odczytanym z linii trendu (np. 0,60 = 60 %).',
+      'Wyższy udział = cięższa konstrukcja, mniej masy na paliwo i ładunek, więc m₀ rośnie.',
+      'UL: 0,48–0,55 | GA: 0,58–0,68 | Turbośmigłowe: 0,55–0,62 | Odrzutowe komunikacyjne: 0,50–0,56.',
+      { formula: 'm_e/m₀ = A · m₀^C' }),
+    mass_law_source: E('Źródło', 'Źródło prawa masy pustej',
+      'Skąd pochodzi zależność m_e/m₀ = A·m₀^C: dokument, strona, próba samolotów i co obejmuje masa pusta (np. z paliwem niezużywalnym, bez załogi).',
+      'Prowadzący sprawdza na tej podstawie odczyt; bez źródła prawa masy nie da się obronić.',
+      'Np. „Raymer, tab. 3.1, GA jednosilnikowe” albo „regresja 12 samolotów z bazy, certyfikacja 1990–2020”.'),
+    graph_source: E('Źródło', 'Źródło odczytów z wykresów',
+      'Z jakiego rysunku i krzywej odczytano S_wet/S i K_max oraz skąd wzięto powierzchnie ze szkicu.',
+      'Pozwala odtworzyć odczyt i sprawdzić, czy krzywa pasuje do klasy samolotu.',
+      'Np. „Raymer, krzywa: śmigłowe z podwoziem stałym; S_wet ze szkicu z 12.10”.'),
+    sketch_reference: E('Szkic', 'Uzgodniony szkic odręczny',
+      'Nazwa pliku lub arkusza ze szkicem samolotu, który prowadzący zaakceptował, i data uzgodnienia. Z tego szkicu pochodzi S_wet/S.',
+      'Wiąże obliczenia z konkretną wersją szkicu — po zmianie szkicu trzeba powtórzyć odczyty.',
+      'Np. „szkic_v2.pdf, uzgodniony 15.10.2026”.'),
+    mission_approval_reference: E('Misja', 'Uzgodnienie misji z prowadzącym',
+      'Kiedy i w jakim zakresie prowadzący zatwierdził profil misji i wymagania: zasięg, prędkości, ładunek, zrzut, krążenie.',
+      'Misja jest podstawą bilansu paliwa; zmiana po uzgodnieniu wymaga nowej akceptacji.',
+      'Np. „misja i wymagania zatwierdzone na konsultacjach 8.10.2026”.'),
+    // ---- Edytor wspólnej bazy samolotów (pola ac_*) ----
+    ac_model: E('Model', 'Oznaczenie wariantu w bazie',
+      'Nazwa wariantu tak, jak w źródle (np. Cessna 172S, ATR 72-600). Każdy wariant to osobny rekord, bo masy i osiągi wersji się różnią.',
+      'Podpisuje punkt na wykresach trendów i w wynikach wyszukiwania.',
+      'Np. PZL-104 Wilga 35A, Diamond DA40 NG.'),
+    ac_manufacturer: E('Producent', 'Producent lub posiadacz certyfikatu typu',
+      'Firma, która zbudowała samolot albo posiada jego certyfikat typu.',
+      'Ułatwia odróżnienie wariantów i znalezienie karty danych typu (TCDS).',
+      'Np. PZL Warszawa-Okęcie, Diamond Aircraft.'),
+    ac_family: E('Rodzina', 'Rodzina konstrukcji',
+      'Wspólna nazwa wariantów jednego płatowca (np. „Cessna 172” dla wersji R i S).',
+      'Przy ważeniu „wg rodzin” warianty jednej rodziny liczą się razem — rodzina z wieloma wersjami nie zdominuje trendu.',
+      'Np. Cessna 172, PZL-104 Wilga.'),
+    ac_year: E('Rok', 'Rok według źródła',
+      'Rok certyfikacji wariantu albo rok produkcji — zależnie od pola „Znaczenie daty”.',
+      'Decyduje, czy samolot zmieści się w filtrze lat i gdzie stanie na wykresie w czasie.',
+      'Rok czterocyfrowy, np. 1996.'),
+    ac_year_basis: E('Data', 'Znaczenie podanego roku',
+      'Czy rok to data certyfikacji wariantu, czy rok produkcji (jak w materiałach BIPOL_1).',
+      'Musi być zgodne ze źródłem; pomylenie dat przesuwa samolot na osi czasu nawet o kilkanaście lat.',
+      'Certyfikacja — obecna baza | Produkcja — dane z BIPOL_1.'),
+    ac_m0: E('m₀ [kg]', 'Maksymalna masa startowa samolotu z bazy',
+      'Największa masa, z jaką samolot może wystartować — z karty danych typu (TCDS) albo instrukcji użytkowania w locie.',
+      'To oś X większości trendów (m_e/m₀, W/S, P/W); błąd masy przesuwa punkt na wszystkich wykresach.',
+      'Szkolne 2-os.: 600–1000 kg | Turystyczne 4-os.: 1100–1600 kg | Regionalne turbośmigłowe: 16–23 t.'),
+    ac_me: E('m_e [kg]', 'Masa pusta samolotu z bazy',
+      'Masa samolotu bez paliwa użytkowego, załogi i ładunku. Źródła definiują ją różnie (z olejem, z paliwem niezużywalnym, OEW z załogą) — opisz to w „Definicji masy pustej”.',
+      'Wyznacza udział m_e/m₀ do prawa masy pustej w P2.',
+      'm_e/m₀: UL 0,48–0,55 | GA 0,58–0,68 | Odrzutowe komunikacyjne 0,50–0,56.'),
+    ac_p_kw: E('P [kW]', 'Łączna moc startowa silników',
+      'Suma maksymalnej mocy startowej wszystkich silników na wale, według TCDS lub karty silnika. 1 kW ≈ 1,36 KM.',
+      'Wyznacza obciążenie mocy m₀/P — oś trendu doboru napędu.',
+      'Rotax 912 ULS: 73,5 kW | Cessna 172S: 134 kW | King Air 350: 2 × 783 kW.'),
+    ac_t_kn: E('T [kN]', 'Łączny ciąg startowy silników',
+      'Suma statycznego ciągu startowego wszystkich silników na poziomie morza (ISA).',
+      'Wyznacza stosunek ciągu do ciężaru T/W — oś trendu doboru napędu odrzutowców.',
+      'VLJ: 8–18 kN | Biznesowe średnie: 30–60 kN | A320: 2 × ok. 120 kN.'),
+    ac_prop_diameter_m: E('D [m]', 'Średnica śmigła',
+      'Średnica okręgu zakreślanego przez końcówki łopat.',
+      'Większe śmigło daje więcej ciągu przy małej prędkości, ale wymaga wyższego podwozia i niższych obrotów (końcówki łopat muszą zostać wyraźnie poniżej prędkości dźwięku).',
+      'Rotax 912: 1,6–1,75 m | Cessna 172: 1,9 m | PT6A (King Air): 2,3–2,7 m.'),
+    ac_cruise_mach: E('Ma [-]', 'Liczba Macha przelotu',
+      'Prędkość przelotowa podzielona przez prędkość dźwięku na wysokości przelotu. Dla odrzutowców źródła podają zwykle Ma, nie km/h.',
+      'Wyższe Ma wymaga większego skosu i cieńszego profilu, żeby uniknąć oporu falowego.',
+      'Turbośmigłowe: 0,4–0,55 | Biznesowe: 0,7–0,85 | Komunikacyjne: 0,78–0,85.'),
+    ac_ld_max: E('K_max [-]', 'Doskonałość maksymalna samolotu z bazy',
+      'Największy stosunek siły nośnej do oporu. Mówi, ile metrów samolot przeleci do przodu, tracąc 1 m wysokości.',
+      'Służy do porównania z K_max Twojego projektu i do trendu doskonałości.',
+      'GA: 9–13 | Odrzutowe komunikacyjne: 16–20 | Szybowce: 35–60.'),
+    ac_takeoff_m: E('Start [m]', 'Długość startu podana w źródle',
+      'Długość startu w metrach. Co dokładnie oznacza (rozbieg, droga do 15 m, długość pola), wybierasz w polu „Definicja długości startu”.',
+      'Krótszy start oznacza zwykle mniejsze obciążenie powierzchni albo większy zapas mocy.',
+      'Rozbieg GA: 200–400 m | Do 15 m GA: 400–700 m | Pole startowe odrzutowców: 1200–2500 m.'),
+    ac_landing_m: E('Lądowanie [m]', 'Długość lądowania podana w źródle',
+      'Długość lądowania w metrach. Co dokładnie oznacza (dobieg, droga znad 15 m, długość pola), wybierasz w polu „Definicja długości lądowania”.',
+      'Krótsze lądowanie oznacza zwykle niższą prędkość podejścia, czyli większe skrzydło lub lepsze klapy.',
+      'Dobieg GA: 150–300 m | Znad 15 m GA: 350–650 m | Pole do lądowania odrzutowców: 1000–2000 m.'),
+    ac_takeoff_basis: E('Definicja', 'Co mierzy podana długość startu',
+      'Czy liczba to sam rozbieg, droga do 15 m (50 ft), czy długość pola startowego według przepisów.',
+      'Bez definicji liczb nie da się porównać — droga do 15 m bywa 1,6–2 razy dłuższa od rozbiegu.',
+      'GA: zwykle do 15 m (50 ft) | Odrzutowe: długość pola startowego.'),
+    ac_landing_basis: E('Definicja', 'Co mierzy podana długość lądowania',
+      'Czy liczba to sam dobieg, droga znad 15 m (50 ft), czy długość pola do lądowania według przepisów.',
+      'Droga znad 15 m bywa około 2 razy dłuższa od dobiegu; pomieszanie definicji psuje trend.',
+      'GA: zwykle znad 15 m (50 ft) | Odrzutowe: długość pola do lądowania.'),
+    ac_aileron_chord_ratio: E('c_a/c [-]', 'Względna cięciwa lotki',
+      'Jaką część cięciwy skrzydła zajmuje lotka w miejscu zamocowania.',
+      'Większa cięciwa = skuteczniejsza lotka, ale większe siły na drążku i mniej miejsca za dźwigarem tylnym.',
+      'Typowo 0,20–0,30.'),
+    ac_elevator_chord_ratio: E('c_SH/c_H [-]', 'Względna cięciwa steru wysokości',
+      'Jaką część cięciwy usterzenia poziomego zajmuje ster wysokości.',
+      'Większy ster = więcej momentu do wyrównania przy przednim środku masy, ale większe siły sterowe.',
+      'Typowo 0,30–0,45 | Usterzenie płytowe (całe ruchome): 1,0.'),
+    ac_rudder_chord_ratio: E('c_SV/c_V [-]', 'Względna cięciwa steru kierunku',
+      'Jaką część cięciwy statecznika pionowego zajmuje ster kierunku.',
+      'Większy ster = łatwiejsze opanowanie bocznego wiatru i niesymetrycznego ciągu, ale większe siły na pedałach.',
+      'Typowo 0,25–0,45.'),
+    ac_source_locator: E('Lokalizacja', 'Dokument, strona i miejsce danych',
+      'Gdzie dokładnie są liczby: dokument, strona, tabela albo adres.',
+      'Pozwala innym sprawdzić dane i obronić trend.',
+      'Np. „TCDS EASA, sekcja Masses” albo „POH, rozdz. 5, tab. 5-2”.'),
+    ac_source_references: E('Źródło', 'Źródło i warunki pomiaru',
+      'Skąd są dane i w jakich warunkach je podano: masa, wysokość, atmosfera ISA, ustawienie mocy, rezerwa paliwa.',
+      'Bez warunków osiągi z różnych źródeł nie są porównywalne.',
+      'Np. „POH, rozdz. 5; zasięg przy 75 % mocy na 2400 m, rezerwa 45 min”.'),
+    ac_empty_mass_definition: E('Definicja m_e', 'Co obejmuje podana masa pusta',
+      'Czy masa pusta zawiera olej, paliwo niezużywalne, wyposażenie standardowe, a może to OEW razem z załogą.',
+      'Różne definicje zmieniają m_e/m₀ o kilka punktów procentowych — opisz je, żeby trend był spójny.',
+      'Np. „masa pusta wg TCDS: z paliwem niezużywalnym i pełnym olejem”.')
   });
 
   // ---- „Prosto mówiąc” dla parametrów już opisanych w encyklopedii ----
@@ -289,40 +407,113 @@
   }
 
   const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
-  const keyFor = id => String(id || '').replace(/^wiz_basis_/, '').replace(/^wiz_/, '');
-  const hintHtml = info => `<strong>Prosto mówiąc:</strong> ${esc(info.plain || info.short_desc)}`
-    + (info.more ? `<span class="hint-more"><strong>Gdy zwiększysz:</strong> ${esc(info.more)}</span>` : '')
-    + (info.typical_ranges ? `<span class="hint-range">📏 Typowo: ${esc(info.typical_ranges)}</span>` : '');
-  window.BipolDidacticHintHtml = hintHtml;
+  // Pola o innym identyfikatorze niż klucz encyklopedii (kreator, metryczka, edytor bazy).
+  const ALIAS = {
+    ac_s: 'wing_area_m2', ac_b: 'wingspan_m', ac_v_cruise_kmh: 'cruise_speed_kmh',
+    ac_aileron_span_fraction: 'aileron_span_ratio', mass_point_x2: 'mass_point_x1', mass_point_y2: 'mass_point_y1'
+  };
+  const keyFor = id => {
+    id = String(id || '');
+    if (ALIAS[id] || PARAMETER_ENCYCLOPEDIA[id]) return ALIAS[id] || id;
+    return id.replace(/^(wiz_basis_|wiz_|ws_|studioMeta_|ac_)/, '');
+  };
 
-  // Popover: najpierw prosty opis, potem pełna definicja
-  const basePopover = window.showDidacticPopover;
-  if (typeof basePopover === 'function') {
-    window.showDidacticPopover = function (key, anchor) {
-      basePopover(key, anchor);
-      const info = PARAMETER_ENCYCLOPEDIA[key];
-      const desc = document.getElementById('popDesc');
-      if (!info || !desc) return;
-      desc.innerHTML = `<strong>Prosto mówiąc:</strong> ${esc(info.plain || info.short_desc)}`
-        + (info.full_definition ? `<br><span style="color:#475569;">${esc(info.full_definition)}</span>` : '');
-      const f = document.getElementById('popFormula');
-      if (f) f.textContent = info.formula && info.formula !== '—' ? `Wzór: ${info.formula}` : 'Wzór: —';
-    };
+  // Ta sama treść trafia pod pole i do kartoteki; etykieta skutku zależy od rodzaju pola.
+  const GROUP = '.input-group, .form-group, .wizard-field, .assumption-input-card';
+  const EFFECT_LABEL = { number: 'Gdy zwiększysz', choice: 'Gdy zmienisz', text: 'Do czego służy', result: 'Wpływ na projekt' };
+  // Pola rekordu bazy opisują istniejący samolot, nie decyzję projektową — skutek „zwiększenia” nie ma sensu.
+  const kindOf = field => !field ? 'result' : field.closest('#aircraftEditorFields') ? 'text'
+    : field.tagName === 'SELECT' ? 'choice' : ['number', 'range'].includes(field.type) ? 'number' : 'text';
+  const plainOf = info => info.plain || info.short_desc || '';
+  const effectOf = info => info.more || info.effect_increase || '';
+  const blank = s => !s || /^[—–-]$/.test(String(s).trim());
+
+  const hintHtml = (info, kind = 'number') => `<strong>Prosto mówiąc:</strong> ${esc(plainOf(info))}`
+    + (effectOf(info) ? `<span class="hint-more"><strong>${EFFECT_LABEL[kind]}:</strong> ${esc(effectOf(info))}</span>` : '')
+    + (info.typical_ranges ? `<span class="hint-range">📏 Typowo: ${esc(info.typical_ranges)}</span>` : '');
+
+  function fieldFor(anchor) {
+    if (!anchor) return null;
+    const label = anchor.closest('label');
+    const target = label && label.htmlFor ? document.getElementById(label.htmlFor) : null;
+    if (target) return target;
+    const scope = anchor.closest(GROUP) || label;
+    return scope ? scope.querySelector('input:not([type=checkbox]):not([type=hidden]):not([type=radio]), select, textarea') : null;
   }
 
-  const SCOPES = '#designForm, #projectWizardBackdrop, #bipol1Panel, #trendControls, #tab-trends';
+  function currentValue(field, info) {
+    if (!field) return '';
+    if (field.tagName === 'SELECT') return field.selectedOptions[0]?.textContent.trim() || '';
+    const value = String(field.value ?? '').trim();
+    if (!value || field.type !== 'number') return value.length > 90 ? `${value.slice(0, 87)}…` : value;
+    const unit = (String(info.symbol).match(/\[([^\]]+)\]/) || [])[1];
+    return value.replace('.', ',') + (!unit || unit === '-' ? '' : unit === '°' ? unit : ` ${unit}`);
+  }
+
+  const STATE = { derived: 'wyliczona przez program', locked: 'zablokowane założenie', input: 'wpisana przez Ciebie' };
+  function stateOf(key, field) {
+    const results = typeof currentResults !== 'undefined' ? currentResults : null;
+    const state = field && field.id === key && results?.constraints?.parameter_states?.[key];
+    if (!state || !STATE[state.state]) return '';
+    return STATE[state.state] + (state.state === 'derived' && state.formula ? ` ze wzoru ${state.formula}` : '');
+  }
+
+  function cardHtml(key, anchor) {
+    const info = PARAMETER_ENCYCLOPEDIA[key];
+    if (!info) return '';
+    const field = fieldFor(anchor);
+    const effect = effectOf(info);
+    const section = (cls, label, text) => text
+      ? `<div class="didactic-popover-section ${cls}"><strong>${label}</strong> ${esc(text)}</div>` : '';
+    const shown = anchor?.closest('.kpi-card')?.querySelector('.kpi-value')?.textContent.trim() || '';
+    const value = currentValue(field, info) || (/\d/.test(shown) ? shown : ''), state = stateOf(key, field);
+    const where = anchor?.closest('#aircraftEditorFields') ? 'W rekordzie bazy' : 'W Twoim projekcie';
+    const tech = (info.full_definition ? `<p class="didactic-popover-desc">${esc(info.full_definition)}</p>` : '')
+      + (blank(info.formula) ? '' : `<div class="didactic-popover-formula">Wzór: ${esc(info.formula)}</div>`)
+      + (info.effect_increase && info.effect_increase !== effect ? section('green', '📈 W obliczeniach:', info.effect_increase) : '')
+      + (blank(info.galinski_note) ? '' : section('amber', /Rozdz/.test(info.galinski_note)
+        ? '💡 Wskazówka konstrukcyjna (rozdziały wg kompendium prof. C. Galińskiego):' : '💡 Wskazówka konstrukcyjna:', info.galinski_note));
+    return section('plain', 'Prosto mówiąc:', plainOf(info))
+      + section('green', `${EFFECT_LABEL[kindOf(field)]}:`, effect)
+      + section('blue', '📏 Typowo:', info.typical_ranges)
+      + (value || state ? `<div class="didactic-popover-now"><strong>${where}:</strong> ${esc(value || 'puste')}${state ? ` · ${esc(state)}` : ''}</div>` : '')
+      + (tech ? `<div class="didactic-popover-tech"><div class="didactic-popover-tech-title">Dla konstruktora</div>${tech}</div>` : '');
+  }
+  window.BipolDidactic = { hintHtml, cardHtml, keyFor };
+
+  // Etykieta obejmująca pole: tekst sprzed kontrolki trafia do .label-text, żeby ikonka stała przy nazwie.
+  function labelText(label, field) {
+    const existing = label.querySelector('.label-text');
+    if (existing || !label.contains(field)) return existing || label;
+    let control = field;
+    while (control.parentElement !== label) control = control.parentElement;
+    const text = document.createElement('span');
+    text.className = 'label-text';
+    while (label.firstChild && label.firstChild !== control) text.appendChild(label.firstChild);
+    label.insertBefore(text, control);
+    return text;
+  }
+
+  const SCOPES = '#designForm, #projectWizardBackdrop, #bipol1Panel, #trendControls, #tab-trends, #aircraftEditorFields, #semesterWorkstation, #tab-reports';
 
   function decorate() {
+    // Ikonki z szablonów: rola przycisku i nazwa dla czytnika; natywny dymek title zasłaniałby kartotekę.
+    document.querySelectorAll('.info-circle-icon[data-param]:not([role])').forEach(icon => {
+      const info = PARAMETER_ENCYCLOPEDIA[icon.dataset.param];
+      icon.setAttribute('role', 'button');
+      icon.setAttribute('aria-label', `Objaśnienie: ${info?.title || icon.title || icon.dataset.param}`);
+      icon.removeAttribute('title');
+      if (!icon.hasAttribute('tabindex')) icon.tabIndex = 0;
+    });
     document.querySelectorAll(SCOPES).forEach(scope => {
-      scope.querySelectorAll('input[id], select[id]').forEach(field => {
+      scope.querySelectorAll('input[id], select[id], textarea[id]').forEach(field => {
         if (field.type === 'hidden' || field.type === 'checkbox' || field.type === 'file') return;
         const key = keyFor(field.id);
         const info = PARAMETER_ENCYCLOPEDIA[key];
         if (!info) return;
-        const group = field.closest('.input-group, .form-group, .wizard-field, label') || field.parentElement;
-        if (!group || group.dataset.didacticDone === '1') return;
-        group.dataset.didacticDone = '1';
-        // Ikonka (i)
+        const group = field.closest(GROUP) || field.closest('label') || field.parentElement;
+        if (!group) return;
+        // Ikonka (i); wraca także wtedy, gdy skrypt przepisał tekst etykiety.
         let label = document.querySelector(`label[for="${CSS.escape(field.id)}"]`) || group.querySelector('label') || (group.tagName === 'LABEL' ? group : null);
         if (label && !label.querySelector('.info-circle-icon')) {
           const icon = document.createElement('span');
@@ -333,26 +524,35 @@
           icon.setAttribute('role', 'button');
           icon.setAttribute('aria-label', `Objaśnienie: ${info.title}`);
           icon.textContent = 'i';
-          (label.querySelector('.label-text') || label).appendChild(icon);
+          labelText(label, field).appendChild(icon);
         }
-        // Objaśnienie pod polem
+        // Objaśnienie pod polem; zapisywane raz, żeby obserwator zmian nie wpadł w pętlę.
         let hint = group.querySelector('.param-didactic-hint');
         if (!hint) {
           hint = document.createElement('div');
           hint.className = 'param-didactic-hint';
-          hint.dataset.hintFor = key;
-          const anchor = field.parentElement && field.parentElement !== group && field.parentElement.closest('.input-group, .form-group, .wizard-field, label') === group ? field.parentElement : field;
+          const anchor = field.parentElement && field.parentElement !== group && (field.parentElement.closest(GROUP) || field.parentElement.closest('label')) === group ? field.parentElement : field;
           anchor.insertAdjacentElement('afterend', hint);
         }
-        hint.innerHTML = hintHtml(info);
+        if (hint.dataset.hintFor !== key) {
+          hint.dataset.hintFor = key;
+          hint.innerHTML = hintHtml(info, kindOf(field));
+        }
       });
     });
   }
 
   // Delegacja zdarzeń dla dynamicznie dodanych ikonek
-  let hideTimer = null;
-  const show = icon => { clearTimeout(hideTimer); window.showDidacticPopover?.(icon.dataset.param, icon); };
-  const hide = () => { clearTimeout(hideTimer); hideTimer = setTimeout(() => { if (typeof scheduleHideDidacticPopover === 'function') scheduleHideDidacticPopover(); }, 60); };
+  const show = icon => window.showDidacticPopover?.(icon.dataset.param, icon);
+  const hide = () => { if (typeof scheduleHideDidacticPopover === 'function') scheduleHideDidacticPopover(); };
+  const cardOpen = () => document.getElementById('didacticPopover')?.classList.contains('visible');
+  const close = () => { if (typeof hideDidacticPopover === 'function') hideDidacticPopover(); };
+  document.addEventListener('keydown', e => { if (e.key === 'Escape' && cardOpen()) close(); });
+  // Na ekranie dotykowym nie ma „zjechania” kursorem: zamyka przycisk × albo dotknięcie poza kartą.
+  document.addEventListener('pointerdown', e => {
+    if (cardOpen() && !e.target.closest?.('#didacticPopover, .info-circle-icon')) close();
+  }, true);
+  document.addEventListener('click', e => { if (e.target.closest?.('.didactic-popover-close')) close(); });
   document.addEventListener('mouseover', e => { const i = e.target.closest?.('.info-circle-icon[data-dyn]'); if (i) show(i); });
   document.addEventListener('mouseout', e => { if (e.target.closest?.('.info-circle-icon[data-dyn]')) hide(); });
   document.addEventListener('focusin', e => { const i = e.target.closest?.('.info-circle-icon[data-dyn]'); if (i) show(i); });

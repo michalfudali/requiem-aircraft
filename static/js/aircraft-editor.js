@@ -113,7 +113,7 @@
     async function request(checkOnly) {
       if(busy||!validForm())return;
       error('');
-      const data=payload(values(),original||{}), id=original?.id||`user-${crypto.randomUUID()}`;
+      const data=payload(values(),original||{}), id=original?.id||BipolStudio.uniqueId('user-');
       const body=checkOnly?{id:original?.id||null,record:{...data,id}}:original?data:{...data,id};
       setBusy(true);
       let checkedMessage='';

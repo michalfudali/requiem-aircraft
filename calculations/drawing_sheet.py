@@ -64,12 +64,37 @@ def drawing_sheet(result):
     for x in (xgear, .12 * length):
         px, py = side(x, zground)
         out.append(f'<circle cx="{px:.3f}" cy="{py:.3f}" r="1.2" fill="none" stroke="#222" stroke-width=".35"/>')
+    # Linie wymiarowe wg PN-EN ISO 129
+    y_left = 95 - (span / 2) * s
+    y_right = 95 + (span / 2) * s
+    dim_y = 14
+    out.append(f'<line x1="{y_left:.3f}" y1="{dim_y}" x2="{y_right:.3f}" y2="{dim_y}" stroke="#005691" stroke-width=".25"/>')
+    out.append(f'<line x1="{y_left:.3f}" y1="{dim_y-2}" x2="{y_left:.3f}" y2="{dim_y+2}" stroke="#005691" stroke-width=".25"/>')
+    out.append(f'<line x1="{y_right:.3f}" y1="{dim_y-2}" x2="{y_right:.3f}" y2="{dim_y+2}" stroke="#005691" stroke-width=".25"/>')
+    out.append(f'<text x="95" y="{dim_y-1}" font-family="Arial,sans-serif" font-size="2.6" fill="#005691" text-anchor="middle">b = {span*1000:.0f} mm</text>')
+
+    x_nose = 18
+    x_tail = 18 + length * s
+    dim_x_side = 193
+    out.append(f'<line x1="{x_nose:.3f}" y1="{dim_x_side}" x2="{x_tail:.3f}" y2="{dim_x_side}" stroke="#005691" stroke-width=".25"/>')
+    out.append(f'<line x1="{x_nose:.3f}" y1="{dim_x_side-2}" x2="{x_nose:.3f}" y2="{dim_x_side+2}" stroke="#005691" stroke-width=".25"/>')
+    out.append(f'<line x1="{x_tail:.3f}" y1="{dim_x_side-2}" x2="{x_tail:.3f}" y2="{dim_x_side+2}" stroke="#005691" stroke-width=".25"/>')
+    out.append(f'<text x="{(x_nose+x_tail)/2:.3f}" y="{dim_x_side-1}" font-family="Arial,sans-serif" font-size="2.6" fill="#005691" text-anchor="middle">L = {length*1000:.0f} mm</text>')
+
+    y_g_left = 95 - (track / 2) * s
+    y_g_right = 95 + (track / 2) * s
+    dim_track = 241
+    out.append(f'<line x1="{y_g_left:.3f}" y1="{dim_track}" x2="{y_g_right:.3f}" y2="{dim_track}" stroke="#005691" stroke-width=".25"/>')
+    out.append(f'<line x1="{y_g_left:.3f}" y1="{dim_track-1.5}" x2="{y_g_left:.3f}" y2="{dim_track+1.5}" stroke="#005691" stroke-width=".25"/>')
+    out.append(f'<line x1="{y_g_right:.3f}" y1="{dim_track-1.5}" x2="{y_g_right:.3f}" y2="{dim_track+1.5}" stroke="#005691" stroke-width=".25"/>')
+    out.append(f'<text x="95" y="{dim_track+3.2}" font-family="Arial,sans-serif" font-size="2.2" fill="#005691" text-anchor="middle">rozstaw = {track*1000:.0f} mm</text>')
+
     label(8, 8, 'Rzut z góry — dziób do góry')
     label(8, 139, f'b = {span*1000:.0f} mm; S = {w["S"]:.2f} m²; Λ = {w["AR"]:.2f}')
     label(8, 151, 'Rzut z boku — dziób w lewo')
     label(8, 198, f'L = {length*1000:.0f} mm')
     label(8, 207, 'Rzut z przodu — wznios i położenie podwozia')
-    label(8, 245, '○ Mocowanie podwozia: ' + ('skrzydło' if p.get('gear_attachment') == 'wing' else 'kadłub'))
+    label(8, 246, '○ Mocowanie podwozia: ' + ('skrzydło' if p.get('gear_attachment') == 'wing' else 'kadłub'))
     path([(0, 250), (190, 250), (190, 270), (0, 270)], True)
     label(3, 256, str(p.get('name', 'Projekt BIPOL I'))[:75])
     label(3, 262, f'A4 • skala 1:{denominator} przy wydruku 100% • wymiary w mm')

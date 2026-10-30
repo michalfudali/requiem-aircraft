@@ -86,12 +86,47 @@ python -m pytest -q
 node --test tests/*.test.mjs
 python tests/browser_design_integrity.py --serve
 python tests/browser_design_requirements.py
+python tests/browser_didactic_card.py --in-process
+python tests/browser_didactic_and_engineering.py --in-process
 ```
 
 Testy przeglądarkowe wymagają Playwright oraz Chrome pod ścieżką wskazaną
 w skryptach. Używają osobnych baz w ignorowanym `work/design-integrity-20261030`.
 W tym katalogu pozostają logi, JSON wyników, raporty i zrzuty ekranu.
-Wynik integracji z aktualnym `master` jest dopisywany po wykonaniu jej testów.
+Test importu korzysta z aplikacji Flask w tym samym procesie, przez przekierowanie
+żądań Playwright. Chroni to przed trafieniem do innej wersji serwera na porcie
+używanym równolegle przez innego agenta. Pełny test 13 kategorii używa osobnego
+serwera HTTP; opcja `--in-process` umożliwia również jego izolowane odtworzenie.
+
+## Integracja z master
+
+Połączono zmiany z `master` do `7af59a6`, zachowując nowe moduły profili,
+kartotek parametrów, audytu inżynierskiego, aeroelastyczności i akustyki oraz
+dobór dla holowania, prędkości wyścigowej i stateczności podłużnej.
+Zamiast dwóch konkurencyjnych pętli bilansu API `refine_bipol_project` korzysta
+ze wspólnego solvera masy, geometrii i całki paliwa. Zachowano jego interfejs
+i historię iteracji zwracaną do przeglądarki.
+
+Wymiarowanie ładowni z założonej gęstości ładunku pozostaje dostępnym
+oszacowaniem. Podane wymiary użytkowe mają pierwszeństwo. Raport pokazuje
+faktycznie użyty przekrój i długość oraz dodatkowe ograniczenia napędu;
+te same równania przechodzą automatyczne sprawdzenie spójności arkusza.
+Testy starszego trybu wstępnego jawnie wybierają `preliminary`, ponieważ nowe
+tematy domyślnie używają domkniętego bilansu.
+
+Wspólny wynik: **1173 testy Pythona i 36 testów JavaScript — wszystkie zaliczone**.
+W przeglądarce sprawdzono ponownie 13 kategorii i dodatkowo ciężkie
+transportowce 71 i 74. Osobno sprawdzono 189 kartotek dydaktycznych, przełączniki
+trybów, generator profilu 200 mm, wykres doboru i panel nowego audytu.
+Import oraz tworzenie nowych wariantów kontrolują zachowanie projektu źródłowego.
+Wszystkie 15 pełnych scenariuszy zakończyło się powodzeniem: 480 kontroli
+równań przed i po edycji, brak błędów JavaScript i przepełnienia przy 320/390 px.
+Import i ponowny wariant przeszły dla wszystkich 13 kategorii. Raporty HTML
+otwarto bez sieci i wydrukowano do PDF; sprawdzono również struktury DOCX.
+Zwięzłe dane wynikowe zapisano w [WYNIKI_TESTOW_PROJEKTOWANIA_2026-10-30.json](WYNIKI_TESTOW_PROJEKTOWANIA_2026-10-30.json).
+
+Spełnienie zasięgu potwierdzono w modelu dla wszystkich 110 tematów; pozostałe
+kontrole zgodności nadal mogą wymagać zmian projektu i danych szczegółowych.
 
 ## Podstawy merytoryczne
 

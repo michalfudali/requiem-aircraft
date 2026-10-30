@@ -201,18 +201,25 @@
       const query = normalize(search.value.trim());
       list.replaceChildren(); list.hidden = !query;
       if (!query) { status.textContent = 'Wpisz nazwę, aby przejść prosto do pola.'; return; }
+      // Najpierw nazwa pola, potem tytuł i symbol z kartoteki (np. „Cx0”, „propeller”), na końcu jej opis.
+      const cards = typeof PARAMETER_ENCYCLOPEDIA === 'undefined' ? {} : PARAMETER_ENCYCLOPEDIA;
+      const compact = text => normalize(text).replace(/[\s_.,·()-]/g,''), symbol = compact(query);
+      const rank = (name, info) => normalize(name).includes(query) ? 0
+        : info && (normalize(info.title).includes(query) || (symbol && compact(info.symbol).includes(symbol))) ? 1
+        : info && normalize(info.plain || info.short_desc || '').includes(query) ? 2 : -1;
       const fields = [...$('designForm').querySelectorAll('.input-group label[for]')].map(label => {
         const control = $(label.htmlFor), copy = label.cloneNode(true);
         copy.querySelectorAll('button,.info-circle-icon').forEach(node=>node.remove());
         const name = copy.textContent.replace(/\s+/g,' ').trim();
-        return {control,name,module:control?.closest('.module-accordion')};
+        const info = control && cards[window.BipolDidactic?.keyFor(control.id) ?? control.id];
+        return {control,name,module:control?.closest('.module-accordion'),rank:rank(name,info)};
       }).filter(field => field.control && field.module && field.module.id!=='accordion_mod0'
-        && !field.control.closest('[hidden]') && normalize(field.name).includes(query));
+        && !field.control.closest('[hidden]') && field.rank>=0).sort((a,b)=>a.rank-b.rank);
       status.textContent = fields.length ? `Znalezione parametry: ${fields.length}. Wybierz pole poniżej.` : 'Nie znaleziono parametru. Spróbuj krótszej nazwy, np. „masa” lub „skrzydło”.';
       fields.slice(0,8).forEach(field => {
         const item=document.createElement('li'), button=document.createElement('button');button.type='button';
         const name=document.createElement('span');name.textContent=field.name;
-        const group=document.createElement('small');group.textContent=(field.control.readOnly?'Obliczany · ':'')+(field.module.querySelector('.module-title b')?.textContent || 'Parametry');
+        const group=document.createElement('small');group.textContent=(field.control.readOnly?'Obliczany · ':'')+(field.rank?'Z kartoteki · ':'')+(field.module.querySelector('.module-title b')?.textContent || 'Parametry');
         button.append(name,group);button.addEventListener('click',()=>reveal(field.control));
         item.append(button);list.append(item);
       });
@@ -266,6 +273,9 @@
     document.addEventListener('click',event=>{
       const fixBtn=event.target.closest('[data-focus-param]');
       if(fixBtn){event.preventDefault();window.focusDesignParameter?.(fixBtn.dataset.focusParam);return;}
+      // Przycisk prowadzący do akcji w innej zakładce: po przejściu pokaż i zaznacz tę akcję.
+      const revealBtn=event.target.closest('[data-reveal]');
+      if(revealBtn)requestAnimationFrame(()=>{const target=$(revealBtn.dataset.reveal);target?.scrollIntoView({block:'center',behavior:'instant'});target?.focus({preventScroll:true});});
       if(event.target.closest('[data-toggle-explanations]'))$('toggleDidacticHintsBtn').click();
       if(event.target.closest('[data-studio-target="tab-inputs"]')&&$('calculationStatus').classList.contains('is-error')) {
         const invalid=[...$('designForm').querySelectorAll('input[type=number]')].find(input=>!input.value.trim()||!Number.isFinite(Number(input.value))||!input.checkValidity());

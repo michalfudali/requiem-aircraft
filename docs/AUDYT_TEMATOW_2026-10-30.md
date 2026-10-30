@@ -34,45 +34,61 @@ wyniki → weryfikacja → raport zbiorczy, sprawozdanie P6 i eksport DOCX.
 | Poziom osiągów CS 23.2005(c) | Brak ustalonych VMO/VNO (KCAS) i MMO wymaga uzupełnienia danych. | Korekta po audycie: obliczeniowe VC w EAS nie zastępuje granic operacyjnych w CAS ani MMO. Bez tych danych program nie deklaruje poziomu osiągów. |
 | Frachtowce CS-25 | Ostrzeżenie „co najmniej 10 pasażerów” pojawiało się dla samolotu bez pasażerów. | Powyżej 8618 kg o CS-25 decyduje masa, więc to zalecenie jest pomijane. |
 
-## Kwestie metodyczne do decyzji
+## Rozwiązane kwestie metodyczne
 
-1. **Zasięg przy wymaganej prędkości jest niespełniony we wszystkich 110 tematach.**
-   Zgodnie z wytyczną P2 liczy paliwo przy K = 0,94·Kmax. Przy wymaganej prędkości
-   przelotowej biegunowa P4 daje niższą doskonałość. Rozbieżność zostaje także po
-   zbieżnej iteracji biegunowej:
+| Kwestia | Rozwiązanie zgodne z praktyką projektową | Efekt |
+| --- | --- | --- |
+| Zasięg przy wymaganej prędkości był niespełniony we wszystkich 110 tematach. P2 liczy paliwo przy K = 0,94·Kmax, a przy wymaganej prędkości biegunowa P4 daje niższe K (temat 40: 11,9 zamiast 14,7). | Pierwsze oszacowanie zostaje zgodne z wytyczną. Wariant „bilans uściślony P2←P4” powtarza bilans masy z Cx₀ i e z P4 oraz ze średnią doskonałością przelotu przy wymaganej prędkości i wysokości, aż MTOW się ustali (refined sizing, Raymer rozdz. 19). Doskonałość z P4 obowiązuje tylko dla prędkości i wysokości, dla których ją wyznaczono. Paliwo dobiera się do gorszej z dwóch ostatnich wartości, z zapasem 0,1%. | Wszystkie 110 tematów zbiega się w 2–12 krokach. Spełniają zasięg, lot poziomy i wznoszenie. |
+| Cx₀ w P2 był niższy niż opór z P4: szkolny 0,027 wobec 0,036, małe odrzutowce 0,020 wobec 0,032–0,037. | Ten sam bilans uściślony przenosi biegunową P4 do P2 aż do zgodności (±0,0002). | Kontrola lotu poziomego jest spełniona po uściśleniu. |
+| ULM dwumiejscowy miał MTOM 732 kg przy limicie 600 kg. | Korelacja klasy tłokowej opisuje certyfikowane samoloty lekkie. Dla podstawy LTF-UL zastosowano modyfikator 0,85, bo dwumiejscowe UL 600 kg mają masę pustą 290–330 kg (mₑ/m₀ ≈ 0,48–0,55). | Temat 17: 562 kg, b = 10,2 m, S = 13,2 m² (Aeroprakt A-22: 10,4 m, 13,1 m²). Po uściśleniu 584 kg. |
+| Małe samoloty jednomiejscowe miały Kn = 3–4%. | Usterzenie poziome jest wymiarowane warunkiem stateczności (wykres X). Gdy V_H klasy daje Kn < 5% w tylnym położeniu ŚC, V_H rośnie do wartości z równania punktu neutralnego, najwyżej do 1,2. Zablokowane V_H pozostaje bez zmian. Dolną granicę położenia krawędzi natarcia obniżono z 28 do 25% długości kadłuba, typowo dla lekkich samolotów ciągnących. Poprawiono też zaokrąglenie wyniku bisekcji, przez które przedni ŚC 24,95% był odrzucany. | Tematy 15, 23, 28, 31: Kn ≥ 5%, V_H = 0,70–0,76; kryterium BIPOL_3 spełnione. |
+| Brak wymagania holowania szybowców (tematy 30–31). | Nowe ograniczenie na wykresie doboru i kontrola P5. Szybowiec dwumiejscowy 600 kg (ASK 21, Puchacz) przy 120 km/h, K = 25, wznoszenie ≥ 3 m/s, prędkość holowania ≥ 1,2 VS1 holownika. Holownik ma VS0 = 80 km/h. | Temat 31: 443 kg, 68 kW, 3,4 m/s z szybowcem (jak holowniki z Rotaxem 100 KM). |
+| Odrzutowe szkolne (37–38) ważyły 1090 kg. | Szkolno-treningowe mają kategorię akrobacyjną (n = 6, CS-23 Amdt 4 dopuszcza każdy napęd). Bilans uściślony uwzględnia doskonałość przy 550 km/h na 7000 m. | 1,8–1,9 t (ViperJet ≈ 1,8 t). |
 
-   | Temat | K w bilansie P2 | K przy Vcr (P4) | Zasięg / wymagany |
-   | --- | --- | --- | --- |
-   | 40 | 14,7 | 11,9 | 1298 / 1600 km |
-   | 49 | 12,3 | 7,2 | 288 / 500 km |
-   | 56 | 15,0 | 10,8 | 722 / 1000 km |
-   | 76 | 15,6 | 11,4 | 1602 / 2200 km |
+Przy uściślaniu ujawniły się też dodatkowe błędy, które poprawiono:
 
-   Możliwe rozwiązania: bilans paliwa z K przy Vcr z P4 (wymaga zgody prowadzącego,
-   bo odchodzi od wytycznej 0,94·Kmax), prędkość przelotowa bliższa prędkości
-   największego zasięgu albo pozostawienie tego jako wniosku P5. Program opisuje już
-   tę przyczynę w krytycznej ocenie P5.
-2. **Cx₀ w P2 i P4.** Cx₀ profilu klasy jest niższy niż opór z P4: szkolny 0,027
-   wobec 0,036, małe odrzutowce 0,020 wobec 0,032–0,037. Kontrola lotu poziomego
-   nie przechodzi do czasu „Iteruj biegunową”. Iteracja zbiega się w 1–2 krokach.
-3. **ULM dwumiejscowy: MTOM 732 kg przy limicie 600 kg.** Korelacja klasy tłokowej
-   daje mₑ/m₀ ≈ 0,62, a rzeczywiste UL mają około 0,5. W bazie są tylko 4 konstrukcje
-   ≤ 700 kg, wszystkie LSA/VLA. Potrzebna jest próba samolotów UL.
-4. **Małe samoloty jednomiejscowe (wyścigowe, akrobacyjne, holownik).** Środek
-   ciężkości w locie wynosi 25–33% ŚDA, a punkt neutralny około 36% ŚDA. Daje to
-   Kn = 3–4%. Potrzebne jest większe V_H. Program poprawnie zgłasza to jako
-   niespełnione.
-5. **Holowanie szybowców (tematy 30–31).** Nie ma wymagania wznoszenia z szybowcem
-   na holu. Jednomiejscowy holownik ma 377 kg, a Wilga i Pawnee około 1300 kg.
-6. **Odrzutowe szkolne (37–38).** Masa 1090 kg jest daleko poniżej rzeczywistych
-   samolotów tej klasy (TS-11 Iskra: 3,8 t). Wynika to z korelacji klasy odrzutowców
-   dyspozycyjnych.
+- **Kadłub frachtowców** był wymiarowany tylko od liczby pasażerów. Samolot na 23 t
+  ładunku miał kadłub 8,4 × 1,7 m, ogromne usterzenie pionowe na krótkim ramieniu
+  i Cx₀ = 0,061. Ładownię liczy się teraz z gęstości ładunku: transportowe
+  150 kg/m³ (C-295 ≈ 140, C-130 ≈ 180), łodzie transportowe 167 kg/m³ (IATA).
+  Wysokość ładowni to 0,9 szerokości, długość 4 szerokości, a szerokość co najmniej
+  2,0 m (kontener LD-3). Temat 71 po uściśleniu: 92,9 t (C-130J: 79 t przy ~19 t
+  ładunku).
+- **Wyścigowe:** prędkość z tematu (380 km/h) jest wymaganiem Vmax przy ziemi,
+  a przelot na zasięg odbywa się przy 300 km/h. Doszło ograniczenie Vmax na wykresie
+  doboru i kontrola P5. Temat 23: 452 kg.
+- **Wysokość przelotu:** odrzutowce rekreacyjne i szturmowe przelatują na 7500 m,
+  szturmowe turbośmigłowe na 6000 m, czyli bliżej Kmax niż wcześniej (6000 m
+  i 2500 m). VS0 odrzutowców rekreacyjnych wynosi 120 km/h (SF50 ≈ 124 km/h),
+  a tłokowych dwusilnikowych 110 km/h (Seneca ≈ 113 km/h).
+- **STOL ciężkie** (ładunek > 2300 kg): 1000/800 m zamiast 800/700 m, jak C-130
+  i A400M przy pełnym obciążeniu.
+- **Limit mocy z tematu** („moc silnika do 100/200 kW”) jest osobną kontrolą.
+- **Kategoria po uściśleniu:** gdy uściślona MTOW tematu przekracza 8618 kg,
+  kategoria zmienia się na CS-25 z dwiema osobami załogi, tak jak przy doborze tematu.
+- **Pętla mechanizacji:** współczynniki Cz,max zaokrąglone do 0,01 mogły przeskakiwać
+  między dwoma stanami (np. 2,55 ↔ 2,56) i przerywały obliczenia. Pętla przyjmuje
+  teraz większe skrzydło z pary.
+
+Ograniczenia, które pozostają:
+
+- Masa pusta nie zależy od mocy zespołu napędowego, bo korelacja dotyczy całego
+  samolotu.
+- Kadłub nie uwzględnia geometrii konkretnych pojazdów (Honker, BWP-1); ładownię
+  liczy się z gęstości ładunku.
+- Samoloty szturmowe oceniane są według przepisów cywilnych, co jest przybliżeniem.
+- Odrzutowce i turbośmigłowe dalekiego zasięgu (tematy 63–65: 3000 km) po uściśleniu
+  wyraźnie przybierają na masie. Wynika to z wymaganych prędkości i wysokości,
+  przy których przelot odbywa się daleko od Kmax.
 
 ## Sprawdzenie
 
-- `py -3.11 -m pytest tests -q`: 1083 testy zaliczone, w tym nowe testy w
+- `py -3.11 -m pytest tests -q`: wszystkie testy zaliczone. Nowe testy są w
   `tests/test_aeronautical_audit.py` (liczba silników, VS0 odrzutowców i UL,
-  kategoria akrobacyjna i CS-25, ładunki tematów 30, 31 i 95, poziom osiągów).
+  kategoria akrobacyjna i CS-25, ładunki tematów 30, 31 i 95, poziom osiągów)
+  oraz w `tests/test_design_practice.py` (bilans uściślony, V_H ze stateczności,
+  masa UL, ładownia, holowanie, Vmax, kategorie szkolno-treningowych, pętla Cz,max).
+- Bilans uściślony dla wszystkich 110 tematów: zbieżny, bez niespełnionych wymagań.
 - Przeglądarka (Chrome bez okna, Playwright, aplikacja obsługiwana w procesie testu):
   16 tematów, bez błędów JavaScript. Tematy dwusilnikowe mają w wynikach 2 silniki.
 - Raport zbiorczy, sprawozdanie P6 i DOCX dla 13 reprezentantów: odpowiedź 200.

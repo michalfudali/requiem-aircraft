@@ -220,3 +220,9 @@ def test_entire_official_catalogue_has_finite_closed_numerical_starting_designs(
         if not result['design_iteration']['converged'] or not result['performance']['mission_range']['passed']:
             failures.append(entry['num'])
     assert not failures, f'Unclosed numerical catalogue seeds: {failures}'
+
+
+@pytest.mark.parametrize('number', [23, 31, 68, 96])
+def test_merged_mission_constraints_and_cargo_estimates_have_consistent_worked_reports(number):
+    sheet = build_sheet(run_bipol_project(topic(number)))
+    assert not {e['key']:(e['value'],e['computed']) for e in sheet.entries.values() if e['consistent'] is False}

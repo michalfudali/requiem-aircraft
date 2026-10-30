@@ -6,6 +6,11 @@ przeliczenie na % ŚDA (MAC), wyznaczenie punktu neutralnego oraz zapasu statecz
 import math
 from calculations.flight_model import mission_masses
 
+MIN_STATIC_MARGIN_PCT = 5.0
+# Upper end of usual horizontal tail volumes (Raymer, tab. 6.4: up to 1.0 for transports).
+MAX_TAIL_VOLUME = 1.2
+
+
 def calculate_balance_and_stability(m_sizing: dict, geom: dict, aero: dict, params: dict):
     """
     Parametry:
@@ -69,7 +74,8 @@ def calculate_balance_and_stability(m_sizing: dict, geom: dict, aero: dict, para
 
     denom_m = max(1.0, m_empty - m_wing_group)
     x_lemac_raw = (mom_fus_fixed + mom_wing_offset - target_oew_mac * mac * m_empty) / denom_m
-    x_lemac_bounds = (0.28 * l_f, 0.56 * l_f)
+    # Light tractor aircraft carry the wing leading edge from about a quarter of the fuselage length.
+    x_lemac_bounds = (0.25 * l_f, 0.56 * l_f)
     x_lemac_initial = max(x_lemac_bounds[0], min(x_lemac_bounds[1], x_lemac_raw))
 
     unmanned = bool(m_sizing.get("unmanned", False)) or params.get("aircraft_type") == "uav"
@@ -217,7 +223,8 @@ def calculate_balance_and_stability(m_sizing: dict, geom: dict, aero: dict, para
             for _ in range(40):
                 middle = 0.5 * (low + high)
                 low, high = (middle, high) if miss(middle) > 0 else (low, middle)
-            x_lemac = high
+            # Both ends lie on the boundary; keep the one that satisfies the criterion after rounding.
+            x_lemac = high if all(criterion(*layout(high)[3:])) or not all(criterion(*layout(low)[3:])) else low
         else:
             x_lemac = low if miss(low) < 0 else high
         x_arms, loading_states, pilot_variants, cg_forward_limit, cg_aft_limit = layout(x_lemac)
@@ -254,8 +261,11 @@ def calculate_balance_and_stability(m_sizing: dict, geom: dict, aero: dict, para
     static_margin_forward = round(neutral_point_pct - cg_forward_limit, 1)
     static_margin_aft = round(neutral_point_pct - cg_aft_limit, 1)
     
-    is_stable = static_margin_aft >= 5.0
-    
+    is_stable = static_margin_aft >= MIN_STATIC_MARGIN_PCT
+    # X-plot: tail volume that places x_N one minimum margin behind the aft centre of gravity.
+    vh_for_min_margin = (cg_aft_limit + MIN_STATIC_MARGIN_PCT + .2 - x_ac_wbn_pct) / (
+        eta_h_eff * (a_h / a_w) * (1.0 - de_da) * 100.0)
+
     return {
         "x_le_wing_m": round(x_le_wing, 3),
         "x_lemac_m": round(x_lemac, 3),
@@ -286,6 +296,7 @@ def calculate_balance_and_stability(m_sizing: dict, geom: dict, aero: dict, para
             "static_margin_forward_pct": static_margin_forward,
             "static_margin_aft_pct": static_margin_aft,
             "is_stable": is_stable,
+            "vh_for_min_margin": vh_for_min_margin,
             "evaluation": "Stateczny statycznie (zapas 5-20% ŚDA)" if is_stable else "Uwaga: mały zapas stateczności w tylnym położeniu ŚM!"
         }
     }

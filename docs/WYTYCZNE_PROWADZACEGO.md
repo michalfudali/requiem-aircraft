@@ -41,7 +41,7 @@ użyto kopii pobranych 20–21.10.2026. Materiały nie są częścią repozytori
 | BIPOL_2, wzór (10) | Prędkość minimalna: W/S ≤ q·Cz,max/1,1 | Linia „Vmin”; zastąpiła dawny zapas 5% bez czynnika 1,1. |
 | BIPOL_2, wzory (11)–(12) | W/S największego zasięgu w połowie przelotu (punkt „B”) | Pionowa linia odniesienia; punkt projektowy pozostaje na granicy W/S. |
 | Wykład 2 (przykład 33 100 kg) | Kontrola wzorów | Program odtwarza V=345 km/h, G=0,094, W/S zasięgu 4392 vs 4405 N/m². Wzór (3) daje 2830 N/m²; slajd podaje 2920, co nie wynika z (1100−122)·2,17/0,75. |
-| BIPOL_3, pkt 7–8 | Środek ciężkości w locie 25–35% ŚDA (przednie < 25% przy zakresie > 10%); poprawić rysunek, jeśli nie | Kontrola w zgodności i raporcie P3. Gdy nie jest spełniona, skrzydło przesuwa się w granicach 28–56% długości kadłuba, z zachowaniem zapasu stateczności ≥ 5%. |
+| BIPOL_3, pkt 7–8 | Środek ciężkości w locie 25–35% ŚDA (przednie < 25% przy zakresie > 10%); poprawić rysunek, jeśli nie | Kontrola w zgodności i raporcie P3. Gdy nie jest spełniona, skrzydło przesuwa się w granicach 25–56% długości kadłuba. Zapas stateczności ≥ 5% zapewnia usterzenie poziome, którego V_H rośnie w razie potrzeby (wykres X). |
 | BIPOL_3, Tab. 3.1–3.2 | Warianty: start i lądowanie bez ładunku; pilot 55 i 110 kg | Nowe stany załadowania i tabela wariantów pilota. Wpływu chowania podwozia nie modelowano. |
 | Opis projektów, P5 | Długość **i czas** startu | Czas rozbiegu i startu do 15 m z tego samego modelu co droga. |
 | BIPOL_5 | Zasięg i długotrwałość dla 0 m, wysokości przelotowej i pułapu praktycznego, w zakresie prędkości z wykresu ofertowego | Tabela w raporcie P5, metoda stałej wysokości i prędkości (5.10–5.16). |

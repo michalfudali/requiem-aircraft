@@ -21,13 +21,14 @@ sys.path.insert(0, str(ROOT))
 sys.path.insert(0, str(ROOT / "tests"))
 
 from playwright.sync_api import sync_playwright
-from browser_helpers import navigate, reveal_details
+from browser_helpers import navigate, reveal_details, serve_in_process
 from calculations.atmosphere import G0, RHO0
 from calculations.official_topics import ALL_TOPICS
 
 OUT = ROOT / "work" / "design-integrity-20261030"
 BASE = "http://127.0.0.1:5087"
 CHOSEN = [7, 17, 20, 28, 32, 42, 43, 63, 68, 82, 94, 95, 101]
+IN_PROCESS = False
 
 
 def write_json(path, value):
@@ -75,6 +76,8 @@ def run_case(browser, topic):
     record = dict(num=topic["num"], category=topic["category"], title=topic["title"], steps=[], errors=[])
     context = browser.new_context(viewport={"width": 1440, "height": 1000}, accept_downloads=True)
     page = context.new_page()
+    if IN_PROCESS:
+        serve_in_process(page, BASE)
     page.on("pageerror", lambda error: record["errors"].append(str(error)))
     responses = []
     page.on("response", lambda response: responses.append(dict(status=response.status, url=response.url))
@@ -200,16 +203,21 @@ def run_case(browser, topic):
 
 
 def main():
+    global IN_PROCESS
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--topics", nargs="+", type=int, default=CHOSEN)
     parser.add_argument("--serve", action="store_true", help="Run this worktree's isolated server in a thread")
+    parser.add_argument('--in-process', action='store_true', help='Route browser requests directly to this checkout\'s Flask app')
     args = parser.parse_args()
+    IN_PROCESS = args.in_process
     OUT.mkdir(exist_ok=True, parents=True)
     server = None
-    if args.serve:
-        os.environ["BIPOL_AIRCRAFT_DB"] = str(OUT / "browser-catalogue.sqlite3")
-        shutil.copyfile(ROOT / "data" / "aircraft" / "aircraft.sqlite3",OUT / "browser-catalogue.sqlite3")
+    if args.serve or IN_PROCESS:
+        database = OUT / ('browser-in-process-catalogue.sqlite3' if IN_PROCESS else 'browser-catalogue.sqlite3')
+        os.environ["BIPOL_AIRCRAFT_DB"] = str(database)
+        shutil.copyfile(ROOT / "data" / "aircraft" / "aircraft.sqlite3",database)
         from app import app
+    if args.serve and not IN_PROCESS:
         from werkzeug.serving import make_server
         server = make_server("127.0.0.1", 5087, app, threaded=True)
         threading.Thread(target=server.serve_forever, daemon=True).start()

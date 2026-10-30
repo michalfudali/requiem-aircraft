@@ -1,6 +1,9 @@
 """
 Główny moduł integrujący obliczenia wstępnego projektowania samolotu BIPOL I
 """
+import math
+
+from calculations.atmosphere import G0, RHO0
 from calculations.high_lift import high_lift
 from calculations.mass import calculate_mass_sizing
 from calculations.sizing import calculate_matching_chart
@@ -8,7 +11,7 @@ from calculations.geometry import calculate_geometry
 from calculations.aerodynamics import calculate_aerodynamics
 from calculations.performance import calculate_performance
 from calculations.envelope import calculate_vn_envelope
-from calculations.balance import calculate_balance_and_stability
+from calculations.balance import calculate_balance_and_stability, MAX_TAIL_VOLUME
 from calculations.bipol_projects import calculate_all_bipol_projects
 from calculations.polish_law import normalize_occupants, check_compliance
 from calculations.validation import validate_parameters
@@ -67,6 +70,9 @@ def _size_airframe(params, param_states):
 
     # Close the geometric loop: the tail arms must be measured from the wing
     # quarter-MAC found by balancing, not from an unrelated fraction of length.
+    # The horizontal tail grows when the class volume leaves less than the minimum static
+    # margin at the aft centre of gravity (X-plot), unless the designer fixed V_H.
+    tail_volume_free = 'v_h' not in params.get('locked_params', [])
     for _ in range(20):
         balance_res = calculate_balance_and_stability(mass_res, geom_res, aero_res, params)
         wing_ac = balance_res['x_lemac_m'] + .25 * geom_res['wing']['mac']
@@ -76,8 +82,16 @@ def _size_airframe(params, param_states):
             raise ValueError('Usterzenie musi leżeć za środkiem aerodynamicznym skrzydła w tym układzie.')
         error = max(abs(arms['_tail_arm_h'] - geom_res['horizontal_tail']['l_h']),
                     abs(arms['_tail_arm_v'] - geom_res['vertical_tail']['l_v']))
-        if error <= .015:
+        stability = balance_res['stability']
+        v_h = float(params.get('v_h', .7))
+        grow = (tail_volume_free and not stability['is_stable'] and v_h < MAX_TAIL_VOLUME
+                and stability['vh_for_min_margin'] > v_h + 1e-3)
+        if error <= .015 and not grow:
             break
+        if grow:
+            params['v_h'] = round(min(MAX_TAIL_VOLUME, stability['vh_for_min_margin']), 3)
+            param_states['v_h'] = dict(state='derived', value=params['v_h'], sources=['v_h'],
+                formula='V_H z warunku Kn ≥ 5% ŚDA w tylnym położeniu ŚC (wykres X)')
         geom_res = calculate_geometry(m0, ws, {**params, **arms})
         aero_res = calculate_aerodynamics(geom_res, params, m0=m0)
     else:
@@ -180,6 +194,7 @@ def run_bipol_project(params: dict):
     checks.append(dict(parameter='Całkowita długość lądowania znad 15 m',
         required=f'≤ {req_lnd:g} m' if req_lnd else 'Podaj założenie', actual=f'{act_lnd:g} m' if act_lnd is not None else 'Nie wyznaczono — operacje na wodzie',
         passed=bool(req_lnd and act_lnd is not None and act_lnd <= req_lnd), note='Podejście + wyrównanie + dobieg do zatrzymania.'))
+    checks += mission_checks(params, sizing_res, geom_res, aero_res, perf_res, m0)
 
     # 4. Zapas stateczności statycznej w skrajnym tylnym położeniu ŚM
     act_sm = balance_res["stability"]["static_margin_aft_pct"]
@@ -246,4 +261,65 @@ def run_bipol_project(params: dict):
     result['bipol1_review'] = review_bipol1(result)
     from calculations.coursework import review_submission
     result['submission_review'] = review_submission(result)
+    from calculations.aeroelastics import estimate_aeroelastics
+    result['aeroelastics'] = estimate_aeroelastics(geom_res, aero_res, mass_res, envelope_res, params)
+    from calculations.acoustics import estimate_aircraft_noise
+    result['acoustics'] = estimate_aircraft_noise(params, sizing_res, perf_res, geom_res, mass_res)
+    from calculations.engineering_audit import perform_engineering_audit
+    result['engineering_audit'] = perform_engineering_audit(result)
     return result
+
+
+def mission_checks(params, sizing_res, geom_res, aero_res, perf_res, m0):
+    """Topic requirements beyond the course minimum: race speed, glider towing, engine power cap."""
+    from calculations.flight_model import flight_point
+    checks = []
+    if params['engine_type'] == 'none':
+        return checks
+    v_req = float(params.get('v_max_required_kmh') or 0)
+    if v_req:
+        v_max = perf_res['speeds']['v_max_sl_kmh']
+        checks.append(dict(parameter='Prędkość maksymalna przy ziemi', required=f'≥ {v_req:g} km/h',
+            actual=f'{v_max:g} km/h', passed=v_max >= v_req,
+            note='Moc dostępna równa mocy niezbędnej przy ziemi; biegunowa P4.'))
+    m_glider = float(params.get('tow_glider_mass_kg') or 0)
+    if m_glider and params['engine_type'] == 'prop':
+        v_tow = float(params.get('tow_speed_kmh', 120)) / 3.6
+        S, ld_glider = geom_res['wing']['S'], float(params.get('tow_glider_ld', 25))
+        point = flight_point(params, sizing_res, m0, S, aero_res['cx0_clean'], aero_res['k_clean'], 0.0, v_tow)
+        # Excess power of the tug, less the power to pull the glider, lifts both aircraft.
+        climb = (point['climb_ms'] * m0 - m_glider * v_tow / ld_glider) / (m0 + m_glider)
+        stall_margin = v_tow / math.sqrt(2 * m0 * G0 / (RHO0 * S * aero_res['cz_max_clean']))
+        perf_res['tow'] = dict(glider_mass_kg=m_glider, speed_kmh=v_tow * 3.6, climb_ms=round(climb, 2),
+                               glider_ld=ld_glider, speed_to_vs1=round(stall_margin, 2))
+        required = float(params.get('tow_climb_rate_ms', 3.0))
+        checks.append(dict(parameter='Wznoszenie z szybowcem na holu',
+            required=f'≥ {required:g} m/s z szybowcem {m_glider:g} kg przy {v_tow * 3.6:g} km/h',
+            actual=f'{climb:.2f} m/s; V/VS1 = {stall_margin:.2f}', passed=climb >= required and stall_margin >= 1.2,
+            note='Holownik przy MTOW, biegunowa P4; szybowiec o doskonałości K przy prędkości holowania. '
+                 'Prędkość holowania co najmniej 1,2 VS1 holownika (jak V2 przy wznoszeniu po starcie).'))
+    limit = float(params.get('engine_power_limit_kw') or 0)
+    if limit and params['engine_type'] == 'prop':
+        power = sizing_res['design_point']['power_kw']
+        checks.append(dict(parameter='Moc silnika w granicy tematu', required=f'≤ {limit:g} kW',
+            actual=f'{power:.1f} kW', passed=power <= limit, note='Limit mocy z treści tematu.'))
+    return checks
+
+
+def refine_bipol_project(params: dict, max_iterations: int = 20, tolerance: float = .002):
+    """Create a new P4-based variant using the shared changing-weight design solver.
+
+    Legacy keyword arguments remain accepted. Numerical closure is governed by
+    resolve_design's documented tolerance and iteration bound, for every caller.
+    """
+    from calculations.polish_law import CS23_MTOM_MAX_KG
+    baseline = run_bipol_project(params)
+    aero = baseline['aerodynamics']
+    updated = {**baseline['params'], 'cx0': aero['cx0_clean'], 'oswald_e': aero['oswald_e'],
+               'preliminary_polar_mode': 'input', 'design_iteration_mode': 'coupled',
+               'preliminary_polar_includes_configuration': True}
+    if (updated.get('topic_origin') == 'official' and str(updated.get('category')).startswith('cs23')
+            and baseline['mass']['m0'] > CS23_MTOM_MAX_KG):
+        updated.update(category='cs25_transport', n_crew=max(2, int(updated.get('n_crew', 1))))
+    result = run_bipol_project(updated)
+    return baseline, result, result['design_iteration']['history']

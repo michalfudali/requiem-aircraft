@@ -4,10 +4,10 @@ from __future__ import annotations
 import json
 import os
 import sys
-import threading
 import traceback
 import time
 import shutil
+import argparse
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -18,9 +18,8 @@ os.environ["BIPOL_AIRCRAFT_DB"] = str(OUT / "requirements-catalogue.sqlite3")
 OUT.mkdir(parents=True,exist_ok=True)
 shutil.copyfile(ROOT/"data/aircraft/aircraft.sqlite3",OUT/"requirements-catalogue.sqlite3")
 from app import app
-from werkzeug.serving import make_server
 from playwright.sync_api import sync_playwright
-from browser_helpers import navigate, edit_inputs
+from browser_helpers import navigate, edit_inputs, serve_in_process
 
 
 def save(records):
@@ -28,19 +27,23 @@ def save(records):
 
 
 def main():
-    server = make_server("127.0.0.1", 5088, app, threaded=True)
-    threading.Thread(target=server.serve_forever, daemon=True).start()
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--topics', nargs='+', type=int, default=[7,17,20,28,32,42,43,63,68,82,94,95,101])
+    args = parser.parse_args()
     records = []
     with sync_playwright() as p:
         browser = p.chromium.launch(executable_path="C:/Program Files/Google/Chrome/Application/chrome.exe", headless=True)
         context = browser.new_context(viewport={"width": 1440, "height": 1000})
         page = context.new_page()
+        # Route to this process's Flask app: another agent's development server
+        # or forwarded localhost port cannot supply a different calculation build.
+        serve_in_process(page, 'http://bipol-requirements.local')
         errors, dialogs = [], []
         page.on("pageerror", lambda error: errors.append(str(error)))
         page.on("dialog", lambda dialog: (dialogs.append(dialog.message), dialog.accept()))
-        page.goto("http://127.0.0.1:5088")
+        page.goto('http://bipol-requirements.local')
         page.wait_for_function("currentResults !== null", timeout=60000)
-        for number in [7, 17, 20, 28, 32, 42, 43, 63, 68, 82, 94, 95, 101]:
+        for number in args.topics:
             record = dict(topic=number)
             try:
                 file = OUT / ("topic-%03d" % number) / "project.json"
@@ -55,7 +58,10 @@ def main():
                 page.wait_for_function("getActiveProjectId() !== " + json.dumps(old_id) + " && currentResults?.params?.topic_id === " + str(number), timeout=60000)
                 page.wait_for_function("!document.querySelector('#calcBtn').disabled")
                 before = page.evaluate("currentResults")
-                assert abs(before["mass"]["m0"] - expected["mass"]["m0"]) < .01
+                record['import_parameter_changes'] = {key:[value,before['params'].get(key)] for key,value in expected['params'].items()
+                    if not key.startswith('_') and value != before['params'].get(key)}
+                record['import_mass_difference_kg'] = before['mass']['m0'] - expected['mass']['m0']
+                assert abs(record['import_mass_difference_kg']) < .01, record
                 assert before["params"]["range_km"] == expected["params"]["range_km"]
                 source_id = page.evaluate("getActiveProjectId()")
                 original_params = page.evaluate("JSON.stringify(getActiveProject().params)")
@@ -159,7 +165,6 @@ def main():
         save(records)
         context.close()
         browser.close()
-    server.shutdown()
     return 0 if all(record['passed'] for record in records) else 1
 
 

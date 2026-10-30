@@ -551,7 +551,7 @@ const PARAMETER_ENCYCLOPEDIA = {
     formula: "p·b / (2V) = − (C_l,δa / C_l,p) · δa,   wymóg: ≥ 0.07 rad (GA) / ≥ 0.05 rad (motoszybowce)",
     effect_increase: "Lotka różnicowa lub Frise zapobiega oporowi niekorzystnemu i poprawia bezpieczeństwo w zakręcie.",
     typical_ranges: "Cięciwa: ca/c = 18–25% | Rozpiętość: ba/b = 25–35% | Wychylenie: +24° / −12°.",
-    galinski_note: "Zgodnie z zasadami prof. C. Galińskiego i Danileckiego stoisko Schrenka musi leżeć bliżej kadłuba niż wewnętrzna krawędź lotki (eta_stall < eta_lotki)."
+    galinski_note: "Oderwanie na skrzydle powinno zaczynać się bliżej kadłuba niż wewnętrzna krawędź lotki (η_oderwania < η_lotki, z rozkładu Schrenka) — wtedy lotki działają jeszcze na początku przeciągnięcia."
   },
 
   flap_span_ratio: {
@@ -595,7 +595,7 @@ const PARAMETER_ENCYCLOPEDIA = {
     formula: "n_max(CS-23/STANAG) = min(3.8; 2.1 + 24000 / (m₀ [lbs] + 10000)),  n_max(CS-25) = max(2.5; min(3.8; formula)),  n_max(Akro) = +6.0,  n_max(CS-22) = +5.3",
     effect_increase: "Wyższa kategoria przeciążeń (np. Akrobacyjna +6.0g lub CS-22 +5.3g) wymaga grubszych pasów dźwigara i cięższego węzła skrzydło-kadłub, lecz zapewnia bezpieczeństwo manewrowe. Certyfikacja CS-25 wymusza redundancję systemów i min. 2 pilotów.",
     typical_ranges: "CS-23 Normal (L1-L4): +3.8g / -1.52g | Akrobacyjny: +6.0g / -3.0g | CS-22: +5.3g / -2.65g | CS-LSA / ULM: +4.0g / -2.0g | CS-25: +2.5g do +3.8g / -1.0g | UAS: +3.8g / -1.52g.",
-    galinski_note: "Pamiętaj (Rozdz. 12.2, str. 32): dodatnie przeciążenia n > 0 ściskają górny pas dźwigara, a ujemne n < 0 ściskają pas dolny. Ponieważ |n_max| > |n_min| oraz pas ściskany podlega wyboczeniu, górny pas dźwigara ma zawsze większy przekrój od dolnego!"
+    galinski_note: "Pamiętaj (Rozdz. 12.2, str. 32): dodatnie przeciążenia n > 0 ściskają górny pas dźwigara, a ujemne n < 0 — dolny. Ponieważ |n_max| > |n_min|, a pas ściskany może się wyboczyć, górny pas dźwigara ma zwykle większy przekrój od dolnego."
   },
 
   wingspan_m: {
@@ -617,7 +617,7 @@ const PARAMETER_ENCYCLOPEDIA = {
     formula: "Opór interferencyjny Cx,int:  Średniopłat (min) < Górnopłat wolnonośny < Dolnopłat < Górnopłat zastrzałowy",
     effect_increase: "Zmiana z dolnopłata na górnopłat uwalnia przestrzeń pod podłogą i poprawia widoczność w dół, ale utrudnia chowanie podwozia głównego. Zastrzał zmniejsza masę skrzydła o ~11%, lecz dodaje opór ΔCx0 ≈ +0.0020.",
     typical_ranges: "Dolnopłat: szkolne, komunikacyjne, akrobacyjne | Górnopłat: STOL, patrolowe, transportowe cargo, ULM | Średniopłat: szybowce, myśliwce, akrobacyjne wyczynowe.",
-    galinski_note: "Złota zasada Rozdz. 14 (str. 99): W średniopłacie dźwigary przecinają kadłub w samym środku ciężkości, kradnąc miejsce na ładunek płatny!"
+    galinski_note: "Rozdz. 14 (str. 99): w średniopłacie dźwigary przechodzą przez kadłub na wysokości kabiny, w pobliżu środka masy — zabierają miejsce na załogę lub ładunek."
   },
 
   aspect_ratio: {
@@ -628,7 +628,7 @@ const PARAMETER_ENCYCLOPEDIA = {
     formula: "Λ = b² / S = b / c_śr,   C_xi = C_z² / (π · Λ · e),   K_max = ½ · √(π · Λ · e / C_x0)",
     effect_increase: "Wyższe wydłużenie Λ drastycznie zmniejsza opór indukowany (daje wysokie K_max, małą moc niezbędną do wznoszenia i duży zasięg wg Bregueta), ale zmniejsza cięciwę i wysokość dźwigara, zwiększając masę skrzydła!",
     typical_ranges: "Samoloty bojowe: 2.5–4.5 | Akrobacyjne: 5.5–6.5 | Tłokowe GA: 7.0–9.0 | Turbośmigłowe regionalne: 10–12 | Motoszybowce i UAV MALE: 14–26.",
-    galinski_note: "Przy bardzo dużym wydłużeniu Λ profil jest bezwzględnie cienki, a skrzydło wiotkie na skręcanie – rośnie ryzyko rewersu lotek (rys. 16.3) oraz flatteru!"
+    galinski_note: "Przy dużym wydłużeniu cięciwy są małe, więc dźwigar jest niski (mała grubość bezwzględna profilu). Skrzydło wychodzi cięższe i wiotkie na skręcanie — rośnie ryzyko rewersu lotek (rys. 16.3) i flatteru."
   },
 
   taper_ratio: {
@@ -639,7 +639,7 @@ const PARAMETER_ENCYCLOPEDIA = {
     formula: "η = c_t / c_r,   c_r = 2·S / [b·(1 + η)],   ŚDA = (2/3)·c_r·(1 + η + η²) / (1 + η)",
     effect_increase: "Dla η ≈ 0.45 rozkład siły nośnej jest najbliższy eliptycznemu (maksymalny współczynnik Oswalda e) i środek parcia leży bliżej kadłuba (mniejszy moment gnący). Dla η → 1.0 skrzydło jest najtańsze w budowie (identyczne żebra!), ale cięższe.",
     typical_ranges: "Najlepszy kompromis aerodynamiczno-masowy: η = 0.40 – 0.60 | Proste samoloty szkolne/ULM (płat prostokątny): η = 1.0 | Nie zaleca się η < 0.35 (groźba oderwania strugi na końcówkach i utraty skuteczności lotek!).",
-    galinski_note: "Przy małej zbieżności (dużej cięciwie u nasady) łatwiej zmieścić chowane podwozie przed lub za dźwigarem bez wycinania zabójczego dla sztywności skrętnej wykroju w kesonie (Rozdz. 12.4, rys. 12.33 P-51 Mustang)."
+    galinski_note: "Mocno zbieżne skrzydło (małe λ, duża cięciwa u nasady) daje więcej miejsca na chowane podwozie przed lub za dźwigarem, bez wycinania kesonu osłabiającego sztywność skrętną (Rozdz. 12.4, rys. 12.33 P-51 Mustang)."
   },
 
   sweep_quarter_deg: {
@@ -650,7 +650,7 @@ const PARAMETER_ENCYCLOPEDIA = {
     formula: "tan(χ_0) = tan(χ_25%) + c_r·(1 − η) / (2·b),   Ma_kr(χ) ≈ Ma_kr(0) / cos(χ_25%)",
     effect_increase: "Większy skos pozwala latać z dużymi prędkościami przelotowymi (Vcr > 650 km/h), ale obniża Cz_max, spycha warstwę przyścienną ku końcówkom (przeciągnięcie końcówkowe) i wprowadza dodatkowe skręcanie dźwigara od zginania!",
     typical_ranges: "Samoloty tłokowe i turbośmigłowe (Ma < 0.5): 0° – 3° | Odrzutowe dyspozycyjne (VLJ): 10° – 20° | Komunikacyjne odrzutowe: 24° – 35°.",
-    galinski_note: "W usterzeniach (Rozdz. 15, str. 131) stosuje się większy skos krawędzi natarcia po to, aby oś obrotu steru wysokości i tylny dźwigar były prostopadłe do płaszczyzny symetrii (współosiowość zawiasów obu połówek steru!)."
+    galinski_note: "Skos opóźnia kryzys falowy, bo o oporze falowym decyduje składowa prędkości prostopadła do krawędzi (Ma·cos Λ). Koszt: warstwa przyścienna spływa ku końcówkom, które przeciągają się pierwsze i wywołują wyrywanie nosa w górę (pitch-up). Przeciwdziała się temu skręceniem geometrycznym, zębami lub kierownicami na krawędzi natarcia."
   },
 
   dihedral_deg: {
@@ -661,7 +661,7 @@ const PARAMETER_ENCYCLOPEDIA = {
     formula: "∂C_l / ∂β < 0   (pochodna momentu przechylającego od ślizgu proporcjonalna do −Γ)",
     effect_increase: "Większy wznios poprawia stateczność spiralną i łatwość pilotażu turystycznego, ale zbyt duży wznios utrudnia akrobację i wywołuje kołysanie holenderskie (Dutch roll).",
     typical_ranges: "Akrobacyjne: 0° – 1° | Górnopłaty (mają naturalną stateczność wahadłową): 1° – 2.5° | Dolnopłaty ze skrzydłem prostym: 4° – 6.5° | Dolnopłaty skośne: 3° – 5°.",
-    galinski_note: "Kąt zaklinowania i wznios skrzydła oznaczają, że główne elementy konstrukcyjne płata są obrócone względem kadłuba – dlatego skrzydło musi posiadać własny lokalny układ współrzędnych montażowych (Rozdz. 11.3, str. 29)."
+    galinski_note: "Wznios efektywny daje nie tylko kąt V: górnopłat zyskuje ok. 1–2° z samego usytuowania skrzydła, dolnopłat podobnie traci, a 10° skosu do tyłu działa jak ok. 1° wzniosu. Dlatego dolnopłaty mają większy kąt wzniosu niż górnopłaty, a skośne skrzydła odrzutowców — mniejszy."
   },
 
   range_km: {
@@ -705,7 +705,7 @@ const PARAMETER_ENCYCLOPEDIA = {
     formula: "m₀ = (m_zał + n_pax · m_os + m_cargo) / (1 − m̄_paliwa − m̄_pustego)",
     effect_increase: "Każde dodatkowe 100 kg ładunku cargo podnosi całkowitą masę startową samolotu m0 o około 220–300 kg (współczynnik wzrostu masy wynosi zwykle 2.2 – 3.0).",
     typical_ranges: "Turystyczny: 0–50 kg | Samolot rolniczy / patrolowy: 500–2500 kg | Transportowy: 2000–20000 kg | UAV MALE: 100–400 kg sensorów.",
-    galinski_note: "W samolotach rolniczych chemikalia powodują agresywną korozję – dlatego ich kadłuby buduje się jako kratownice spawane z rur stalowych ze zdejmowanymi owiewkami do mycia (Rozdz. 13.1, rys. 13.7 PZL M-18 Dromader)!"
+    galinski_note: "Ładunek zrzucany lub zużywany w locie (chemikalia, woda, desant) zmienia masę w trakcie misji — bilans trzeba liczyć fazami (metoda iteracyjna), a zbiornik lub ładownię umieszcza się blisko środka masy, żeby zrzut nie rozregulował wyważenia (np. zbiornik przed kabiną w PZL M-18 Dromader)."
   },
 
   n_crew: {
@@ -716,7 +716,7 @@ const PARAMETER_ENCYCLOPEDIA = {
     formula: "m_zał = n_zał · 90 kg",
     effect_increase: "Zwiększa masę w przedniej części kadłuba (przesuwa środek ciężkości do przodu w stanie bez pasażerów, wymagając odpowiedniego wyważenia w projekcie P6).",
     typical_ranges: "UAV (bezzałogowy): 0 | Samoloty lekkie GA i rolnicze: 1 pilot | Samoloty dyspozycyjne i komunikacyjne: 2–3 osoby załogi.",
-    galinski_note: "Przy załodze 2-osobowej siedzącej obok siebie można zastosować pojedynczą kolumnę sterową z odchylanym wysięgnikiem wolantu i układem rolek kompensujących naciąg linek (Rozdz. 17.3.2, rys. 17.15c)."
+    galinski_note: "Minimalną załogę ustala się przy certyfikacji z obciążenia pracą pilotów (CS 25.1523); samoloty komunikacyjne latają z dwoma pilotami. Załoga należy do masy stałej, nie do ładunku płatnego — drugi pilot przy tej samej m₀ odbiera miejsce ładunkowi."
   },
 
   m_pax: {
@@ -727,7 +727,7 @@ const PARAMETER_ENCYCLOPEDIA = {
     formula: "m_os = m_pasażera + m_bagażu ≈ 80 kg + 20 kg = 100 kg",
     effect_increase: "Zwiększa wymagany udźwig użyteczny oraz moment bezwładności i wędrówkę środka ciężkości przy załadunku kabiny.",
     typical_ranges: "Szybowce/Akrobacyjne (pilot ze spadochronem): 90–100 kg | Lotnictwo ogólne i komunikacyjne z bagażem: 95–105 kg.",
-    galinski_note: "W małych samolotach fotele załogi i podłoga mogą jednocześnie tworzyć zamknięte obwody siłowe przenoszące skręcanie i zginanie pod wycięciem limuzyny kabiny (Rozdz. 13.3, rys. 13.36 AOS-71)."
+    galinski_note: "W małych samolotach przepisy operacyjne EASA każą liczyć wyższe masy standardowe niż w dużych (np. 104 kg na mężczyznę z bagażem podręcznym przy 1–5 miejscach), bo przy kilku osobach rozrzut mas jest duży. W szybowcach i akrobacji dolicz spadochron."
   },
 
   cruise_speed_kmh: {
@@ -738,7 +738,7 @@ const PARAMETER_ENCYCLOPEDIA = {
     formula: "(T/W)_cr = (q_cr · C_x0)/(W/S) + k·(W/S)/q_cr,   gdzie  q_cr = ½·ρ(H)·V_cr²",
     effect_increase: "Zwiększenie Vcr o 20% wymaga zwiększenia mocy silnika aż o ok. 73% (1.2³ = 1.728)! Przesuwa też optymalny punkt projektowy na wykresie Matching Chart w stronę większych obciążeń powierzchni W/S.",
     typical_ranges: "ULM i STOL: 130–180 km/h | Tłokowe GA: 190–320 km/h | Turbośmigłowe: 420–600 km/h | Odrzutowe: 680–900 km/h.",
-    galinski_note: "Wzrost prędkości lotu powyżej 250 km/h wymusza rezygnację z zastrzałów i stałego podwozia na rzecz skrzydła wolnonośnego i podwozia chowanego (Rozdz. 12.3 i 12.4)."
+    galinski_note: "Powyżej ok. 250 km/h zwykle opłaca się zrezygnować z zastrzałów i stałego podwozia na rzecz skrzydła wolnonośnego i podwozia chowanego (Rozdz. 12.3 i 12.4) — ich opór rośnie z kwadratem prędkości."
   },
 
   v_stall_kmh: {
@@ -759,8 +759,8 @@ const PARAMETER_ENCYCLOPEDIA = {
     full_definition: "Droga rozbiegu zależy od stosunku ciągu do ciężaru (T/W), obciążenia powierzchni nośnej (W/S) oraz współczynnika siły nośnej w konfiguracji startowej Cz_max_to.",
     formula: "S_to = 1.21 · (W/S) / [ ρ₀ · g · C_z,max,to · (T/W − μ) ]",
     effect_increase: "Dłuższy dopuszczalny rozbieg pozwala zastosować słabszy, lżejszy silnik i mniejsze skrzydło. Wymóg bardzo krótkiego rozbiegu (STOL < 200 m) wymusza dużą moc silnika i dużą powierzchnię nośną.",
-    typical_ranges: "STOL (np. Wilga, CH 701): 90–180 m | Samoloty lekkie GA na lotniska trawiaste: 210–400 m | Dyspozycyjne i regionalne: 600–1100 m | Komunikacyjne: 1400–2400 m.",
-    galinski_note: "Podczas rozbiegu skrzydła wypełnione paliwem są ugięte w dół. Jeśli siłownik spojlera jest źle umieszczony między zawiasami (Rozdz. 16.2, rys. 16.13), ugięcie skrzydła może samoczynnie uchylić spojler, niszcząc siłę nośną na rozbiegu!"
+    typical_ranges: "STOL (Wilga, Zenith CH 701): 30–150 m | Samoloty lekkie GA na lotniska trawiaste: 210–400 m | Dyspozycyjne i regionalne: 600–1100 m | Komunikacyjne: 1400–2400 m.",
+    galinski_note: "Rozbieg skracają przede wszystkim mniejsze obciążenie powierzchni W/S, większy stosunek mocy (ciągu) do masy i wyższe Cz,max do startu. Klapy do startu wychyla się mniej niż do lądowania (zwykle 10–20°), bo duże wychylenie dodaje opór, który wydłuża rozbieg i pogarsza wznoszenie."
   },
 
   climb_rate_ms: {
@@ -782,7 +782,7 @@ const PARAMETER_ENCYCLOPEDIA = {
     formula: "Śmigłowy: T(V) = η_p · P₀ / V   |   Odrzutowy: T(H) ≈ T₀ · σ(H)^0.8",
     effect_increase: "Napęd śmigłowy daje znacznie wyższą sprawność propulsywną przy małych i średnich prędkościach (krótki rozbieg, małe zużycie paliwa), natomiast napęd odrzutowy pozwala latać z prędkościami Ma = 0.65–0.85 na dużych pułapach.",
     typical_ranges: "Śmigłowy (tłokowy/elektryczny): V < 400 km/h | Śmigłowy (turboprop): V = 350–620 km/h | Odrzutowy (turbofan): V > 600 km/h.",
-    galinski_note: "Łoża silników tłokowych buduje się niemal wyłącznie jako kratownice spawane z rur ze stali chromowo-molibdenowej (np. 30HGSA / 40HM - Rozdz. 10.1 i 13.1), co zapewnia doskonały dostęp obsługowy do agregatów silnika."
+    galinski_note: "Śmigło traci sprawność, gdy końcówki łopat zbliżają się do prędkości dźwięku, a turbowentylatorowy silnik jest nieoszczędny przy małej prędkości — stąd granica ok. 600–700 km/h między napędem turbośmigłowym a odrzutowym."
   },
 
   engine_location: {
@@ -803,7 +803,7 @@ const PARAMETER_ENCYCLOPEDIA = {
     full_definition: "Parametr termodynamicznej sprawności silnika wchodzący wprost do wykładnika we wzorze całkowym Bregueta na zasięg i długotrwałość lotu.",
     formula: "Śmigłowy: c_p [g/(kW·h)]   |   Odrzutowy: c_j [1/h]",
     effect_increase: "Wyższe jednostkowe zużycie paliwa zwiększa wymaganą masę paliwa m_f na misję i w pętli iteracyjnej podnosi masę startową samolotu m0.",
-    typical_ranges: "Tłokowe benzynowe (Rotax/Lycoming): 230–275 g/kWh | Tłokowe Diesel: 190–215 g/kWh | Turbośmigłowe (PT6): 270–310 g/kWh | Turbowentylatorowe (Turbofan): 0.50–0.70 1/h.",
+    typical_ranges: "Tłokowe benzynowe (Rotax/Lycoming): 230–290 g/kWh | Tłokowe Diesel: 190–215 g/kWh | Małe turbośmigłowe (PT6A): 330–390 g/kWh | Regionalne turbośmigłowe (PW127): 280–300 g/kWh | Turbowentylatorowe: 0,50–0,80 1/h (małe silniki biznesowe bliżej 0,7–0,8).",
     galinski_note: "Mniejsze zużycie paliwa pozwala zmniejszyć objętość zbiorników i zrezygnować ze zbiorników kadłubowych na rzecz bezpieczniejszych zbiorników w skrzydle."
   },
 
@@ -815,7 +815,7 @@ const PARAMETER_ENCYCLOPEDIA = {
     formula: "η_p = (T · V) / P_wału,   P_rozp = η_p · P_wału",
     effect_increase: "Wyższa sprawność śmigła (np. śmigło przestawialne w locie zamiast stałego) zwiększa prędkość wznoszenia wy_max, prędkość maksymalną V_max i zmniejsza zużycie paliwa na przelocie.",
     typical_ranges: "Śmigło o stałym skoku (drewniane/kompozytowe): 0.72 – 0.78 | Śmigło przestawialne Constant-Speed: 0.80 – 0.86.",
-    galinski_note: "W szybowcach z przednim napędem elektrycznym FES (Rozdz. 11.3, rys. 11.11) demontowalny kołpak śmigła na dziobie uniemożliwia wykorzystanie wierzchołka dziobu jako stałej bazy pomiarowej płaszczyzny Y'-Z'!"
+    galinski_note: "Śmigło stałego skoku ma najwyższą sprawność tylko w wąskim zakresie prędkości: skok dobrany do przelotu pogarsza start i wznoszenie, a dobrany do wznoszenia obniża prędkość przelotową. Śmigło przestawialne (constant-speed) utrzymuje η_p ≈ 0,8 od wznoszenia po przelot, kosztem masy i złożoności piasty."
   },
 
   flap_type: {
@@ -847,7 +847,7 @@ const PARAMETER_ENCYCLOPEDIA = {
     full_definition: "Podstawowy składnik biegunowej kwadratowej C_x = C_x0 + k·C_z² (Projekt P4, wzór 6 w BIPOL_1_wzory.pdf). Decyduje o prędkości maksymalnej samolotu V_max oraz o doskonałości maksymalnej K_max.",
     formula: "C_x(C_z) = C_x0 + C_z² / (π · Λ · e),   K_max = ½ · √(π · Λ · e / C_x0)",
     effect_increase: "Wzrost Cx0 (np. przez stałe podwozie, zastrzały, wystające nity czy pofalowane pokrycie) drastycznie obniża doskonałość K_max, zwiększa zużycie paliwa i zmniejsza prędkość maksymalną V_max!",
-    typical_ranges: "Szybowce i gładkie motoszybowce kompozytowe: 0.012 – 0.018 | Samoloty z chowanym podwoziem: 0.020 – 0.025 | Samoloty z podwoziem stałym i zastrzałami: 0.027 – 0.036.",
+    typical_ranges: "Szybowce: 0,008–0,012 | Motoszybowce: 0,014–0,020 | Chowane podwozie: 0,020–0,025 | Stałe podwozie i zastrzały: 0,027–0,036 | Odrzutowe komunikacyjne: 0,015–0,020.",
     galinski_note: "Gęste nitowanie profili omegowych i brak połączeń kompensacyjnych powodują pofalowanie pokrycia (Rozdz. 12.6, rys. 12.46 Boeing B-29), które niszczy opływ laminarny i podnosi Cx0!"
   },
 
@@ -859,7 +859,7 @@ const PARAMETER_ENCYCLOPEDIA = {
     formula: "k = 1 / (π · Λ · e),   C_xi = k · C_z²",
     effect_increase: "Wyższy współczynnik e (uzyskiwany przez zbieżność η ≈ 0.45, winglety i czyste przejście skrzydło-kadłub) obniża opór indukowany na dużych kątach natarcia (podczas wznoszenia, zakrętu i krążenia).",
     typical_ranges: "Skrzydło prostokątne z zastrzałami: 0.72 – 0.77 | Skrzydło trapezowe dolnopłata/górnopłata: 0.78 – 0.84 | Skrzydło kompozytowe z wingletami: 0.85 – 0.90.",
-    galinski_note: "Nawet najlepszy profil straci wysoką sprawność, jeśli na połączeniu segmentów skrzydła wystąpią nieszczelności lub odkształcenia montażowe (Rozdz. 11.2)."
+    galinski_note: "Współczynnik e obniżają kadłub, gondole, nieeliptyczny rozkład siły nośnej i opór lepki rosnący z Cz. Szacuj go ze wzorów statystycznych (np. Raymer dla skrzydeł prostych: e ≈ 1,78·(1 − 0,045·Λ^0,68) − 0,64); winglety dają zwykle kilka procent."
   },
 
   cz_max_clean: {
@@ -903,7 +903,7 @@ const PARAMETER_ENCYCLOPEDIA = {
     full_definition: "Mniejsza powierzchnia S (większe obciążenie W/S) zmniejsza opór tarcia na przelocie i wrażliwość na podmuchy, ale zwiększa prędkość lądowania Vs0, o ile nie zastosujemy skutecznych klap.",
     formula: "S = (m₀ · g) / (W/S)_projektowe",
     effect_increase: "Większa powierzchnia S ułatwia krótki start i lądowanie (STOL), lecz zwiększa masę skrzydła i opór szkodliwy w przelocie.",
-    typical_ranges: "PZL Kos / ULM: 9.5–12 m² | Cessna 172: 16.2 m² | King Air: 28 m² | ATR-42: 54.5 m².",
+    typical_ranges: "ULM: 9,5–13 m² | Cessna 172: 16,2 m² | King Air 350: 28,8 m² | ATR 42: 54,5 m².",
     galinski_note: "Na rysunku zestawieniowym 3-rzutowym (ZPK CAD1) powierzchnia S obejmuje trapez przedłużony do płaszczyzny symetrii kadłuba."
   },
 
@@ -936,8 +936,8 @@ const PARAMETER_ENCYCLOPEDIA = {
     full_definition: "Bezpośrednio weryfikuje spełnienie wymagań certyfikacyjnych (np. CS-23 wymaga V_s0 ≤ 61 kt = 113 km/h dla samolotów jednosilnikowych).",
     formula: "V_s0 = √[ 2·(W/S) / (ρ₀ · C_z,max,lnd) ]",
     effect_increase: "Niższa prędkość Vs0 skraca dobieg po przyziemieniu (S_lnd ~ V_app²) i podnosi bezpieczeństwo lądowania awaryjnego.",
-    typical_ranges: "STOL: 60–75 km/h | GA: 80–105 km/h | Regionalne: 135–160 km/h.",
-    galinski_note: "Wybór klapy Fowlera lub dwuszczelinowej zamiast klapy zwykłej obniża prędkość Vs0 o 15–25 km/h przy tym samym skrzydle!"
+    typical_ranges: "STOL: 60–75 km/h | GA: 80–105 km/h | Regionalne: 135–175 km/h.",
+    galinski_note: "Klapa Fowlera lub dwuszczelinowa zamiast zwykłej obniża Vs0 o ok. 10–15 % przy tym samym skrzydle, bo Vs0 ∝ 1/√Cz,max."
   },
 
   kpi_sm: {
@@ -948,7 +948,7 @@ const PARAMETER_ENCYCLOPEDIA = {
     formula: "K_n = (x_N − x_ŚM,tylne) / ŚDA · 100%,   gdzie  x̄_N = x̄_ac,wbn + η_H · V_H · (a_H/a_W)·(1 − dε/dα)",
     effect_increase: "Zapas K_n w przedziale 8% – 18% ŚDA gwarantuje stateczny i przyjemny pilotaż. Gdy K_n < 5%, samolot staje się niestateczny (wymaga FBW); gdy K_n > 25%, samolot jest zbyt 'ciężki na ster wysokości' przy wyrównaniu do lądowania.",
     typical_ranges: "Samoloty szkolne i turystyczne: 10% – 18% ŚDA | Samoloty komunikacyjne: 7% – 15% ŚDA | Wymóg minimalny BIPOL I: K_n ≥ 5.0% ŚDA.",
-    galinski_note: "W układzie wyważenia P6 skrzydło pozycjonuje się wzdłuż kadłuba tak, aby uwzględnić masę silnika (w dziobie, na skrzydle lub w tyle kadłuba)."
+    galinski_note: "Za mały zapas stateczności: przesuń skrzydło do tyłu względem środka masy albo powiększ usterzenie poziome. Program sam zwiększa V_H do zapasu 5 % ŚDA, chyba że zablokujesz V_H."
   }
 };
 

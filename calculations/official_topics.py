@@ -333,13 +333,16 @@ def _low_speed_seed(topic, d, title):
     if cls == 'piston_ga':
         if 'stol' in title:
             return dict(flap_type='junkers', slat_type='fixed_slot', v_stall_kmh=75.0, takeoff_run_m=180.0)
+        # Light piston twins land faster than singles (Seneca ≈ 113 km/h, DA42 ≈ 115 km/h);
+        # a glider tug must fly slowly enough to tow at 110–130 km/h with a margin over its stall.
         return dict(flap_type='single_slotted', aileron_type='differential', slat_type='none',
-                    v_stall_kmh=90.0, takeoff_run_m=280.0)
+                    v_stall_kmh=110.0 if 'dwusilnik' in title else 80.0 if 'holowani' in title else 90.0,
+                    takeoff_run_m=280.0)
     if cls == 'jet_business':
         # Jets stall well above piston trainers: Cirrus SF50 ≈ 124 km/h, L-39 ≈ 165 km/h.
         light = category in ('odrzutowe_rekreacyjne', 'szkolne')
         return dict(flap_type='single_slotted' if light else 'fowler', aileron_type='differential', slat_type='none',
-                    v_stall_kmh={'odrzutowe_rekreacyjne': 110.0, 'szkolne': 150.0, 'szturmowe': 170.0}.get(category, 140.0))
+                    v_stall_kmh={'odrzutowe_rekreacyjne': 120.0, 'szkolne': 150.0, 'szturmowe': 170.0}.get(category, 140.0))
     if cls == 'jet_transport':
         return dict(flap_type='fowler', slat_type='slats_auto', v_stall_kmh=185.0, takeoff_run_m=1400.0)
     if category == 'rolnicze_pozarnicze':
@@ -350,6 +353,32 @@ def _low_speed_seed(topic, d, title):
         return dict(flap_type='fowler', slat_type='none', takeoff_run_m=600.0,
                     v_stall_kmh=140.0 if category == 'szturmowe' else 120.0)
     return dict(flap_type='fowler', slat_type='slats_auto', v_stall_kmh=140.0, takeoff_run_m=750.0)
+
+
+def _mission_seed(topic, d, title):
+    """Requirements stated or implied by the topic title, beyond range, speed and payload."""
+    category, cls = topic['category'], d['aircraft_type']
+    seed = {}
+    if 'wyścig' in title:
+        # The race speed is a maximum level speed near the ground; ferry flights cruise at about 80 % of it.
+        seed.update(v_max_required_kmh=d['cruise_speed_kmh'], cruise_speed_kmh=round(.8 * d['cruise_speed_kmh'], -1))
+    if cls == 'jet_business' and category in ('odrzutowe_rekreacyjne', 'szturmowe'):
+        # Jets transit high, where the wing works near its best range: 7500 m is the unpressurised
+        # limit with oxygen for recreational jets and a usual transit level for attack aircraft.
+        seed['cruise_altitude_m'] = 7500.0
+    elif cls == 'turboprop_regional' and category == 'szturmowe':
+        seed['cruise_altitude_m'] = 6000.0
+    if 'holowani' in title:
+        # Club practice: a two-seat training glider (ASK 21, Puchacz ≈ 600 kg) at 120 km/h, climbing ≥ 3 m/s.
+        seed.update(tow_glider_mass_kg=600.0, tow_glider_ld=25.0, tow_speed_kmh=120.0, tow_climb_rate_ms=3.0)
+    power = re.search(r'moc silnika do (\d+)\s*kw', title)
+    if power:
+        seed['engine_power_limit_kw'] = float(power.group(1))
+    if category == 'transportowe':
+        seed['cargo_hold_density_kg_m3'] = 150.0  # tactical transports: C-295 ≈ 140, C-130 ≈ 180 kg/m³
+    elif category == 'lodzie_latajace' and cls == 'turboprop_regional':
+        seed['cargo_hold_density_kg_m3'] = 167.0  # IATA volumetric standard, 6000 cm³/kg
+    return seed
 
 
 def _estimated_m0(params):
@@ -380,7 +409,8 @@ def topic_parameters(topic):
     p['category'] = ('cs22_motoglider' if topic['category'] == 'motoszybowce' else
                      'easa_optout_ul' if topic['category'] == 'ultralight' else
                      'cs25_transport' if d['aircraft_type'] == 'jet_transport' or passengers > 19 else
-                     'cs23_aerobatic' if 'akrobac' in title else
+                     # Advanced trainers fly aerobatics (Orlik, Grob G 120, L-39: +6 g and more).
+                     'cs23_aerobatic' if 'akrobac' in title or 'treningow' in title else
                      'cs23_commuter' if passengers > 9 else 'cs23_level3' if passengers > 6 else
                      'cs23_level2' if passengers > 1 else 'cs23_level1')
     p.update(_low_speed_seed(topic, d, title))
@@ -391,6 +421,7 @@ def topic_parameters(topic):
         # These are design assumptions; ramp clearance and a particular vehicle
         # version remain separate checks, rather than a passenger-only cabin.
         p.update(cargo_bay_length_m=8.5, cargo_bay_width_m=3.2, cargo_bay_height_m=3.2)
+    p.update(_mission_seed(topic, d, title))
     if d['aircraft_type'] == 'jet_transport':
         # Cruise near M 0.77 needs a swept wing (CRJ, E-Jet, A320: 23–27°), not the VLJ's 12°.
         p['sweep_quarter_deg'] = 25.0
@@ -400,9 +431,11 @@ def topic_parameters(topic):
     p['landing_distance_m'] = {'jet_transport': 1800, 'jet_business': 1200,
                              'turboprop_regional': 1100}.get(d['aircraft_type'], 600)
     if 'stol' in title and d['aircraft_type'] != 'piston_ga':
-        # Short-field requirement of the topic: DHC-7 ≈ 690/600 m, BAe 146 ≈ 1200/1100 m.
+        # Short-field requirement of the topic: DHC-7 ≈ 690/600 m, BAe 146 ≈ 1200/1100 m,
+        # tactical transports at full load (C-130, A400M) ≈ 1000/800 m.
         p['takeoff_distance_m'], p['landing_distance_m'] = (
-            (1300, 1200) if d['aircraft_type'] == 'jet_transport' else (800, 700))
+            (1300, 1200) if d['aircraft_type'] == 'jet_transport' else
+            (800, 700) if d['m_cargo'] <= 2300 else (1000, 800))
     # Heavy payload topics outgrow CS-23 (MTOM ≤ 8618 kg): certify them as transport aircraft.
     from calculations.polish_law import CS23_MTOM_MAX_KG
     if p['category'].startswith('cs23') and _estimated_m0(p) > CS23_MTOM_MAX_KG:

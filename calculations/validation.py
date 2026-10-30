@@ -46,6 +46,10 @@ NUMERIC_LIMITS = {
     "mass_point_x1": (1, 1000000), "mass_point_x2": (1, 1000000),
     "mass_point_y1": (0.01, .99), "mass_point_y2": (0.01, .99),
     "takeoff_mass_fraction": (.970, .975), "landing_mass_fraction": (.970, .975),
+    "cruise_ld_p4": (1, 80), "cruise_ld_p4_speed_kmh": (1, 1200), "cruise_ld_p4_altitude_m": (0, 20000),
+    "tow_glider_mass_kg": (0, 2000), "tow_glider_ld": (5, 60), "tow_speed_kmh": (60, 250),
+    "tow_climb_rate_ms": (0, 20), "engine_power_limit_kw": (0, 100000),
+    "v_max_required_kmh": (0, 1200), "cargo_hold_density_kg_m3": (0, 2000),
 }
 
 DEFAULTS = {

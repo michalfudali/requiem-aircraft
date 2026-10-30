@@ -18,3 +18,26 @@
 #courseworkFreshness { color:#805319; }
 #courseworkPolar { margin:16px 0; overflow-x:auto; }
 @media(max-width:480px) { .coursework-score-grid { grid-template-columns:minmax(0,1fr); } }
+
+/* Audyt inżynierski i symulator zejściówki */
+.audit-checks-grid { display:grid; grid-template-columns:repeat(auto-fit, minmax(280px, 1fr)); gap:12px; margin-top:14px; }
+.audit-item-card { border:1px solid #dce6e8; border-radius:8px; padding:14px; background:#fff; transition:border-color .2s; }
+.audit-item-card.audit-passed { border-left:4px solid #168c83; }
+.audit-item-card.audit-warning { border-left:4px solid #d89b45; }
+.audit-item-header { display:flex; justify-content:space-between; align-items:flex-start; gap:8px; margin-bottom:8px; }
+.audit-item-title { font-weight:700; font-size:13px; color:#1a313d; }
+.audit-cat-tag { font-size:10px; font-weight:600; text-transform:uppercase; letter-spacing:.5px; color:#607d8b; }
+.audit-badge-ok { background:#e4f5ed; color:#166548; font-weight:700; font-size:11px; padding:3px 8px; border-radius:4px; white-space:nowrap; }
+.audit-badge-warn { background:#fff2df; color:#805319; font-weight:700; font-size:11px; padding:3px 8px; border-radius:4px; white-space:nowrap; }
+.audit-values-row { display:flex; gap:16px; margin:8px 0; font-size:12px; color:#455a64; flex-wrap:wrap; }
+.audit-val-chip { background:#f3f7f9; padding:4px 8px; border-radius:4px; border:1px solid #e1ebef; }
+.audit-didactic-text { margin-top:8px; padding:8px 10px; background:#f0f8ff; border-radius:6px; font-size:12px; color:#154a6e; line-height:1.45; }
+.audit-eng-note { margin-top:6px; font-size:11px; color:#546e7a; font-style:italic; }
+
+.defense-questions-list { display:flex; flex-direction:column; gap:12px; margin-top:14px; }
+.defense-q-card { border:1px solid #dce6e8; border-radius:8px; padding:12px 16px; background:#fafcfd; }
+.defense-q-card summary { cursor:pointer; font-weight:600; font-size:13px; color:#1a313d; display:flex; flex-wrap:wrap; gap:8px; align-items:center; }
+.defense-q-card summary:hover { color:#168c83; }
+.defense-q-card[open] { background:#fff; border-color:#b4d3db; }
+.defense-q-answer { margin-top:12px; padding:10px 14px; background:#f4fbf8; border-left:3px solid #168c83; border-radius:0 6px 6px 0; font-size:12px; line-height:1.5; color:#1e3932; }
+.defense-q-tip { margin-top:8px; padding:8px 12px; background:#fffdf5; border-left:3px solid #d89b45; border-radius:0 6px 6px 0; font-size:11px; color:#6d4c13; }

@@ -86,7 +86,13 @@
     return rows;
   }
 
-  const api = {metrics, escape, format, filename, createStore, snapshot, csv, resultRows};
+  // crypto.randomUUID exists only in secure contexts (HTTPS, localhost), not on a LAN address over HTTP.
+  function uniqueId(prefix) {
+    const random = root.crypto?.randomUUID?.() || `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
+    return prefix + random;
+  }
+
+  const api = {metrics, escape, format, filename, createStore, snapshot, csv, resultRows, uniqueId};
   if (typeof module === 'object' && module.exports) module.exports = api;
   else root.BipolStudio = api;
 })(typeof globalThis !== 'undefined' ? globalThis : this);

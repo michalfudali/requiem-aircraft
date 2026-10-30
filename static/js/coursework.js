@@ -112,6 +112,58 @@
     document.querySelectorAll('[data-coursework-evidence], [data-coursework-confirm]').forEach(el => { el.disabled = !fresh; });
   }
 
+  function renderEngineeringAudit(audit) {
+    const listEl = $('courseworkAuditList');
+    const badgeEl = $('courseworkAuditBadge');
+    if (!listEl || !audit) return;
+
+    if (badgeEl) {
+      badgeEl.textContent = `${audit.passed_count} / ${audit.total_count} zaliczone (${audit.quality_score_pct}%)`;
+      badgeEl.className = `badge ${audit.passed_count === audit.total_count ? 'badge-success' : 'badge-warning'}`;
+    }
+
+    listEl.innerHTML = audit.checks.map(c => `
+      <div class="audit-item-card ${c.passed ? 'audit-passed' : 'audit-warning'}">
+        <div class="audit-item-header">
+          <div>
+            <div class="audit-cat-tag">${esc(c.category)}</div>
+            <div class="audit-item-title">${esc(c.title)}</div>
+          </div>
+          <span class="${c.passed ? 'audit-badge-ok' : 'audit-badge-warn'}">${c.passed ? '✓ Zgodny' : '⚠️ Sprawdź'}</span>
+        </div>
+        <div class="audit-values-row">
+          <div class="audit-val-chip"><strong>Wartość:</strong> ${esc(c.value)}</div>
+          <div class="audit-val-chip"><strong>Wymóg:</strong> ${esc(c.required)}</div>
+        </div>
+        <div class="audit-didactic-text">
+          💡 <strong>Prosto mówiąc:</strong> ${esc(c.didactic_simple)}
+        </div>
+        <div class="audit-eng-note">
+          ⚙️ <strong>Wskazówka inżynierska:</strong> ${esc(c.engineering_note)}
+        </div>
+      </div>
+    `).join('');
+
+    const qListEl = $('courseworkDefenseQuestionsList');
+    if (qListEl && audit.defense_questions) {
+      qListEl.innerHTML = audit.defense_questions.map((q, idx) => `
+        <details class="defense-q-card" ${idx === 0 ? 'open' : ''}>
+          <summary>
+            <span class="audit-cat-tag" style="background:#eaf2f5; padding:2px 6px; border-radius:3px;">${esc(q.topic)}</span>
+            <strong>Pytanie ${idx + 1}:</strong> ${esc(q.question)}
+          </summary>
+          <div class="defense-q-answer">
+            🎓 <strong>Wzorcowa odpowiedź na obronie:</strong><br>
+            ${esc(q.expected_answer)}
+          </div>
+          <div class="defense-q-tip">
+            📌 <strong>Wskazówka prowadzącego:</strong> ${esc(q.faculty_tip)}
+          </div>
+        </details>
+      `).join('');
+    }
+  }
+
   function render(result) {
     review = result.submission_review;
     if (!review) return;
@@ -125,6 +177,7 @@
     const polar = review.polar;
     $('courseworkPolar').innerHTML = `<table class="b-table"><thead><tr><th>Parametr</th><th>Założenie P2</th><th>Wynik P4</th></tr></thead><tbody>${[['Cx₀',polar.assumed_cx0,polar.calculated_cx0,4],['e',polar.assumed_e,polar.calculated_e,3],['Kmax',polar.assumed_kmax,polar.calculated_kmax,2]].map(([label,a,b,d]) => `<tr><th>${label}</th><td>${fmt(a,d)}</td><td>${fmt(b,d)}</td></tr>`).join('')}</tbody></table>${review.performance_findings.map(s => `<p>${esc(s)}</p>`).join('')}`;
     renderSummary(); freshness();
+    if (result.engineering_audit) renderEngineeringAudit(result.engineering_audit);
   }
 
   function saveEvidence(key, confirm = false) {
@@ -154,13 +207,13 @@
       }
       if (!response.ok) throw Error(answer.message || 'Nie udało się obliczyć wariantu.');
       const name = `${origin.name} · P2←P4`;
-      const project = {...structuredClone(origin), id:`proj_${crypto.randomUUID()}`, name,
+      const project = {...structuredClone(origin), id:BipolStudio.uniqueId('proj_'), name,
         params:{...answer.result.params, name}, createdAt:new Date().toISOString(), summary:{},
         semesterChecklist:{}, iteration:{source_project_id:originId, before:answer.before, after:answer.after}};
       // A different variant has not received the source project's grades.
       project.params.coursework = {evidence:project.params.coursework?.evidence || {}};
       saveProject(project); switchActiveProject(project.id);
-      $('courseworkIterationStatus').textContent = `Utworzono „${name}”. MTOW: ${fmt(answer.mtow_before,1)} → ${fmt(answer.mtow_after,1)} kg. Sprawdź pozostałe wymagania i zaktualizuj odniesienia do opracowań.`;
+      $('courseworkIterationStatus').textContent = `Utworzono „${name}”. MTOW: ${fmt(answer.mtow_before,1)} → ${fmt(answer.mtow_after,1)} kg po ${answer.iterations.length} krokach bilansu uściślonego. Sprawdź pozostałe wymagania i zaktualizuj odniesienia do opracowań.`;
     } catch (error) {
       if (originId === getActiveProjectId()) $('courseworkIterationStatus').textContent = error.message;
     } finally { iterating = false; freshness(); }

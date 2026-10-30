@@ -204,8 +204,7 @@
     $('studioMassClosure').textContent = `Masa startowa ${fmt(total)} kg · suma składników ${fmt(m.m_empty + m.m_crew + m.m_payload + m.m_fuel)} kg`;
     const orderedChecks = [...checks].sort((a, b) => Number(a.passed) - Number(b.passed));
     $('studioChecks').innerHTML = orderedChecks.slice(0, 4).map(c => {
-      const fixParam = !c.passed && typeof window.getComplianceFixParam === 'function' ? window.getComplianceFixParam(c) : '';
-      return `<div class="studio-check"><span class="studio-check-icon ${c.passed ? 'pass' : 'attention'}">${c.passed ? '✓' : '!'}</span><div><strong>${esc(c.parameter)}</strong><small>${esc(c.required)} · wynik: ${esc(c.actual)}${fixParam ? ` <button type="button" class="compliance-fix-btn" data-focus-param="${esc(fixParam)}">Popraw →</button>` : ''}</small></div></div>`;
+      return `<div class="studio-check"><span class="studio-check-icon ${c.passed ? 'pass' : 'attention'}">${c.passed ? '✓' : '!'}</span><div><strong>${esc(c.parameter)}</strong><small>${esc(c.required)} · wynik: ${esc(c.actual)}${typeof window.complianceFixButton === 'function' ? ' ' + window.complianceFixButton(c) : ''}</small></div></div>`;
     }).join('');
     $('studioMission').innerHTML = `<svg viewBox="0 0 650 145" role="img" aria-label="Schemat misji: start, wznoszenie, przelot i rezerwa"><path d="M25 95H625" stroke="#cbdadd" stroke-dasharray="4 4"/><path d="M25 95H90L175 40H470L535 78H625" fill="none" stroke="#168c83" stroke-width="3"/><text x="25" y="122">Start</text><text x="108" y="122">Wznoszenie</text><text x="245" y="24">${fmt(p.cruise_altitude_m, 0)} m ISA · ${fmt(p.cruise_speed_kmh, 0)} km/h TAS</text><text x="280" y="122">Przelot · ${fmt(p.range_km, 0)} km</text><text x="510" y="122">Rezerwa · ${fmt(p.loiter_time_min ?? 45, 0)} min</text></svg>`;
     if (p.engine_type === 'none') $('studioMission').innerHTML = `<p>Lot bez napędu · wysokość odniesienia ${fmt(p.cruise_altitude_m, 0)} m ISA.</p><p>Założony zasięg misji nie jest prognozą lotu termicznego. Sprawdź doskonałość i opadanie w module lotu szybowego.</p>`;
@@ -448,7 +447,7 @@
           const variant = variants().find(v => v.id === button.dataset.loadVariant);
           if (!variant) return;
           saveEditorial();
-          const project = {id: `proj_${crypto.randomUUID()}`, name: variant.name, params: variant.params, summary: {}, createdAt: new Date().toISOString(), semesterChecklist: {}};
+          const project = {id: BipolStudio.uniqueId('proj_'), name: variant.name, params: variant.params, summary: {}, createdAt: new Date().toISOString(), semesterChecklist: {}};
           saveProject(project); switchActiveProject(project.id); navigate('tab-overview');
         } else if (button.dataset.deleteVariant) { projectStore.write(VARIANTS_KEY, variants().filter(v => v.id !== button.dataset.deleteVariant)); renderComparison(); }
         else if (button.dataset.exportVariant) {
