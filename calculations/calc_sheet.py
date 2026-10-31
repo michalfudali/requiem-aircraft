@@ -1800,7 +1800,7 @@ def _p5_range(s, r):
     p, perf, mass = r['params'], r['performance'], r['mass']
     ra = perf['paturski_p6']['range_endurance_6_5']
     rows = ra.get('table_6_3') or []
-    row = next((q for q in rows if abs(q['v_kmh'] - float(p['cruise_speed_kmh'])) < .06), None)
+    row = next((q for q in rows if q.get('requested_speed')), None)
     s.section('p5', 'range', 'Zasięg i długotrwałość przy wymaganej prędkości', SOURCES['ML'] + ', P6, wzory (6.13)–(6.38)')
     fit = r['aerodynamics']['paturski_p3']['analytical_polar_fit']
     jet = p['engine_type'] == 'jet'

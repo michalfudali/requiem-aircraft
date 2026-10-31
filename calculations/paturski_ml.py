@@ -15,6 +15,7 @@ import math
 from functools import lru_cache
 from calculations.atmosphere import isa_atmosphere, G0, RHO0
 from calculations.flight_model import mission_masses, flight_point, level_flight_envelope, climb_time_to_height
+from calculations.cruise_optimization import optimize_cruise
 
 
 # Kinematyczny współczynnik lepkości powietrza na poziomie morza wg ISA [m^2/s]
@@ -1300,8 +1301,12 @@ def paturski_project_6_performance(geom_res: dict, sizing_res: dict, params: dic
                 "cz_cx": round(cz_cx, 2),
                 "v_ms": round(v_ms, 1),
                 "v_kmh": round(v_kmh, 1),
+                "v_kmh_unrounded": v_kmh,
+                "requested_speed": lp_i == len(cz_samples_6_3) and 0 < requested_cl <= cz_max_clean,
                 "t_breguet_h": round(t_const_alpha_h, 2),
                 "l_breguet_km": round(l_const_alpha_km, 1),
+                "t_breguet_h_unrounded": t_const_alpha_h,
+                "l_breguet_km_unrounded": l_const_alpha_km,
                 "t_const_v_h": round(t_const_v_h, 2),
                 "l_const_v_km": round(l_const_v_km, 1),
                 "t_const_v_h_unrounded": t_const_v_h,
@@ -1310,7 +1315,9 @@ def paturski_project_6_performance(geom_res: dict, sizing_res: dict, params: dic
         return rows
 
     table_6_3_range = range_rows(h_range_m)
-    requested_row = next((row for row in table_6_3_range if abs(row['v_kmh']-params['cruise_speed_kmh']) < .06), None)
+    requested_row = next((row for row in table_6_3_range if row['requested_speed']), None)
+    cruise_optimum = optimize_cruise(params, sizing_res, m_start_cr, m_end_cr, S,
+                                     cx0_approx, k_ind_clean, cz_max_clean, h_range_m)
 
     # BIPOL_5 (T. Grabowski): obliczenia dla wysokości 0, przelotowej i pułapu praktycznego, w zakresie
     # prędkości z wykresu ofertowego, metodą stałej wysokości i prędkości (wzory 5.10–5.16).
@@ -1318,28 +1325,22 @@ def paturski_project_6_performance(geom_res: dict, sizing_res: dict, params: dic
     for label, h in (("0 m", 0.0), ("wysokość przelotowa", h_range_m), ("pułap praktyczny", h_p_practical_m)):
         if is_glider or m_fuel <= 0 or (label == "pułap praktyczny" and h_p_practical_m <= 0):
             continue
-        speeds = eval_climb_at_alt(h)
-        rows = [r for r in range_rows(h) if speeds["v_min_kmh"] <= r["v_kmh"] <= speeds["v_max_kmh"]]
-        best_t = max(rows, key=lambda r: r["t_const_v_h"], default=None)
-        best_l = max(rows, key=lambda r: r["l_const_v_km"], default=None)
+        optimum = cruise_optimum if h == h_range_m else optimize_cruise(
+            params, sizing_res, m_start_cr, m_end_cr, S, cx0_approx, k_ind_clean, cz_max_clean, h)
+        if not optimum['available']:
+            continue
+        rows = range_rows(h)
+        best_t, best_l = optimum['max_endurance'], optimum['max_range']
         range_by_altitude.append({
             "label": label,
             "h_m": round(h),
-            "v_min_kmh": round(speeds["v_min_kmh"], 1),
-            "v_max_kmh": round(speeds["v_max_kmh"], 1),
+            "v_min_kmh": round(optimum['min_speed_kmh'], 1),
+            "v_max_kmh": round(optimum['max_speed_kmh'], 1),
             "rows": rows,
-            "t_max_h": best_t["t_const_v_h"] if best_t else None,
-            "v_t_max_kmh": best_t["v_kmh"] if best_t else None,
-            "l_max_km": best_l["l_const_v_km"] if best_l else None,
-            "v_l_max_kmh": best_l["v_kmh"] if best_l else None,
+            "t_max_h": best_t['endurance_h'], "v_t_max_kmh": best_t['speed_kmh'],
+            "l_max_km": best_l['range_km'], "v_l_max_kmh": best_l['speed_kmh'],
+            "optimization": optimum,
         })
-
-    if table_6_3_range:
-        best_t_row = max(table_6_3_range, key=lambda x: x["t_breguet_h"])
-        best_l_row = max(table_6_3_range, key=lambda x: x["l_breguet_km"])
-    else:
-        best_t_row = {"t_breguet_h": 0.0, "v_kmh": 0.0}
-        best_l_row = {"l_breguet_km": 0.0, "v_kmh": 0.0}
 
     return {
         "load_indicators_eq_6_1": {
@@ -1371,8 +1372,8 @@ def paturski_project_6_performance(geom_res: dict, sizing_res: dict, params: dic
             "t_hp_min": round(t_hp_s / 60.0, 1),
         },
         "range_endurance_6_5": {
-            "range_at_requested_speed_km": requested_row['l_const_v_km'] if requested_row else None,
-            "endurance_at_requested_speed_h": requested_row['t_const_v_h'] if requested_row else None,
+            "range_at_requested_speed_km": requested_row['l_const_v_km_unrounded'] if requested_row else None,
+            "endurance_at_requested_speed_h": requested_row['t_const_v_h_unrounded'] if requested_row else None,
             "h_cruise_m": round(h_range_m),
             "m0_start_cr_kg": round(m_start_cr, 1),
             "mk_end_cr_kg": round(m_end_cr, 1),
@@ -1380,13 +1381,14 @@ def paturski_project_6_performance(geom_res: dict, sizing_res: dict, params: dic
             "m_obl_avg_kg": round(m_obl_kg, 1),
             "qe_paturski": round(qe_paturski, 4),
             "qe_unit": "kg/(daN·h)" if engine_type == "jet" else "kg/(kW·h)",
-            "t_max_h": best_t_row["t_breguet_h"],
-            "v_t_max_kmh": best_t_row["v_kmh"],
-            "l_max_km": best_l_row["l_breguet_km"],
-            "v_l_max_kmh": best_l_row["v_kmh"],
+            "t_max_h": cruise_optimum['max_endurance']['endurance_h'] if cruise_optimum['available'] else None,
+            "v_t_max_kmh": cruise_optimum['max_endurance']['speed_kmh'] if cruise_optimum['available'] else None,
+            "l_max_km": cruise_optimum['max_range']['range_km'] if cruise_optimum['available'] else None,
+            "v_l_max_kmh": cruise_optimum['max_range']['speed_kmh'] if cruise_optimum['available'] else None,
+            "optimization": cruise_optimum,
             "table_6_3": table_6_3_range,
             "by_altitude": range_by_altitude,
-            "by_altitude_method": "Stała wysokość i prędkość (BIPOL_5, wzory 5.10–5.16); prędkości z zakresu wykresu ofertowego.",
+            "by_altitude_method": "Stała wysokość i TAS; optymalizacja ciągła przy masie początku przelotu, bez zaokrągleń tabeli.",
         },
     }
 

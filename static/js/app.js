@@ -3431,6 +3431,7 @@ function hydrateSemesterProjectsData(res) {
   if (!bp) return;
 
   const isJet = (res?.sizing?.design_point?.engine_type || document.getElementById('engine_type')?.value) === 'jet';
+  const isGlider = res.params?.engine_type === 'none';
 
   // --- PROJEKT 1: PROJEKT KONCEPCYJNY ---
   if (bp.p1) {
@@ -3977,20 +3978,24 @@ function hydrateSemesterProjectsData(res) {
       rngTbody.innerHTML = p5.range_endurance_comparison.map(m => `
         <tr>
           <td>${escapeHtml(m.method)}</td>
-          <td><b>${m.range_km == null ? '—' : `${m.range_km} km`}</b></td>
-          <td><b>${m.endurance_h == null ? '—' : `${m.endurance_h} h`}</b></td>
+          <td><b>${m.range_km == null ? '—' : `${Number(m.range_km).toFixed(1)} km`}</b></td>
+          <td><b>${m.endurance_h == null ? '—' : `${Number(m.endurance_h).toFixed(2)} h`}</b></td>
         </tr>
       `).join('');
     }
 
     const re65 = p6ml.range_endurance_6_5 || {};
     const rngSumEl = document.getElementById('p5_paturski_range_summary');
-    if (rngSumEl && re65.t_max_h != null) {
+    if (rngSumEl && re65.optimization?.available) {
       rngSumEl.innerHTML = `
-        <b>Wyniki z Tabeli 6.3 Z. Paturskiego (na wysokości H = ${re65.h_cruise_m} m, masa obliczeniowa m_obl = ${re65.m_obl_avg_kg} kg, paliwo przelotowe m_p = ${re65.mp_cruise_fuel_kg} kg, q_e = ${re65.qe_paturski} ${re65.qe_unit}):</b><br>
-        &bull; Maksymalna długotrwałość lotu: <b>T_max = ${re65.t_max_h} h</b> dla prędkości ekonomicznej <b>V_T = ${re65.v_t_max_kmh} km/h</b> &bull;
-        Maksymalny zasięg lotu: <b>L_max = ${re65.l_max_km} km</b> dla prędkości optymalnej <b>V_L = ${re65.v_l_max_kmh} km/h</b>.
+        <b>Optima stałego TAS i wysokości H = ${re65.h_cruise_m} m dla paliwa pierwszego odcinka przelotu ${re65.mp_cruise_fuel_kg} kg:</b><br>
+        &bull; Największa długotrwałość: <b>T_max = ${Number(re65.t_max_h).toFixed(3)} h</b> przy <b>V_T = ${Number(re65.v_t_max_kmh).toFixed(1)} km/h TAS</b> &bull;
+        Największy zasięg: <b>L_max = ${Number(re65.l_max_km).toFixed(1)} km</b> przy <b>V_L = ${Number(re65.v_l_max_kmh).toFixed(1)} km/h TAS</b>.<br>
+        ${escapeHtml(re65.optimization.basis)} Tabela 6.3 poniżej porównuje także idealne modele Bregueta.
       `;
+    } else if (rngSumEl) {
+      rngSumEl.textContent = isGlider ? 'Paliwowe optima zasięgu i długotrwałości nie dotyczą szybowca.'
+        : 'Nie wyznaczono optimum: brak paliwa przelotowego lub osiągalnego lotu poziomego na tej wysokości.';
     }
     const t63EnergyTh = document.getElementById('p5_t63_col_energy');
     if (t63EnergyTh) {
