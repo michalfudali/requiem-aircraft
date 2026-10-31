@@ -30,8 +30,9 @@ Usunięto również ukryte zastępowanie t/c przez granice 0,06–0,24 w modelu
 ściśliwości: korzysta on z wartości zaakceptowanej dla skrzydła, podanej
 teraz także w jego wynikach. Korelacja pozostaje oszacowaniem wstępnym.
 Wartość wynikowa jest nieedytowalna w formularzu; przejście do ręcznego
-trybu przywraca edycję. Import starszego projektu resetuje tryb i t/c,
-zamiast dziedziczyć je po poprzednio otwartym projekcie.
+trybu przywraca edycję. Import starszego projektu ustawia domyślne wartości
+niezapisanych pól trybu i t/c, zamiast dziedziczyć je po poprzednio
+otwartym projekcie; jawnie zapisane wartości pozostają zachowane.
 
 Maksimum grubości wklejonego konturu liczy się w sumie węzłów obu
 łamanych. Różnica dwóch interpolacji liniowych jest na każdym odcinku
@@ -72,3 +73,33 @@ rzędnych, blokady, zakres modelu, brak geometrii i źródło w raportach.
 Każdy preset przechodzi obliczenia z NACA 0015 i kontrolę podstawień
 arkusza. Chrome sprawdza tryby grubości, raport P3/P4 bez sieci,
 telefon 390 px, przeładowanie i import starszego projektu.
+
+Wyniki:
+
+| Zakres | Wynik |
+| --- | --- |
+| Pełny `pytest -q` po integracji `7aeffac` | 1407 zaliczonych, 314,19 s |
+| Końcowa integracja `60788a7`: profil, ściśliwość, arkusz, obwiednia, klapy, koszty, pytania i podstawa projektu | 229 zaliczonych, 36,60 s |
+| Testy JavaScript po końcowej integracji | 36/36 |
+| Chrome: projektowanie 13 kategorii, tematy 7, 17, 20, 28, 32, 42, 43, 63, 68, 82, 94, 95, 101 | 13/13 |
+| Chrome: nowe scenariusze grubości i raporty P3/P4 | 8/8, powtórzone po końcowym scaleniu |
+| Chrome: izolacja profilu, opóźnione odpowiedzi, wydruk i eksport | 17/17 |
+| Chrome: obwiednia, metody CS-22 i raport P6 | 5/5 |
+| Chrome: kolokwium i pytania | zaliczone przy 1400 i 390 px |
+| Chrome: kosztorys, zapis i przeładowanie | zaliczone po końcowym scaleniu |
+
+Przebieg wszystkich kategorii obejmował kreator, P1–P6, zgodność, edycję,
+ponowne obliczenie, zapis, przeładowanie, eksport HTML/JSON/CSV/DOCX,
+PDF raportu bez sieci oraz widoki 320/390 px. Zapisane kontrole fizyczne
+nie wykazały rozbieżności. PDF P3/P4 obejrzano po renderowaniu; opis
+rozbieżności występuje w obu częściach i mieści się na stronie.
+
+Po pełnej regresji dołączono nowszy `master` (`bb5dde9`): parametry
+kosztorysu i dodatkowe pytania. Konflikt w `loadProjectIntoForm` rozwiązano
+z zachowaniem domyślnych pól profilu oraz kosztów. Zwiększono wersję
+`app.js` do 36. Końcowe 229 testów oraz Chrome profilu i kosztów dotyczą
+już tego połączenia; pełny przebieg 13 kategorii wykonano przed tym
+ostatnim dołączeniem. Logi: `pytest-integrated.txt`, `pytest-final-merge.txt`,
+`node-final.txt`, `browser-all-categories.txt`, `browser-final-thickness.txt`,
+`browser-integrated-state.txt`, `browser-envelope.txt`,
+`browser-integrated-exam.txt`, `browser-final-costs.txt`.
