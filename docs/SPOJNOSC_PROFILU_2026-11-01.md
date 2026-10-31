@@ -74,3 +74,23 @@ utrzymanie źródła rzędnych, raport po nieprawidłowej edycji, odzyskanie
 poprawnego profilu, widok 390 px, odświeżenie oraz pobranie i druk
 aktualnego SVG. Otwiera też dwa raporty P3 offline i zapisuje PDF.
 Artefakty: `work/profile-state-20261031/`.
+
+Końcowy pełny przebieg: **1367 testów Python**, 297,09 s, bez błędów
+i pominięć. Przeszło **36 testów JavaScript** oraz **31 scenariuszy
+Chrome**: 17 nowych, dotychczasowy przebieg karty profilu i 13 pełnych
+procesów projektowych, po jednym z każdej kategorii oficjalnych tematów.
+Procesy kategorii obejmują kreator, moduły, edycję, zapis, odświeżenie,
+HTML/PDF/DOCX/JSON/CSV oraz szerokości 320 i 390 px. Ich artefakty
+pozostają w `work/design-integrity-20261030/`, zgodnie z istniejącym testem.
+
+PDF raportu poprawnego ma 19 stron A4, w tym stronę poziomą z profilem;
+raport błędnych rzędnych ma 17 stron A4 i nie zawiera rysunku profilu.
+Osobny wydruk ma jedną poziomą stronę A4. W jego ścieżkach wektorowych
+sprawdzono fizyczną długość cięciwy 200 mm i odcinka kontrolnego 100 mm,
+z tolerancją 0,5 punktu PDF. Wszystkie strony zawierają tekst.
+
+Po pełnym przebiegu dołączono również `114fd01`: niezależne zmiany
+wydruku kolokwium i kartotek z `master`, bez zmian kodu obliczeniowego
+Pythona. Zachowano oba zestawy aktualnych skryptów. Ponownie przeszły
+17 nowych scenariuszy, test panelu kolokwium przy 1400/390 px i wszystkie
+36 testów JavaScript.
