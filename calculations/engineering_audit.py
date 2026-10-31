@@ -74,24 +74,26 @@ def perform_engineering_audit(result: dict) -> dict:
     metrics["wheelbase_m"] = round(wheelbase, 2)
     metrics["h_cg_ground_m"] = round(h_cg_ground, 2)
 
-    tipover_ok = tipover_angle_deg <= 55.0
+    # Wykład 4 (podwozia): kąt przewrócenia na bok mniejszy niż 60°; Torenbeek zaleca ≤ 55°, Raymer dopuszcza 63°.
+    tipover_ok = tipover_angle_deg < 60.0
     checks.append({
         "id": "tipover_angle",
         "category": "Podwozie i bezpieczeństwo naziemne",
-        "title": "Kąt przewrotki bocznej podwozia (Tipover angle)",
-        "value": f"{tipover_angle_deg:.1f}°",
-        "required": "≤ 55.0° (zalecane 40°–53°)",
+        "title": "Kąt przewrócenia na bok (Tipover angle)",
+        "value": f"{tipover_angle_deg:.1f}°".replace(".", ","),
+        "required": "< 60° (wykład 4 BIPOL I; zalecane ≤ 55°)",
         "passed": tipover_ok,
-        "severity": "ok" if tipover_ok else "warning",
+        "severity": "ok" if tipover_angle_deg <= 55.0 else "warning",
         "didactic_simple": (
             "Gdy lądujesz z bocznym wiatrem lub gwałtownie skręcasz na drodze kołowania, "
             "samolot nie może przewrócić się na skrzydło. Kąt wywrotki zależy od szerokości "
             "rozstawu kół i wysokości środka ciężkości."
         ),
         "engineering_note": (
-            f"Kąt przewrotki wynosi {tipover_angle_deg:.1f}°. "
-            + ("Spełnia kryterium stabilności naziemnej Raymera (≤55°)." if tipover_ok else
-               "Przekracza limit 55°! Samolot ma zbyt wąski rozstaw kół lub zbyt wysoko położony środek masy. "
+            f"Kąt przewrócenia wynosi {tipover_angle_deg:.1f}°. ".replace(".", ",", 1)
+            + ("Spełnia wymaganie wykładu (< 60°) i zalecenie Torenbeeka (≤ 55°)." if tipover_angle_deg <= 55.0 else
+               "Spełnia wymaganie wykładu (< 60°), ale przekracza zalecane 55° — sprawdź rozstaw kół." if tipover_ok else
+               "Przekracza 60°: zbyt wąski rozstaw kół lub zbyt wysoko położony środek masy. "
                "Zwiększ rozstaw podwozia głównego lub rozważ mocowanie goleni do skrzydła.")
         )
     })
@@ -136,26 +138,33 @@ def perform_engineering_audit(result: dict) -> dict:
     metrics["stall_eta_span"] = stall_eta
     metrics["max_cz1_ratio"] = max_cz1
 
-    # Strefa lotek: zwykle powyżej 65% półrozpiętości
-    stall_safe = stall_eta < 0.65
+    # Oderwanie ma się zacząć przed wewnętrzną krawędzią lotki (η_oderwania < η_lotki); bez danych lotki — 0,65.
+    partition = geom.get("control_surfaces", {}).get("trailing_edge_partition", {})
+    eta_aileron = (1.0 - (partition.get("tip_clearance_pct", 0.0) + partition.get("aileron_span_pct", 0.0)) / 100.0
+                   if partition.get("aileron_span_pct") else 0.65)
+    metrics["aileron_inner_eta"] = round(eta_aileron, 3)
+    stall_safe = stall_eta < eta_aileron
+    eta_txt = lambda v: f"{v:.2f}".replace(".", ",")  # noqa: E731
     checks.append({
         "id": "stall_progression",
         "category": "Aerodynamika i bezpieczeństwo przeciągnięcia",
         "title": "Lokalizacja początku przeciągnięcia (Stall origin wg Schrenka)",
-        "value": f"η = {stall_eta:.2f} ({stall_eta * 100:.0f}% półrozpiętości)",
-        "required": "η < 0.65 (początek przy kadłubie, lotki bezpieczne)",
+        "value": f"η = {eta_txt(stall_eta)} ({stall_eta * 100:.0f}% półrozpiętości)",
+        "required": f"η < {eta_txt(eta_aileron)} — przed wewnętrzną krawędzią lotki",
         "passed": stall_safe,
         "severity": "ok" if stall_safe else "warning",
         "didactic_simple": (
             "Gdy samolot zwalnia i zaczyna przepadać, skrzydło nie powinno tracić siły nośnej "
-            "na końcach, bo tam są lotki! Bezpieczne skrzydło przeciąga się najpierw przy kadłubie, "
+            "na końcach, bo tam są lotki! Bezpieczne skrzydło przeciąga się najpierw bliżej kadłuba, "
             "dzięki czemu pilot wciąż może sterować przechyleniem i czuje drgania ostrzegawcze (bufetowanie)."
         ),
         "engineering_note": (
-            f"Maksimum lokalnego współczynnika obciążenia Cz,loc/Cz = {max_cz1:.2f} przypada na η = {stall_eta:.2f}. "
-            + ("Prawidłowa kolejność: przeciągnięcie zaczyna się w części przykadłubowej, chroniąc sterowność lotkami." if stall_safe else
-               "Przeciągnięcie rozpocznie się w strefie lotek (η ≥ 0.65)! Grozi utratą sterowności poprzecznej i wejściem w korkociąg. "
-               "Wprowadź ujemne zwichrzenie aerodynamiczne końcówki (skręcenie o -2°…-3°) lub zmniejsz zbieżność skrzydła.")
+            f"Maksimum lokalnego współczynnika obciążenia Cz,loc/Cz = {max_cz1:.2f} przypada na η = {eta_txt(stall_eta)}, "
+            f"a lotki zaczynają się w η = {eta_txt(eta_aileron)}. "
+            + ("Przeciągnięcie zaczyna się przed lotkami, więc sterowność poprzeczna zostaje zachowana." if stall_safe else
+               "Przeciągnięcie rozpocznie się w strefie lotek — grozi utratą sterowności poprzecznej i wejściem w korkociąg. "
+               "Wprowadź zwichrzenie końcówki (skręcenie o −2°…−3°), zwiększ λ (skrzydło mniej zbieżne) "
+               "albo dodaj przerywacze na krawędzi natarcia przy kadłubie.")
         )
     })
 
@@ -459,7 +468,8 @@ def perform_engineering_audit(result: dict) -> dict:
             "category": "Dynamika lotu i pilotaż (Flying Qualities)",
             "title": "Sterowność podłużna CAP i tłumienie holendrowania (Handout 11)",
             "value": f"CAP = {cap_val:.3f} rad/(s²·g) (Level {cap_lvl}), Dutch Roll: {'Zgodny z CS-23' if dr_passed else 'Niewystarczające tłumienie'}",
-            "required": "Level 1/2 wg MIL-STD-1797 (0.038–3.6 rad/(s²·g)) oraz tłumienie oscylacji bocznych -ξ/η ≥ 0.0523",
+            "required": ("Faza B wg MIL-F-8785C/MIL-STD-1797 (wykład 11): CAP 0,085–3,6 rad/(s²·g) na poziom 1, "
+                         "0,038–10 na poziom 2; holendrowanie −ξ/η ≥ 0,0523 (JAR/CS-23)"),
             "passed": fq_passed,
             "severity": "ok" if fq_passed else "warning",
             "didactic_simple": (
@@ -513,20 +523,61 @@ def generate_defense_questions(result: dict, metrics: dict) -> list:
     wy_max = round(float(perf.get("climb", {}).get("wy_max_ms", 5.0) or 5.0), 1)
     sm_aft = round(float(balance.get("stability", {}).get("static_margin_aft_pct", 5.0)), 1)
     vs0 = round(float(perf.get("speeds", {}).get("vs_lnd_kmh", 90.0) or 90.0), 1)
+    limit_by, governing = dp.get("limit_by"), dp.get("governing")
+    powered = p.get("engine_type", "prop") != "none" and (dp.get("power_kw") or dp.get("thrust_kn"))
+    comma = lambda v: f"{v:.2f}".replace(".", ",")  # noqa: E731
+    drive = f"mocy P = {power_kw} kW" if dp.get("power_kw") else f"ciągu T = {thrust_kn} kN"
+    # Początek przeciągnięcia wg Schrenka a wewnętrzna krawędź lotki (BIPOL: η_oderwania < η_lotki).
+    stall_eta = float(metrics.get("stall_eta_span", 0.5))
+    partition = result.get("geometry", {}).get("control_surfaces", {}).get("trailing_edge_partition", {})
+    eta_aileron = (1.0 - (partition.get("tip_clearance_pct", 0.0) + partition.get("aileron_span_pct", 0.0)) / 100.0
+                   if partition.get("aileron_span_pct") else None)
+    if eta_aileron is None:
+        stall_verdict = "Porównaj to miejsce z wewnętrzną krawędzią lotki na rysunku."
+    elif stall_eta < eta_aileron:
+        stall_verdict = (f"Lotki zaczynają się w η ≈ {comma(eta_aileron)}, więc oderwanie zaczyna się przed nimi i na początku "
+                         "przeciągnięcia sterowanie poprzeczne pozostaje skuteczne.")
+    else:
+        stall_verdict = (f"Lotki zaczynają się w η ≈ {comma(eta_aileron)}, a oderwanie zaczyna się już na nich — "
+                         "przy przeciągnięciu samolot może gwałtownie przechylić się i stracić sterowność poprzeczną.")
 
     questions = [
         {
             "id": "q_matching_chart",
             "topic": "Studium Wykonalności (P2)",
-            "question": f"Dlaczego punkt projektowy Twojego samolotu wybrano na poziomie W/S = {ws_val} N/m² i mocy P = {power_kw} kW?",
+            "question": f"Dlaczego obciążenie powierzchni Twojego szybowca wynosi W/S = {ws_val} N/m²?",
             "expected_answer": (
-                f"Punkt projektowy leży w obszarze dopuszczalnym ograniczonym prędkością przeciągnięcia VS0 = {vs0} km/h "
-                f"(pionowa granica W/S) oraz wymaganiami startu na 15 m i wznoszenia. Zwiększenie W/S zmniejszyłoby masę skrzydła, "
-                f"ale uniemożliwiłoby spełnienie warunku lądowania bez zaawansowanej mechanizacji."
+                f"Bez napędu W/S ogranicza prędkość minimalna (V_S0 = {vs0} km/h) i wymagana prędkość krążenia w kominie. "
+                "Większe W/S przesuwa biegunową prędkości ku większym prędkościom przy tej samej doskonałości — szybszy "
+                "przelot między kominami — ale zwiększa promień krążenia i opadanie; dlatego szybowce wyczynowe zabierają "
+                "zrzucany balast wodny."
+            ),
+            "faculty_tip": "Prowadzący sprawdza, czy rozumiesz, jak W/S przesuwa biegunową prędkości szybowca."
+        } if not powered else {
+            "id": "q_matching_chart",
+            "topic": "Studium Wykonalności (P2)",
+            "question": f"Dlaczego punkt projektowy Twojego samolotu wybrano na poziomie W/S = {ws_val} N/m² i {drive}?",
+            "expected_answer": (
+                f"Największe dopuszczalne W/S wyznacza ograniczenie: {limit_by or 'prędkość minimalna'} (dla V_S0 = {vs0} km/h "
+                f"pionowa granica na wykresie). Przy tym W/S wymagany {'stosunek mocy' if dp.get('power_kw') else 'ciąg'} "
+                f"wynika z ograniczenia {governing or 'najwyższej krzywej wymagań'}; punkt leży w obszarze dopuszczalnym, "
+                "najbliżej najmniejszego napędu. Większe W/S dałoby mniejsze i lżejsze skrzydło, ale nie spełniłoby warunku "
+                "prędkości minimalnej (lądowania) bez mocniejszej mechanizacji."
             ),
             "faculty_tip": "Prowadzący sprawdza, czy rozumiesz fizyczny sens krzywych na wykresie dopasowania (Matching Chart)."
         },
         {
+            "id": "q_climb_speed",
+            "topic": "Osiągi szybowca (P5)",
+            "question": "Czym różni się prędkość najmniejszego opadania od prędkości największej doskonałości Twojego szybowca?",
+            "expected_answer": (
+                "Największa doskonałość K_max (najdłuższy lot ślizgowy) występuje przy C_z = √(π·A·e·C_x0), "
+                "a najmniejsze opadanie przy największej funkcji energetycznej C_z^1,5/C_x, czyli C_z = √(3·π·A·e·C_x0). "
+                "Prędkość najmniejszego opadania jest więc mniejsza, ok. 0,76 prędkości największej doskonałości: "
+                "pierwszą stosuje się przy krążeniu w kominie, drugą (z poprawką na wiatr i noszenia) w przelocie."
+            ),
+            "faculty_tip": "Prowadzący sprawdza, czy łączysz biegunową prędkości z funkcją energetyczną profilu i płata."
+        } if not powered else {
             "id": "q_climb_speed",
             "topic": "Osiągi i biegunowa wznoszenia (P5)",
             "question": f"Przy jakiej prędkości Twój samolot osiąga maksymalne wznoszenie wy,max = {wy_max} m/s i czym różni się Vx od Vy?",
@@ -544,15 +595,19 @@ def generate_defense_questions(result: dict, metrics: dict) -> list:
                 "Gdy środek ciężkości przesunie się za punkt neutralny xN (Kn < 0), samolot stanie się statycznie niestabilny: "
                 "każde zaburzenie kąta natarcia wywoła moment pochylający pogłębiający to zaburzenie, co uniemożliwi pilotowanie bez układu FBW."
             ),
-            "faculty_tip": "Wymóg regulaminu: Kn ≥ 5% ŚDA dla skrajnego tylnego wyważenia."
+            "faculty_tip": ("Program wymaga Kn ≥ 5% ŚDA przy tylnym ŚC (praktyka projektowa); materiał BIPOL_3 "
+                            "wymaga ŚC w locie w zakresie 25–35% ŚDA.")
         },
         {
             "id": "q_stall_origin",
-            "topic": "Aerodynamika skrzydła wg Schrenka (P4)",
-            "question": f"W którym miejscu rozpiętości rozpoczyna się przeciągnięcie na Twoim skrzydle (η = {metrics.get('stall_eta_span', 0.5):.2f}) i dlaczego?",
+            "topic": "Aerodynamika skrzydła wg Schrenka (P3)",
+            "question": f"W którym miejscu rozpiętości rozpoczyna się przeciągnięcie na Twoim skrzydle (η = {comma(stall_eta)}) i dlaczego?",
             "expected_answer": (
-                f"Rozkład Schrenka wyznacza punkt krytyczny tam, gdzie stosunek c_Schrenk(y)/c_geom(y) osiąga maksimum. "
-                "Dla skrzydła o umiarkowanej zbieżności maksimum wypada w części przykadłubowej, co chroni lotki przed wczesnym oderwaniem strug."
+                "Przeciągnięcie zaczyna się tam, gdzie lokalne c_z/C_z z rozkładu Schrenka (średnia rozkładu cięciw "
+                f"i eliptycznego) jest największe — u Ciebie w {stall_eta:.0%} półrozpiętości. Płat prostokątny przeciąga się "
+                "przy kadłubie, a im mniejsza zbieżność λ, tym dalej ku końcówce leży to maksimum. "
+                f"{stall_verdict} Miejsce oderwania przesuwa się do kadłuba zwichrzeniem geometrycznym lub aerodynamicznym, "
+                "większym λ (skrzydłem mniej zbieżnym) albo przerywaczami na krawędzi natarcia przy kadłubie."
             ),
             "faculty_tip": "Prowadzący sprawdza, czy student wie, jak zbieżność i zwichrzenie wpływają na bezpieczeństwo lotu."
         },

@@ -183,7 +183,11 @@ def calculate_all_bipol_projects(mass_res: dict, sizing_res: dict, geom_res: dic
             {"name": "Clark Y", "cx_min": 0.0080, "cx_cz_proj": 0.0092, "cz_max": 1.45, "k_max": 65, "stall": "Płaska dolna powierzchnia, łatwa budowa", "recommended": False}
         ]
         selected_airfoil_name = "NACA 23012"
-    
+    # Profil wybrany przez autora (pole w karcie P3) zastępuje roboczego kandydata.
+    chosen_airfoil = " ".join(str(params.get("airfoil") or "").split())[:80]
+    if chosen_airfoil:
+        selected_airfoil_name = chosen_airfoil
+
     for candidate in airfoil_candidates:
         for key in ('cx_min', 'cx_cz_proj', 'cz_max', 'k_max'):
             candidate[key] = None
@@ -338,17 +342,16 @@ def calculate_all_bipol_projects(mass_res: dict, sizing_res: dict, geom_res: dic
     wing_alpha_table = [{"alpha_deg": r["alpha_p_deg"], "cz": r["cz_inf"], "cx": r["cx_p_prime"],
                          "cm_le": round(p2w["cm_sa_profile"] - p2w["x_sa_bar"] * r["cz_inf"], 4)}
                         for r in paturski_res["p3_aircraft_aero"]["table_2_2_complete"]]
-    from calculations.airfoils import generate_airfoil_200mm, generate_airfoil_svg
-    af_chosen = selected_airfoil_name
-    if params.get("aircraft_type") in ("glider", "motoglider"):
-        af_chosen = "Wortmann FX 61-163"
-    if params.get("generate_airfoil_200mm") or params.get("include_airfoil_200mm"):
-        af_table, af_note = generate_airfoil_200mm(af_chosen, tc_ratio=geom_res["wing"].get("tc_ratio", 0.12))
-        af_svg = generate_airfoil_svg(af_table)
-    else:
-        af_table = []
-        af_svg = ""
-        af_note = "Brak zweryfikowanych rzędnych wybranego profilu. Wczytaj je z dokumentacji profilu; tabeli innego profilu nie używa się do rysunku."
+    from calculations.airfoils import airfoil_200mm
+    af_table, af_svg = [], ""
+    af_note = (f"Profil {selected_airfoil_name} o cięciwie 200 mm: wyznacz rzędne poniżej (profile NACA 4- i 5-cyfrowe "
+               "program liczy analitycznie) albo wklej rzędne wybranego profilu z katalogu.")
+    # Profile NACA liczy się analitycznie (dokładna geometria, nie pomiar); dla innych rzędne wkleja autor.
+    try:
+        profile = airfoil_200mm(selected_airfoil_name, str(params.get("airfoil_coordinates") or ""))
+        af_table, af_svg, af_note = profile["table"], profile["svg"], profile["note"]
+    except ValueError as error:
+        af_note = str(error)
 
     track_g = float(geom_res.get("gear", {}).get("track", 0.24 * b))
     wheelbase_g = max(0.8, bal_res.get("arms", {}).get("gear", 0.45 * l_f) - 0.12 * l_f)

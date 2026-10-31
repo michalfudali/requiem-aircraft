@@ -124,3 +124,15 @@
 [data-quiz-state="review"] > summary .quiz-state { color:#c47a16; }
 .quiz-answer { padding:0 0 12px 1.9em; }
 .quiz-answer > p:first-child { margin-top:0; }
+
+/* Profil 200 mm (P3) */
+.airfoil-controls { display:flex; gap:8px; align-items:end; flex-wrap:wrap; margin:6px 0; }
+.airfoil-controls .studio-field { flex:1 1 160px; }
+.airfoil-paste { margin:6px 0; }
+.airfoil-paste summary { cursor:pointer; font-size:0.84rem; }
+.airfoil-paste textarea { width:100%; font-family:ui-monospace, Consolas, monospace; font-size:12px; }
+#p3_airfoil_svg_container svg { width:100%; height:auto; border:1px solid #dce6e8; border-radius:6px; }
+#p3_airfoil_desc.airfoil-error { color:#9a3412; }
+
+.studio-deadline { display:flex; flex-wrap:wrap; gap:6px 10px; align-items:baseline; margin:0 0 14px; padding:10px 14px; border:1px solid #cfe5df; border-radius:8px; background:#f1faf6; color:#16313c; }
+.studio-deadline span { color:#3f5f68; }

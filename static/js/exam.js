@@ -236,6 +236,13 @@
     $('examFirst').addEventListener('input', () => syncCount('examFirst', 'examX'));
     $('examLast').addEventListener('input', () => syncCount('examLast', 'examY'));
     $('examForm').addEventListener('submit', solve);
+    // Ćwiczenie na innym wariancie: typowe długości imion i nazwisk dają wszystkie cztery kategorie.
+    $('examRandom').addEventListener('click', () => {
+      const pick = (lo, hi) => lo + Math.floor(Math.random() * (hi - lo + 1));
+      $('examFirst').value = ''; $('examLast').value = '';
+      $('examX').value = pick(3, 11); $('examY').value = pick(4, 14);
+      solve();
+    });
     $('examCheck').addEventListener('submit', checkAnswers);
     $('tab-exam').addEventListener('click', event => {
       const mode = event.target.closest('[data-exam-expand]')?.dataset.examExpand;

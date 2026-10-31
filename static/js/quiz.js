@@ -87,6 +87,32 @@
     $('quizReveal').disabled = true;
   }
 
+  // Arkusz do nauki offline: pytania z wybranych wykładów, odpowiedzi wzorcowe od nowej strony.
+  function printSheet() {
+    const chosen = new Set([...document.querySelectorAll('#quizLectures input:checked')].map(i => i.value));
+    const titles = Object.fromEntries([...document.querySelectorAll('#tab-quiz .quiz-lecture')].map(el =>
+      [el.dataset.quizLecture, el.querySelector('summary strong').textContent]));
+    const questions = bank().filter(q => chosen.has(q.lecture));
+    if (!questions.length) return;
+    const esc = BipolStudio.escape;
+    const section = withAnswers => [...chosen].filter(key => titles[key]).map(key => {
+      const own = questions.filter(q => q.lecture === key);
+      return `<h2>${esc(titles[key])}</h2><ol>${own.map(q => `<li><p><strong>${esc(q.question)}</strong></p>`
+        + (withAnswers ? `<p>${esc(q.answer)}</p><p class="src">${esc(q.source)}</p>` : '<div class="space"></div>') + '</li>').join('')}</ol>`;
+    }).join('');
+    const win = window.open('', '_blank');
+    if (!win) return;
+    win.document.write('<!doctype html><html lang="pl"><head><meta charset="utf-8"><title>BIPOL I — pytania do zejściówek</title>'
+      + '<style>@page{size:A4;margin:16mm}body{font:11pt/1.4 sans-serif;color:#111}h1{font-size:15pt}h2{font-size:12pt;margin:14pt 0 4pt}'
+      + 'li{margin:0 0 6pt;break-inside:avoid}.space{height:22mm;border-bottom:1px dotted #999}.src{color:#555;font-size:9pt}'
+      + '.answers{break-before:page}</style></head><body>'
+      + `<h1>BIPOL I — pytania do zejściówek (${questions.length})</h1>${section(false)}`
+      + `<div class="answers"><h1>Odpowiedzi wzorcowe</h1>${section(true)}</div></body></html>`);
+    win.document.close();
+    win.focus();
+    win.print();
+  }
+
   document.addEventListener('DOMContentLoaded', () => {
     const panel = $('tab-quiz');
     if (!panel) return;
@@ -108,6 +134,7 @@
       if (button) grade(button.closest('[data-quiz-id]')?.dataset.quizId, button.dataset.quizGrade);
     });
     $('quizDraw').addEventListener('click', draw);
+    $('quizPrint').addEventListener('click', printSheet);
     $('quizReveal').addEventListener('click', reveal);
     $('quizStop').addEventListener('click', () => { stop(); $('quizSession').hidden = true; });
     paint();

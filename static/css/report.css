@@ -156,3 +156,9 @@ figure.flow svg { max-height: 200mm; }
 figure svg.report-chart { max-height: 92mm; }
 .parameter-project { margin-top: 8mm; border-bottom: 1px solid #aaa; padding-bottom: 1mm; }
 @media print { .calc .formula { overflow: visible; } }
+
+/* Profil 200 mm: osobna strona A4 poziomo, rysunek w skali 1:1 */
+@page airfoil { size: A4 landscape; }
+figure.airfoil-1to1 { page: airfoil; break-before: page; }
+figure.airfoil-1to1 svg { width: 220mm; max-width: none; max-height: none; }
+@media screen { figure.airfoil-1to1 svg { width: 100%; max-width: 220mm; } }

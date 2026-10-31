@@ -47,3 +47,17 @@ def test_forward_sweep_reduces_divergence():
     res_fwd = estimate_aeroelastics(geom_fwd, aero, mass, envelope)
 
     assert res_fwd["divergence_speed_kmh"] < res_straight["divergence_speed_kmh"]
+
+
+def test_straight_wing_divergence_matches_classical_strip_theory():
+    """q_D = π²·GJ/(4·e·c·a·l²) dla prostego skrzydła wspornikowego (wcześniej w mianowniku było 8)."""
+    import math
+    from calculations.aeroelastics import estimate_aeroelastics
+    geom = {'wing': {'S': 12.0, 'b': 10.0, 'AR': 8.33, 'mac': 1.2, 'tc_ratio': 0.12, 'sweep_deg': 0.0}}
+    res = estimate_aeroelastics(geom, {'a_w_rad': 5.0}, {'m0': 1000.0, 'breakdown': {'m_wing': 150.0}},
+                                {'speeds': {'v_d_kmh': 300.0}}, {'structure_material': 'metal'})
+    mac, tc, t_skin = 1.2, 0.12, 0.0012
+    area, perimeter = 0.6 * mac * tc * mac, 2 * (0.6 * mac + tc * mac)
+    gj = 27e9 * 4 * area ** 2 * t_skin / perimeter
+    q_d = math.pi ** 2 * gj / (4 * 0.15 * mac * mac * 5.0 * 5.0 ** 2)
+    assert res['divergence_speed_kmh'] == pytest.approx(math.sqrt(2 * q_d / 1.225) * 3.6, rel=1e-3)

@@ -257,19 +257,24 @@ def evaluate_flying_qualities(params: dict, geom: dict, aero: dict, mass: dict, 
     # 10. Stateczność spiralna (Spiral Mode) (Handout 11_2 slajd 3-4)
     # -------------------------------------------------------------
     # Pochodna efektu wzniosu C_l_beta (efekt wzniosu skrzydła + skosu + usterzenia pionowego)
-    # Typowo: C_l_beta ~= -0.0002 * Gamma_deg - 0.05 * Cz * sin(sweep) - (S_v/S) * a_v * (z_v / b)
+    # Wznios z teorii pasowej dla płata trapezowego (Etkin, Reid): C_lβ,Γ = −(a·Γ/6)·(1 + 2λ)/(1 + λ).
+    # Położenie płata działa jak dodatkowy wznios: górnopłat ok. +1,5°, dolnopłat ok. −1,5° (Raymer).
     z_v_arm = 0.25 * (geom.get("vertical_tail", {}).get("b_v", 1.5))
-    c_l_beta = - math.radians(dihedral_deg) * 0.15 - 0.05 * cz_cruise * math.sin(math.radians(sweep_deg)) - (S_v / S) * a_v * (z_v_arm / b)
+    wing_position_deg = {"high": 1.5, "braced_high": 1.5, "low": -1.5}.get(params.get("wing_config", "low"), 0.0)
+    gamma_eff = math.radians(dihedral_deg + wing_position_deg)
+    c_l_beta = (- a_w * gamma_eff / 6.0 * (1.0 + 2.0 * taper) / (1.0 + taper)
+                - 0.05 * cz_cruise * math.sin(math.radians(sweep_deg)) - (S_v / S) * a_v * (z_v_arm / b))
     
     # C_l_r (moment przechylający od prędkości odchylania)
     c_l_r = cz_cruise / 4.0
 
     # Wartość własna ruchu spiralnego (aproksymacja klasyczna):
-    # lambda_s ~= (g / V) * (C_l_beta * C_n_r - C_l_r * C_n_beta) / (C_l_beta * C_n_p - C_l_p * C_n_beta)
-    # mianownik zdominowany przez -C_lp * C_n_beta (> 0)
+    # lambda_s ~= −(g / V) * (C_l_beta * C_n_r − C_l_r * C_n_beta) / (C_l_beta * C_n_p − C_l_p * C_n_beta)
+    # (Cook, Nelson): spirala stateczna, gdy C_lβ·C_nr > C_lr·C_nβ, czyli λ_s < 0.
+    # Mianownik zdominowany przez −C_lp·C_nβ (> 0); C_np pominięto.
     denom = max(1e-4, - c_lp * c_n_beta)
     numer = c_l_beta * c_nr - c_l_r * c_n_beta
-    lambda_s = (G0 / v_ms) * (numer / denom)
+    lambda_s = -(G0 / v_ms) * (numer / denom)
 
     # Czas podwojenia (jeśli niestabilny) lub połowienia (jeśli stabilny)
     is_spiral_stable = lambda_s <= 0

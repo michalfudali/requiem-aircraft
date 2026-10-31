@@ -88,6 +88,7 @@ with sync_playwright() as p:
         assert page.locator('#courseworkSchedule [data-schedule-head="friday"]').is_hidden()
         assert 'coursework-next' in page.get_attribute('#courseworkSchedule [data-schedule="p2"]','class')
         assert page.evaluate("localStorage.getItem('bipol_course_group_v1')")=='1'
+        assert page.inner_text('#studioDeadlineText')=='P2 · Studium wykonalności — śr. 04.11 (za 4 dni)',page.inner_text('#studioDeadlineText')
 
         # Zejściówka z wykładu 12: dwa pytania, zegar 15 minut, odpowiedzi wzorcowe i samoocena.
         if width<1100:page.click('#studioMenuToggle')
@@ -105,6 +106,14 @@ with sync_playwright() as p:
         page.locator('#quizItems .quiz-item').first.locator('[data-quiz-grade="known"]').click()
         assert page.inner_text('[data-quiz-progress="w12"]').startswith('1/')
         assert 'Umiesz 1 z' in page.inner_text('#quizSummary')
+        if width>1100:
+            # Arkusz do druku: pytania wykładu 12, odpowiedzi od nowej strony.
+            page.evaluate("window.__open = window.open; window.open = () => { const w = window.__open('about:blank', '_blank'); w.print = () => {}; return w; }")
+            with page.context.expect_page() as popup:
+                page.click('#quizPrint')
+            sheet=popup.value.content()
+            assert sheet.count('<li>')==16 and 'Odpowiedzi wzorcowe' in sheet and 'break-before:page' in sheet
+            popup.value.close()
 
         # Po przeładowaniu zostają same liczby liter, bez imienia i nazwiska; zostaje też postęp zejściówek.
         page.reload()
