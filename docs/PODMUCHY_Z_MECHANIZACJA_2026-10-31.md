@@ -4,6 +4,8 @@ Praca w osobnym worktree `bipol-flaps-20261031`, na gałęzi
 `fix/flap-gust-loads-20261031`. Początek: `ed62a3e`; dołączono późniejszy
 `master` z `6698605`, zachowując zmiany drugiego agenta dotyczące profili,
 audytu i pomocy dydaktycznych.
+Następnie dołączono `f0b4f29` z równoległą poprawką modelu flatteru,
+po czym powtórzono pełne testy Python i nowy przebieg Chrome.
 
 ## Wymagania i model
 
@@ -92,3 +94,15 @@ szkolny, usunięcie klap, samą klapę Kruegera, przywrócenie klap i samolot
 transportowy. Sprawdza rzeczywiste kontrolki, geometrię, podpisy, oba
 panele, brak starych wyników, odświeżenie, szerokość 390 px i trzy raporty
 HTML/PDF otwierane offline. Artefakty: `work/flap-gust-20261031/`.
+Sprawdzone PDF mają 10, 8 i 11 stron A4; wszystkie strony zawierają
+tekst. W przeglądarce nie wystąpiły błędy JavaScript ani składu wzorów.
+
+Końcowy pełny przebieg po dołączeniu zmian flatteru: **1350 testów Python**,
+292,24 s, bez błędów i pominięć. Przeszło **36 testów JavaScript**.
+Łącznie **26 scenariuszy Chrome**: 7 nowych przypadków mechanizacji,
+5 regresji obwiedni, 1 przebieg karty profilu drugiego agenta oraz
+13 pełnych scenariuszy oficjalnych tematów — po jednym z każdej grupy,
+z kreatorem, modułami projektu, edycją, zapisem, odświeżeniem, eksportami
+HTML/PDF/DOCX/JSON/CSV i widokami 320/390 px. Przebiegi kategorii
+zapisano w `work/design-integrity-20261030/`, zgodnie z nazwą istniejącego
+testu. Nie wystąpiły błędy HTTP ani kontrolowane niezgodności fizyczne.
