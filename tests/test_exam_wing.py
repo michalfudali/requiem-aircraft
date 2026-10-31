@@ -129,3 +129,10 @@ def test_panel_is_reachable_from_navigation():
     html = app.test_client().get('/').get_data(as_text=True)
     assert 'id="tab-exam"' in html and 'data-studio-nav="tab-exam"' in html and 'data-target="tab-exam"' in html
     assert '/static/js/exam.js' in html
+
+
+def test_gust_mass_ratio_uses_mean_geometric_chord():
+    """JAR-23.341 / 14 CFR 23.341: μ_g = 2(W/S)/(ρ·C·a·g), C — średnia cięciwa geometryczna S/b."""
+    e = entries(solve_exam1(6, 7))
+    expected = 2 * e['WS']['value'] / (1.225 * (e['S']['value'] / e['b']['value']) * e['a']['value'] * 9.81)
+    assert e['mu']['value'] == pytest.approx(expected) and 'c_g' in e['mu']['tex']
