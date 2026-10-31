@@ -323,26 +323,24 @@ def calculate():
     return jsonify(run_bipol_project(data))
 
 
-@app.route('/api/airfoil/200mm', methods=['GET'])
+@app.route('/api/airfoil/200mm', methods=['GET', 'POST'])
 def get_airfoil_200mm():
-    """Generuje rzędne profilu skrzydła przeskalowanego do cięciwy c = 200 mm oraz wektorowy rysunek SVG."""
-    from calculations.airfoils import generate_airfoil_200mm, generate_airfoil_svg
-    airfoil_name = (request.args.get('airfoil') or 'NACA 23012').strip()
-    try:
-        tc = float(request.args.get('tc', 0.12))
-        tc = max(0.05, min(0.35, tc))
-    except (ValueError, TypeError):
-        tc = 0.12
-    coords, note = generate_airfoil_200mm(airfoil_name, tc_ratio=tc)
-    svg = generate_airfoil_svg(coords)
-    return jsonify({
-        'status': 'ok',
-        'airfoil': airfoil_name,
-        'tc': tc,
-        'table': coords,
-        'svg': svg,
-        'note': note
-    })
+    """Rzędne profilu o cięciwie 200 mm i rysunek SVG w skali 1:1.
+
+    GET ?airfoil=NACA 23012 — profil NACA 4- lub 5-cyfrowy liczony analitycznie;
+    POST {"airfoil": nazwa, "coordinates": treść pliku .dat} — rzędne wklejone z katalogu.
+    """
+    from calculations.airfoils import airfoil_200mm
+    if request.method == 'POST':
+        data = request.get_json(force=True)
+        if not isinstance(data, dict):
+            raise ValueError('Podaj nazwę profilu i jego rzędne.')
+        name, coordinates = str(data.get('airfoil') or ''), data.get('coordinates') or ''
+    else:
+        name, coordinates = request.args.get('airfoil') or '', ''
+    profile = airfoil_200mm(name.strip(), coordinates)
+    return jsonify(status='ok', airfoil=profile['name'], **{k: profile[k] for k in (
+        'kind', 'chord_mm', 'table', 'upper', 'lower', 'svg', 'note', 'thickness_pct', 'thickness_x_pct')})
 
 
 @app.post('/api/coursework/grade')

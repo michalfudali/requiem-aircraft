@@ -120,3 +120,26 @@ def test_engineering_audit_flying_qualities_and_defense_question():
 
     questions_ids = {q['id'] for q in audit['defense_questions']}
     assert 'q_flying_qualities' in questions_ids
+
+
+def test_defense_questions_follow_the_actual_design():
+    """Pytania na obronę: miejsce przeciągnięcia względem lotek i warianty dla szybowca bez napędu."""
+    from calculations import run_bipol_project
+    from calculations.presets import AIRCRAFT_PRESETS
+    trainer = {q['id']: q for q in run_bipol_project(dict(AIRCRAFT_PRESETS['ga_trainer']))['engineering_audit']['defense_questions']}
+    stall = trainer['q_stall_origin']['expected_answer']
+    assert 'Lotki zaczynają się w η ≈ 0,71' in stall and 'przed nimi' in stall
+    assert 'wznoszenie' in trainer['q_matching_chart']['expected_answer']  # rzeczywiste ograniczenie aktywne
+    glider = {q['id']: q for q in run_bipol_project(dict(AIRCRAFT_PRESETS['glider_pw5']))['engineering_audit']['defense_questions']}
+    assert 'szybowca' in glider['q_matching_chart']['question'] and 'kN' not in glider['q_matching_chart']['question']
+    assert 'najmniejszego opadania' in glider['q_climb_speed']['question']
+
+
+def test_stall_origin_is_compared_with_actual_aileron_edge():
+    from calculations import run_bipol_project
+    from calculations.presets import AIRCRAFT_PRESETS
+    audit = run_bipol_project(dict(AIRCRAFT_PRESETS['vlj_jet']))['engineering_audit']
+    check = next(c for c in audit['checks'] if c['id'] == 'stall_progression')
+    eta_aileron = audit['metrics']['aileron_inner_eta']
+    assert 0.6 < eta_aileron < 0.8 and f"{eta_aileron:.2f}".replace('.', ',') in check['required']
+    assert check['passed'] == (audit['metrics']['stall_eta_span'] < eta_aileron)

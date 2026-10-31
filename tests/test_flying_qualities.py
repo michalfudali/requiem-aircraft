@@ -54,3 +54,17 @@ def test_jet_transport_flying_qualities():
     )
     assert fq['overall_summary']['mil_std_overall_level'] in (1, 2, 3)
     assert fq['flight_condition']['mach'] > 0.3
+
+
+def test_spiral_mode_becomes_stable_with_dihedral():
+    """Spirala stateczna, gdy C_lβ·C_nr > C_lr·C_nβ (Nelson, Cook): więcej wzniosu → mniejsze λ_s.
+
+    Wcześniej znak λ_s był odwrócony, a efekt wzniosu (−0,15·Γ) ok. 8 razy za mały.
+    """
+    r = run_bipol_project(AIRCRAFT_PRESETS['ga_trainer'])
+    spiral = lambda dihedral: evaluate_flying_qualities(  # noqa: E731
+        dict(r['params'], dihedral_deg=dihedral), r['geometry'], r['aerodynamics'], r['mass'], r['balance'], r['performance']
+    )['spiral_mode']
+    flat, moderate, steep = spiral(0.0), spiral(4.0), spiral(12.0)
+    assert flat['lambda_s'] > moderate['lambda_s'] > steep['lambda_s']
+    assert not flat['is_stable'] and steep['is_stable']

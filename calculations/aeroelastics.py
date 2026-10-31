@@ -63,7 +63,9 @@ def estimate_aeroelastics(geom: dict, aero: dict, mass: dict, envelope: dict, pa
 
     # 1. CIŚNIENIE DYNAMICZNE I PRĘDKOŚĆ ROZBIEŻNOŚCI SKRĘTNEJ (DIVERGENCE)
     l_semi = b / 2.0
-    q_div_straight = (math.pi ** 2 * GJ) / (8.0 * e_arm * mac * a_w_rad * (l_semi ** 2))
+    # Skrzydło wspornikowe, teoria pasowa: GJ·θ'' + q·c·e·a·θ = −q·c·e·a·α₀; rozbieżność przy λ·l = π/2,
+    # λ² = q·c·e·a/GJ, czyli q_D = π²·GJ / (4·e·c·a·l²) (Bisplinghoff, Ashley, Halfman; Hodges, Pierce).
+    q_div_straight = (math.pi ** 2 * GJ) / (4.0 * e_arm * mac * a_w_rad * (l_semi ** 2))
     q_div_straight = max(100.0, q_div_straight)
 
     # Wpływ skosu (Diederich & Foss, NACA TN 2761):

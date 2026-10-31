@@ -239,6 +239,17 @@
       if (next === null && latest >= 0) next = row;
     });
     next?.classList.add('coursework-next');
+    // Ten sam termin na stronie przeglądu, żeby był widoczny od razu po otwarciu projektu.
+    const banner = $('studioDeadline');
+    if (banner) {
+      banner.hidden = !next;
+      if (next) {
+        const date = iso => `${iso.slice(8, 10)}.${iso.slice(5, 7)}`;
+        const when = day ? `${day === 'wednesday' ? 'śr.' : 'pt.'} ${date(next.dataset[day])}`
+          : `śr. ${date(next.dataset.wednesday)} / pt. ${date(next.dataset.friday)}`;
+        $('studioDeadlineText').textContent = `${next.querySelector('th').textContent} — ${when} (${next.querySelector('[data-schedule-state]').textContent})`;
+      }
+    }
     document.querySelectorAll('#courseworkSchedule [data-schedule-day], #courseworkSchedule [data-schedule-head]').forEach(cell => {
       cell.hidden = Boolean(day) && (cell.dataset.scheduleDay || cell.dataset.scheduleHead) !== day;
     });
