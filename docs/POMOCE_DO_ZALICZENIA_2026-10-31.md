@@ -124,7 +124,12 @@ Prędkość rozbieżności skrętnej liczy się z klasycznego wyniku dla prosteg
 wspornikowego, q_D = π²·GJ/(4·e·c·a·l²); poprzednio w mianowniku było 8, więc V_D,div była
 o √2 za mała (a z nią prędkość rewersu lotek, przyjmowana jako 0,82 V_div).
 
-Do decyzji: model flatteru (`v_flutter = 0,88·b·ω_α·√μ·…` z częstościami skalowanymi umownie,
-np. GJ/50 000) daje dla presetów wartości rzędu 10 000–40 000 km/h, czyli bez znaczenia
-fizycznego. BIPOL I nie wymaga analizy flatteru; rzetelne oszacowanie potrzebuje częstości
-giętnej i skrętnej skrzydła oraz położeń osi sprężystej i środka masy przekroju.
+Flatter: poprzedni wzór (`v_flutter = 0,88·b·ω_α·√μ·…` z częstościami skalowanymi umownie,
+np. GJ/50 000) dawał 10 000–40 000 km/h. Teraz liczy się przekrój typowy o dwóch stopniach
+swobody z aerodynamiką quasi-stacjonarną (Hodges, Pierce, rozdz. 5): częstość giętna z EI
+i skrętna z GJ kesonu belki wspornikowej, oś sprężysta 40% cięciwy, środek masy 45%, r_α = 0,5;
+flatter przy zbiegnięciu częstości, wyznaczony analitycznie (wyróżnik kwadratowy względem siły
+nośnej). Presety: częstości giętne 1,4–5,4 Hz, skrętne 16–64 Hz, V_F = 2,0–3,9 V_D. To nadal
+szacunek wstępny; CS-23.629 wymaga analizy drgań lub prób. Testy porównują wynik z niezależnym
+przeszukiwaniem wartości własnych i sprawdzają, że przesunięcie środka masy przekroju do przodu
+podnosi V_F (zasada wyważenia masowego).
