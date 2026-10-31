@@ -1703,7 +1703,7 @@ function complianceFixButton(check) {
   const param = getComplianceFixParam(check);
   if (param === 'refine') {
     return '<button type="button" class="compliance-fix-btn" data-studio-target="tab-coursework" data-reveal="courseworkIterate"'
-      + ' title="Pierwszy bilans liczy paliwo przy K = 0,94·Kmax. Bilans uściślony bierze biegunową z P4 i doskonałość przy wymaganej prędkości.">'
+      + ' title="Czysta merytoryka: bilans misji bierze biegunową z P4 i doskonałość przy zadanej prędkości TAS i wysokości.">'
       + 'Bilans uściślony P2←P4 →</button>';
   }
   return param ? `<button type="button" class="compliance-fix-btn" data-focus-param="${escapeHtml(param)}">Popraw →</button>` : '';

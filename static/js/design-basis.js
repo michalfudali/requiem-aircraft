@@ -106,7 +106,7 @@
   function restore(params) {
     const p=infer(params);window.userLockedParams=new Set(p.locked_params||[]);
     set('','operating_surface',p.operating_surface||'land');
-    set('','design_iteration_mode',p.design_iteration_mode||'preliminary');
+    set('','design_iteration_mode','coupled');
     set('','water_displacement_volume_m3',p.water_displacement_volume_m3||0);
     for(const key of ['cargo_bay_length_m','cargo_bay_width_m','cargo_bay_height_m'])set('',key,p[key]||0);
     for (const key of extraKeys) if(key in p)set('',key,p[key]);
