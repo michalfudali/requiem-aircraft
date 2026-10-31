@@ -33,7 +33,7 @@ SOURCES = {
     'ML': 'Z. Paturski, Przewodnik po projektach z Mechaniki Lotu',
     'R': 'D. P. Raymer, Aircraft Design: A Conceptual Approach',
     'D': 'J. Danilecki, Konstruowanie samolotów',
-    'CS23': 'CS-23 Amdt 4 (metoda)', 'CS22': 'CS-22 Amdt 2', 'CS25': 'CS-25',
+    'CS23': 'CS-23 Amdt 4 (metoda)', 'CS22': 'CS-22 Amdt 3', 'CS25': 'CS-25',
 }
 
 
@@ -1978,8 +1978,19 @@ def _p6(s, r):
         chord_key = 'c_g'
     s.calc('mu_g', r'\mu_g', r'\frac{2\,m_0/S}{\rho_0\,\bar c\,a}', rf'\frac{{2\cdot[[m0]]/[[S]]}}{{[[rho0]]\cdot[[{chord_key}]]\cdot[[a_w]]}}', gf['mu_g'], '', 2,
            'Cecha masowa samolotu', SOURCES['D'] + ', wzór (2.14)', check=lambda v: 2 * v.m0 / v.S / (v.rho0 * getattr(v, chord_key) * v.a_w), tolerance=.03)
-    s.calc('K_g', 'K_g', r'\frac{0{,}88\,\mu_g}{5{,}3+\mu_g}', r'\frac{0{,}88\cdot[[mu_g]]}{5{,}3+[[mu_g]]}', gf['k_g'], '', 3, 'Współczynnik łagodzenia podmuchu',
-           SOURCES['D'] + ', wzór (2.13)', check=lambda v: .88 * v.mu_g / (5.3 + v.mu_g), tolerance=.0011)
+    if lim.get('cs22_gust_model') == 'amendment3':
+        s.calc('H_g_ratio', r'H/\bar c_g', r'12{,}17+0{,}191\,\mu_g', r'12{,}17+0{,}191\cdot[[mu_g]]', gf['gust_length_ratio'], '', 4,
+               'Długość podmuchu 1-cos względem cięciwy', 'CS 22.341 Amdt 3', check=lambda v: 12.17 + .191 * v.mu_g)
+        s.calc('H_g', 'H', r'(H/\bar c_g)\,\bar c_g', r'[[H_g_ratio]]\cdot[[c_g]]', gf['gust_length_m'], M, 3,
+               'Długość podmuchu 1-cos', 'CS 22.341 Amdt 3', check=lambda v: v.H_g_ratio * v.c_g)
+        s.calc('mu_g_reduced', r'\mu_g/(H/\bar c_g)', r'\frac{\mu_g}{H/\bar c_g}', r'\frac{[[mu_g]]}{[[H_g_ratio]]}', gf['mu_g']/gf['gust_length_ratio'], '', 5,
+               'Względna cecha masowa w modelu podmuchu', check=lambda v: v.mu_g / v.H_g_ratio)
+        s.calc('K_g', 'K_g', r'\frac{0{,}96\,\mu_g/(H/\bar c_g)}{0{,}475+\mu_g/(H/\bar c_g)}',
+               r'\frac{0{,}96\cdot[[mu_g_reduced]]}{0{,}475+[[mu_g_reduced]]}', gf['k_g'], '', 4,
+               'Współczynnik łagodzenia podmuchu 1-cos', 'CS 22.341 Amdt 3', check=lambda v: .96 * v.mu_g_reduced / (.475 + v.mu_g_reduced))
+    else:
+        s.calc('K_g', 'K_g', r'\frac{0{,}88\,\mu_g}{5{,}3+\mu_g}', r'\frac{0{,}88\cdot[[mu_g]]}{5{,}3+[[mu_g]]}', gf['k_g'], '', 4, 'Współczynnik łagodzenia podmuchu (Pratt)',
+               gf['gust_basis'], check=lambda v: .88 * v.mu_g / (5.3 + v.mu_g), tolerance=.0011)
     sailplane = lim['basis'] == 'CS-22'
     for gust in gf['gusts']:
         label = gust['speed']
@@ -1993,16 +2004,22 @@ def _p6(s, r):
                    dn, '', 3, f'Przyrost przeciążenia od podmuchu przy {label}', 'CS 22.341',
                    check=lambda v, vk=vkey, uk=u: min(v.K_g * v.rho0 * getattr(v, vk) * v.a_w * getattr(v, uk) / (2 * v.WS_0), 1.25 * (getattr(v, vk) / v.V_S) ** 2 - 1),
                    tolerance=.004 + .01 * abs(dn))
+            s.calc('dn_neg_' + label[1], rf'\Delta n_{{-,{label[1]}}}', r'\min\left(\frac{K_g\rho_0Va\,U}{2\,W/S};\;1{,}25\left(\frac{V}{V_{S1}}\right)^2+1\right)',
+                   rf'\min\left(\frac{{[[K_g]]\cdot[[rho0]]\cdot[[{vkey}]]\cdot[[a_w]]\cdot[[{u}]]}}{{2\cdot[[WS_0]]}};\;1{{,}}25\cdot\left(\frac{{[[{vkey}]]}}{{[[V_S]]}}\right)^2+1\right)',
+                   gust['delta_n_neg'], '', 3, f'Ujemny przyrost przeciążenia od podmuchu przy {label}', 'CS 22.341',
+                   check=lambda v, vk=vkey, uk=u: min(v.K_g * v.rho0 * getattr(v, vk) * v.a_w * getattr(v, uk) / (2 * v.WS_0), 1.25 * (getattr(v, vk) / v.V_S) ** 2 + 1),
+                   tolerance=.004 + .01 * abs(gust['delta_n_neg']))
         else:
             s.calc('dn_' + label[1], rf'\Delta n_{label[1]}', r'\frac{K_g\rho_0Va\,U}{2\,W/S}',
                    rf'\frac{{[[K_g]]\cdot[[rho0]]\cdot[[{vkey}]]\cdot[[a_w]]\cdot[[{u}]]}}{{2\cdot[[WS_0]]}}', dn, '', 3,
                    f'Przyrost przeciążenia od podmuchu przy {label}', SOURCES['D'] + ', wzory (2.10)–(2.13)',
                    check=lambda v, vk=vkey, uk=u: v.K_g * v.rho0 * getattr(v, vk) * v.a_w * getattr(v, uk) / (2 * v.WS_0), tolerance=.004 + .01 * abs(dn))
     keys = ['dn_' + g['speed'][1] for g in gf['gusts']]
+    negative_keys = ['dn_neg_' + g['speed'][1] for g in gf['gusts']] if sailplane else keys
     s.calc('n_g_max', r'n_{g,max}', r'1+\max_i\Delta n_i', r'1+\max\left\{' + ';\\;'.join(f'[[{k}]]' for k in keys) + r'\right\}', lim['n_gust_max'], '', 2,
            'Największe przeciążenie od podmuchu', check=lambda v: 1 + max(getattr(v, k) for k in keys), tolerance=.006)
-    s.calc('n_g_min', r'n_{g,min}', r'1-\max_i\Delta n_i', r'1-\max\left\{' + ';\\;'.join(f'[[{k}]]' for k in keys) + r'\right\}', lim['n_gust_min'], '', 2,
-           'Najmniejsze przeciążenie od podmuchu', check=lambda v: 1 - max(getattr(v, k) for k in keys), tolerance=.006)
+    s.calc('n_g_min', r'n_{g,min}', r'1-\max_i\Delta n_{-,i}', r'1-\max\left\{' + ';\\;'.join(f'[[{k}]]' for k in negative_keys) + r'\right\}', lim['n_gust_min'], '', 2,
+           'Najmniejsze przeciążenie od podmuchu', check=lambda v: 1 - max(getattr(v, k) for k in negative_keys), tolerance=.006)
 
     s.section('p6', 'design', 'Obciążenia do wymiarowania', SOURCES['D'] + ', rozdz. 2')
     s.calc('n_dim_p', r'n_{wym,+}', r'\max\left(n_+;\;n_{g,max}\right)', r'\max\left([[n_plus]];\;[[n_g_max]]\right)', lim['n_dimensioning_pos'], '', 2,

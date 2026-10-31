@@ -4,7 +4,7 @@ Samoloty: metoda wg CS-23 Amdt 4 (§23.333–23.345) i Danileckiego „Konstruow
 CS-23 Amdt 5 usunęła te paragrafy (wymagania celu CS 23.2xxx, środki spełnienia w AMC/ASTM),
 dlatego program stosuje je jako metodę dydaktyczną, a nie obowiązujący przepis.
 Dla CS-25 linie podmuchu Pratta są uproszczeniem: CS-25.341 stosuje podmuch dyskretny 1-cos.
-Szybowce i motoszybowce: CS-22 Amdt 2, §22.333–22.345 (BIPOL_5: rozdziały C przepisów).
+Szybowce i motoszybowce: CS-22 Amdt 3, §22.333–22.345; opcjonalnie starszy model Pratta z Amdt 2.
 Wszystkie prędkości obwiedni są prędkościami równoważnymi (EAS), poziom morza.
 """
 import math
@@ -44,11 +44,12 @@ def calculate_vn_envelope(m0: float, geom: dict, aero: dict, perf: dict, params:
     W = m0 * G0
     ws = W / S
 
-    vs_clean_ms = float(perf["speeds"]["vs_clean_kmh"]) / 3.6
-    vs_lnd_ms = float(perf["speeds"].get("vs_lnd_kmh", vs_clean_ms * 3.6 * 0.82)) / 3.6
+    vs_clean_ms = math.sqrt(2 * ws / (RHO0 * float(aero['cz_max_clean'])))
+    vs_lnd_ms = (math.sqrt(2 * ws / (RHO0 * float(aero['cz_max_lnd']))) if aero.get('cz_max_lnd')
+                 else float(perf['speeds'].get('vs_lnd_kmh', vs_clean_ms * 3.6 * .82)) / 3.6)
     # V-n and sea-level stall branches use EAS, whereas mission cruise is TAS.
-    v_cr_ms = float(perf["speeds"]["v_cruise_kmh"]) / 3.6 * math.sqrt(isa_atmosphere(params.get('cruise_altitude_m', 0))['sigma'])
-    v_h_ms = float(perf["speeds"].get("v_max_sl_kmh") or 0.0) / 3.6
+    v_cr_ms = float(params.get('cruise_speed_kmh', perf['speeds']['v_cruise_kmh'])) / 3.6 * math.sqrt(isa_atmosphere(params.get('cruise_altitude_m', 0))['sigma'])
+    v_h_ms = float(perf.get('terms', {}).get('v_max_sl', (perf['speeds'].get('v_max_sl_kmh') or 0) / 3.6))
     powered = params.get("engine_type", "prop") != "none" and v_h_ms > 0
 
     # 1. Określenie dopuszczalnych współczynników przeciążeń wg podstawy projektowej podkategorii
@@ -72,6 +73,12 @@ def calculate_vn_envelope(m0: float, geom: dict, aero: dict, perf: dict, params:
 
     # Współczynnik łagodzenia podmuchu Kg wg Danilecki wzór (2.13) / CS-23 Amdt 4 §23.341(b) / CS 22.341
     k_g = (0.88 * mu_g) / (5.3 + mu_g)
+    cs22_model = params.get('cs22_gust_model', 'amendment3') if sailplane else None
+    gust_length_ratio = None
+    if cs22_model == 'amendment3':
+        gust_length_ratio = 12.17 + .191 * mu_g
+        reduced_mass = mu_g / gust_length_ratio
+        k_g = .96 * reduced_mass / (.475 + reduced_mass)
 
     def gust_dn(v_ms, u_ms):
         return (0.5 * RHO0 * v_ms * a_w * k_g * u_ms) / ws
@@ -97,8 +104,8 @@ def calculate_vn_envelope(m0: float, geom: dict, aero: dict, perf: dict, params:
         n_flap, u_flap = 4.0, 7.5                           # CS 22.345(b)(1)
         gusts = [("VB", v_b_ms, 15.0), ("VD", v_d_ms, 7.5)]  # CS 22.333(c)
         vb_gust = True
-        gust_basis = ("CS-22 Amdt 2 §22.333(c), §22.341: podmuchy 15 m/s przy VB i 7,5 m/s przy VD; "
-                      "μ z cięciwy geometrycznej S/b; przyrost nie większy niż 1,25 (V/VS1)².")
+        gust_basis = (f"CS-22 Amdt {'3 (podmuch 1-cos)' if cs22_model == 'amendment3' else '2 (Pratt)'} §22.333(c), §22.341: "
+                      "15 m/s przy VB i 7,5 m/s przy VD; μ z cięciwy S/b; osobne ograniczenia n dodatniego i ujemnego do ±1,25 (V/VS1)².")
         speed_rule = (f"CS 22.335: VB ≥ VA, VD ≥ {'18·∛((W/S)/Cd,min)' if load_basis == 'cs22_utility' else '3,5·W/S + 200'}"
                       f" = {vd_rule_kmh:.0f} km/h (Cd,min = {cd_min:.4f})" + (", VD ≥ 1,35 VH" if powered else "")
                       + "; VF ≥ max(1,4 VS1; 2,0 VSF).")
@@ -175,18 +182,35 @@ def calculate_vn_envelope(m0: float, geom: dict, aero: dict, perf: dict, params:
     maneuver_polygon = list(stall_pos) + upper + lower + list(reversed(stall_neg))
 
     # D. Linie podmuchów Pratta: Delta_n = (0.5 * rho0 * V * a_w * K_g * U) / (W/S) (Danilecki wzory 2.10-2.13)
-    def capped(v_ms, dn):
-        # CS 22.341(b): n z podmuchu nie musi przekraczać 1,25 (V/VS1)²
-        return min(dn, 1.25 * (v_ms / vs_clean_ms) ** 2 - 1.0) if sailplane else dn
+    def gust_loads(v_ms, u_ms):
+        dn = gust_dn(v_ms, u_ms)
+        cap = 1.25 * (v_ms / vs_clean_ms) ** 2
+        return (min(1 + dn, cap), max(1 - dn, -cap)) if sailplane else (1 + dn, 1 - dn)
 
-    gust_points = [(label, v, u, capped(v, gust_dn(v, u))) for label, v, u in gusts]
-    gust_pos = [{"v_kmh": 0.0, "n": 1.0}] + [
-        {"v_kmh": round(v * 3.6, 1), "n": round(1.0 + dn, 2)} for _, v, _, dn in gust_points]
-    gust_neg = [{"v_kmh": 0.0, "n": 1.0}] + [
-        {"v_kmh": round(v * 3.6, 1), "n": round(1.0 - dn, 2)} for _, v, _, dn in gust_points]
+    gust_points = [(label, v, u, *gust_loads(v, u)) for label, v, u in gusts]
+    def interpolate(v, points):
+        if v >= points[-1][0]:
+            return points[-1][1]
+        for (v0, n0), (v1, n1_) in zip(points, points[1:]):
+            if v <= v1 and v1 > v0:
+                return n0 + (n1_ - n0) * (v - v0) / (v1 - v0)
+        return points[0][1]
 
-    n_gust_max = round(max(1.0 + dn for *_, dn in gust_points), 2)
-    n_gust_min = round(min(1.0 - dn for *_, dn in gust_points), 2)
+    gust_upper = [(0., 1.)] + [(v, pos) for _, v, _, pos, _ in gust_points]
+    gust_lower = [(0., 1.)] + [(v, neg) for _, v, _, _, neg in gust_points]
+    def gust_at(v):
+        if sailplane and v <= v_b_ms:
+            return gust_loads(v, 15.)
+        return interpolate(v, gust_upper), interpolate(v, gust_lower)
+
+    gust_plot_speeds = ([vs_clean_ms + (v_b_ms - vs_clean_ms) * i/40 for i in range(41)]
+                        if sailplane else [0.]) + [v for _, v, *_ in gust_points]
+    gust_plot_speeds = sorted(set(gust_plot_speeds))
+    gust_pos = [{'v_kmh': round(v*3.6, 1), 'n': round(gust_at(v)[0], 2)} for v in gust_plot_speeds]
+    gust_neg = [{'v_kmh': round(v*3.6, 1), 'n': round(gust_at(v)[1], 2)} for v in gust_plot_speeds]
+
+    n_gust_max = round(max(pos for _, _, _, pos, _ in gust_points), 2)
+    n_gust_min = round(min(neg for _, _, _, _, neg in gust_points), 2)
     n_dimensioning_pos = round(max(n_max, n_gust_max), 2)
     n_dimensioning_neg = round(min(n_min, n_gust_min), 2)
     n_ult_pos = round(n_dimensioning_pos * safety_factor_nu, 2)
@@ -194,13 +218,13 @@ def calculate_vn_envelope(m0: float, geom: dict, aero: dict, perf: dict, params:
 
     # E. Punkty charakterystyczne (tabela P6) i pętla obciążeń z klapami
     kmh = lambda v: round(v * 3.6, 1)  # noqa: E731
-    by_label = {label: (v, dn) for label, v, _, dn in gust_points}
+    by_label = {label: (v, pos-1) for label, v, _, pos, _ in gust_points}
     key_points = [
         {"point": "S (początek przeciągnięcia dodatniego Vs1)", "v_kmh": kmh(vs_clean_ms), "n": 1.0, "type": "Przeciągnięcie n=+1"},
         {"point": "A (prędkość manewrowa dodatnia VA)", "v_kmh": kmh(v_a_ms), "n": n1, "type": "Krzywa manewrowa n_max"},
     ]
     if "VB" in by_label:
-        u_b = next(u for label, _, u, _ in gust_points if label == "VB")
+        u_b = next(u for label, _, u, *_ in gust_points if label == "VB")
         key_points.append({"point": f"B (prędkość podmuchu VB, U={u_b:g} m/s)", "v_kmh": kmh(v_b_ms),
                            "n": round(1.0 + by_label["VB"][1], 2), "type": "Podmuch"})
     if v_c_ms is not None:
@@ -220,29 +244,43 @@ def calculate_vn_envelope(m0: float, geom: dict, aero: dict, perf: dict, params:
         {"point": "Ff (prędkość obliczeniowa klap VF)", "v_kmh": kmh(v_f_ms), "n": n_flap},
         {"point": "Df (dolny punkt przy VF)", "v_kmh": kmh(v_f_ms), "n": 0.0},
     ]
+    # The four table points do not describe the stall parabola or its origin.
+    v_af_ms = vs_lnd_ms * math.sqrt(n_flap)
+    flap_polygon = [{"v_kmh": kmh(v_af_ms * i / n_pts_stall),
+                     "n": round(n_flap * (i / n_pts_stall) ** 2, 2)}
+                    for i in range(n_pts_stall + 1)]
+    flap_polygon += [{"v_kmh": kmh(v_f_ms), "n": n_flap},
+                     {"v_kmh": kmh(v_f_ms), "n": 0.0}, {"v_kmh": 0.0, "n": 0.0}]
 
     # F. Wypadkowa obwiednia konstrukcyjna (CS-23.333(c) / Danilecki rys. 2.1)
     composite_pts_pos = []
     composite_pts_neg = []
-    n_pts_comp = 30
-    for i in range(n_pts_comp + 1):
-        v = i * v_d_ms / n_pts_comp
+    sample_speeds = {i * v_d_ms / 60 for i in range(61)} | {
+        0., vs_clean_ms, v_a_ms, v_g_ms, v_b_ms, v_d_ms, *[v for _, v, *_ in gust_points]}
+    if v_c_ms is not None:
+        sample_speeds.add(v_c_ms)
+    sample_speeds.add(vs_clean_ms * (1 - 1e-9))
+    for v in sorted(x for x in sample_speeds if 0 <= x <= v_d_ms):
         n_st_pos = (0.5 * RHO0 * (v ** 2) * cz_max) / ws
         n_st_neg = (0.5 * RHO0 * (v ** 2) * cz_min) / ws
-        if sailplane or v_c_ms is None or v <= v_c_ms:
+        if sailplane:
+            n_man_p = n1 if v <= v_a_ms else interpolate(v, [(v_a_ms, n1), (v_d_ms, n2)])
+            n_man_n = n4 if v <= v_g_ms else interpolate(v, [(v_g_ms, n4), (v_d_ms, n3)])
+        elif v_c_ms is None or v <= v_c_ms:
             n_man_p = n1
             n_man_n = n4
         else:
             ratio = (v - v_c_ms) / max(0.1, v_d_ms - v_c_ms)
             n_man_p = n1 + (n2 - n1) * ratio
             n_man_n = n4 + (n3 - n4) * ratio
-        if sailplane or v_c_ms is None or v <= v_c_ms:
-            u_v = 15.0 if sailplane else (20.12 if (vb_gust and v <= v_b_ms) else 15.24)
+        n_man_p, n_man_n = min(n_st_pos, n_man_p), max(n_st_neg, n_man_n)
+        # Gust and manoeuvre cases are separate; take their outer boundary.
+        # Applying the static stall curve again would erase permitted gust loads.
+        if v >= vs_clean_ms:
+            gust_p, gust_n = gust_at(v)
+            n_comp_p, n_comp_n = max(n_man_p, gust_p), min(n_man_n, gust_n)
         else:
-            u_v = 15.24 - (15.24 - 7.62) * ((v - v_c_ms) / max(0.1, v_d_ms - v_c_ms))
-        dn_v = capped(v, gust_dn(v, u_v))
-        n_comp_p = min(n_st_pos, max(n_man_p, 1.0 + dn_v))
-        n_comp_n = max(n_st_neg, min(n_man_n, 1.0 - dn_v))
+            n_comp_p, n_comp_n = n_man_p, n_man_n
         composite_pts_pos.append({"v_kmh": round(v * 3.6, 1), "n": round(n_comp_p, 2)})
         composite_pts_neg.append({"v_kmh": round(v * 3.6, 1), "n": round(n_comp_n, 2)})
     composite_polygon = composite_pts_pos + list(reversed(composite_pts_neg))
@@ -254,6 +292,8 @@ def calculate_vn_envelope(m0: float, geom: dict, aero: dict, perf: dict, params:
                  v_b_ms=v_b_ms, v_f_ms=v_f_ms, w_lb=max(1.0, m0) * LB_PER_KG, load_basis=load_basis,
                  sigma_cr=isa_atmosphere(params.get('cruise_altitude_m', 0))['sigma'], **rule_terms)
     return {
+        "speed_basis": "EAS",
+        "composite_basis": "Zewnętrzna granica osobnych przypadków manewru i podmuchu, bez sumowania ich przeciążeń.",
         "terms": terms,
         "limits": {
             "n_max": n_max,
@@ -273,6 +313,7 @@ def calculate_vn_envelope(m0: float, geom: dict, aero: dict, perf: dict, params:
             "load_factor_reference": load_factor_ref,
             "speed_rule": speed_rule,
             "basis": "CS-22" if sailplane else ("CS-25" if category == "transport" else "CS-23"),
+            "cs22_gust_model": cs22_model,
         },
         "speeds": {
             "v_s_kmh": kmh(vs_clean_ms),
@@ -285,23 +326,28 @@ def calculate_vn_envelope(m0: float, geom: dict, aero: dict, perf: dict, params:
             "v_f_kmh": kmh(v_f_ms)
         },
         "gust_factors": {
-            "a_w": round(a_w, 3),
-            "mu_g": round(mu_g, 2),
-            "k_g": round(k_g, 3),
-            "chord_m": round(chord, 3),
+            "a_w": a_w,
+            "mu_g": mu_g,
+            "k_g": k_g,
+            "gust_length_ratio": gust_length_ratio,
+            "gust_length_m": gust_length_ratio * chord if gust_length_ratio is not None else None,
+            "chord_m": chord,
             "chord_basis": "średnia cięciwa geometryczna S/b (CS 22.341)" if sailplane else "średnia cięciwa aerodynamiczna (Danilecki, wzór 2.14)",
             "vb_gust": vb_gust,
             "gust_basis": gust_basis,
-            "gusts": [{"speed": label, "v_kmh": kmh(v), "u_ms": u, "delta_n": round(dn, 3)} for label, v, u, dn in gust_points],
-            "u_b_ms": next((u for label, _, u, _ in gust_points if label == "VB"), None),
+            "gusts": [{"speed": label, "v_kmh": kmh(v), "u_ms": u, "delta_n": pos-1,
+                       "delta_n_neg": 1-neg, "n_positive": pos, "n_negative": neg}
+                      for label, v, u, pos, neg in gust_points],
+            "u_b_ms": next((u for label, _, u, *_ in gust_points if label == "VB"), None),
             "u_c_ms": 15.24 if v_c_ms is not None else None,
-            "u_d_ms": next(u for label, _, u, _ in gust_points if label == "VD"),
+            "u_d_ms": next(u for label, _, u, *_ in gust_points if label == "VD"),
             "delta_n_b": round(by_label["VB"][1], 3) if "VB" in by_label else None,
             "delta_n_c": round(by_label["VC"][1], 3) if "VC" in by_label else None,
             "delta_n_d": round(by_label["VD"][1], 3)
         },
         "key_points": key_points,
-        "flap": {"n_flap": n_flap, "u_flap_ms": u_flap, "v_f_kmh": kmh(v_f_ms), "loop": flap_loop},
+        "flap": {"n_flap": n_flap, "u_flap_ms": u_flap, "v_f_kmh": kmh(v_f_ms),
+                 "loop": flap_loop, "maneuver_polygon": flap_polygon},
         "stall_pos": stall_pos,
         "stall_neg": stall_neg,
         "maneuver_polygon": maneuver_polygon,

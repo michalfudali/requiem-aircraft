@@ -695,7 +695,7 @@ function drawClimbChart(canvasId, climbData) {
   
   ctx.clearRect(0, 0, width, height);
   
-  const curve = climbData.climb_curve || [];
+  const curve = (climbData.climb_curve || []).filter(p => Number.isFinite(p.v_kmh) && Number.isFinite(p.wy_ms));
   if (!curve.length) {
     const message = 'Brak krzywej wznoszenia.';
     document.getElementById(canvasId)?.setAttribute('aria-label', message);
@@ -704,18 +704,23 @@ function drawClimbChart(canvasId, climbData) {
     BipolSymbols.fillText(ctx, 'Lot bez napędu: sprawdź moduł „Lot szybowy”.', width / 2, height / 2 + 16, width - 30);
     return;
   }
-  const xMin = curve[0].v_kmh * 0.9;
-  const xMax = curve[curve.length - 1].v_kmh * 1.05;
-  const yMax = Math.max(climbData.wy_max_ms * 1.25, 6.0);
+  const xMin = Math.min(...curve.map(p => p.v_kmh), climbData.v_wy_max_kmh) * 0.9;
+  const xMax = Math.max(...curve.map(p => p.v_kmh), climbData.v_wy_max_kmh) * 1.05;
+  const minimum = Math.min(...curve.map(p => p.wy_ms), climbData.wy_max_ms);
+  const maximum = Math.max(...curve.map(p => p.wy_ms), climbData.wy_max_ms);
+  const yMin = Math.min(0, minimum * 1.1);
+  const yMax = maximum > 0 ? Math.max(1, maximum * 1.25) : (yMin < 0 ? 0 : 1);
+  document.getElementById(canvasId)?.setAttribute('aria-label',
+    `Krzywa prędkości pionowej względem TAS. Największa prędkość pionowa ${Number(climbData.wy_max_ms).toFixed(2)} m/s; wartości ujemne oznaczają opadanie.`);
   
   function toX(val) { return pad.left + ((val - xMin) / (xMax - xMin)) * plotW; }
-  function toY(val) { return pad.top + plotH - (val / yMax) * plotH; }
+  function toY(val) { return pad.top + plotH - ((val - yMin) / (yMax - yMin)) * plotH; }
   
   // Grid
   ctx.strokeStyle = '#e2e8f0';
   ctx.lineWidth = 1;
   for (let i = 0; i <= 5; i++) {
-    const yVal = (i / 5) * yMax;
+    const yVal = yMin + (i / 5) * (yMax - yMin);
     const y = toY(yVal);
     ctx.beginPath();
     ctx.moveTo(pad.left, y);
@@ -730,12 +735,12 @@ function drawClimbChart(canvasId, climbData) {
   ctx.fillStyle = '#334155';
   ctx.font = 'bold 11px sans-serif';
   ctx.textAlign = 'center';
-  BipolSymbols.fillText(ctx, 'Prędkość lotu V [km/h]', pad.left + plotW / 2, height - 10);
+  BipolSymbols.fillText(ctx, 'Prędkość lotu V [km/h TAS]', pad.left + plotW / 2, height - 10);
   
   ctx.save();
   ctx.translate(16, pad.top + plotH / 2);
   ctx.rotate(-Math.PI / 2);
-  BipolSymbols.fillText(ctx, 'Prędkość wznoszenia w_y [m/s]', 0, 0);
+  BipolSymbols.fillText(ctx, 'Prędkość pionowa w_y [m/s]', 0, 0);
   ctx.restore();
   
   // Curve
@@ -744,7 +749,7 @@ function drawClimbChart(canvasId, climbData) {
   ctx.beginPath();
   curve.forEach((p, idx) => {
     const x = toX(p.v_kmh);
-    const y = toY(Math.max(0, p.wy_ms));
+    const y = toY(p.wy_ms);
     if (idx === 0) ctx.moveTo(x, y);
     else ctx.lineTo(x, y);
   });
@@ -772,9 +777,11 @@ function drawVnEnvelope(canvasId, env) {
   
   ctx.clearRect(0, 0, width, height);
   
-  const vMax = env.speeds.v_d_kmh * 1.15;
-  const nMin = env.limits.n_min * 1.3;
-  const nMax = env.limits.n_max * 1.25;
+  const plotted = [...(env.maneuver_polygon || []), ...(env.gust_pos || []), ...(env.gust_neg || []),
+    ...(env.composite_polygon || []), ...(env.flap?.maneuver_polygon || env.flap?.loop || [])];
+  const vMax = Math.max(env.speeds.v_d_kmh, ...plotted.map(p => p.v_kmh)) * 1.15;
+  const nMin = Math.min(0, env.limits.n_min, ...plotted.map(p => p.n)) * 1.15;
+  const nMax = Math.max(1, env.limits.n_max, ...plotted.map(p => p.n)) * 1.15;
   
   function toX(val) { return pad.left + (val / vMax) * plotW; }
   function toY(val) { return pad.top + plotH - ((val - nMin) / (nMax - nMin)) * plotH; }
@@ -821,7 +828,7 @@ function drawVnEnvelope(canvasId, env) {
   ctx.fillStyle = '#334155';
   ctx.font = 'bold 11px sans-serif';
   ctx.textAlign = 'center';
-  BipolSymbols.fillText(ctx, 'Prędkość przyrządowa V [km/h]', pad.left + plotW / 2, height - 8);
+  BipolSymbols.fillText(ctx, 'Prędkość równoważna V [km/h EAS]', pad.left + plotW / 2, height - 8);
   
   ctx.save();
   ctx.translate(14, pad.top + plotH / 2);
@@ -829,6 +836,19 @@ function drawVnEnvelope(canvasId, env) {
   BipolSymbols.fillText(ctx, 'Współczynnik przeciążenia n [-]', 0, 0);
   ctx.restore();
   
+  // Outer boundary of separate design cases, without adding their loads.
+  if (env.composite_polygon?.length) {
+    ctx.strokeStyle = '#15803d';
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    env.composite_polygon.forEach((pt, idx) => {
+      if (idx === 0) ctx.moveTo(toX(pt.v_kmh), toY(pt.n));
+      else ctx.lineTo(toX(pt.v_kmh), toY(pt.n));
+    });
+    ctx.closePath();
+    ctx.stroke();
+  }
+
   // Maneuver Polygon
   const poly = env.maneuver_polygon;
   ctx.fillStyle = 'rgba(2, 132, 199, 0.08)';
@@ -868,6 +888,19 @@ function drawVnEnvelope(canvasId, env) {
   });
   ctx.stroke();
   ctx.setLineDash([]);
+
+  const flapPolygon = env.flap?.maneuver_polygon || env.flap?.loop || [];
+  if (flapPolygon.length) {
+    ctx.strokeStyle = '#7c3aed';
+    ctx.lineWidth = 1.8;
+    ctx.beginPath();
+    flapPolygon.forEach((pt, idx) => {
+      if (idx === 0) ctx.moveTo(toX(pt.v_kmh), toY(pt.n));
+      else ctx.lineTo(toX(pt.v_kmh), toY(pt.n));
+    });
+    ctx.closePath();
+    ctx.stroke();
+  }
   
   // Characteristic speeds markers
   const spds = [
