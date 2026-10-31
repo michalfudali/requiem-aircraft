@@ -181,10 +181,13 @@ def test_planform_mac_location_and_control_area_follow_actual_outline(mode):
 
 def test_cruise_tas_is_converted_before_plotting_eas_envelope():
     r=run_bipol_project(AIRCRAFT_PRESETS['ga_trainer'])
-    perf={**r['performance'], 'speeds':{**r['performance']['speeds'],'v_cruise_kmh':900,'v_max_sl_kmh':1000}}
-    p=dict(r['params'],cruise_altitude_m=11000)
+    perf={**r['performance'], 'speeds':{**r['performance']['speeds'],'v_cruise_kmh':900,'v_max_sl_kmh':1000},
+          'terms':{**r['performance']['terms'],'v_max_sl':1000/3.6}}
+    p=dict(r['params'],cruise_speed_kmh=900.123,cruise_altitude_m=11000)
     envelope=calculate_vn_envelope(r['mass']['m0'],r['geometry'],r['aerodynamics'],perf,p)
-    assert envelope['speeds']['v_c_kmh']==pytest.approx(900*math.sqrt(isa_atmosphere(11000)['sigma']),abs=.1)
+    expected=p['cruise_speed_kmh']*math.sqrt(isa_atmosphere(11000)['sigma'])
+    assert envelope['terms']['v_cr_eas_ms']*3.6==pytest.approx(expected,rel=1e-12)
+    assert envelope['speeds']['v_c_kmh']==pytest.approx(expected,abs=.1)
 
 
 @pytest.mark.parametrize('engine,sfc', [('prop',.62),('prop',0),('jet',265),('jet',0)])

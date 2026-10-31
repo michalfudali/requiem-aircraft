@@ -303,6 +303,10 @@ function syncAircraftClassAndEASAUI(isWizard = false, source = null) {
       if (parseInt(crewEl.value, 10) < 2) crewEl.value = '2';
     }
   }
+  if (!isWizard) {
+    const cs22Group = document.getElementById('cs22GustModelGroup');
+    if (cs22Group) cs22Group.hidden = !catEl?.value.startsWith('cs22_');
+  }
 }
 
 function syncEngineWithAircraft(isWizard = false) {
@@ -1925,7 +1929,7 @@ function saveProject(project) {
 
 function loadProjectIntoForm(project) {
   if (!project || !project.params) return;
-  const params = { runway_surface: 'paved', ...project.params };
+  const params = { runway_surface: 'paved', cs22_gust_model: 'amendment3', ...project.params };
   params.m_pax = (params.m_pax || 0) + (params.m_bag || 0);
   params.m_bag = 0;
   formBaseParams = { ...params };
@@ -4046,6 +4050,8 @@ function hydrateSemesterProjectsData(res) {
 
     const vfEl = document.getElementById('p6_vf_val');
     if (vfEl && p6.v_f_kmh != null) vfEl.textContent = p6.v_f_kmh;
+    const nFlapEl = document.getElementById('p6_n_flap_val');
+    if (nFlapEl && p6.n_flap != null) nFlapEl.textContent = Number(p6.n_flap).toFixed(1);
 
     const flapLoopTbody = document.getElementById('p6_flap_loop_tbody');
     if (flapLoopTbody && Array.isArray(p6.flap_envelope_loop)) {

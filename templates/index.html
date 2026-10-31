@@ -731,7 +731,7 @@
           <!-- Podpunkt 6.1: Obwiednia Obciążeń Dopuszczalnych V-n (CS-23/CS-25) -->
           <div class="subpoint-card">
             <div class="subpoint-header">
-              <h4><span class="subpoint-badge p6">Podpunkt 6.1</span> Obwiednia Obciążeń Dopuszczalnych V-n wg Norm CS-23 / CS-25</h4>
+              <h4><span class="subpoint-badge p6">Podpunkt 6.1</span> Obwiednia V–n wybranej kategorii projektowej</h4>
               <span class="badge badge-info">Obwiednia Manewrowo-Podmuchowa</span>
             </div>
             <div class="subpoint-body">
@@ -741,13 +741,13 @@
                 </div>
               </div>
               <div class="chart-didactic-note">
-                <strong>Jak czytać obwiednię V-n (Projekt P6):</strong> Lewa parabola to granica przeciążenia od siły nośnej płata <code>n = (V/Vs1)²</code>. Punkt <code>VA</code> określa prędkość manewrową. Linie skośne oznaczają linie podmuchów pionowych o intensywności &plusmn;15 m/s przy <code>VC</code> oraz &plusmn;7.5 m/s przy <code>VD</code>.
+                <strong>Jak czytać obwiednię V–n:</strong> Prędkości podano jako EAS. Niebieska linia oznacza manewry, pomarańczowa podmuchy, zielona ich zewnętrzną granicę, a fioletowa osobną obwiednię klap. Przypadków manewru i podmuchu nie sumuje się. Prędkości i intensywności podmuchów dla wybranej kategorii podano w tabeli.
               </div>
 
               <div class="table-responsive" style="margin-top:0.75rem;">
                 <table class="b-table">
                   <thead>
-                    <tr><th>Punkt charakterystyczny obwiedni</th><th>Symbol</th><th>Prędkość [km/h]</th><th>Współczynnik obciążenia n [-]</th><th>Wymóg przepisów CS</th></tr>
+                    <tr><th>Punkt charakterystyczny obwiedni</th><th>Symbol</th><th>Prędkość [km/h EAS]</th><th>Współczynnik obciążenia n [-]</th><th>Podstawa obliczeń</th></tr>
                   </thead>
                   <tbody id="p6EnvelopeTableBody"></tbody>
                 </table>
@@ -1822,17 +1822,18 @@
             <div style="padding:1.25rem;">
               <div class="subpoint-card">
                 <div class="subpoint-header">
-                  <h4><span class="subpoint-badge required">Podpunkt 6.1</span> Obwiednia V-n Manewrowa i Podmuchowa Pratt/CS (15 pkt)</h4>
+                  <h4><span class="subpoint-badge required">Podpunkt 6.1</span> Obwiednia manewrowa i podmuchowa wybranej kategorii (15 pkt)</h4>
                   <span class="badge badge-success">Obowiązkowe</span>
                 </div>
                 <div class="subpoint-body">
                   <div style="height:280px; width:100%; position:relative; margin-bottom:1rem;">
                     <canvas id="chartVnP6"></canvas>
                   </div>
+                  <p class="chart-didactic-note">Niebieska: manewry; pomarańczowa: podmuchy; zielona: zewnętrzna granica obu przypadków; fioletowa: klapy. Prędkości EAS.</p>
                   <div style="overflow-x:auto;">
                     <table class="b-table">
                       <thead>
-                        <tr><th>Punkt obwiedni</th><th>Prędkość V [km/h]</th><th>Przeciążenie n</th><th>Definicja z przepisów</th></tr>
+                        <tr><th>Punkt obwiedni</th><th>Prędkość V [km/h EAS]</th><th>Przeciążenie n</th><th>Definicja z przepisów</th></tr>
                       </thead>
                       <tbody id="p6_points_tbody"></tbody>
                     </table>
@@ -1847,7 +1848,7 @@
                 </div>
                 <div class="subpoint-body">
                   <p style="font-size:0.86rem; color:#475569; margin-bottom:0.6rem;">
-                    Dopuszczalny współczynnik przeciążenia z wychylonymi klapami: <strong>n_flaps = +2.0 / 0.0</strong> &bull; Prędkość graniczna klap: <strong>VF = <span id="p6_vf_val">---</span> km/h</strong>.
+                    Dopuszczalny współczynnik przeciążenia z wychylonymi klapami: <strong>n_flaps = +<span id="p6_n_flap_val">---</span> / 0</strong> &bull; Prędkość graniczna klap: <strong>VF = <span id="p6_vf_val">---</span> km/h EAS</strong>.
                   </p>
                   <table class="b-table">
                     <thead>
@@ -2428,8 +2429,8 @@
   <script src="/static/js/aircraft-preview.js?v=5"></script>
   <script src="/static/js/studio-visuals.js?v=2"></script>
   <script src="/static/js/didactic_data.js?v=14"></script>
-  <script src="/static/js/charts.js?v=18"></script>
-  <script src="/static/js/app.js?v=31"></script>
+  <script src="/static/js/charts.js?v=19"></script>
+  <script src="/static/js/app.js?v=32"></script>
 <script src="/static/js/didactic_modes.js?v=2"></script>
   <script src="/static/js/constraints-ui.js?v=5"></script>
   <script src="/static/js/design-basis.js?v=7"></script>
