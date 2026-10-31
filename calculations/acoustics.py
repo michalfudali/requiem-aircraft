@@ -22,21 +22,22 @@ def estimate_aircraft_noise(params: dict, sizing: dict, perf: dict, geom: dict, 
     climb = perf.get("climb", {})
     wing = geom.get("wing", {})
 
-    # 1. SZYBOWCE — brak napędu
-    if engine_type == "none" or params.get("aircraft_type") in ("glider", "motoglider"):
+    # 1. SZYBOWIEC BEZ NAPĘDU — Załącznik 16 go nie obejmuje. Motoszybowiec samostartujący z silnikiem
+    #    ocenia się jak samolot śmigłowy (10.1.1 wyłącza tylko motoszybowce samoutrzymujące się).
+    if engine_type == "none":
         return {
             "status": "success",
-            "icao_standard": "Szybowiec (brak emisji hałasu silnikowego)",
+            "icao_standard": "ICAO Załącznik 16: nie dotyczy szybowca bez napędu",
             "metric_unit": "dBA",
-            "noise_flyover": 48.0,
-            "noise_sideline": 45.0,
-            "noise_approach": 52.0,
-            "limit_flyover": 68.0,
-            "margin_flyover": 20.0,
+            "noise_flyover": None,
+            "noise_sideline": None,
+            "noise_approach": None,
+            "limit_flyover": None,
+            "margin_flyover": None,
             "compliant": True,
             "propeller_tip_mach": None,
-            "acoustic_category": "Ultra cichy (aerodynamiczny)",
-            "didactic_advice": "Brak jednostki napędowej: jedynym źródłem dźwięku jest szum opływu powietrza wokół płatowca."
+            "acoustic_category": "Nie dotyczy",
+            "didactic_advice": "Bez jednostki napędowej certyfikacja hałasu nie obowiązuje; jedynym źródłem dźwięku jest opływ płatowca."
         }
 
     # 2. SAMOLOTY ŚMIGŁOWE (ICAO Annex 16 Chapter 10 / CS-36)

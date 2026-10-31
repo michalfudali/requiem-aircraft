@@ -7,15 +7,21 @@ from calculations.presets import AIRCRAFT_PRESETS
 from calculations.acoustics import estimate_aircraft_noise
 
 
-def test_glider_noise_is_minimal():
+def test_glider_without_engine_has_no_noise_certification():
     preset = AIRCRAFT_PRESETS["glider_pw5"]
     res = run_bipol_project(preset)
     ac = estimate_aircraft_noise(res["params"], res["sizing"], res["performance"], res["geometry"], res["mass"])
 
     assert ac["status"] == "success"
-    assert ac["noise_flyover"] < 55.0
+    assert ac["noise_flyover"] is None and ac["limit_flyover"] is None  # Załącznik 16 nie dotyczy szybowca bez napędu
     assert ac["compliant"] is True
     assert ac["propeller_tip_mach"] is None
+
+
+def test_self_launching_motoglider_is_assessed_as_propeller_aeroplane():
+    res = run_bipol_project(AIRCRAFT_PRESETS["motoglider_aos"])
+    ac = res["acoustics"]
+    assert "Rozdział 10" in ac["icao_standard"] and ac["limit_flyover"] is not None and ac["propeller_tip_mach"] is not None
 
 
 def test_propeller_aircraft_noise_and_tip_mach():

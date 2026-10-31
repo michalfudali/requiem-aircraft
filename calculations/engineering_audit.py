@@ -446,9 +446,12 @@ def perform_engineering_audit(result: dict) -> dict:
                 "a w odrzutowcach — gwałtowny strumień gorących gazów wylotowych."
             ),
             "engineering_note": (
-                f"Obliczony poziom hałasu przelotu wynosi {noise_flyover:.1f} {noise_unit} przy limicie {noise_limit:.1f} {noise_unit}. "
-                + (f"Spełnia normy hałasowe ICAO/EASA z marginesem {noise_margin:.1f} {noise_unit}. {acoustics.get('didactic_advice', '')}" if noise_compliant else
-                   f"Przekroczenie limitu hałasu o {abs(noise_margin):.1f} {noise_unit}! {acoustics.get('didactic_advice', '')}")
+                f"Szacowany poziom hałasu wynosi {noise_flyover:.1f} {noise_unit} przy limicie {noise_limit:.1f} {noise_unit}. "
+                "Model jest zgrubny (moc, M_tip, odległość; bez widma i kierunkowości), więc służy do porównania wariantów, "
+                "a nie do oceny certyfikacyjnej. "
+                + (f"Szacunek mieści się w limicie z zapasem {noise_margin:.1f} {noise_unit}. {acoustics.get('didactic_advice', '')}" if noise_compliant else
+                   f"Szacunek przekracza limit o {abs(noise_margin):.1f} {noise_unit} — sprawdź M_tip, liczbę łopat i obroty śmigła. "
+                   f"{acoustics.get('didactic_advice', '')}")
             )
         })
 
