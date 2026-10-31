@@ -106,3 +106,10 @@ z kreatorem, modułami projektu, edycją, zapisem, odświeżeniem, eksportami
 HTML/PDF/DOCX/JSON/CSV i widokami 320/390 px. Przebiegi kategorii
 zapisano w `work/design-integrity-20261030/`, zgodnie z nazwą istniejącego
 testu. Nie wystąpiły błędy HTTP ani kontrolowane niezgodności fizyczne.
+
+Po tym pełnym przebiegu dołączono `d36656e` z niezależną poprawką
+akustyki drugiego agenta (wyłącznie Python, testy i dokumentacja).
+Połączoną wersję sprawdzono dodatkowym zestawem **115 testów**:
+`test_acoustics`, `test_engineering_audit`, `test_flap_gust_envelope`,
+`test_calc_sheet` i `test_aeroelastics` — wszystkie przeszły w 23,15 s.
+Ponownie przeszło siedem nowych scenariuszy Chrome z eksportami P6.
