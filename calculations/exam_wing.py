@@ -418,6 +418,7 @@ def solve_exam1(x, y):
         rows=[{k_: (round(v, 6) if isinstance(v, float) else v) for k_, v in r.items()} for r in rows],
         governing=governing,
         zero_fuel=dict(mass=m_zf, n_max=n_zf, M0=n_zf * m0_zf),
+        planform=dict(c_r=value('c_r'), c_t=value('c_t'), b=value('b'), c_a=value('c_a'), y_a=value('y_a'), fuel_span=FUEL_SPAN),
         answers=dict(S=value('S'), b=value('b'), c_r=value('c_r'), c_t=value('c_t'), c_g=value('c_g'), c_a=value('c_a'),
                      n_max=n_max, n_min=n_min, VA_kmh=v_a * 3.6, VC_kmh=v_c * 3.6, VD_kmh=v_d * 3.6,
                      T0=n_max * t0, M0=n_max * m0, M0_dim=value('M0_dim')),

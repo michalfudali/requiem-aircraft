@@ -46,6 +46,7 @@ się tylko w przeglądarce.
 Przycisk „Drukuj pytania” tworzy arkusz A4 z pytaniami wybranych wykładów i odpowiedziami
 wzorcowymi od nowej strony. W zadaniu kolokwialnym „Losowe dane” pozwalają ćwiczyć inne warianty X, Y.
 „Drukuj rozwiązanie” tworzy arkusz A4 z danymi, wszystkimi krokami (wzory KaTeX), wykresami i tabelami.
+Rysunek półskrzydła w skali pokazuje paski Schrenka, strefę paliwa i położenie SCA.
 
 ## Poprawka obwiedni P6
 

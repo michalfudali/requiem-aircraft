@@ -178,6 +178,31 @@
     return {half, shear, moment};
   }
 
+  // Półskrzydło w skali: linia 1/4 cięciw bez skosu, 4 paski Schrenka, strefa paliwa i położenie SCA.
+  function renderPlanform() {
+    const pf = result.planform, half = pf.b / 2, rows = result.rows;
+    const chord = y => pf.c_r - (pf.c_r - pf.c_t) * y / half;
+    const le = y => 0.25 * (pf.c_r - chord(y));
+    const W = 600, pad = 34, k = (W - 2 * pad) / half, H = pf.c_r * k + 2 * pad + 18;
+    const X = y => pad + y * k, Y = x => pad + x * k;
+    const outline = [[0, 0], [half, le(half)], [half, le(half) + pf.c_t], [0, pf.c_r]].map(([y, x]) => `${X(y)},${Y(x)}`).join(' ');
+    const [f0, f1] = pf.fuel_span.map(f => f * half);
+    const fuel = [[f0, le(f0)], [f1, le(f1)], [f1, le(f1) + chord(f1)], [f0, le(f0) + chord(f0)]].map(([y, x]) => `${X(y)},${Y(x)}`).join(' ');
+    const strips = rows.map(r => `<line x1="${X(r.y_inner)}" y1="${Y(le(r.y_inner))}" x2="${X(r.y_inner)}" y2="${Y(le(r.y_inner) + chord(r.y_inner))}" class="exam-axis"/>`
+      + `<text x="${X(r.y)}" y="${Y(le(r.y) + chord(r.y) / 2) + 4}" text-anchor="middle" class="exam-bar-label">${r.i}</text>`).join('');
+    const mac = `<line x1="${X(pf.y_a)}" y1="${Y(le(pf.y_a))}" x2="${X(pf.y_a)}" y2="${Y(le(pf.y_a) + pf.c_a)}" stroke="#b45309" stroke-width="2.5"/>`
+      + `<text x="${X(pf.y_a) + 5}" y="${Y(le(pf.y_a)) - 6}" class="exam-axis-label" fill="#b45309">SCA = ${fmt(pf.c_a, 3)} m przy y = ${fmt(pf.y_a, 3)} m</text>`;
+    $('examPlanform').innerHTML = `<figure><figcaption>Półskrzydło w skali: 4 paski, strefa paliwa 0,25–0,75 półrozpiętości, SCA</figcaption>
+      <svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Obrys półskrzydła z paskami Schrenka">
+      <polygon points="${fuel}" fill="#fde7c4" stroke="none"/>
+      <polygon points="${outline}" fill="none" stroke="#0f3d55" stroke-width="2"/>
+      <line x1="${X(0)}" y1="${Y(0.25 * pf.c_r)}" x2="${X(half)}" y2="${Y(0.25 * pf.c_r)}" stroke="#94a3b8" stroke-dasharray="5 4"/>
+      ${strips}${mac}
+      <text x="${X(0) - 4}" y="${Y(pf.c_r / 2)}" text-anchor="end" class="exam-axis-label" transform="rotate(-90 ${X(0) - 8} ${Y(pf.c_r / 2)})">c_r = ${fmt(pf.c_r, 3)} m</text>
+      <text x="${X(half) + 4}" y="${Y(le(half) + pf.c_t / 2)}" class="exam-axis-label">c_k</text>
+      <text x="${X(half / 2)}" y="${H - 8}" text-anchor="middle" class="exam-axis-label">b/2 = ${fmt(half, 3)} m; przerywana — linia 1/4 cięciw; pomarańczowe — paliwo</text></svg></figure>`;
+  }
+
   function renderSchrenk() {
     const rows = result.rows, dy = rows[1].y_inner - rows[0].y_inner, half = rows[0].y_inner + dy * rows.length;
     svgPlot('examSchrenkChart', {
@@ -221,7 +246,7 @@
   function render() {
     if (!result) return;
     $('examResult').hidden = false;
-    renderData(); renderCheck(); renderSteps(); renderSchrenk(); renderLoads();
+    renderData(); renderCheck(); renderSteps(); renderPlanform(); renderSchrenk(); renderLoads();
     requestAnimationFrame(renderEnvelope);
   }
 
