@@ -406,6 +406,49 @@ _Q = (
      'Tylna rampa ładunkowa w podniesionej tylnej części kadłuba, podłoga ładowni nisko nad ziemią i na wysokości skrzyni '
      'pojazdu, górnopłat (skrzydło nie przecina kabiny) oraz podwozie główne w gondolach przy kadłubie, które nie wymaga '
      'wysokich goleni — jak w C-130 czy A400M.'),
+    ('w07', 17, 'Jakie warunki kątowe wyznaczają położenie kół podwozia głównego w przykładzie projektu?',
+     'Kąt między pionem przez środek ciężkości a prostą od ŚC do punktu styku koła głównego ma być nie mniejszy niż kąt '
+     'natarcia przy Cz = 0,9 Cz_max plus 3° — wtedy zadarty do startu samolot nie przewróci się na ogon. Kąt między ziemią '
+     'a prostą od koła głównego do ogona ma być nie mniejszy niż kąt natarcia przy Cz_max, żeby ogon nie uderzył o ziemię. '
+     'Kąt przewrócenia na bok ma być mniejszy niż 60°.'),
+    ('w07', 9, 'Jakie wymiary i masy mają kontenery lotnicze LD-2, LD-3 i LD-4?',
+     'Wszystkie mają wysokość 1,626 m i głębokość 1,534 m. Szerokość: LD-2 1,562 m (3,4 m³, do ok. 1225 kg), '
+     'LD-3 2,007 m (4,4 m³, do ok. 1588 kg), LD-4 2,438 m (5,5 m³, do ok. 2449 kg). Od nich zależy przekrój ładowni '
+     'samolotu transportowego.'),
+    ('w07', 8, 'Jak różnią się wymiary kabiny pasażerskiej samolotu dalekiego i krótkiego zasięgu?',
+     'Szerokość siedzenia: 0,43–0,71 m wobec 0,41–0,46 m; odległość między rzędami: 0,86–1,02 m wobec 0,76–0,81 m; '
+     'szerokość przejścia: 0,51–0,71 m wobec 0,38 m; wysokość przejścia: 1,93 m wobec 1,52 m; bagaż osobisty: '
+     '18–27 kg wobec 18 kg na pasażera. Dalekie trasy wymagają też większej kuchni i więcej toalet na pasażera.'),
+    ('w07', 13, 'Jak skos krawędzi natarcia zmienia liczbę Macha, którą „widzi” profil skrzydła?',
+     'Liczy się składową prędkości prostopadłą do krawędzi natarcia: M_eff = M∞·cos Λ_LE. Skos opóźnia więc wzrost oporu '
+     'falowego, dlatego samoloty przelotowe o dużej liczbie Macha mają skośne skrzydła.'),
+    ('w13', 2, 'Dlaczego obciążenie usterzenia wzdłuż cięciwy liczy się zlinearyzowanym rozkładem dla profilu załamanego?',
+     'Usterzenie to mały płat, ale przy wychylonym sterze jego profil jest mocno załamany. Rozkład składa się z rozkładu '
+     'dla profilu gładkiego, zależnego od Cz i Cm, i z przyrostu od wychylenia steru, zależnego od φ = c_s/c_a, ΔCz i ΔCm. '
+     'Z sumy wyznacza się wypadkowe na części stałej i na sterze oraz ich punkty przyłożenia.'),
+    ('w13', 5, 'Z jakiego warunku wyznacza się obciążenie usterzenia poziomego od równowagi?',
+     'Z równowagi momentów względem środka ciężkości: ΣM_SC = M_Y + P_Z·x_SC − P_ZH·(x_H − x_SC) = 0, gdzie M_Y to moment '
+     'pochylający płata, P_Z siła nośna płata, a P_ZH siła na usterzeniu w odległości x_H.'),
+    ('w13', 8, 'Co robi się po wyznaczeniu wszystkich przypadków obciążeń usterzenia poziomego?',
+     'Wyznacza się sumaryczny kąt natarcia usterzenia α_H, wychylenie steru δ_H, siłę nośną od kąta natarcia (a₁α_H) '
+     'i jej przyrost od steru (a₂δ_H). Potem rozkład wzdłuż cięciwy i wzdłuż rozpiętości, a dalej postępuje się jak dla płata.'),
+    ('w14', 12, 'Co wymiarują obciążenia działające wzdłuż osi x kadłuba?',
+     'Na ogół nie zasadniczą strukturę, tylko węzły, którymi te siły wchodzą w kadłub, np. okucia łoża silnika i węzły '
+     'podwozia mocowanego do kadłuba. Węzły podwozia wymagają osobnej analizy ze znajomością schematu wytrzymałościowego kadłuba.'),
+    ('w14', 12, 'Dlaczego ujemna różnica ciśnień w kabinie hermetyzowanej jest niebezpieczna?',
+     'Kadłub hermetyzowany projektuje się jako zbiornik z nadciśnieniem wewnątrz. Przy zbyt gwałtownym zniżaniu ciśnienie '
+     'zewnętrzne może przewyższyć wewnętrzne. Nawet niewielka ujemna różnica ściska wtedy cienkościenne pokrycia, które źle '
+     'znoszą ściskanie. Wykroje okien i drzwi dodatkowo koncentrują naprężenia.'),
+    ('w14', 4, 'Jak z sił masowych wyznacza się reakcje okuć, siłę tnącą i moment gnący kadłuba?',
+     'Siła masowa P_i = m_i·a_i. Reakcje okuć R_p i R_t wynikają z równowagi belki: ΣP_i + R_p + R_t = 0 '
+     'i ΣP_i·x_i + R_p·x_Rp + R_t·x_Rt = 0. Siła tnąca T_j to suma sił od końca kadłuba do przekroju j, '
+     'przyrost momentu ΔM_i = T_i·Δx, a moment gnący M_j = ΣΔM_i.'),
+    ('w14', 10, 'Czym jest siła P_ZHε w jednostkowym przypadku obciążeń kadłuba?',
+     'Nie jest rzeczywistą siłą obciążającą, tylko reprezentantem przyspieszenia kątowego: jednostkowa siła na usterzeniu '
+     'wywołuje przyspieszenie ε wokół środka masy, a ono siły masowe P_i = m_i·ε·(x_i − x_SC).'),
+    ('w14', 8, 'Ile wynosi środek masy kadłuba w przykładzie Danileckiego i jak się go wyznacza?',
+     'x_SC = Σm_i·x_i / Σm_i = 5405 kg·m / 1263 kg ≈ 4,28 m. Na tej podstawie liczy się przyspieszenia od ε '
+     'i siły masowe w przypadkach jednostkowych.'),
 )
 
 _FILES = {key: source.split(', ')[0] for key, _, _, source in LECTURES}

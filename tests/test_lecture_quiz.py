@@ -43,3 +43,5 @@ def test_question_ids_stay_stable_for_saved_progress():
     assert by_id['w01_01'].startswith('Co faktycznie kupuje klient')
     assert by_id['w03_20'].startswith('Jakie są wymagane kąty widoczności')
     assert by_id['w15_98'].startswith('Jaką energię musi pochłonąć podwozie')
+    assert by_id['w03_106'].startswith('Jakie cechy kadłuba i układu ułatwiają załadunek')
+    assert by_id['w14_118'].startswith('Ile wynosi środek masy kadłuba w przykładzie Danileckiego')
