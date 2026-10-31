@@ -87,20 +87,26 @@ def estimate_aeroelastics(geom: dict, aero: dict, mass: dict, envelope: dict, pa
     v_rev_ms = 0.82 * v_div_ms
     v_rev_kmh = v_rev_ms * 3.6
 
-    # 3. PRĘDKOŚĆ FLATTERU GIĘTNO-SKRĘTNEGO (THEODORSEN / RAYMER)
-    omega_h = 2.0 * math.pi * max(1.5, 3.5 * math.sqrt(10.0 / max(1.0, b)))
-    omega_alpha = 2.0 * math.pi * max(4.0, 10.0 * math.sqrt(GJ / max(1.0, 50000.0)))
-
-    b_half = mac / 2.0
-    mu_mass = m_wing / max(1.0, math.pi * RHO0 * (b_half ** 2) * b)
-    v_flutter_ms = 0.88 * b_half * omega_alpha * math.sqrt(max(1.0, mu_mass)) * (1.0 + 0.15 * (omega_h / max(0.1, omega_alpha)))
+    # 3. FLATTER GIĘTNO-SKRĘTNY: przekrój typowy o dwóch stopniach swobody (h, α), aerodynamika
+    # quasi-stacjonarna, flatter przy zbiegnięciu się częstości (Hodges, Pierce „Introduction to Structural
+    # Dynamics and Aeroelasticity”, rozdz. 5; Bisplinghoff, Ashley, Halfman). Częstości własne z belki
+    # wspornikowej o sztywności kesonu: giętna ω_h = 1,875²·√(EI/(m′l⁴)), skrętna ω_α = π/(2l)·√(GJ/I_α).
+    E_mod = {"composite": 60.0e9, "carbon": 60.0e9, "wood": 10.0e9}.get(material, 72.0e9)
+    box_height = 0.9 * tc * mac
+    EI = E_mod * 2.0 * (0.60 * mac) * t_skin * (box_height / 2.0) ** 2   # pokrycia kesonu jako pasy
+    m_line = m_wing / max(0.5, b)                                       # masa skrzydła na metr rozpiętości
+    x_ea, x_cg, r_alpha = 0.40, 0.45, 0.50                              # oś sprężysta, środek masy, promień bezwładności
+    section = typical_section_flutter(m_line, mac, GJ, EI, l_semi, a_w_rad, x_ea, x_cg, r_alpha)
+    omega_h, omega_alpha, mu_mass = section["omega_h"], section["omega_alpha"], section["mu"]
+    v_flutter_ms = section["v_flutter_ms"]
     v_flutter_kmh = v_flutter_ms * 3.6
 
     # 4. MARGINESY BEZPIECZEŃSTWA WG PRZEPISÓW ZDATNOŚCI (CS-23.629 / CS-25.629)
     v_req_flutter_kmh = 1.20 * v_d_kmh
     v_req_rev_kmh = 1.15 * v_d_kmh
 
-    margin_flutter = round(v_flutter_kmh / max(1.0, v_d_kmh), 2)
+    coalescence = math.isfinite(v_flutter_kmh)
+    margin_flutter = round(v_flutter_kmh / max(1.0, v_d_kmh), 2) if coalescence else None
     margin_divergence = round(v_div_kmh / max(1.0, v_d_kmh), 2)
     margin_reversal = round(v_rev_kmh / max(1.0, v_d_kmh), 2)
 
@@ -114,7 +120,7 @@ def estimate_aeroelastics(geom: dict, aero: dict, mass: dict, envelope: dict, pa
         "dive_speed_vd_kmh": round(v_d_kmh, 1),
         "divergence_speed_kmh": round(v_div_kmh, 1),
         "aileron_reversal_speed_kmh": round(v_rev_kmh, 1),
-        "flutter_speed_kmh": round(v_flutter_kmh, 1),
+        "flutter_speed_kmh": round(v_flutter_kmh, 1) if coalescence else None,
         "required_flutter_speed_kmh": round(v_req_flutter_kmh, 1),
         "margin_flutter": margin_flutter,
         "margin_divergence": margin_divergence,
@@ -125,6 +131,15 @@ def estimate_aeroelastics(geom: dict, aero: dict, mass: dict, envelope: dict, pa
         "torsional_stiffness_gj": round(GJ, 1),
         "bending_frequency_hz": round(omega_h / (2.0 * math.pi), 1),
         "torsion_frequency_hz": round(omega_alpha / (2.0 * math.pi), 1),
+        "bending_stiffness_ei": round(EI, 1),
+        "flutter_model": {
+            "method": ("Przekrój typowy 2 st. swobody, aerodynamika quasi-stacjonarna, flatter przy zbiegnięciu częstości "
+                       "(Hodges, Pierce, rozdz. 5). Szacunek wstępny: rzeczywista prędkość flatteru wymaga analizy "
+                       "z aerodynamiką niestacjonarną lub badań drgań (CS 23.629)."),
+            "mass_ratio_mu": round(mu_mass, 2),
+            "elastic_axis_chord": x_ea, "section_cg_chord": x_cg, "radius_of_gyration": r_alpha,
+            "coalescence": coalescence,
+        },
         "explanation": {
             "flutter": (
                 "Flater to gwałtowne, samowzbudne drgania giętno-skrętne skrzydła pod wpływem sił aerodynamicznych. "
@@ -140,3 +155,29 @@ def estimate_aeroelastics(geom: dict, aero: dict, mass: dict, envelope: dict, pa
             )
         }
     }
+
+
+def typical_section_flutter(m_line, chord, GJ, EI, l_semi, lift_slope, x_ea=0.40, x_cg=0.45, r_alpha=0.50, rho=RHO0):
+    """Prędkość flatteru przekroju typowego (h, α) z aerodynamiką quasi-stacjonarną.
+
+    det[[k_h − mω², L − S_α ω²], [−S_α ω², k_α − L·e − I_α ω²]] = 0, L = q·c·a (siła nośna na radian i metr),
+    e — odległość 1/4 cięciwy przed osią sprężystą. Wyróżnik równania na ω² jest kwadratowy względem L;
+    flatter występuje przy najmniejszym dodatnim L, dla którego znika (zbiegnięcie częstości).
+    """
+    b_s = chord / 2.0
+    a_ea, x_alpha = (x_ea - 0.5) / 0.5, (x_cg - x_ea) / 0.5
+    I_alpha = m_line * (r_alpha * b_s) ** 2
+    omega_h = 1.875 ** 2 * math.sqrt(EI / (m_line * l_semi ** 4))
+    omega_alpha = math.pi / (2.0 * l_semi) * math.sqrt(GJ / I_alpha)
+    k_h, k_a, s_a = m_line * omega_h ** 2, I_alpha * omega_alpha ** 2, m_line * x_alpha * b_s
+    e_ac = (0.5 + a_ea) * b_s
+    A = m_line * I_alpha - s_a ** 2
+    B0, B1 = -(m_line * k_a + I_alpha * k_h), m_line * e_ac + s_a
+    C0, C1 = k_h * k_a, -k_h * e_ac
+    qa, qb, qc = B1 ** 2, 2.0 * B0 * B1 - 4.0 * A * C1, B0 ** 2 - 4.0 * A * C0
+    disc = qb ** 2 - 4.0 * qa * qc
+    lifts = [(-qb + sgn * math.sqrt(disc)) / (2.0 * qa) for sgn in (-1.0, 1.0)] if disc >= 0 and qa > 0 else []
+    lifts = [lift for lift in lifts if lift > 0]
+    v_flutter = math.sqrt(2.0 * min(lifts) / (rho * chord * lift_slope)) if lifts else math.inf
+    return dict(v_flutter_ms=v_flutter, omega_h=omega_h, omega_alpha=omega_alpha,
+                mu=m_line / (math.pi * rho * b_s ** 2), matrices=(m_line, I_alpha, s_a, k_h, k_a, e_ac))

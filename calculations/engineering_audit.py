@@ -403,9 +403,11 @@ def perform_engineering_audit(result: dict) -> dict:
                 "największej dopuszczalnej prędkości nurkowania (co najmniej 20% powyżej VD)."
             ),
             "engineering_note": (
-                f"Szacowana prędkość flatteru giętno-skrętnego wynosi V_flater = {v_flutter:.0f} km/h (VD = {v_d_val:.0f} km/h, zapas: {flutter_margin:.2f} VD). "
-                + ("Skrzydło spełnia wymóg przepisów zdatności CS-23/25 (margines ≥ 1.20 VD)." if flutter_ok else
-                   "Niewystarczający margines flatteru (< 1.20 VD)! Zwiększ grubość poszycia kesonu skrzydła (t_skin) lub zastosuj sztywniejszy dźwigar.")
+                f"Szacowana prędkość flatteru giętno-skrętnego wynosi V_flater = {v_flutter:.0f} km/h (VD = {v_d_val:.0f} km/h, zapas: {flutter_margin:.2f} VD); "
+                "to szacunek wstępny z modelu przekroju typowego z aerodynamiką quasi-stacjonarną. "
+                + ("Szacunek mieści się w marginesie 1,20 VD; CS-23.629 wymaga potwierdzenia analizą drgań lub próbami." if flutter_ok else
+                   "Szacunek nie daje marginesu 1,20 VD: przesuń środek masy przekrojów do przodu (wyważenie masowe lotek, "
+                   "masy przed osią sprężystą) i zwiększ sztywność skrętną kesonu.")
             )
         })
 
