@@ -364,7 +364,18 @@
     ac_empty_mass_definition: E('Definicja m_e', 'Co obejmuje podana masa pusta',
       'Czy masa pusta zawiera olej, paliwo niezużywalne, wyposażenie standardowe, a może to OEW razem z załogą.',
       'Różne definicje zmieniają m_e/m₀ o kilka punktów procentowych — opisz je, żeby trend był spójny.',
-      'Np. „masa pusta wg TCDS: z paliwem niezużywalnym i pełnym olejem”.')
+      'Np. „masa pusta wg TCDS: z paliwem niezużywalnym i pełnym olejem”.'),
+    airfoil: E('Profil', 'Profil płata przyjęty w projekcie',
+      'Oznaczenie profilu skrzydła, np. NACA 23012. Profile NACA 4- i 5-cyfrowe program rysuje ze wzoru; inne trzeba opisać rzędnymi z katalogu.',
+      'Zmienia rysunek profilu 200 mm w P3 i opis doboru profilu w P2. Charakterystyki aerodynamiczne płata dalej pochodzą z przykładowej tabeli 2.1 przewodnika, więc dane wybranego profilu podaj w opracowaniu.',
+      'Samoloty lekkie: NACA 23012–23015, 2412–2415, 4412–4415 | Szybowce: Wortmann FX 61-163, FX 63-137 | Odrzutowe: NASA SC(2)-0412, NACA 64A212.',
+      {def: 'Pierwsza cyfra serii 4-cyfrowej to ugięcie szkieletowej w % cięciwy, druga — jego położenie w dziesiątych cięciwy, dwie ostatnie — grubość w %. W serii 5-cyfrowej pierwsza cyfra ·0,15 daje projektowe C_z, dwie następne — linię szkieletową (np. 230), dwie ostatnie — grubość.',
+       note: 'Wybierz kilka profili dla obliczonej liczby Reynoldsa i Macha, porównaj C_x przy projektowym C_z, C_z,max, charakter przeciągnięcia i C_m (wykład 8, BIPOL_3).'}),
+    airfoil_coordinates: E('Rzędne', 'Rzędne profilu z katalogu (.dat)',
+      'Wklejony plik z rzędnymi profilu: nazwa w pierwszym wierszu, dalej pary x, y od krawędzi spływu przez nosek (format Seliga) albo osobno górna i dolna powierzchnia (format Lednicera).',
+      'Program skaluje rzędne do cięciwy 200 mm, rysuje profil w skali 1:1 i dołącza go do raportu P3.',
+      'Pliki .dat z katalogu UIUC, Abbotta i von Doenhoffa, Stuttgarter Profilkatalog; zwykle 30–200 punktów.',
+      {note: 'Podaj w opracowaniu źródło rzędnych (katalog, strona) — tak samo jak źródło charakterystyk profilu.'})
   });
 
   // ---- „Prosto mówiąc” dla parametrów już opisanych w encyklopedii ----
