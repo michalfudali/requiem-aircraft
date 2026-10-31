@@ -636,6 +636,9 @@ function initDidacticSystem() {
 
   renderFlapDidacticCard(false);
   renderWingConfigDidacticCard();
+  for (const id of ['airfoil', 'airfoil_coordinates']) {
+    document.getElementById(id)?.addEventListener('input', () => invalidateAirfoil200mm('Dane profilu zmieniły się. Wyznacz rzędne lub przelicz projekt.'));
+  }
 }
 
 function showDidacticPopover(paramKey, anchorEl) {
@@ -1936,7 +1939,11 @@ function saveProject(project) {
 
 function loadProjectIntoForm(project) {
   if (!project || !project.params) return;
-  const params = { runway_surface: 'paved', cs22_gust_model: 'amendment3', ...project.params };
+  const params = { runway_surface: 'paved', cs22_gust_model: 'amendment3', airfoil: '', airfoil_coordinates: '', ...project.params };
+  airfoilResultProjectId = null;
+  invalidateAirfoil200mm('Oczekiwanie na profil aktualnego projektu.');
+  const airfoilInput = document.getElementById('airfoil');
+  if (airfoilInput) airfoilInput.placeholder = 'np. NACA 23012';
   params.m_pax = (params.m_pax || 0) + (params.m_bag || 0);
   params.m_bag = 0;
   formBaseParams = { ...params };
@@ -3572,11 +3579,12 @@ function hydrateSemesterProjectsData(res) {
     // Puste pole = profil przyjęty w P2; wpisany profil trafia do parametrów projektu (data-analysis-param).
     const afNameEl = document.getElementById('airfoil');
     if (afNameEl) afNameEl.placeholder = bp.p2?.airfoil_selection?.selected_airfoil || 'np. NACA 23012';
-    if (!airfoilProfile) {
-      const afDescEl = document.getElementById('p3_airfoil_desc');
-      if (afDescEl) afDescEl.textContent = p3.airfoil_coordinates_note;
-      if (p3.airfoil_200mm_svg) renderAirfoil200mm({svg: p3.airfoil_200mm_svg, table: p3.airfoil_200mm_table, note: p3.airfoil_coordinates_note});
-    }
+    airfoilResultProjectId = getActiveProjectId();
+    cancelAirfoilRequest();
+    renderAirfoil200mm({ ...p3.airfoil_200mm_info,
+      airfoil: p3.airfoil_200mm_info?.name || bp.p2?.airfoil_selection?.selected_airfoil,
+      svg: p3.airfoil_200mm_svg, table: p3.airfoil_200mm_table, note: p3.airfoil_coordinates_note,
+      error: !p3.airfoil_200mm_svg });
 
     const t31Tbody = document.getElementById('p3_table31_tbody');
     if (t31Tbody && Array.isArray(p3.table_3_1_components)) {
@@ -4105,21 +4113,43 @@ function hydrateSemesterProjectsData(res) {
 
 // Profil o cięciwie 200 mm: NACA liczony analitycznie albo rzędne wklejone z katalogu; SVG ma wymiary w mm.
 let airfoilProfile = null;
+let airfoilRequestSequence = 0;
+let airfoilRequestController = null;
+let airfoilResultProjectId = null;
+
+function airfoilInputKey() {
+  return JSON.stringify([getActiveProjectId(), (document.getElementById('airfoil')?.value || '').trim(),
+    document.getElementById('airfoil_coordinates')?.value || '']);
+}
+
+function cancelAirfoilRequest() {
+  airfoilRequestSequence++;
+  airfoilRequestController?.abort();
+  airfoilRequestController = null;
+  const button = document.getElementById('btn_fetch_airfoil');
+  if (button) button.disabled = false;
+}
+
+function invalidateAirfoil200mm(note) {
+  cancelAirfoilRequest();
+  renderAirfoil200mm({svg: '', table: [], note});
+}
 
 function renderAirfoil200mm(data) {
+  airfoilProfile = data.svg ? { ...data, airfoil: data.airfoil || data.name, inputKey: airfoilInputKey() } : null;
   const fmtMm = v => v == null ? '' : Number(v).toFixed(2).replace('.', ',');
   const afDescEl = document.getElementById('p3_airfoil_desc');
   if (afDescEl) {
-    afDescEl.classList.remove('airfoil-error');
-    afDescEl.textContent = data.thickness_pct
+    afDescEl.classList.toggle('airfoil-error', Boolean(data.error));
+    afDescEl.textContent = data.thickness_pct != null
       ? `${data.note} Grubość względna: ${String(data.thickness_pct).replace('.', ',')}% przy ${String(data.thickness_x_pct).replace('.', ',')}% cięciwy.`
       : data.note;
   }
   const afSvgEl = document.getElementById('p3_airfoil_svg_container');
   if (afSvgEl) afSvgEl.innerHTML = data.svg || '';
   const coordsTbody = document.getElementById('p3_airfoil_coords_tbody');
-  if (coordsTbody && Array.isArray(data.table)) {
-    coordsTbody.innerHTML = data.table.map(pt => `<tr><td>${pt.xc_pct == null ? '' : String(pt.xc_pct).replace('.', ',')}</td>`
+  if (coordsTbody) {
+    coordsTbody.innerHTML = (data.table || []).map(pt => `<tr><td>${pt.xc_pct == null ? '' : String(pt.xc_pct).replace('.', ',')}</td>`
       + `<td><b>${fmtMm(pt.xu_mm)}</b></td><td>${fmtMm(pt.yu_mm)}</td><td><b>${fmtMm(pt.xl_mm)}</b></td><td>${fmtMm(pt.yl_mm)}</td><td>${fmtMm(pt.thick_mm)}</td></tr>`).join('');
   }
   ['btn_print_airfoil', 'btn_download_airfoil'].forEach(id => { const el = document.getElementById(id); if (el) el.disabled = !data.svg; });
@@ -4128,33 +4158,49 @@ function renderAirfoil200mm(data) {
 async function fetchAirfoil200mm(fromPaste = false) {
   const btn = document.getElementById('btn_fetch_airfoil');
   const typed = (document.getElementById('airfoil')?.value || '').trim();
-  const name = typed || currentResults?.bipol_projects?.p2?.airfoil_selection?.selected_airfoil || '';
   const pasted = document.getElementById('airfoil_coordinates')?.value || '';
-  const coordinates = fromPaste ? pasted : '';
+  const name = typed || (!pasted.trim() && airfoilResultProjectId === getActiveProjectId()
+    ? currentResults?.bipol_projects?.p2?.airfoil_selection?.selected_airfoil : '') || '';
+  // Use the same precedence as the calculation and report: supplied ordinates win.
+  const coordinates = pasted;
+  const inputKey = airfoilInputKey();
+  invalidateAirfoil200mm('Wyznaczanie rzędnych aktualnego profilu…');
+  const sequence = airfoilRequestSequence;
+  const controller = new AbortController();
+  airfoilRequestController = controller;
+  const current = () => sequence === airfoilRequestSequence && inputKey === airfoilInputKey();
   if (btn) btn.disabled = true;
   try {
+    if (fromPaste && !coordinates.trim()) throw new Error('Wklej rzędne profilu przed przeskalowaniem.');
+    if (!name && !coordinates.trim()) throw new Error('Wpisz nazwę profilu albo przelicz projekt, aby ustalić profil z P2.');
     const res = coordinates.trim()
-      ? await fetch('/api/airfoil/200mm', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({airfoil: name, coordinates})})
-      : await fetch(`/api/airfoil/200mm?airfoil=${encodeURIComponent(name)}`);
+      ? await fetch('/api/airfoil/200mm', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({airfoil: name, coordinates}), signal: controller.signal})
+      : await fetch(`/api/airfoil/200mm?airfoil=${encodeURIComponent(name)}`, {signal: controller.signal});
     const data = await res.json();
+    if (!current()) return;
     if (!res.ok) throw new Error(data.message || 'Nie udało się wyznaczyć rzędnych profilu.');
-    airfoilProfile = data;
     renderAirfoil200mm(data);
     // Nowy profil zapisuje się w projekcie i trafia do P2, P3 i raportów po przeliczeniu.
     const saved = currentResults?.params || {};
-    if ((typed !== (saved.airfoil || '').trim() || pasted !== (saved.airfoil_coordinates || '')) && typeof performCalculation === 'function') performCalculation();
+    if ((airfoilResultProjectId !== getActiveProjectId() || typed !== (saved.airfoil || '').trim() || pasted !== (saved.airfoil_coordinates || '')) && typeof performCalculation === 'function') performCalculation();
     const box = document.getElementById('airfoilCoordsBox');
     if (box) box.style.display = 'block';
   } catch (err) {
-    const afDescEl = document.getElementById('p3_airfoil_desc');
-    if (afDescEl) { afDescEl.textContent = err.message; afDescEl.classList.add('airfoil-error'); }
+    if (err.name !== 'AbortError' && current()) renderAirfoil200mm({svg: '', table: [], note: err.message, error: true});
   } finally {
-    if (btn) btn.disabled = false;
+    if (current()) {
+      airfoilRequestController = null;
+      if (btn) btn.disabled = false;
+    }
   }
 }
 
+function currentAirfoilSvg() {
+  return airfoilProfile?.inputKey === airfoilInputKey() ? document.querySelector('#p3_airfoil_svg_container svg') : null;
+}
+
 function printAirfoil200mm() {
-  const svg = document.querySelector('#p3_airfoil_svg_container svg');
+  const svg = currentAirfoilSvg();
   if (!svg) return;
   const win = window.open('', '_blank');
   if (!win) return;
@@ -4167,7 +4213,7 @@ function printAirfoil200mm() {
 }
 
 function downloadAirfoilSvg() {
-  const svg = document.querySelector('#p3_airfoil_svg_container svg');
+  const svg = currentAirfoilSvg();
   if (!svg) return;
   const url = URL.createObjectURL(new Blob([svg.outerHTML], {type: 'image/svg+xml'}));
   const a = document.createElement('a');
