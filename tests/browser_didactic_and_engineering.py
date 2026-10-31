@@ -63,7 +63,8 @@ with sync_playwright() as p:
     audit_text = page.locator('#courseworkAuditList').inner_text()
     assert 'flater' in audit_text.lower() or 'flatter' in audit_text.lower(), "Brak weryfikacji flatteru w audycie"
     assert 'hałas' in audit_text.lower() or 'akustyczn' in audit_text.lower() or 'icao' in audit_text.lower(), "Brak weryfikacji akustycznej w audycie"
-    print("-> Weryfikacja flatteru i zdatności akustycznej ICAO obecna w audycie.")
+    assert 'cap' in audit_text.lower() or 'holendrowan' in audit_text.lower(), "Brak weryfikacji CAP/holendrowania w audycie"
+    print("-> Weryfikacja flatteru, hałasu ICAO oraz własności lotnych CAP/holendrowania obecna w audycie.")
 
     # Sprawdź symulator pytań na obronę
     quiz_card = page.locator('#courseworkDefenseQuestionsCard')

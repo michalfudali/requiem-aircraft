@@ -106,3 +106,17 @@ def test_engineering_audit_noise_check():
     assert noise_check is not None
     assert 'dBA' in noise_check['value']
     assert audit['metrics']['noise_flyover'] > 0.0
+
+
+def test_engineering_audit_flying_qualities_and_defense_question():
+    params = dict(AIRCRAFT_PRESETS['pzl_kos'])
+    result = run_bipol_project(params)
+    audit = perform_engineering_audit(result)
+
+    fq_check = next((chk for chk in audit['checks'] if chk['id'] == 'flying_qualities_cap_check'), None)
+    assert fq_check is not None
+    assert 'CAP =' in fq_check['value']
+    assert audit['metrics']['cap_rad_s2_per_g'] > 0.0
+
+    questions_ids = {q['id'] for q in audit['defense_questions']}
+    assert 'q_flying_qualities' in questions_ids
