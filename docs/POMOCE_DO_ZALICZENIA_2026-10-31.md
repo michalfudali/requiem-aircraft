@@ -39,7 +39,7 @@ Strona przeglądu pokazuje najbliższy termin (dla wybranej grupy albo oba dni).
 
 ## Zejściówki (Materiały i zaliczenie → Zejściówki)
 
-`calculations/lecture_quiz.py`: 106 pytań z 15 wykładów (nowe dopisuje się na końcu listy, bo postęp jest zapisany pod identyfikatorami), każde z odpowiedzią wzorcową
+`calculations/lecture_quiz.py`: 118 pytań z 15 wykładów (nowe dopisuje się na końcu listy, bo postęp jest zapisany pod identyfikatorami), każde z odpowiedzią wzorcową
 i stroną materiału. Symulacja losuje 1–3 pytania z wybranych wykładów (najpierw
 „Do powtórki” i nieocenione) i odmierza 15 minut. Samoocena i wybór wykładów zapisują
 się tylko w przeglądarce.
