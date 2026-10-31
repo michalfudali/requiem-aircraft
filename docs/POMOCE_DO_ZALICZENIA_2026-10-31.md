@@ -153,3 +153,10 @@ co odzwierciedla zgrubność modelu, a nie dane. Audyt opisuje wynik jako szacun
 wariantów; rzetelna ocena wymagałaby metody z widmem i kierunkowością (np. SAE AIR 1407).
 Szybowiec bez napędu nie podlega Załącznikowi 16; motoszybowiec samostartujący ocenia się jak
 samolot śmigłowy (10.1.1 wyłącza tylko motoszybowce samoutrzymujące się).
+
+## Podmuch — cięciwa w parametrze masowym
+
+JAR-23.341 / 14 CFR 23.341 definiują μ_g = 2(W/S)/(ρ·C·a·g) z C = średnia cięciwa geometryczna
+(S/b). Rozwiązanie zadania kolokwialnego używa jej od 1.11.2026 (wcześniej SCA; różnica w K_g
+ok. 0,5%). Główna obwiednia CS-23 w `calculations/envelope.py` nadal używa SCA wg Danileckiego
+(wzór 2.14) — do ujednolicenia, gdy zakończą się bieżące prace nad obwiednią klapową.
