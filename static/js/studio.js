@@ -3,7 +3,7 @@
   'use strict';
   const {escape: esc, format: fmt, filename, snapshot, metrics, csv, resultRows} = BipolStudio;
   const VARIANTS_KEY = 'bipol_studio_variants_v1';
-  const wideTabs = new Set(['tab-overview', 'tab-inputs', 'tab-calculation-tree', 'tab-variants', 'tab-reports', 'tab-glide', 'tab-methods', 'tab-trends', 'tab-coursework']);
+  const wideTabs = new Set(['tab-overview', 'tab-inputs', 'tab-calculation-tree', 'tab-variants', 'tab-reports', 'tab-glide', 'tab-methods', 'tab-trends', 'tab-coursework', 'tab-exam', 'tab-quiz']);
   let view = 'iso', fresh = false, resultProject = null, messageTimer;
   let aircraftModel, aircraftResult, aircraftCamera = BipolAircraftPreview.camera(), aircraftFrame;
   let aircraftProportions = 'concept';

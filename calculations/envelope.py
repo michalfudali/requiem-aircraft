@@ -122,8 +122,9 @@ def calculate_vn_envelope(m0: float, geom: dict, aero: dict, perf: dict, params:
         rule_terms = dict(ws_psf=ws_psf, vc_factor_kts=vc_factor_kts, vd_factor=vd_factor,
                           v_c_min_ms=v_c_min_ms)
         n1, n4 = n_max, n_min
-        # Ujemna gałąź CS-23 zamyka się w n = 0 przy VD (Danilecki, rys. 3.2)
-        n2, n3 = n_max, 0.0
+        # CS-23 Amdt 4 / JAR-23.333(b)(3): ujemna gałąź maleje liniowo od VC do n = 0 przy VD
+        # (normal, commuter; także CS-25.333(b)), a do n = −1 dla kategorii akrobacyjnej i użytkowej.
+        n2, n3 = n_max, (-1.0 if load_basis in ("cs23_aerobatic", "cs23_utility") else 0.0)
         # Podmuch przy V_B był wymagany tylko dla kategorii commuter (§23.333(c)(1)(iii));
         # dla CS-25 odpowiada uproszczonemu modelowi Pratta (dawny FAR 25.341).
         vb_gust = load_basis in ("cs23_commuter", "cs25")

@@ -57,6 +57,20 @@ RUBRIC = (
 )
 PROJECT_MAX = {f'p{i}': sum(r[2] for r in RUBRIC if r[0].startswith(f'p{i}_')) for i in range(1, 7)}
 
+# Regulamin, slajd 8: tydzień oddania każdego projektu; oddaje się na własnych zajęciach projektowych.
+# Grupy 1, 7 i 8 mają zajęcia w środę, grupy 2–6 w piątek (slajd 4). Tygodnie 1–12 zaczynają się
+# 5.10.2026, a po przerwie świątecznej tydzień 13 zaczyna się 11.01.2027.
+SCHEDULE = (
+    dict(key='p1', title='Projekt koncepcyjny', week=3, wednesday='2026-10-21', friday='2026-10-23'),
+    dict(key='p2', title='Studium wykonalności', week=5, wednesday='2026-11-04', friday='2026-11-06'),
+    dict(key='p3', title='Projekt wstępny i analiza masowa', week=8, wednesday='2026-11-25', friday='2026-11-27'),
+    dict(key='p4', title='Charakterystyki aerodynamiczne', week=10, wednesday='2026-12-09', friday='2026-12-11'),
+    dict(key='p5', title='Osiągi samolotu', week=11, wednesday='2026-12-16', friday='2026-12-18'),
+    dict(key='p6', title='Obwiednia obciążeń dopuszczalnych', week=14, wednesday='2027-01-20', friday='2027-01-22'),
+)
+GROUP_DAYS = {1: 'wednesday', 2: 'friday', 3: 'friday', 4: 'friday', 5: 'friday', 6: 'friday', 7: 'wednesday', 8: 'wednesday'}
+GROUP_HOURS = {1: '8:15', 2: '10:15', 3: '10:15', 4: '11:15', 5: '12:15', 6: '13:15', 7: '9:15', 8: '8:15'}
+
 
 def validate_coursework(value):
     if not isinstance(value, dict) or set(value) - {'scores', 'quiz_points', 'quizzes_passed', 'evidence'}:

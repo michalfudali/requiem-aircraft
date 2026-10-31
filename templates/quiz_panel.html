@@ -1,0 +1,34 @@
+<section id="tab-quiz" class="tab-content studio-panel">
+  <div class="studio-heading"><div><p class="studio-eyebrow">ZALICZENIE / ZEJŚCIÓWKI</p><h1>Powtórka z wykładów</h1><p>Zejściówka to 1–3 pytania z treści wykładów i 15 minut na odpowiedź; termin podaje się tydzień wcześniej. Zejściówki dają do 100 z 200 pkt, a każdą trzeba zaliczyć.</p></div></div>
+
+  <section class="studio-card">
+    <div class="studio-card-heading"><div><h2>Symulacja zejściówki</h2><p>Wybierz wykłady, wylosuj pytania i odpowiedz na kartce lub w polu poniżej. Potem porównaj ją z odpowiedzią wzorcową i oceń, czy umiesz już to zagadnienie.</p></div></div>
+    <fieldset class="quiz-lectures" id="quizLectures"><legend>Zakres wykładów</legend>
+      {% for lecture in lectures %}<label><input type="checkbox" value="{{ lecture.key }}" checked> W{{ lecture.number }}. {{ lecture.title }} <small data-quiz-progress="{{ lecture.key }}">0/{{ lecture.questions|length }}</small></label>{% endfor %}
+    </fieldset>
+    <div class="quiz-controls">
+      <button type="button" class="btn btn-outline" data-quiz-range="all">Wszystkie</button>
+      <button type="button" class="btn btn-outline" data-quiz-range="none">Żaden</button>
+      <label class="studio-field" for="quizCount">Liczba pytań<select id="quizCount"><option value="1">1</option><option value="2">2</option><option value="3" selected>3</option></select></label>
+      <button type="button" class="btn btn-primary" id="quizDraw">Losuj zejściówkę</button>
+    </div>
+    <p class="studio-fine-print">Losowanie najpierw wybiera pytania oznaczone „Do powtórki” i jeszcze nieocenione. Postęp zapisuje się tylko w tej przeglądarce.</p>
+    <div id="quizSession" hidden>
+      <div class="quiz-timer" role="timer" aria-live="off"><span>Pozostały czas</span><strong id="quizClock">15:00</strong></div>
+      <ol id="quizItems" class="quiz-items"></ol>
+      <div class="quiz-controls"><button type="button" class="btn btn-primary" id="quizReveal">Pokaż odpowiedzi wzorcowe</button><button type="button" class="btn btn-outline" id="quizStop">Zakończ</button></div>
+    </div>
+  </section>
+
+  <section class="studio-card">
+    <div class="studio-card-heading"><div><h2>Wszystkie pytania</h2><p id="quizSummary">Oceń pytania, żeby śledzić postęp.</p></div></div>
+    <div class="quiz-bank">
+      {% for lecture in lectures %}<details class="quiz-lecture" data-quiz-lecture="{{ lecture.key }}"><summary><strong>Wykład {{ lecture.number }}. {{ lecture.title }}</strong><small>{{ lecture.questions|length }} pytań · {{ lecture.source }}</small></summary>
+        {% for q in lecture.questions %}<details class="quiz-question" data-quiz-id="{{ q.id }}" data-quiz-lecture="{{ lecture.key }}"><summary><span class="quiz-state" aria-hidden="true"></span><span class="quiz-text">{{ q.question }}</span></summary>
+          <div class="quiz-answer"><p>{{ q.answer }}</p><p class="studio-fine-print">Materiał: {{ q.source }}, s. {{ q.slide }}.</p>
+          <div class="quiz-grade" role="group" aria-label="Samoocena"><button type="button" class="btn btn-outline-sm" data-quiz-grade="known">Umiem</button><button type="button" class="btn btn-outline-sm" data-quiz-grade="review">Do powtórki</button></div></div>
+        </details>{% endfor %}
+      </details>{% endfor %}
+    </div>
+  </section>
+</section>

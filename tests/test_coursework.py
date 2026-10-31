@@ -135,3 +135,27 @@ def test_report_scopes_evidence_escapes_text_and_keeps_grades_private(client, re
     assert '&lt;script&gt;unsafe()&lt;/script&gt; Arkusz 3' in html
     assert '<script>unsafe()</script>' not in html and 'TYLKO-P6' not in html
     assert 'Punkty przyznane' not in html and 'Ocena według wpisanych punktów' not in html
+
+
+def test_schedule_follows_regulation_calendar():
+    """Regulamin 2026/27, slajd 8: tygodnie 1–12 od 5.10.2026, po przerwie tydzień 13 od 11.01.2027."""
+    from datetime import date, timedelta
+    from calculations.coursework import SCHEDULE, GROUP_DAYS
+
+    def monday(week):
+        return date(2026, 10, 5) + timedelta(weeks=week - 1) if week <= 12 else date(2027, 1, 11) + timedelta(weeks=week - 13)
+    assert [item['key'] for item in SCHEDULE] == list(PROJECT_MAX)
+    assert [item['week'] for item in SCHEDULE] == [3, 5, 8, 10, 11, 14]
+    for item in SCHEDULE:
+        assert date.fromisoformat(item['wednesday']) == monday(item['week']) + timedelta(days=2)
+        assert date.fromisoformat(item['friday']) == monday(item['week']) + timedelta(days=4)
+    assert sorted(g for g, day in GROUP_DAYS.items() if day == 'wednesday') == [1, 7, 8]
+    assert sorted(g for g, day in GROUP_DAYS.items() if day == 'friday') == [2, 3, 4, 5, 6]
+
+
+def test_schedule_card_is_rendered_for_every_project():
+    from app import app
+    html = app.test_client().get('/').get_data(as_text=True)
+    assert html.count('data-schedule="p') == 6
+    assert 'data-wednesday="2026-11-04" data-friday="2026-11-06"' in html
+    assert html.count('data-day="wednesday"') == 3 and html.count('data-day="friday"') == 5

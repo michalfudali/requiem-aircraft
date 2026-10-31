@@ -78,7 +78,12 @@ def test_ultralight_topics_meet_the_ul_stall_limit_without_an_invented_span():
 def test_aerobatic_topics_use_aerobatic_loads():
     assert [topic(n)['category'] for n in (27, 28, 29)] == ['cs23_aerobatic'] * 3
     assert topic(23)['category'] == 'cs23_level1'
-    assert run_bipol_project(topic(28))['envelope']['limits']['n_max'] >= 6
+    envelope = run_bipol_project(topic(28))['envelope']
+    assert envelope['limits']['n_max'] >= 6
+    # §23.333(b)(3): przy VD ujemna gałąź kończy się na −1 (akrobacyjna), a nie na 0 jak w normalnej.
+    assert envelope['limits']['n_at_vd_neg'] == -1.0
+    assert any(p['point'].startswith('E') and p['n'] == -1.0 for p in envelope['key_points'])
+    assert run_bipol_project(topic(40))['envelope']['limits']['n_at_vd_neg'] == 0.0
 
 
 def test_heavy_payload_topics_are_transport_category_with_two_pilots():
