@@ -1607,13 +1607,16 @@ function populateP6Tables(res) {
       const xcgM = Number(s.xcg_m ?? s.x_cg_m ?? 0);
       const xcgPct = Number(s.xcg_mac_pct ?? s.x_cg_pct_mac ?? 0);
       const mass = Number(s.mass_kg ?? 0);
+      const ground = s.in_flight === false;
+      const ok = s.cg_criterion_passed === true && s.minimum_margin_passed === true;
+      const status = ground ? 'Stan naziemny' : (ok ? '✓ Kryteria P3 spełnione' : '⚠️ Kryteria P3 niespełnione');
       return `
         <tr>
-          <td><b>${s.name}</b></td>
+          <td><b>${escapeHtml(s.name)}</b></td>
           <td class="num"><b>${mass.toFixed(1)}</b></td>
           <td class="num">${xcgM.toFixed(3)}</td>
           <td class="num"><b>${xcgPct.toFixed(1)}%</b></td>
-          <td><span class="badge badge-success">✓ Dopuszczalne</span></td>
+          <td><span class="badge ${ground ? '' : (ok ? 'badge-success' : 'badge-danger')}">${status}</span></td>
         </tr>
       `;
     }).join('');
@@ -1629,19 +1632,19 @@ function populateP6Tables(res) {
     const xNPct = Number(b.neutral_point?.x_n_mac_pct ?? 0);
     const cgFwd = Number(b.cg_range?.forward_pct ?? 0);
     const cgAft = Number(b.cg_range?.aft_pct ?? 0);
-    const cgTrav = Number(b.stability?.cg_travel_pct_mac ?? 0);
+    const cgTrav = Number(b.cg_range?.delta_pct ?? 0);
     p6Stab.innerHTML = `
       <tr><td>Współrzędna noska ŚDA od dziobu kadłuba</td><td class="num"><b>${xLemac.toFixed(3)}</b></td><td>m</td><td>Początek bazy odniesienia (0% ŚDA)</td><td>Punkt bazowy</td></tr>
       <tr><td>Położenie punktu neutralnego płatowca ze statecznikiem (x_N)</td><td class="num"><b>${xNm.toFixed(3)}</b> (${xNPct.toFixed(1)}% ŚDA)</td><td>m (% ŚDA)</td><td>Musi leżeć za ŚM: x_N &gt; x_CG</td><td>Punkt obojętności momentowej</td></tr>
       <tr><td>Skrajne przednie położenie środka masy (x_CG,fwd)</td><td class="num"><b>${cgFwd.toFixed(1)}%</b></td><td>% ŚDA</td><td>Wymóg: sterowność przy lądowaniu</td><td>Maksymalny zapas stateczności</td></tr>
       <tr><td>Skrajne tylne położenie środka masy (x_CG,aft)</td><td class="num"><b>${cgAft.toFixed(1)}%</b></td><td>% ŚDA</td><td>Wymóg: stateczność statyczna Kn &ge; 5%</td><td>Minimalny zapas stateczności</td></tr>
-      <tr><td>Całkowity zakres wędrówki środka masy (&Delta;x_CG)</td><td class="num"><b>${cgTrav.toFixed(1)}%</b></td><td>% ŚDA</td><td>Zakres dopuszczalnych położeń załadunku</td><td>Wędrówka ŚM</td></tr>
+      <tr><td>Całkowity zakres wędrówki środka masy (&Delta;x_CG)</td><td class="num"><b>${cgTrav.toFixed(1)}%</b></td><td>% ŚDA</td><td>Zakres obliczony dla rozpatrzonych stanów w locie</td><td>Wędrówka ŚM</td></tr>
       <tr style="background:#f8fafc; font-weight:bold;">
         <td>Zapas stateczności statycznej podłużnej (K_n,aft)</td>
-        <td class="num"><b style="color:${passed ? '#16a34a' : '#dc2626'}; font-size:1.05rem;">${smAft.toFixed(1)}% ŚDA</b></td>
+        <td class="num"><b style="color:${passed ? '#16a34a' : '#dc2626'}; font-size:1.05rem;">${smAft.toFixed(2)}% ŚDA</b></td>
         <td>% ŚDA</td>
-        <td>Wymóg przepisowy: <b>&ge; 5.0% ŚDA</b></td>
-        <td><span class="badge ${passed ? 'badge-success' : 'badge-danger'}">${passed ? '✓ ZGODNE (Stateczny)' : '✗ NIESTATECZNY'}</span></td>
+        <td>Przyjęte kryterium projektowe: <b>&ge; 5.0% ŚDA</b></td>
+        <td><span class="badge ${passed ? 'badge-success' : 'badge-danger'}">${passed ? '✓ Zapas spełniony' : '✗ Za mały zapas stateczności'}</span></td>
       </tr>
     `;
   }
@@ -3582,10 +3585,10 @@ function hydrateSemesterProjectsData(res) {
       t31Tbody.innerHTML = p3.table_3_1_components.map(c => `
         <tr>
           <td>${escapeHtml(c.item)}</td>
-          <td><b>${c.mass_kg}</b></td>
-          <td>${c.x_m}</td>
-          <td>${c.y_m}</td>
-          <td>${c.z_m}</td>
+          <td><b>${Number(c.mass_kg).toFixed(1)}</b></td>
+          <td>${Number(c.x_m).toFixed(3)}</td>
+          <td>${Number(c.y_m).toFixed(3)}</td>
+          <td>${Number(c.z_m).toFixed(3)}</td>
         </tr>
       `).join('');
     }
@@ -3593,14 +3596,16 @@ function hydrateSemesterProjectsData(res) {
     const loadTbody = document.getElementById('p3_loading_tbody');
     if (loadTbody && Array.isArray(p3.table_3_2_loading_states)) {
       loadTbody.innerHTML = p3.table_3_2_loading_states.map(st => {
-        const ok = st.xcg_mac_pct >= 18.0 && st.xcg_mac_pct <= 38.0;
+        const ground = st.in_flight === false;
+        const ok = st.cg_criterion_passed === true && st.minimum_margin_passed === true;
+        const status = ground ? 'Stan naziemny' : (ok ? '✓ Kryteria P3 spełnione' : '⚠️ Kryteria P3 niespełnione');
         return `
           <tr>
             <td><b>${escapeHtml(st.name)}</b></td>
-            <td>${st.mass_kg}</td>
-            <td>${st.xcg_m}</td>
-            <td><b>${st.xcg_mac_pct}% ŚDA</b></td>
-            <td><span class="badge ${ok ? 'badge-success' : 'badge-danger'}">${ok ? '✓ W zakresie' : '⚠️ Poza zakresem'}</span></td>
+            <td>${Number(st.mass_kg).toFixed(1)}</td>
+            <td>${Number(st.xcg_m).toFixed(3)}</td>
+            <td><b>${Number(st.xcg_mac_pct).toFixed(1)}% ŚDA</b></td>
+            <td><span class="badge ${ground ? '' : (ok ? 'badge-success' : 'badge-danger')}">${status}</span></td>
           </tr>
         `;
       }).join('');

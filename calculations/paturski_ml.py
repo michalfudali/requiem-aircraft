@@ -418,7 +418,7 @@ def aircraft_characteristics_for_cg(p3_aero: dict, x_fwd_bar: float, x_aft_bar: 
         best = max(points, key=lambda p: p["k"])
         slow = min(points, key=lambda p: p["w_ms"])
         polars[key] = {
-            "x_cg_pct": round(100.0 * x_bar, 1),
+            "x_cg_pct": 100.0 * x_bar,
             "points": points,
             "v_opt_kmh": best["v_kmh"], "k_max": best["k"],
             "v_ek_kmh": slow["v_kmh"], "w_min_ms": slow["w_ms"],
@@ -429,15 +429,15 @@ def aircraft_characteristics_for_cg(p3_aero: dict, x_fwd_bar: float, x_aft_bar: 
         "alpha_table": alpha_table,
         "speed_polars": polars,
         "cm_model": {
-            "x_n_pct": round(100.0 * x_n_bar, 1),
-            "x_fwd_pct": round(100.0 * x_fwd_bar, 1),
-            "x_aft_pct": round(100.0 * x_aft_bar, 1),
-            "cz_ref": round(cz_ref, 3),
-            "cm0": round(cm0, 4),
-            "dcm_dcz_fwd": round(-margin(x_fwd_bar), 4),
-            "dcm_dcz_aft": round(-margin(x_aft_bar), 4),
-            "cz_trim_fwd": round(cm0 / margin(x_fwd_bar), 3) if margin(x_fwd_bar) > 0 else None,
-            "cz_trim_aft": round(cm0 / margin(x_aft_bar), 3) if margin(x_aft_bar) > 0 else None,
+            "x_n_pct": 100.0 * x_n_bar,
+            "x_fwd_pct": 100.0 * x_fwd_bar,
+            "x_aft_pct": 100.0 * x_aft_bar,
+            "cz_ref": cz_ref,
+            "cm0": cm0,
+            "dcm_dcz_fwd": -margin(x_fwd_bar),
+            "dcm_dcz_aft": -margin(x_aft_bar),
+            "cz_trim_fwd": cm0 / margin(x_fwd_bar) if margin(x_fwd_bar) > 0 else None,
+            "cz_trim_aft": cm0 / margin(x_aft_bar) if margin(x_aft_bar) > 0 else None,
         },
         "rho": round(rho, 4),
         "mass_kg": round(mass, 1),

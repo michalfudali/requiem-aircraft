@@ -260,21 +260,21 @@ def calculate_all_bipol_projects(mass_res: dict, sizing_res: dict, geom_res: dic
     table_3_1 = [
         {"item": "1. Skrzydło (dźwigary, żebra, poszycie)", "mass_kg": bd["m_wing"], "x_m": arms["wing"], "y_m": 0.0, "z_m": 0.15},
         {"item": "2. Kadłub (wręgi, podłużnice, pokrycie)", "mass_kg": bd["m_fuselage"], "x_m": arms["fuselage"], "y_m": 0.0, "z_m": 0.0},
-        {"item": "3. Usterzenie poziome ze sterem wysokości", "mass_kg": round(bd["m_tail"] * 0.65, 1), "x_m": arms["tail"], "y_m": 0.0, "z_m": 0.35},
-        {"item": "4. Usterzenie pionowe ze sterem kierunku", "mass_kg": round(bd["m_tail"] * 0.35, 1), "x_m": arms["tail"], "y_m": 0.0, "z_m": 0.75},
-        {"item": "5. Podwozie główne z kołami i hamulcami", "mass_kg": round(bd["m_gear"] * 0.80, 1), "x_m": arms["gear"], "y_m": 0.95, "z_m": -0.85},
-        {"item": "6. Podwozie przednie / kółko ogonowe", "mass_kg": round(bd["m_gear"] * 0.20, 1), "x_m": round(0.12 * l_f, 2), "y_m": 0.0, "z_m": -0.80},
-        {"item": prop_item_7, "mass_kg": round(bd["m_propulsion"] * 0.85, 1), "x_m": arms["propulsion"], "y_m": 0.0, "z_m": 0.05},
-        {"item": prop_item_8, "mass_kg": round(bd["m_propulsion"] * 0.15, 1), "x_m": round(arms["propulsion"] + 0.2, 2), "y_m": 0.0, "z_m": 0.0},
-        {"item": "9. Instalacja paliwowa (zbiorniki, pompy, przewody)", "mass_kg": round(bd["m_systems"] * 0.25, 1), "x_m": arms["fuel"], "y_m": 0.6, "z_m": 0.1},
-        {"item": "10. Instalacja sterowania płatowcem", "mass_kg": round(bd["m_systems"] * 0.25, 1), "x_m": round(x_lemac + 0.3 * mac, 2), "y_m": 0.0, "z_m": 0.0},
-        {"item": "11. Przyrządy pokładowe i awionika" if not unmanned_ac else "11. Autopilot, awionika i łącze danych C2 (UAV)", "mass_kg": round(bd["m_systems"] * 0.25, 1), "x_m": round(arms["crew"] + 0.3, 2), "y_m": 0.0, "z_m": 0.25},
-        {"item": "12. Wyposażenie kabiny, fotele i pasy" if not unmanned_ac else "12. Instalacja elektryczna, zasilanie i okablowanie misji (UAV)", "mass_kg": round(bd["m_systems"] * 0.25, 1), "x_m": arms["crew"], "y_m": 0.0, "z_m": -0.1},
+        {"item": "3. Usterzenie poziome ze sterem wysokości", "mass_kg": bd["m_tail"] * 0.65, "x_m": arms["tail"], "y_m": 0.0, "z_m": 0.35},
+        {"item": "4. Usterzenie pionowe ze sterem kierunku", "mass_kg": bd["m_tail"] * 0.35, "x_m": arms["tail"], "y_m": 0.0, "z_m": 0.75},
+        {"item": "5. Podwozie główne z kołami i hamulcami", "mass_kg": bd["m_gear"] * 0.80, "x_m": arms["gear"], "y_m": 0.95, "z_m": -0.85},
+        {"item": "6. Podwozie przednie / kółko ogonowe", "mass_kg": bd["m_gear"] * 0.20, "x_m": round(0.12 * l_f, 2), "y_m": 0.0, "z_m": -0.80},
+        {"item": prop_item_7, "mass_kg": bd["m_propulsion"] * 0.85, "x_m": arms["propulsion"], "y_m": 0.0, "z_m": 0.05},
+        {"item": prop_item_8, "mass_kg": bd["m_propulsion"] * 0.15, "x_m": round(arms["propulsion"] + 0.2, 2), "y_m": 0.0, "z_m": 0.0},
+        {"item": "9. Instalacja paliwowa (zbiorniki, pompy, przewody)", "mass_kg": bd["m_systems"] * 0.25, "x_m": arms["fuel"], "y_m": 0.6, "z_m": 0.1},
+        {"item": "10. Instalacja sterowania płatowcem", "mass_kg": bd["m_systems"] * 0.25, "x_m": round(x_lemac + 0.3 * mac, 2), "y_m": 0.0, "z_m": 0.0},
+        {"item": "11. Przyrządy pokładowe i awionika" if not unmanned_ac else "11. Autopilot, awionika i łącze danych C2 (UAV)", "mass_kg": bd["m_systems"] * 0.25, "x_m": round(arms["crew"] + 0.3, 2), "y_m": 0.0, "z_m": 0.25},
+        {"item": "12. Wyposażenie kabiny, fotele i pasy" if not unmanned_ac else "12. Instalacja elektryczna, zasilanie i okablowanie misji (UAV)", "mass_kg": bd["m_systems"] * 0.25, "x_m": arms["crew"], "y_m": 0.0, "z_m": -0.1},
     ]
     if unmanned_ac:
         table_3_1 += [
-            {"item": "13. Głowica optoelektroniczna / sensory (60% ładunku)", "mass_kg": round(m_payload * 0.60, 1), "x_m": arms.get("payload_sensor", arms["crew"]), "y_m": 0.0, "z_m": -0.35},
-            {"item": "14. Wyposażenie zadaniowe w przedziale ładunkowym (40% ładunku)", "mass_kg": round(m_payload * 0.40, 1), "x_m": arms.get("payload_bay", arms["pax_front"]), "y_m": 0.0, "z_m": 0.0},
+            {"item": "13. Głowica optoelektroniczna / sensory (60% ładunku)", "mass_kg": m_payload * 0.60, "x_m": arms.get("payload_sensor", arms["crew"]), "y_m": 0.0, "z_m": -0.35},
+            {"item": "14. Wyposażenie zadaniowe w przedziale ładunkowym (40% ładunku)", "mass_kg": m_payload * 0.40, "x_m": arms.get("payload_bay", arms["pax_front"]), "y_m": 0.0, "z_m": 0.0},
         ]
     else:
         table_3_1 += [

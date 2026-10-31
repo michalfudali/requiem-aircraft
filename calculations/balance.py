@@ -75,7 +75,7 @@ def calculate_balance_and_stability(m_sizing: dict, geom: dict, aero: dict, para
     denom_m = max(1.0, m_empty - m_wing_group)
     x_lemac_raw = (mom_fus_fixed + mom_wing_offset - target_oew_mac * mac * m_empty) / denom_m
     # Light tractor aircraft carry the wing leading edge from about a quarter of the fuselage length.
-    x_lemac_bounds = (0.25 * l_f, 0.56 * l_f)
+    x_lemac_bounds = 0.25 * l_f, 0.56 * l_f
     x_lemac_initial = max(x_lemac_bounds[0], min(x_lemac_bounds[1], x_lemac_raw))
 
     unmanned = bool(m_sizing.get("unmanned", False)) or params.get("aircraft_type") == "uav"
@@ -94,17 +94,17 @@ def calculate_balance_and_stability(m_sizing: dict, geom: dict, aero: dict, para
             x_prop = x_lemac - 0.15 * mac
 
         x_arms = {
-            "fuselage": round(x_fus, 2),
-            "wing": round(x_lemac + 0.38 * mac, 2),
-            "tail": round(x_tail, 2),
-            "propulsion": round(x_prop, 2),
-            "gear": round(x_lemac + 0.45 * mac, 2),
-            "systems": round(x_sys, 2),
-            "crew": round(x_lemac - 0.18 * mac, 2),
-            "pax_front": round(x_lemac + 0.12 * mac, 2),
-            "pax_rear": round(x_lemac + 0.48 * mac, 2),
-            "baggage": round(x_lemac + 0.75 * mac, 2),
-            "fuel": round(x_lemac + 0.32 * mac, 2)
+            "fuselage": x_fus,
+            "wing": x_lemac + 0.38 * mac,
+            "tail": x_tail,
+            "propulsion": x_prop,
+            "gear": x_lemac + 0.45 * mac,
+            "systems": x_sys,
+            "crew": x_lemac - 0.18 * mac,
+            "pax_front": x_lemac + 0.12 * mac,
+            "pax_rear": x_lemac + 0.48 * mac,
+            "baggage": x_lemac + 0.75 * mac,
+            "fuel": x_lemac + 0.32 * mac
         }
 
         # 1. Moment masy pustej (OEW)
@@ -119,8 +119,8 @@ def calculate_balance_and_stability(m_sizing: dict, geom: dict, aero: dict, para
 
         if unmanned:
             # UAV: wyposażenie zadaniowe (głowica optoelektroniczna w dziobie/pod kadłubem + awionika misji w okolicy ŚM)
-            x_arms["payload_sensor"] = round(x_lemac - 0.35 * mac, 2)
-            x_arms["payload_bay"] = round(x_lemac + 0.20 * mac, 2)
+            x_arms["payload_sensor"] = x_lemac - 0.35 * mac
+            x_arms["payload_bay"] = x_lemac + 0.20 * mac
             mom_payload = (m_payload * 0.60) * x_arms["payload_sensor"] + (m_payload * 0.40) * x_arms["payload_bay"]
         else:
             m_pax = int(params.get('n_pax', 0)) * (float(params.get('m_pax', 115)) + float(params.get('m_bag', 0)))
@@ -130,7 +130,7 @@ def calculate_balance_and_stability(m_sizing: dict, geom: dict, aero: dict, para
 
         # Funkcja pomocnicza: przeliczenie na % ŚDA (MAC)
         def to_percent_mac(x):
-            return round(((x - x_lemac) / mac) * 100.0, 1)
+            return (x - x_lemac) / mac * 100.0
 
         def state(key, name, crew=0.0, payload=False, fuel=0.0, released=0.0):
             """Stan załadowania złożony z masy pustej, załogi, ładunku i paliwa (BIPOL_3, wzór 3.1)."""
@@ -138,7 +138,8 @@ def calculate_balance_and_stability(m_sizing: dict, geom: dict, aero: dict, para
             drop_arm = x_arms['payload_equivalent'] if unmanned else x_arms['baggage']
             mom = mom_empty + crew * x_arms["crew"] + (mom_payload if payload else 0.0) + fuel * x_arms["fuel"] - released*drop_arm
             x_cg = mom / max(1.0, mass)
-            return {"key": key, "name": name, "mass_kg": round(mass, 1), "xcg_m": round(x_cg, 3),
+            return {"key": key, "name": name, "mass_kg": mass, "xcg_m": x_cg,
+                    "moment_kg_m": mom,
                     "xcg_mac_pct": to_percent_mac(x_cg), "_payload": payload, "_fuel": fuel, "_released":released}
 
         # Warianty wg BIPOL_3: MTOW, lądowanie, start i lądowanie bez ładunku płatnego, samolot pusty.
@@ -205,7 +206,7 @@ def calculate_balance_and_stability(m_sizing: dict, geom: dict, aero: dict, para
         delta_xac_prop = 0.030 if engine_loc in ["nose", "wing"] else 0.010
     x_ac_wbn_pct = (0.25 - delta_xac_fus - delta_xac_prop) * 100.0
     delta_xn_tail_pct = (eta_h_eff * vh * (a_h / a_w) * (1.0 - de_da)) * 100.0
-    neutral_point_pct = round(x_ac_wbn_pct + delta_xn_tail_pct, 1)
+    neutral_point_pct = x_ac_wbn_pct + delta_xn_tail_pct
 
     # BIPOL_3, pkt 8: jeśli zakres wychodzi poza 25–35% ŚDA, przesuwa się skrzydło (zmiana rysunku):
     # przednie ŚC w locie na 25% ŚDA; przy zakresie > 10% ŚDA tylne na 35% ŚDA,
@@ -223,7 +224,7 @@ def calculate_balance_and_stability(m_sizing: dict, geom: dict, aero: dict, para
             for _ in range(40):
                 middle = 0.5 * (low + high)
                 low, high = (middle, high) if miss(middle) > 0 else (low, middle)
-            # Both ends lie on the boundary; keep the one that satisfies the criterion after rounding.
+            # Both ends bracket the boundary; keep the one satisfying the unrounded criterion.
             x_lemac = high if all(criterion(*layout(high)[3:])) or not all(criterion(*layout(low)[3:])) else low
         else:
             x_lemac = low if miss(low) < 0 else high
@@ -238,9 +239,9 @@ def calculate_balance_and_stability(m_sizing: dict, geom: dict, aero: dict, para
         s_h = float(geom["horizontal_tail"].get("S_h", 0.0))
         vh = (s_h * l_h_actual) / (S * mac)
         delta_xn_tail_pct = (eta_h_eff * vh * (a_h / a_w) * (1.0 - de_da)) * 100.0
-        neutral_point_pct = round(x_ac_wbn_pct + delta_xn_tail_pct, 1)
+        neutral_point_pct = x_ac_wbn_pct + delta_xn_tail_pct
 
-    cg_span = round(cg_aft_limit - cg_forward_limit, 1)
+    cg_span = cg_aft_limit - cg_forward_limit
     forward_ok, aft_ok = criterion(cg_forward_limit, cg_aft_limit)
     cg_check = {
         "required": "25–35% ŚDA w locie; przednie przed 25% dopuszczalne przy zakresie > 10% ŚDA",
@@ -248,27 +249,39 @@ def calculate_balance_and_stability(m_sizing: dict, geom: dict, aero: dict, para
         "forward_ok": forward_ok,
         "aft_ok": aft_ok,
         "passed": forward_ok and aft_ok,
-        "wing_shift_m": round(x_lemac - x_lemac_initial, 3),
+        "wing_shift_m": x_lemac - x_lemac_initial,
         "note": ("Położenie skrzydła dobrano do kryterium BIPOL_3." if abs(x_lemac - x_lemac_initial) > 1e-3 else
                  "Wstępne położenie skrzydła spełnia kryterium BIPOL_3.")
                 if forward_ok and aft_ok else
                 "Kryterium niespełnione w dopuszczalnym zakresie położenia skrzydła; zmień rozmieszczenie mas.",
     }
 
-    neutral_point_m = round(x_lemac + (neutral_point_pct / 100.0) * mac, 3)
+    neutral_point_m = x_lemac + (neutral_point_pct / 100.0) * mac
     
     # Zapas stateczności statycznej (Static Margin K_n = (x_N - x_CG)/MAC)
-    static_margin_forward = round(neutral_point_pct - cg_forward_limit, 1)
-    static_margin_aft = round(neutral_point_pct - cg_aft_limit, 1)
+    static_margin_forward = neutral_point_pct - cg_forward_limit
+    static_margin_aft = neutral_point_pct - cg_aft_limit
     
     is_stable = static_margin_aft >= MIN_STATIC_MARGIN_PCT
+    # Apply the same unrounded criteria to every displayed state. Empty aircraft
+    # is a ground configuration, so flight criteria do not apply to that row.
+    for loading_state in loading_states:
+        in_flight = loading_state['key'] != 'oew'
+        cg = loading_state['xcg_mac_pct']
+        margin = neutral_point_pct - cg
+        loading_state.update(
+            in_flight=in_flight,
+            static_margin_pct=margin if in_flight else None,
+            minimum_margin_passed=margin >= MIN_STATIC_MARGIN_PCT if in_flight else None,
+            cg_criterion_passed=((cg >= 25.0 or cg_span > 10.0) and cg <= 35.0) if in_flight else None,
+        )
     # X-plot: tail volume that places x_N one minimum margin behind the aft centre of gravity.
     vh_for_min_margin = (cg_aft_limit + MIN_STATIC_MARGIN_PCT + .2 - x_ac_wbn_pct) / (
         eta_h_eff * (a_h / a_w) * (1.0 - de_da) * 100.0)
 
     return {
-        "x_le_wing_m": round(x_le_wing, 3),
-        "x_lemac_m": round(x_lemac, 3),
+        "x_le_wing_m": x_le_wing,
+        "x_lemac_m": x_lemac,
         "arms": x_arms,
         "loading_states": loading_states,
         "pilot_variants": pilot_variants,
@@ -297,6 +310,6 @@ def calculate_balance_and_stability(m_sizing: dict, geom: dict, aero: dict, para
             "static_margin_aft_pct": static_margin_aft,
             "is_stable": is_stable,
             "vh_for_min_margin": vh_for_min_margin,
-            "evaluation": "Stateczny statycznie (zapas 5-20% ŚDA)" if is_stable else "Uwaga: mały zapas stateczności w tylnym położeniu ŚM!"
+            "evaluation": "Spełnione kryterium minimalnego zapasu stateczności 5% ŚDA" if is_stable else "Uwaga: mały zapas stateczności w tylnym położeniu ŚM!"
         }
     }
