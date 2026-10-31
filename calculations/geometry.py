@@ -310,6 +310,11 @@ def calculate_geometry(m0: float, ws: float, params: dict):
         eta_a_out = min(0.97, max(eta_a_in + 0.10, eta_a_in + user_ba_b))
         ba_b_ratio = eta_a_out - eta_a_in
 
+    if flap_type == 'none' and not is_flaperon:
+        # Keep the chosen outer aileron position, but remove the flap surface.
+        eta_f_out = eta_f_in
+        bf_b_ratio = cf_c_ratio = 0.
+
     y_f_in = eta_f_in * half_span
     y_f_out = eta_f_out * half_span
     y_a_in = eta_a_in * half_span
@@ -398,7 +403,7 @@ def calculate_geometry(m0: float, ws: float, params: dict):
     aileron_name_pl = aileron_names.get(aileron_type, "Lotka różnicowa")
 
     control_surfaces = {
-        "layout": "flaperon" if is_flaperon else "flaps_and_ailerons",
+        "layout": "flaperon" if is_flaperon else ('ailerons_only' if flap_type == 'none' else 'flaps_and_ailerons'),
         "is_flaperon": is_flaperon,
         "slats": {
             "type": params.get('slat_type', 'none'),

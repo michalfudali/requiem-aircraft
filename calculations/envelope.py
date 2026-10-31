@@ -10,6 +10,7 @@ Wszystkie prędkości obwiedni są prędkościami równoważnymi (EAS), poziom m
 import math
 from calculations.atmosphere import G0, RHO0, isa_atmosphere
 from calculations.polish_law import resolve_category, limit_load_factors, envelope_speed_family, SUBCATEGORIES
+from calculations.flap_envelope import calculate_flap_envelope
 
 # CS 22.337: n1 (przy VA), n2 (przy VD), n3 (przy VD), n4 (przy VG); kategoria U i A.
 CS22_LOAD_FACTORS = {'cs22_utility': (5.3, 4.0, -1.5, -2.65), 'cs22_aerobatic': (7.0, 7.0, -5.0, -5.0)}
@@ -66,9 +67,8 @@ def calculate_vn_envelope(m0: float, geom: dict, aero: dict, perf: dict, params:
     # Pochodna współczynnika siły nośnej skończonego płata a_w = dCz/dalpha [1/rad] (wzór Helmbolda-Diedericha ze skosem)
     a_w = float(aero.get("a_w_rad", (2.0 * math.pi * AR) / (AR + 2.0 * ((AR + 4.0) / (AR + 2.0)))))
 
-    # Cecha masowa mu_g = 2 (m/S) / (rho c a). Danilecki (wzór 2.14) używa ŚCA;
-    # CS 22.341 wymaga średniej cięciwy geometrycznej S/b.
-    chord = S / b if sailplane else mac
+    # CS 22.341 i CS-23 Amdt 4 §23.341: średnia cięciwa geometryczna S/b.
+    chord = S / b
     mu_g = (2.0 * (m0 / S)) / (RHO0 * chord * a_w)
 
     # Współczynnik łagodzenia podmuchu Kg wg Danilecki wzór (2.13) / CS-23 Amdt 4 §23.341(b) / CS 22.341
@@ -209,12 +209,12 @@ def calculate_vn_envelope(m0: float, geom: dict, aero: dict, perf: dict, params:
     gust_pos = [{'v_kmh': round(v*3.6, 1), 'n': round(gust_at(v)[0], 2)} for v in gust_plot_speeds]
     gust_neg = [{'v_kmh': round(v*3.6, 1), 'n': round(gust_at(v)[1], 2)} for v in gust_plot_speeds]
 
-    n_gust_max = round(max(pos for _, _, _, pos, _ in gust_points), 2)
-    n_gust_min = round(min(neg for _, _, _, _, neg in gust_points), 2)
-    n_dimensioning_pos = round(max(n_max, n_gust_max), 2)
-    n_dimensioning_neg = round(min(n_min, n_gust_min), 2)
-    n_ult_pos = round(n_dimensioning_pos * safety_factor_nu, 2)
-    n_ult_neg = round(n_dimensioning_neg * safety_factor_nu, 2)
+    n_gust_max = max(pos for _, _, _, pos, _ in gust_points)
+    n_gust_min = min(neg for _, _, _, _, neg in gust_points)
+    n_dimensioning_pos = max(n_max, n_gust_max)
+    n_dimensioning_neg = min(n_min, n_gust_min)
+    n_ult_pos = n_dimensioning_pos * safety_factor_nu
+    n_ult_neg = n_dimensioning_neg * safety_factor_nu
 
     # E. Punkty charakterystyczne (tabela P6) i pętla obciążeń z klapami
     kmh = lambda v: round(v * 3.6, 1)  # noqa: E731
@@ -238,19 +238,21 @@ def calculate_vn_envelope(m0: float, geom: dict, aero: dict, perf: dict, params:
         key_points.append({"point": "F (dolny punkt przy VC z n_min)", "v_kmh": kmh(v_c_ms), "n": n4, "type": "Krzywa manewrowa n_min"})
     key_points.append({"point": "G (prędkość manewrowa ujemna VG)", "v_kmh": kmh(v_g_ms), "n": n4, "type": "Przeciągnięcie ujemne"})
 
-    flap_loop = [
-        {"point": "Sf (początek przeciągnięcia z klapami Vs0)", "v_kmh": kmh(vs_lnd_ms), "n": 1.0},
-        {"point": f"Af (wejście na n=+{n_flap:g} z klapami)", "v_kmh": kmh(vs_lnd_ms * math.sqrt(n_flap)), "n": n_flap},
-        {"point": "Ff (prędkość obliczeniowa klap VF)", "v_kmh": kmh(v_f_ms), "n": n_flap},
-        {"point": "Df (dolny punkt przy VF)", "v_kmh": kmh(v_f_ms), "n": 0.0},
-    ]
-    # The four table points do not describe the stall parabola or its origin.
-    v_af_ms = vs_lnd_ms * math.sqrt(n_flap)
-    flap_polygon = [{"v_kmh": kmh(v_af_ms * i / n_pts_stall),
-                     "n": round(n_flap * (i / n_pts_stall) ** 2, 2)}
-                    for i in range(n_pts_stall + 1)]
-    flap_polygon += [{"v_kmh": kmh(v_f_ms), "n": n_flap},
-                     {"v_kmh": kmh(v_f_ms), "n": 0.0}, {"v_kmh": 0.0, "n": 0.0}]
+    high_lift = (params.get('flap_type', 'single_slotted') != 'none'
+                 or params.get('slat_type', 'none') in ('slats_auto', 'krueger'))
+    flap_basis = (f"CS-22 Amdt {'3' if cs22_model == 'amendment3' else '2'} §22.345(b)(1), §22.341"
+                  if sailplane else 'CS-23 Amdt 4 §23.345(a), §23.341 (metoda Pratta)')
+    if category == 'transport':
+        flap_basis = ('Wstępne oszacowanie Pratta dla ±7,62 m/s; CS-25.345 wymaga analizy dynamicznej. '
+                      'VF z reguły dydaktycznej CS-23; nie określa granic eksploatacyjnych CS-25.')
+    flap = calculate_flap_envelope(vs_lnd_ms, v_f_ms, n_flap, u_flap, gust_dn(1., u_flap), high_lift, flap_basis)
+    global_pos = max(n_dimensioning_pos, flap['limits']['n_dimensioning_pos']) if high_lift else n_dimensioning_pos
+    global_neg = min(n_dimensioning_neg, flap['limits']['n_dimensioning_neg']) if high_lift else n_dimensioning_neg
+    configuration_limits = dict(
+        n_dimensioning_pos=global_pos, n_dimensioning_neg=global_neg,
+        n_ult_pos=safety_factor_nu*global_pos, n_ult_neg=safety_factor_nu*global_neg,
+        governing_positive='landing_high_lift' if global_pos > n_dimensioning_pos else 'clean',
+        governing_negative='landing_high_lift' if global_neg < n_dimensioning_neg else 'clean')
 
     # F. Wypadkowa obwiednia konstrukcyjna (CS-23.333(c) / Danilecki rys. 2.1)
     composite_pts_pos = []
@@ -294,6 +296,7 @@ def calculate_vn_envelope(m0: float, geom: dict, aero: dict, perf: dict, params:
     return {
         "speed_basis": "EAS",
         "composite_basis": "Zewnętrzna granica osobnych przypadków manewru i podmuchu, bez sumowania ich przeciążeń.",
+        "configuration_limits": configuration_limits,
         "terms": terms,
         "limits": {
             "n_max": n_max,
@@ -323,7 +326,7 @@ def calculate_vn_envelope(m0: float, geom: dict, aero: dict, perf: dict, params:
             "v_g_kmh": kmh(v_g_ms),
             "v_c_kmh": kmh(v_c_ms) if v_c_ms is not None else None,
             "v_d_kmh": kmh(v_d_ms),
-            "v_f_kmh": kmh(v_f_ms)
+            "v_f_kmh": flap['v_f_kmh']
         },
         "gust_factors": {
             "a_w": a_w,
@@ -332,7 +335,7 @@ def calculate_vn_envelope(m0: float, geom: dict, aero: dict, perf: dict, params:
             "gust_length_ratio": gust_length_ratio,
             "gust_length_m": gust_length_ratio * chord if gust_length_ratio is not None else None,
             "chord_m": chord,
-            "chord_basis": "średnia cięciwa geometryczna S/b (CS 22.341)" if sailplane else "średnia cięciwa aerodynamiczna (Danilecki, wzór 2.14)",
+            "chord_basis": "średnia cięciwa geometryczna S/b (CS 22.341 / CS-23 Amdt 4 §23.341)",
             "vb_gust": vb_gust,
             "gust_basis": gust_basis,
             "gusts": [{"speed": label, "v_kmh": kmh(v), "u_ms": u, "delta_n": pos-1,
@@ -346,8 +349,7 @@ def calculate_vn_envelope(m0: float, geom: dict, aero: dict, perf: dict, params:
             "delta_n_d": round(by_label["VD"][1], 3)
         },
         "key_points": key_points,
-        "flap": {"n_flap": n_flap, "u_flap_ms": u_flap, "v_f_kmh": kmh(v_f_ms),
-                 "loop": flap_loop, "maneuver_polygon": flap_polygon},
+        "flap": flap,
         "stall_pos": stall_pos,
         "stall_neg": stall_neg,
         "maneuver_polygon": maneuver_polygon,

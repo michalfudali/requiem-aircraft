@@ -652,6 +652,8 @@ def calculate_all_bipol_projects(mass_res: dict, sizing_res: dict, geom_res: dic
         "flap_envelope_loop": flap_loop,
         "v_f_kmh": v_f_kmh,
         "n_flap": env_res["flap"]["n_flap"],
+        "high_lift_envelope": env_res['flap'],
+        "configuration_limits": env_res['configuration_limits'],
         "mass_ratio_mu_g": gusts.get("mu_g", 15.0),
         "alleviation_factor_kg": gusts.get("k_g", 0.70),
         "safety_factor_nu": limits.get("safety_factor_nu", 1.5),
