@@ -477,6 +477,10 @@
     document.addEventListener('bipol:calculating', markStale);
     $('designForm').addEventListener('input', markStale, true);
     $('designForm').addEventListener('change', markStale, true);
+    document.querySelectorAll('[data-analysis-param]').forEach(input => {
+      input.addEventListener('input', markStale);
+      input.addEventListener('change', markStale);
+    });
     document.querySelectorAll('.quick-preset-chip').forEach(button => button.addEventListener('click', markStale, true));
     loadEditorial(); renderComparison(); syncNavigation();
     if (currentResults) { fresh = true; resultProject = getActiveProjectId(); renderOverview(currentResults); renderGlide(currentResults); }

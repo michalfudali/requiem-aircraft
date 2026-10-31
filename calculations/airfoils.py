@@ -8,6 +8,7 @@ Program nie podstawia innego profilu w miejsce nieznanego.
 """
 import math
 import re
+import html
 
 CHORD_MM = 200.0
 STATIONS_PCT = (0.0, 0.5, 1.25, 2.5, 5.0, 7.5, 10.0, 15.0, 20.0, 25.0, 30.0, 35.0, 40.0, 45.0, 50.0,
@@ -210,7 +211,7 @@ def airfoil_svg(name, upper, lower, chord_mm=CHORD_MM):
     bar_y = bottom + 12.0
     ticks = ''.join(f'<line x1="{10 * i}" y1="{-bar_y:.2f}" x2="{10 * i}" y2="{-bar_y + (2.5 if i % 5 else 4):.2f}"/>'
                     for i in range(11))
-    safe = str(name).replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;')
+    safe = html.escape(str(name), quote=True)
     text = 'font-family="sans-serif" fill="#334155"'
     return (f'<svg xmlns="http://www.w3.org/2000/svg" class="airfoil-200mm-svg" width="{width:.1f}mm" height="{height:.1f}mm" '
             f'viewBox="{-pad} {-top:.2f} {width:.2f} {height:.2f}" role="img" aria-label="Profil {safe}, cięciwa {chord_mm:.0f} mm">'
@@ -227,6 +228,7 @@ def airfoil_svg(name, upper, lower, chord_mm=CHORD_MM):
 
 def airfoil_200mm(name='', coordinates=''):
     """Wejście API: wklejone rzędne mają pierwszeństwo, w przeciwnym razie profil NACA z oznaczenia."""
+    name = ' '.join(str(name or '').split())[:80]
     if coordinates and coordinates.strip():
         return profile_from_text(coordinates, name)
     if parse_naca(name) is None:

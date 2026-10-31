@@ -187,6 +187,15 @@ def calculate_all_bipol_projects(mass_res: dict, sizing_res: dict, geom_res: dic
     chosen_airfoil = " ".join(str(params.get("airfoil") or "").split())[:80]
     if chosen_airfoil:
         selected_airfoil_name = chosen_airfoil
+    from calculations.airfoils import airfoil_200mm
+    coordinates = str(params.get('airfoil_coordinates') or '')
+    profile, profile_error = None, None
+    try:
+        # Without an explicit label, retain the name supplied with the ordinates.
+        profile = airfoil_200mm(chosen_airfoil if coordinates.strip() else selected_airfoil_name, coordinates)
+        selected_airfoil_name = profile['name']
+    except ValueError as error:
+        profile_error = str(error)
 
     for candidate in airfoil_candidates:
         for key in ('cx_min', 'cx_cz_proj', 'cz_max', 'k_max'):
@@ -342,16 +351,12 @@ def calculate_all_bipol_projects(mass_res: dict, sizing_res: dict, geom_res: dic
     wing_alpha_table = [{"alpha_deg": r["alpha_p_deg"], "cz": r["cz_inf"], "cx": r["cx_p_prime"],
                          "cm_le": round(p2w["cm_sa_profile"] - p2w["x_sa_bar"] * r["cz_inf"], 4)}
                         for r in paturski_res["p3_aircraft_aero"]["table_2_2_complete"]]
-    from calculations.airfoils import airfoil_200mm
-    af_table, af_svg = [], ""
-    af_note = (f"Profil {selected_airfoil_name} o cięciwie 200 mm: wyznacz rzędne poniżej (profile NACA 4- i 5-cyfrowe "
-               "program liczy analitycznie) albo wklej rzędne wybranego profilu z katalogu.")
+    af_table, af_svg, af_info = [], "", None
+    af_note = profile_error or f'Profil {selected_airfoil_name}: brak rzędnych.'
     # Profile NACA liczy się analitycznie (dokładna geometria, nie pomiar); dla innych rzędne wkleja autor.
-    try:
-        profile = airfoil_200mm(selected_airfoil_name, str(params.get("airfoil_coordinates") or ""))
+    if profile is not None:
         af_table, af_svg, af_note = profile["table"], profile["svg"], profile["note"]
-    except ValueError as error:
-        af_note = str(error)
+        af_info = {key: profile[key] for key in ('name', 'kind', 'chord_mm', 'thickness_pct', 'thickness_x_pct')}
 
     track_g = float(geom_res.get("gear", {}).get("track", 0.24 * b))
     wheelbase_g = max(0.8, bal_res.get("arms", {}).get("gear", 0.45 * l_f) - 0.12 * l_f)
@@ -374,6 +379,7 @@ def calculate_all_bipol_projects(mass_res: dict, sizing_res: dict, geom_res: dic
         },
         "airfoil_200mm_table": af_table,
         "airfoil_200mm_svg": af_svg,
+        "airfoil_200mm_info": af_info,
         "airfoil_coordinates_note": af_note,
         "table_3_1_components": table_3_1,
         "table_3_2_loading_states": bal_res["loading_states"],
