@@ -2,6 +2,7 @@
 {% set w=res.geometry.wing %}{% set ht=res.geometry.horizontal_tail %}{% set vt=res.geometry.vertical_tail %}{% set bal=res.balance %}
 <p>Geometrię płatowca wyznaczono z powierzchni nośnej i proporcji przyjętych w studium wykonalności. Następnie oszacowano rozmieszczenie mas oraz skrajne położenia środka masy w rozpatrzonych stanach załadowania [1, 4, 5].</p>
 <h3>Geometria skrzydła</h3>
+{% include 'reports/profile_geometry.html' %}
 <p>Przyjęto obrys: {{ w.planform_name_pl|lower }}. {% if w.span_fixed %}Rozpiętość jest zadana, więc wydłużenie wynika z \(\Lambda=b^2/S\).{% else %}Rozpiętość wynika z powierzchni i wydłużenia: \(b=\sqrt{S\Lambda}\).{% endif %}</p>
 {{ c.section(sheet, 'p3.wing') }}
 <h3>Kadłub</h3>

@@ -78,3 +78,26 @@ def test_both_cs22_methods_have_consistent_worked_reports(preset,model):
 def test_api_rejects_unknown_gust_model():
     assert app.test_client().post('/api/calculate',json={**AIRCRAFT_PRESETS['glider_pw5'],
                                                        'cs22_gust_model':'unknown'}).status_code==400
+
+
+@pytest.mark.parametrize('slope', [.01, 6.])
+def test_cs22_utility_dive_point_uses_7_5ms_gust_and_falling_manoeuvre_limits(slope):
+    """CS 22.333(c), 22.337: +4/−1.5 at VD, versus +5.3/−2.65 at A/G."""
+    mass, area, chord = 500., 20., 1.
+    geom = {'wing': dict(S=area, b=20., mac=chord, AR=20.)}
+    aero = dict(cz_max_clean=1.4, cz_max_lnd=1.8, cz_min_clean=-.85, a_w_rad=slope, cx0_clean=.012)
+    perf = {'speeds': dict(v_cruise_kmh=140., v_max_sl_kmh=0.)}
+    env = calculate_vn_envelope(mass, geom, aero, perf, dict(category='cs22_glider', engine_type='none'))
+    mu = 2 * mass / area / (RHO0 * chord * slope)
+    reduced = mu / (12.17 + .191 * mu)
+    k = .96 * reduced / (.475 + reduced)
+    vd = env['terms']['v_d_ms']
+    dn = .5 * RHO0 * vd * slope * k * 7.5 / (mass * G0 / area)
+    cap = 1.25 * (vd / env['terms']['vs_clean_ms']) ** 2
+    gust = next(g for g in env['gust_factors']['gusts'] if g['speed'] == 'VD')
+    assert gust['u_ms'] == env['gust_factors']['u_d_ms'] == 7.5
+    assert env['limits']['n_at_vd_pos'] == 4.
+    assert env['limits']['n_at_vd_neg'] == -1.5
+    half = len(env['composite_polygon']) // 2
+    assert env['composite_polygon'][half - 1]['n'] == pytest.approx(max(4., min(1 + dn, cap)), abs=.006)
+    assert env['composite_polygon'][half]['n'] == pytest.approx(min(-1.5, max(1 - dn, -cap)), abs=.006)

@@ -14,7 +14,7 @@ from calculations.high_lift import stall_requirement
 from calculations.costs import calculate_costs
 from calculations.polish_law import SUBCATEGORIES, K_CATEGORIES, resolve_category
 
-def calculate_all_bipol_projects(mass_res: dict, sizing_res: dict, geom_res: dict, aero_res: dict, perf_res: dict, env_res: dict, bal_res: dict, params: dict) -> dict:
+def calculate_all_bipol_projects(mass_res: dict, sizing_res: dict, geom_res: dict, aero_res: dict, perf_res: dict, env_res: dict, bal_res: dict, params: dict, profile_context=None) -> dict:
     """
     Integruje i wylicza kompletne pakiety danych dla 6 projektów semestralnych:
     P1: Projekt Koncepcyjny (5 pkt)
@@ -192,10 +192,18 @@ def calculate_all_bipol_projects(mass_res: dict, sizing_res: dict, geom_res: dic
     profile, profile_error = None, None
     try:
         # Without an explicit label, retain the name supplied with the ordinates.
-        profile = airfoil_200mm(chosen_airfoil if coordinates.strip() else selected_airfoil_name, coordinates)
-        selected_airfoil_name = profile['name']
+        if profile_context is not None and profile_context['explicit']:
+            profile, profile_error = profile_context['profile'], profile_context['error']
+        else:
+            profile = airfoil_200mm(chosen_airfoil if coordinates.strip() else selected_airfoil_name, coordinates)
+        if profile is not None:
+            selected_airfoil_name = profile['name']
     except ValueError as error:
         profile_error = str(error)
+    if profile_context is not None:
+        from calculations.profile_geometry import assess_profile_geometry
+        profile_context.update(profile=profile, error=profile_error)
+        profile_context['assessment'] = assess_profile_geometry(params, profile_context)
 
     for candidate in airfoil_candidates:
         for key in ('cx_min', 'cx_cz_proj', 'cz_max', 'k_max'):

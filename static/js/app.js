@@ -1939,7 +1939,8 @@ function saveProject(project) {
 
 function loadProjectIntoForm(project) {
   if (!project || !project.params) return;
-  const params = { runway_surface: 'paved', cs22_gust_model: 'amendment3', airfoil: '', airfoil_coordinates: '', ...project.params };
+  const params = { runway_surface: 'paved', cs22_gust_model: 'amendment3', airfoil: '', airfoil_coordinates: '',
+    profile_thickness_mode: 'auto', tc_ratio: 0.12, ...project.params };
   airfoilResultProjectId = null;
   invalidateAirfoil200mm('Oczekiwanie na profil aktualnego projektu.');
   const airfoilInput = document.getElementById('airfoil');
@@ -3585,6 +3586,12 @@ function hydrateSemesterProjectsData(res) {
       airfoil: p3.airfoil_200mm_info?.name || bp.p2?.airfoil_selection?.selected_airfoil,
       svg: p3.airfoil_200mm_svg, table: p3.airfoil_200mm_table, note: p3.airfoil_coordinates_note,
       error: !p3.airfoil_200mm_svg });
+    const profileGeometry = res.profile_geometry;
+    document.querySelectorAll('[data-profile-thickness-summary]').forEach(el => {
+      el.textContent = profileGeometry
+        ? `${profileGeometry.source}: t/c = ${Number(profileGeometry.tc_ratio.toFixed(6))}. ${profileGeometry.note}` : '';
+      el.dataset.mismatch = String(Boolean(profileGeometry?.mismatch));
+    });
 
     const t31Tbody = document.getElementById('p3_table31_tbody');
     if (t31Tbody && Array.isArray(p3.table_3_1_components)) {

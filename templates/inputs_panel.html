@@ -525,6 +525,25 @@
                   </div>
 
                   <div class="input-row">
+                    <div class="input-group" data-param="profile_thickness_mode">
+                      <label for="profile_thickness_mode">Źródło grubości skrzydła t/c</label>
+                      <select id="profile_thickness_mode">
+                        <option value="auto">Z wybranego profilu (P3)</option>
+                        <option value="assumed">Ręczne założenie</option>
+                      </select>
+                      <small>Bez wybranego profilu obowiązuje założenie t/c.</small>
+                    </div>
+                    <div class="input-group" data-param="tc_ratio">
+                      <label for="tc_ratio"><span class="label-text">Grubość względna skrzydła t/c [-]</span>
+                        <button type="button" class="param-lock-btn" id="lock_btn_tc_ratio" onclick="toggleParamLock('tc_ratio')" title="Zablokuj założenie grubości">🔓</button>
+                      </label>
+                      <input step="any" required type="number" id="tc_ratio" min="0.04" max="0.30" value="0.12">
+                      <div class="derived-badge" id="derived_badge_tc_ratio" style="display:none;"></div>
+                      <small>0,12 oznacza 12% cięciwy. Oznaczenie i rzędne wybierz w P3.</small>
+                    </div>
+                  </div>
+                  <p data-profile-thickness-summary role="status" class="table-note"></p>
+                  <div class="input-row">
                     <div class="input-group" data-param="cx0">
                       <label for="cx0">
                         <span class="label-text">Opór szkodliwy Cx0 [-] <span class="info-circle-icon" data-param="cx0" tabindex="0">i</span></span>

@@ -122,6 +122,7 @@ def naca_profile(name, chord_mm=CHORD_MM, dense=80):
                           f"Teoria cienkiego profilu: α₀ = {_pl(thin['alpha0_deg'], 2)}°, c_m,c/4 = {_pl(thin['cm_c4'], 4)} — "
                           "porównaj z danymi katalogowymi dla Twojej liczby Reynoldsa.")
     result['thin_airfoil'] = thin
+    result['nominal_thickness_ratio'] = spec['thickness']
     return result
 
 
@@ -137,6 +138,8 @@ def parse_coordinates(text):
         except ValueError:
             values = None
         if values is not None and len(values) == 2:
+            if not all(math.isfinite(value) for value in values):
+                raise ValueError('Rzędne profilu muszą być skończonymi liczbami.')
             rows.append(tuple(values))
         elif values is None and not rows and line.strip():
             name = line.strip()[:80]
@@ -160,10 +163,12 @@ def parse_coordinates(text):
         raise ValueError('Każda powierzchnia musi mieć od 5 do 600 punktów.')
     x_le = min(p[0] for p in upper + lower)
     chord = max(p[0] for p in upper + lower) - x_le
-    if chord <= 0:
+    if not math.isfinite(chord) or chord <= 0:
         raise ValueError('Rzędne nie wyznaczają cięciwy.')
     norm = lambda pts: [((x - x_le) / chord, y / chord) for x, y in pts]  # noqa: E731 — także rzędne w % lub mm
     upper, lower = norm(upper), norm(lower)
+    if not all(math.isfinite(value) for point in upper + lower for value in point):
+        raise ValueError('Rzędne profilu nie pozwalają na skończone skalowanie do cięciwy.')
     if sum(y for _, y in upper) / len(upper) < sum(y for _, y in lower) / len(lower):
         upper, lower = lower, upper
     return name, upper, lower
@@ -173,10 +178,12 @@ def profile_from_text(text, name='', chord_mm=CHORD_MM):
     """Profil z wklejonych rzędnych, przeskalowany do cięciwy 200 mm."""
     title, upper, lower = parse_coordinates(text)
     label = (name or title or 'Profil z wklejonych rzędnych').strip()[:80]
-    scale = lambda pts: [(round(x * chord_mm, 3), round(y * chord_mm, 3)) for x, y in pts]  # noqa: E731
+    scale = lambda pts: [(x * chord_mm, y * chord_mm) for x, y in pts]  # noqa: E731
     up, lo = scale(upper), scale(lower)
-    table = [dict(xc_pct=None, xu_mm=u[0], yu_mm=u[1], xl_mm=None, yl_mm=None, thick_mm=None) for u in up] + \
-            [dict(xc_pct=None, xu_mm=None, yu_mm=None, xl_mm=l[0], yl_mm=l[1], thick_mm=None) for l in lo]
+    if not all(math.isfinite(value) for point in up + lo for value in point):
+        raise ValueError('Rzędne profilu muszą umożliwiać skończone skalowanie do milimetrów.')
+    table = [dict(xc_pct=None, xu_mm=round(u[0], 3), yu_mm=round(u[1], 3), xl_mm=None, yl_mm=None, thick_mm=None) for u in up] + \
+            [dict(xc_pct=None, xu_mm=None, yu_mm=None, xl_mm=round(l[0], 3), yl_mm=round(l[1], 3), thick_mm=None) for l in lo]
     return _result(label, up, lo, table, chord_mm, kind='pasted',
                    note=f'{label}: rzędne wklejone przez autora i przeskalowane do c = {chord_mm:.0f} mm. '
                         'Sprawdź ich źródło (katalog, strona) i podaj je w opracowaniu.')
@@ -191,11 +198,17 @@ def _interp(points, x):
 
 
 def _result(name, upper, lower, table, chord_mm, kind, note):
-    xs = [chord_mm * i / 200 for i in range(201)]
+    # The gap between two linear segments is linear too: its extrema occur
+    # at a knot of either surface, not necessarily on a uniform sampling grid.
+    xs = sorted({x for x, _ in upper + lower})
     gaps = [(x, _interp(upper, x), _interp(lower, x)) for x in xs]
     gaps = [(x, u - l) for x, u, l in gaps if u is not None and l is not None]
     x_t, t_mm = max(gaps, key=lambda g: g[1]) if gaps else (None, None)
+    if kind == 'pasted' and (not gaps or t_mm <= 0 or min(gap for _, gap in gaps) < -1e-9 * chord_mm):
+        raise ValueError('Rzędne muszą wyznaczać dodatnią grubość bez przecinania powierzchni profilu.')
     return dict(name=name, kind=kind, chord_mm=chord_mm, upper=upper, lower=lower, table=table, note=note,
+                thickness_ratio=t_mm / chord_mm if t_mm is not None else None,
+                thickness_x_ratio=x_t / chord_mm if x_t is not None else None,
                 thickness_pct=round(100 * t_mm / chord_mm, 2) if t_mm else None,
                 thickness_x_pct=round(100 * x_t / chord_mm, 1) if t_mm else None,
                 svg=airfoil_svg(name, upper, lower, chord_mm))

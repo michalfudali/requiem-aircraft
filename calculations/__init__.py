@@ -21,6 +21,7 @@ from calculations.instructor import review_coursework
 from calculations.official_topics import validate_topic_geometry, check_topic_requirements
 from calculations.design_solver import resolve_design
 from calculations.model_scope import assessment, is_water
+from calculations.profile_geometry import resolve_profile_geometry
 from calculations.constraints import resolve_and_lock_parameters, finalize_parameter_states, get_initial_constraint_suggestions, WING_PLANFORMS
 
 def _size_airframe(params, param_states):
@@ -110,6 +111,7 @@ def run_bipol_project(params: dict):
     params, law_corrections = normalize_occupants(params)
     params["_law_corrections"] = law_corrections
     params, param_states, constraint_warnings = resolve_and_lock_parameters(params, params.get("locked_params", []))
+    profile_context = resolve_profile_geometry(params, param_states)
     if params.get("engine_type") == "jet" and params.get("engine_location") in ("nose", "retractable", "none"):
         params["engine_location"] = "wing" if params.get("aircraft_type") == "jet_transport" else "rear"
 
@@ -215,7 +217,7 @@ def run_bipol_project(params: dict):
 
     # Obliczenia dedykowane dla projektów semestralnych BIPOL I (P1 do P6)
     bipol_projects_res = calculate_all_bipol_projects(
-        mass_res, sizing_res, geom_res, aero_res, perf_res, envelope_res, balance_res, params
+        mass_res, sizing_res, geom_res, aero_res, perf_res, envelope_res, balance_res, params, profile_context
     )
 
     # Zgodność z klasyfikacją statków powietrznych (t.j. Dz. U. z 2025 r. poz. 1137, Tabele nr 1–3)
@@ -238,6 +240,7 @@ def run_bipol_project(params: dict):
         "mass": mass_res,
         "sizing": sizing_res,
         "geometry": geom_res,
+        "profile_geometry": profile_context['assessment'],
         "aerodynamics": aero_res,
         "performance": perf_res,
         "envelope": envelope_res,

@@ -390,7 +390,8 @@ def _p1(s, r):
     ht, vt = geom['horizontal_tail'], geom['vertical_tail']
     s.calc('S_exp', r'S_{exp}', r'\max\left(0{,}75\,S;\;S-c_r d_k\right)', r'\max\left(0{,}75\cdot[[S]];\;[[S]]-[[c_r]]\cdot[[d_k]]\right)',
            w['S_exposed'], M2, 2, 'Powierzchnia skrzydła poza kadłubem', check=lambda v: max(.75 * v.S, v.S - v.c_r * v.d_k))
-    s.given('tc', r'(t/c)', w['tc_ratio'], '', 3, 'Względna grubość profilu skrzydła', 'Założenie')
+    s.given('tc', r'(t/c)', w['tc_ratio'], '', 6, 'Względna grubość profilu skrzydła',
+            r.get('profile_geometry', {}).get('source', 'Założenie'))
     s.calc('Swet_w', r'S_{wet,p}', r'2S_{exp}\left(1+0{,}25\,(t/c)\right)', r'2\cdot[[S_exp]]\cdot(1+0{,}25\cdot[[tc]])',
            w['S_wet'], M2, 2, 'Powierzchnia omywana skrzydła', check=lambda v: 2 * v.S_exp * (1 + .25 * v.tc))
     clamp = 1 - 2 / fus['fineness'] < .5

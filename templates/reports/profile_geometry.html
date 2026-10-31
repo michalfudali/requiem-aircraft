@@ -1,0 +1,3 @@
+{% if res.profile_geometry %}{% set pg=res.profile_geometry %}
+<p class="table-note profile-thickness-assessment" data-mismatch="{{ 'true' if pg.mismatch else 'false' }}"><strong>Grubość skrzydła:</strong> {{ pg.source }}; \(t/c={{ pg.tc_ratio|texnum(6) }}\). {% if pg.profile_name %}Profil: {{ pg.profile_name }}; jego grubość {{ pg.profile_tc_ratio|reportnum(6) }} ({{ 'nominalna NACA' if pg.thickness_definition == 'nominal_naca' else 'maksymalna różnica rzędnych górnej i dolnej powierzchni przy tym samym x' }}). {% endif %}{{ pg.note }}</p>
+{% endif %}

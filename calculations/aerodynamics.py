@@ -16,6 +16,7 @@ import math
 from calculations.atmosphere import isa_atmosphere, G0, RHO0
 from calculations.paturski_ml import paturski_project_2_wing, paturski_project_3_aircraft_aero, default_retractable_gear
 from calculations.high_lift import high_lift
+from calculations.validation import NUMERIC_LIMITS
 from calculations.instructor import FLAP_TAKEOFF_DEFLECTION_DEG, FLAP_LANDING_DEFLECTION_DEG
 
 
@@ -42,7 +43,10 @@ def calculate_compressibility(mach: float, cz: float, tc: float = 0.12, sweep_de
         profile_family = "Profil klasyczny NACA / konwencjonalny"
 
     cz_pos = max(0.0, float(cz))
-    tc_eff = max(0.06, min(0.24, float(tc)))
+    tc_eff = float(tc)
+    tc_low, tc_high = NUMERIC_LIMITS['tc_ratio']
+    if not math.isfinite(tc_eff) or not tc_low <= tc_eff <= tc_high:
+        raise ValueError(f'Grubość t/c w modelu ściśliwości musi być w zakresie {tc_low:g}–{tc_high:g}.')
     m_dd_calc = (kappa_a / cos_sweep) - (tc_eff / (cos_sweep ** 2)) - (cz_pos / (10.0 * (cos_sweep ** 3)))
     m_dd = round(max(0.40, min(0.98, m_dd_calc)), 3)
 
@@ -74,6 +78,7 @@ def calculate_compressibility(mach: float, cz: float, tc: float = 0.12, sweep_de
         "drag_divergence_safe": is_safe,
         "profile_family": profile_family,
         "kappa_a": kappa_a,
+        "tc_ratio": tc_eff,
         "is_transonic": m >= 0.70
     }
 

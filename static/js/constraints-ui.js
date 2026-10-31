@@ -121,7 +121,8 @@ function updateDerivedUI(paramStates) {
     if (info.state === 'derived') {
       input.readOnly = true;
       if (info.value != null && !isNaN(info.value)) {
-        input.value = typeof info.value === 'number' ? (Number.isInteger(info.value) ? info.value : +info.value.toFixed(2)) : info.value;
+        const digits = Number.isInteger(info.display_digits) ? Math.max(0, Math.min(12, info.display_digits)) : 2;
+        input.value = typeof info.value === 'number' ? (Number.isInteger(info.value) ? info.value : +info.value.toFixed(digits)) : info.value;
       }
       group.classList.add('is-derived');
       group.classList.remove('is-locked');
