@@ -158,5 +158,4 @@ samolot śmigłowy (10.1.1 wyłącza tylko motoszybowce samoutrzymujące się).
 
 JAR-23.341 / 14 CFR 23.341 definiują μ_g = 2(W/S)/(ρ·C·a·g) z C = średnia cięciwa geometryczna
 (S/b). Rozwiązanie zadania kolokwialnego używa jej od 1.11.2026 (wcześniej SCA; różnica w K_g
-ok. 0,5%). Główna obwiednia CS-23 w `calculations/envelope.py` nadal używa SCA wg Danileckiego
-(wzór 2.14) — do ujednolicenia, gdy zakończą się bieżące prace nad obwiednią klapową.
+ok. 0,5%). Główna obwiednia w `calculations/envelope.py` również używa C = S/b.
