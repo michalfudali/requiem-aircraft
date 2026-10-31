@@ -1026,8 +1026,10 @@ def _p2_cost(s, r):
            check=lambda v: v.H_ML * v.R_ML)
     s.calc('C_T', 'C_T', r'H_T R_T', r'[[H_T]]\cdot[[R_T]]', items['C_T'], USD, 0, 'Koszt oprzyrządowania', SOURCES['B2'] + ', wzór (19)',
            check=lambda v: v.H_T * v.R_T)
-    s.calc('C_QC', 'C_{QC}', r'0{,}13\,H_{ML}R_{QC}', r'0{,}13\cdot[[H_ML]]\cdot[[R_QC]]', items['C_QC'], USD, 0, 'Koszt kontroli jakości',
-           SOURCES['B2'] + ', wzór (20)', check=lambda v: .13 * v.H_ML * v.R_QC)
+    s.given('k_QC', r'k_{QC}', t['qc_factor'], '', 3, 'Udział kontroli jakości w robociźnie' + (' — samolot towarowy' if t['qc_factor'] < .1 else ''),
+            SOURCES['B2'] + ', wzór (20)')
+    s.calc('C_QC', 'C_{QC}', r'k_{QC}\,H_{ML}R_{QC}', r'[[k_QC]]\cdot[[H_ML]]\cdot[[R_QC]]', items['C_QC'], USD, 0, 'Koszt kontroli jakości',
+           SOURCES['B2'] + ', wzór (20)', check=lambda v: v.k_QC * v.H_ML * v.R_QC)
     s.given('C_MM_70', r'C_{MM,1970}', by['C_MM'][0], USD, 0, 'Koszt materiałów — współczynniki 1970', SOURCES['B2'])
     s.given('C_MM_86', r'C_{MM,1986}', by['C_MM'][1], USD, 0, 'Koszt materiałów — współczynniki 1986', SOURCES['B2'])
     s.calc('C_MM', 'C_{MM}', r'C_{MM,1986}+\left(C_{MM,1986}-C_{MM,1970}\right)\frac{r-1986}{16}',

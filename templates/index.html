@@ -13,7 +13,7 @@
   <link rel="stylesheet" href="/static/css/workspace.css?v=2">
   <link rel="stylesheet" href="/static/css/calculation-tree.css?v=1">
   <link rel="stylesheet" href="/static/css/experience.css?v=3">
-  <link rel="stylesheet" href="/static/css/coursework.css?v=6">
+  <link rel="stylesheet" href="/static/css/coursework.css?v=7">
 </head>
 <body class="studio-layout">
   <a class="studio-skip-link" href="#studioMainWorkspace">Przejdź do treści</a>
@@ -1296,12 +1296,25 @@
                   <span class="badge badge-success">Obowiązkowe</span>
                 </div>
                 <div class="subpoint-body">
+                  <p class="cost-hint">BIPOL_2: wartości N<sub>P</sub> i N<sub>am</sub> ustala się z prowadzącym (zwykle N<sub>am</sub> ≈ 250 szt., N<sub>am</sub> ≤ N<sub>P</sub>). Zmienione założenia trafiają do projektu po przeliczeniu.</p>
+                  <div class="cost-controls" id="p2CostControls">
+                    <label class="studio-field" for="cost_n_production">Seria N<sub>P</sub> [szt.]<input id="cost_n_production" data-analysis-param type="number" min="1" max="100000" step="1" value="250"></label>
+                    <label class="studio-field" for="cost_n_amortization">Amortyzacja rozwoju N<sub>am</sub> [szt.]<input id="cost_n_amortization" data-analysis-param type="number" min="1" max="100000" step="1" value="250"></label>
+                    <label class="studio-field" for="cost_n_prototypes">Prototypy RDT&amp;E [szt.]<input id="cost_n_prototypes" data-analysis-param type="number" min="1" max="50" step="1" value="4"></label>
+                    <label class="studio-field" for="cost_year">Rok kosztów<input id="cost_year" data-analysis-param type="number" min="1970" max="2100" step="1" value="2026"></label>
+                    <label class="studio-field" for="cost_profit_pct">Zysk C<sub>P</sub> [%]<input id="cost_profit_pct" data-analysis-param type="number" min="0" max="100" step="0.5" value="12"></label>
+                    <label class="studio-field" for="usd_pln">Kurs [PLN/USD]<input id="usd_pln" data-analysis-param type="number" min="0.5" max="50" step="0.01" value="4.05"></label>
+                    <label class="studio-field cost-qc" for="cost_qc_factor">Kontrola jakości, wzór (20)<select id="cost_qc_factor" data-analysis-param><option value="0.13">0,13 H_ML — samolot ogólny</option><option value="0.076">0,076 H_ML — samolot towarowy</option></select></label>
+                    <button type="button" class="btn btn-outline-sm" onclick="performCalculation()">Przelicz koszty</button>
+                  </div>
                   <table class="b-table">
                     <tr><td>Prace badawczo-rozwojowe R&D (H_E)</td><td><b id="p2_rdte_hours">---</b> roboczogodzin</td></tr>
                     <tr><td>Robocizna produkcyjna montażu (H_ML)</td><td><b id="p2_labor_hours">---</b> roboczogodzin</td></tr>
-                    <tr><td>Kontrola jakości (H_QC = 0.13 H_ML)</td><td><b id="p2_qc_hours">---</b> roboczogodzin</td></tr>
-                    <tr><td>Minimalna cena jednostkowa wg wzoru 5.10 (C_P = 0, seria N_P = 250)</td><td><b id="p2_unit_cost" style="color:#005691;">--- USD</b></td></tr>
-                    <tr><td>Cena z zyskiem C_P = 12% (bez podatku)</td><td><b id="p2_selling_price" style="color:#16a34a;">--- PLN</b></td></tr>
+                    <tr><td>Kontrola jakości (H_QC = <span id="p2_qc_factor">0,13</span> H_ML)</td><td><b id="p2_qc_hours">---</b> roboczogodzin</td></tr>
+                    <tr><td>Koszt fazy rozwoju RDT&amp;E (prototypy: <span id="p2_prototypes">4</span>)</td><td><b id="p2_rdte_total">--- USD</b></td></tr>
+                    <tr><td>Koszt produkcji serii</td><td><b id="p2_production_total">--- USD</b></td></tr>
+                    <tr><td>Minimalna cena jednostkowa wg wzoru 5.10 (C_P = 0, N_P = <span id="p2_series_count">250</span>, N_am = <span id="p2_amortization_count">250</span>)</td><td><b id="p2_unit_cost" style="color:#005691;">--- USD</b></td></tr>
+                    <tr><td>Cena z zyskiem C_P = <span id="p2_profit_pct">12</span>% (bez podatku)</td><td><b id="p2_selling_price" style="color:#16a34a;">--- PLN</b></td></tr>
                   </table>
                 </div>
               </div>
@@ -2437,7 +2450,7 @@
   <script src="/static/js/studio-visuals.js?v=3"></script>
   <script src="/static/js/didactic_data.js?v=14"></script>
   <script src="/static/js/charts.js?v=19"></script>
-  <script src="/static/js/app.js?v=34"></script>
+  <script src="/static/js/app.js?v=35"></script>
   <script src="/static/js/didactic_modes.js?v=3"></script>
   <script src="/static/js/constraints-ui.js?v=5"></script>
   <script src="/static/js/design-basis.js?v=7"></script>

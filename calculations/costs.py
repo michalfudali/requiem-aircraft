@@ -22,7 +22,11 @@ COEFFICIENTS = {
 # Tab. 5.9: stawki godzinowe [USD/h]
 RATES = {1970: {"E": 16.00, "T": 11.50, "ML": 10.00, "QC": 10.00},
          1986: {"E": 59.10, "T": 61.70, "ML": 55.40, "QC": 50.10}}
+# Wzór (20): H_QC = 0,13 H_ML; dla samolotów towarowych 0,076 (tabela 5.7, 1986).
 QC_FACTOR = 0.13
+QC_FACTOR_CARGO = 0.076
+# Wzór (15), 1970: C1 = 109 dla silnika turboodrzutowego, 130 dla turbowentylatorowego.
+ENGINE_C1_1970 = {"turbojet": 109.0, "turbofan": 130.0}
 # Ceny silników tłokowych i turbośmigłowych są poza wzorem (15); przyjęto ceny rynkowe
 # w USD roku docelowego na kW mocy startowej, do zastąpienia ofertą producenta.
 PISTON_USD_PER_KW = 350.0
@@ -51,12 +55,15 @@ def engine_price(params, year, thrust_kn, power_kw, mach_max):
         return float(params["engine_price_usd"]), "cena podana w założeniach"
     if engine_type == "jet":
         t_lb = (thrust_kn or 0.0) * LBF_PER_KN / n
+        # Stopień dwuprzepływowości 0 oznacza silnik jednoprzepływowy (turboodrzutowy).
+        kind = "turbojet" if float(params.get("bypass_ratio", 4.5)) <= 0 else "turbofan"
         tit_k = float(params.get("turbine_inlet_temp_k", 1600.0 if params.get("aircraft_type") == "jet_transport" else 1450.0))
         theta_r = 1.8 * tit_k
-        c1970 = 130.0 * t_lb ** 0.836
+        c1970 = ENGINE_C1_1970[kind] * t_lb ** 0.836
         c1986 = 1548.0 * (0.043 * t_lb + 243.25 * mach_max + 0.969 * theta_r - 2228.0)
+        label = "turboodrzutowy" if kind == "turbojet" else "turbowentylatorowy"
         return (_extrapolate(c1970, c1986, year),
-                f"wzór (15): turbowentylatorowy, T = {t_lb:.0f} lb, M = {mach_max:.2f}, Θ = {theta_r:.0f} °R ({tit_k:.0f} K)")
+                f"wzór (15): {label}, T = {t_lb:.0f} lb, M = {mach_max:.2f}, Θ = {theta_r:.0f} °R ({tit_k:.0f} K)")
     per_engine_kw = (power_kw or 0.0) / n
     turboprop = params.get("aircraft_type") == "turboprop_regional"
     rate = TURBOPROP_USD_PER_KW if turboprop else PISTON_USD_PER_KW
@@ -72,6 +79,7 @@ def calculate_costs(params, m_empty_kg, v_max_kmh, thrust_kn=None, power_kw=None
     rate_rdte = float(params.get("cost_rate_rdte_per_month", n_rdte / 36.0))
     rate_prod = float(params.get("cost_rate_production_per_month", 5.0))
     profit = float(params.get("cost_profit_pct", 12.0)) / 100.0
+    qc_factor = float(params.get("cost_qc_factor", QC_FACTOR))
     n_engines = 0 if params.get("engine_type") == "none" else max(1, int(params.get("n_engines", 1) or 1))
     w_lb = m_empty_kg * LB_PER_KG
     v_kt = v_max_kmh * KT_PER_KMH
@@ -86,7 +94,7 @@ def calculate_costs(params, m_empty_kg, v_max_kmh, thrust_kn=None, power_kw=None
             h = [_cer(name, y, w_lb, v_kt, n, rate) for y in (1970, 1986)]
             by_year[name] = h
             hours[key] = max(0.0, _extrapolate(h[0], h[1], year))
-        hours["QC"] = QC_FACTOR * hours["ML"]
+        hours["QC"] = qc_factor * hours["ML"]
         usd = {}
         for name in (("C_MM", "C_D", "C_FT") if rdte else ("C_MM",)):
             by_year[name] = [_cer(name, y, w_lb, v_kt, n) for y in (1970, 1986)]
@@ -125,7 +133,7 @@ def calculate_costs(params, m_empty_kg, v_max_kmh, thrust_kn=None, power_kw=None
         "engine_basis": engine_basis,
         "avionics_price_usd": round(avionics),
         "terms": {"w_lb": w_lb, "v_kt": v_kt, "n_engines": n_engines, "engine_price_raw": c_en_one,
-                  "avionics_raw": avionics, "qc_factor": QC_FACTOR, "profit": profit,
+                  "avionics_raw": avionics, "qc_factor": qc_factor, "profit": profit,
                   "rates_raw": rates, "min_price_raw": min_price, "price_raw": price},
         "rdte": rdte,
         "production": prod,
@@ -138,6 +146,7 @@ def calculate_costs(params, m_empty_kg, v_max_kmh, thrust_kn=None, power_kw=None
         "cmm_materials_usd": prod["items_usd"]["C_MM"],
         "unit_cost_usd": round(min_price),
         "profit_pct": round(100 * profit, 1),
+        "qc_factor": qc_factor,
         "selling_price_usd": round(price),
         "selling_price_pln": round(price * float(params.get("usd_pln", 4.05))),
     }

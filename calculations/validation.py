@@ -51,7 +51,12 @@ NUMERIC_LIMITS = {
     "tow_glider_mass_kg": (0, 2000), "tow_glider_ld": (5, 60), "tow_speed_kmh": (60, 250),
     "tow_climb_rate_ms": (0, 20), "engine_power_limit_kw": (0, 100000),
     "v_max_required_kmh": (0, 1200), "cargo_hold_density_kg_m3": (0, 2000),
+    # BIPOL_2, analiza kosztów: N_P i N_am ustala się z prowadzącym.
+    "cost_year": (1970, 2100), "cost_n_production": (1, 100000), "cost_n_amortization": (1, 100000),
+    "cost_n_prototypes": (1, 50), "cost_profit_pct": (0, 100), "cost_qc_factor": (0.05, 0.2),
+    "usd_pln": (0.5, 50), "bypass_ratio": (0, 20),
 }
+COUNT_KEYS = ("cost_year", "cost_n_production", "cost_n_amortization", "cost_n_prototypes")
 
 DEFAULTS = {
     "aircraft_type": "piston_ga", "engine_type": "prop", "engine_location": "nose",
@@ -139,7 +144,11 @@ def validate_parameters(data):
             raise ValueError(f"Pole {key}: wymagana skończona liczba od {lower} do {upper}.")
         if key in ("n_pax", "n_crew", "n_engines") and not number.is_integer():
             raise ValueError(f"Pole {key}: liczba osób musi być całkowita.")
+        if key in COUNT_KEYS and not number.is_integer():
+            raise ValueError(f"Pole {key}: wymagana liczba całkowita.")
         p[key] = number
+    if p.get('cost_n_amortization', 0) > p.get('cost_n_production', math.inf):
+        raise ValueError('Koszty: liczba egzemplarzy amortyzujących koszty rozwoju N_am nie może przekraczać serii N_P.')
     dimensions = [p[key] for key in ('cargo_bay_length_m', 'cargo_bay_width_m', 'cargo_bay_height_m')]
     if any(dimensions) and not all(dimensions):
         raise ValueError('Podaj wszystkie trzy wymiary ładowni albo pozostaw wszystkie równe zero.')
