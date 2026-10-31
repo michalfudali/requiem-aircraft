@@ -3,6 +3,9 @@
 BIPOL_2 p. 4: a section lift increment applies only to the equipped wing area.
 The table remains an estimate, not measured data for the selected airfoil.
 """
+import math
+
+
 FLAPS = {
     'none': (0., 0., 0., 0., None, None),
     'plain': (.30, .60, .010, .035, .74, .68),
@@ -34,3 +37,23 @@ def high_lift(params, clean_e=.8, geometry=None):
         slat_lift=slat_lift, slat_drag=slat_drag,
         flap_area_fraction=flap_area, slat_area_fraction=slat_area,
         cz_max_to=cl+lift_to+.5*slat_lift, cz_max_lnd=cl+lift_lnd+slat_lift)
+
+
+def stall_requirement(params, performance):
+    """Project VS0 limit at MTOW, using the unrounded sea-level lift balance.
+
+    This is a preliminary project check, not a CS-23 certification finding.
+    Keep legacy performance inputs usable when only the speed table is supplied.
+    """
+    raw_ms = performance.get('terms', {}).get('vs_lnd')
+    actual = float(raw_ms) * 3.6 if raw_ms is not None else float(performance['speeds']['vs_lnd_kmh'])
+    limit = float(params['v_stall_kmh'])
+    if not all(math.isfinite(v) and v > 0 for v in (actual, limit)):
+        raise ValueError('Ocena przeciągnięcia wymaga dodatnich, skończonych prędkości.')
+    return dict(limit_kmh=limit, actual_kmh=actual, margin_kmh=limit - actual,
+                passed=actual <= limit, basis='project', mass_basis='MTOW',
+                speed_basis='EAS', reference_altitude_m=0,
+                certification_verified=False,
+                note='Wymaganie projektu dla konfiguracji do lądowania przy MTOW. '
+                     'Ocena z pełnej precyzji równowagi siły nośnej; bez dodatkowej tolerancji prędkości. '
+                     'Nie stanowi wykazania zgodności certyfikacyjnej ani oceny zachowania po przeciągnięciu.')

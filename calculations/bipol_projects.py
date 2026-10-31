@@ -10,6 +10,7 @@ from calculations.paturski_ml import run_paturski_mechanika_lotu, aircraft_chara
 from calculations.trends import analyze_trends
 from calculations.preliminary import preliminary_insights
 from calculations.mass import calculate_mass_sizing
+from calculations.high_lift import stall_requirement
 from calculations.costs import calculate_costs
 from calculations.polish_law import SUBCATEGORIES, K_CATEGORIES, resolve_category
 
@@ -454,15 +455,12 @@ def calculate_all_bipol_projects(mass_res: dict, sizing_res: dict, geom_res: dic
     k_max_glide = glide['best_glide']['ld']
     v_opt = glide['best_glide']['v_kmh']
 
-    # 4.3 Mechanizacja płata (CS-23.49: limit 61 kt = 113 km/h dotyczy samolotów jednosilnikowych i lekkich wielosilnikowych <= 2722 kg bez zdolności wznoszenia OEI)
-    is_single_light_cs23 = (engine_type == "prop") and (ac_type in ["piston_ga", "uav"]) and (m0 <= 2722.0) and (params.get("engine_location", "nose") != "wing")
-    stall_limit_kmh = float(params["v_stall_kmh"])  # Check the project requirement; no universal CS-23 limit.
+    # 4.3 Mechanizacja: project requirement, not a universal CS-23 speed limit.
     high_lift_summary = {
         "clean": {"cz_max": cz_max_clean, "vs_kmh": perf_res["speeds"]["vs_clean_kmh"], "cx0": aero_res["cx0_clean"]},
         "takeoff": {"cz_max": aero_res["cz_max_to"], "vs_kmh": perf_res["speeds"]["vs_to_kmh"], "cx0": aero_res["cx0_to"], "delta_cz": round(aero_res["cz_max_to"] - cz_max_clean, 2)},
         "landing": {"cz_max": cz_max_lnd, "vs_kmh": perf_res["speeds"]["vs_lnd_kmh"], "cx0": aero_res["cx0_lnd"], "delta_cz": round(cz_max_lnd - cz_max_clean, 2)},
-        "cs23_stall_limit_kmh": stall_limit_kmh,
-        "is_cs23_compliant": perf_res["speeds"]["vs_lnd_kmh"] <= (stall_limit_kmh + 1.0),
+        "stall_requirement": stall_requirement(params, perf_res),
         "control_surfaces": geom_res.get("control_surfaces", {})
     }
     for phase in ('clean', 'takeoff', 'landing'):

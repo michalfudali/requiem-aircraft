@@ -24,6 +24,8 @@
 {{ c.section(sheet, 'p4.highlift') }}
 <table><caption>Współczynniki przyjętych biegunowych</caption><thead><tr><th>Konfiguracja</th><th class="number">Cx₀</th><th class="number">k</th><th class="number">Cz,max</th><th class="number">VS [km/h]</th></tr></thead><tbody>{% for key,label,k in [('clean','Gładka',a.k_clean),('takeoff','Startowa',a.k_to),('landing','Do lądowania',a.k_lnd)] %}{% set h=p_data.high_lift[key] %}<tr><td>{{ label }} ({{ h.flap_deflection_deg|reportnum(0) }}°)</td><td class="number">{{ h.cx0|reportnum(4) }}</td><td class="number">{{ k|reportnum(5) }}</td><td class="number">{{ h.cz_max|reportnum(2) }}</td><td class="number">{{ h.vs_kmh|reportnum(1) }}</td></tr>{% endfor %}</tbody></table>
 <figure><div id="repPolar"></div><figcaption>Porównanie biegunowych aerodynamicznych dla trzech konfiguracji.</figcaption></figure>
+{% set vs_check=p_data.high_lift.stall_requirement %}
+<p id="p4-stall-requirement"><strong>Wymaganie projektu — prędkość przeciągnięcia:</strong> obliczono {{ vs_check.actual_kmh|reportnum(3) }} km/h EAS przy MTOW, dla limitu {{ vs_check.limit_kmh|reportnum(2) }} km/h EAS. Wymaganie {{ 'jest spełnione' if vs_check.passed else 'nie jest spełnione' }}; zapas do limitu wynosi {{ vs_check.margin_kmh|reportnum(3) }} km/h. {{ vs_check.note }}</p>
 <h3>Moment pochylający i wyważenie</h3>
 <p>Współczynnik momentu \(C_m(\alpha)\) przedstawiono w przybliżeniu liniowym przy ustalonym sterze wysokości, ustawionym do równowagi w przelocie przy średnim położeniu środka ciężkości. Punkt neutralny przyjęto z analizy wyważenia (P3). Pominięto moment od ciągu i oporu oraz nieliniowość w pobliżu przeciągnięcia.</p>
 {{ c.section(sheet, 'p4.cm') }}

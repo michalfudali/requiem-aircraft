@@ -3791,28 +3791,33 @@ function hydrateSemesterProjectsData(res) {
     const hl = p4.high_lift;
     const hlTbody = document.getElementById('p4_high_lift_tbody');
     if (hlTbody && hl) {
-      const stallLim = hl.cs23_stall_limit_kmh ?? 113.0;
+      const stallCheck = hl.stall_requirement;
+      const stallLabel = stallCheck
+        ? `${stallCheck.passed ? '✓ Wymaganie projektu spełnione' : '⚠️ Wymaganie projektu niespełnione'} (≤ ${Number(stallCheck.limit_kmh).toFixed(2)} km/h EAS przy MTOW)`
+        : 'Brak oceny wymagania projektu';
+      const stallNote = document.getElementById('p4_stall_requirement_note');
+      if (stallNote) stallNote.textContent = stallCheck?.note || '';
       hlTbody.innerHTML = `
         <tr>
           <td><b>Gładka (Clean)</b></td>
-          <td>${hl.clean.cz_max}</td>
-          <td>${hl.clean.vs_kmh} km/h</td>
+          <td>${Number(hl.clean.cz_max).toFixed(3)}</td>
+          <td>${hl.clean.vs_kmh} km/h EAS</td>
           <td>—</td>
           <td>Konfiguracja przelotowa</td>
         </tr>
         <tr>
           <td><b>Startowa — klapy ${hl.takeoff.flap_deflection_deg}°</b></td>
-          <td>${hl.takeoff.cz_max}</td>
-          <td>${hl.takeoff.vs_kmh} km/h</td>
+          <td>${Number(hl.takeoff.cz_max).toFixed(3)}</td>
+          <td>${hl.takeoff.vs_kmh} km/h EAS</td>
           <td>+${hl.takeoff.delta_cz}</td>
-          <td>Skrócenie rozbiegu</td>
+          <td>Konfiguracja startowa</td>
         </tr>
         <tr>
           <td><b>Do lądowania — klapy ${hl.landing.flap_deflection_deg}°</b></td>
-          <td><b>${hl.landing.cz_max}</b></td>
-          <td><b>${hl.landing.vs_kmh} km/h</b></td>
+          <td><b>${Number(hl.landing.cz_max).toFixed(3)}</b></td>
+          <td><b>${stallCheck ? Number(stallCheck.actual_kmh).toFixed(3) : hl.landing.vs_kmh} km/h EAS</b></td>
           <td>+${hl.landing.delta_cz}</td>
-          <td><span class="badge ${hl.is_cs23_compliant ? 'badge-success' : 'badge-danger'}">${hl.is_cs23_compliant ? `✓ Zgodne (<= ${stallLim} km/h)` : `⚠️ Przekroczone (> ${stallLim} km/h)`}</span></td>
+          <td><span class="badge ${stallCheck ? (stallCheck.passed ? 'badge-success' : 'badge-danger') : 'badge-info'}">${stallLabel}</span></td>
         </tr>
       `;
     }
@@ -3826,27 +3831,27 @@ function hydrateSemesterProjectsData(res) {
       csTbody.innerHTML = `
         <tr>
           <td><b>Klapy wysklepiające (wewnętrzne)</b></td>
-          <td>${f.name}</td>
+          <td>${escapeHtml(f.name)}</td>
           <td>${f.b_f_m} m</td>
           <td>${(f.bf_over_b * 100).toFixed(1)}% rozpiętości</td>
           <td>${(f.cf_over_c * 100).toFixed(0)}% cięciwy</td>
           <td>${f.S_flap_surface_m2} m² (${(f.s_flapped_over_s * 100).toFixed(1)}% S_flapped)</td>
           <td>&Delta;Cz_max = +${dCz}</td>
-          <td><span class="badge badge-success">✓ Zgodne CS-23.49 / CS-22</span></td>
+          <td><span class="badge badge-info">Oszacowanie przyrostu nośności</span></td>
         </tr>
         <tr>
           <td><b>Lotki sterowania poprzecznego (zewnętrzne)</b></td>
-          <td>${a.name}</td>
+          <td>${escapeHtml(a.name)}</td>
           <td>${a.b_a_m} m</td>
           <td>${(a.ba_over_b * 100).toFixed(1)}% rozpiętości</td>
           <td>${(a.ca_over_c * 100).toFixed(0)}% cięciwy</td>
           <td>${a.S_aileron_surface_m2} m² (${(a.s_aileron_over_s * 100).toFixed(1)}% S)</td>
           <td>pb/(2V) = ${a.roll_helix_pb_2v} (kąt spiralny)</td>
-          <td><span class="badge ${a.roll_authority_ok ? 'badge-success' : 'badge-warning'}">${a.roll_authority_ok ? `✓ Zgodne (&ge; ${a.min_pb_2v_req})` : `⚠️ pb/(2V) < ${a.min_pb_2v_req}`}</span></td>
+          <td><span class="badge ${a.roll_authority_ok ? 'badge-success' : 'badge-warning'}">${a.roll_authority_ok ? `✓ Kryterium wstępne spełnione (&ge; ${a.min_pb_2v_req})` : `⚠️ Poniżej kryterium wstępnego ${a.min_pb_2v_req}`}</span></td>
         </tr>
         <tr>
           <td colspan="8" style="background:#f8fafc; font-size:0.8rem; color:#1e293b;">
-            <strong>Audyt bezpieczeństwa przeciągnięcia Schrenka:</strong> ${cs.stall_safety.verdict}
+            <strong>Wstępna ocena rozkładu Schrenka:</strong> ${escapeHtml(cs.stall_safety.verdict)}
           </td>
         </tr>
       `;

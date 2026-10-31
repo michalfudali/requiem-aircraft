@@ -4,7 +4,7 @@ Główny moduł integrujący obliczenia wstępnego projektowania samolotu BIPOL 
 import math
 
 from calculations.atmosphere import G0, RHO0
-from calculations.high_lift import high_lift
+from calculations.high_lift import high_lift, stall_requirement
 from calculations.mass import calculate_mass_sizing
 from calculations.sizing import calculate_matching_chart
 from calculations.geometry import calculate_geometry
@@ -142,14 +142,13 @@ def run_bipol_project(params: dict):
             required=f"Błąd względny ≤ {design_iteration['tolerance']:.4g}", actual=f"{design_iteration['iterations']} iteracji",
             passed=design_iteration["converged"], note=design_iteration["failure"] or "Bilans paliwa przy zadanej TAS i wysokości, z końcową biegunową P4."))
     # 1. Zgodność z prędkością przeciągnięcia
-    req_v_stall = float(params.get("v_stall_kmh", 100.0))
-    act_v_stall = perf_res["speeds"]["vs_lnd_kmh"]
+    stall_check = stall_requirement(params, perf_res)
     checks.append({
         "parameter": "Prędkość przeciągnięcia z klapami Vs0",
-        "required": f"≤ {req_v_stall} km/h",
-        "actual": f"{act_v_stall} km/h",
-        "passed": act_v_stall <= req_v_stall + 1.0,
-        "note": "Warunek zdatności do lądowania na krótkich pasach"
+        "required": f"≤ {stall_check['limit_kmh']:g} km/h EAS przy MTOW",
+        "actual": f"{stall_check['actual_kmh']:.3f} km/h EAS",
+        "passed": stall_check['passed'],
+        "note": stall_check['note']
     })
     
     # 2. Zgodność z prędkością wznoszenia
