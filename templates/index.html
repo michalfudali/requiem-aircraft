@@ -13,7 +13,7 @@
   <link rel="stylesheet" href="/static/css/workspace.css?v=2">
   <link rel="stylesheet" href="/static/css/calculation-tree.css?v=1">
   <link rel="stylesheet" href="/static/css/experience.css?v=3">
-  <link rel="stylesheet" href="/static/css/coursework.css?v=2">
+  <link rel="stylesheet" href="/static/css/coursework.css?v=3">
 </head>
 <body class="studio-layout">
   <a class="studio-skip-link" href="#studioMainWorkspace">Przejdź do treści</a>
@@ -76,37 +76,37 @@
         <div class="semester-project-pill active" id="pill-p1" onclick="selectSemesterProject('p1')">
           <div class="p-code">PROJEKT 1</div>
           <div class="p-name">Projekt Koncepcyjny</div>
-          <div class="p-deadline">Tydzień 3 &bull; Max 5 pkt</div>
+          <div class="p-deadline">Tydzień 3 (21/23.10) &bull; Max 5 pkt</div>
           <div class="p-pts" id="pts-badge-p1">0 / 5 pkt</div>
         </div>
         <div class="semester-project-pill" id="pill-p2" onclick="selectSemesterProject('p2')">
           <div class="p-code">PROJEKT 2</div>
           <div class="p-name">Studium Wykonalności</div>
-          <div class="p-deadline">Tydzień 5 &bull; Max 18 pkt</div>
+          <div class="p-deadline">Tydzień 5 (4/6.11) &bull; Max 18 pkt</div>
           <div class="p-pts" id="pts-badge-p2">0 / 18 pkt</div>
         </div>
         <div class="semester-project-pill" id="pill-p3" onclick="selectSemesterProject('p3')">
           <div class="p-code">PROJEKT 3</div>
           <div class="p-name">Projekt Wstępny & Masy</div>
-          <div class="p-deadline">Tydzień 8 &bull; Max 27 pkt</div>
+          <div class="p-deadline">Tydzień 8 (25/27.11) &bull; Max 27 pkt</div>
           <div class="p-pts" id="pts-badge-p3">0 / 27 pkt</div>
         </div>
         <div class="semester-project-pill" id="pill-p4" onclick="selectSemesterProject('p4')">
           <div class="p-code">PROJEKT 4</div>
           <div class="p-name">Charakterystyki Aero</div>
-          <div class="p-deadline">Tydzień 10 &bull; Max 15 pkt</div>
+          <div class="p-deadline">Tydzień 10 (9/11.12) &bull; Max 15 pkt</div>
           <div class="p-pts" id="pts-badge-p4">0 / 15 pkt</div>
         </div>
         <div class="semester-project-pill" id="pill-p5" onclick="selectSemesterProject('p5')">
           <div class="p-code">PROJEKT 5</div>
           <div class="p-name">Osiągi Samolotu</div>
-          <div class="p-deadline">Tydzień 11 &bull; Max 15 pkt</div>
+          <div class="p-deadline">Tydzień 11 (16/18.12) &bull; Max 15 pkt</div>
           <div class="p-pts" id="pts-badge-p5">0 / 15 pkt</div>
         </div>
         <div class="semester-project-pill" id="pill-p6" onclick="selectSemesterProject('p6')">
           <div class="p-code">PROJEKT 6</div>
           <div class="p-name">Obwiednia Obciążeń</div>
-          <div class="p-deadline">Tydzień 14 &bull; Max 20 pkt</div>
+          <div class="p-deadline">Tydzień 14 (20/22.01) &bull; Max 20 pkt</div>
           <div class="p-pts" id="pts-badge-p6">0 / 20 pkt</div>
         </div>
       </div>
@@ -159,6 +159,8 @@
           <button class="bipol-tab" data-target="tab-variants">Warianty</button>
           <button class="bipol-tab" data-target="tab-reports">Raporty</button>
           <button class="bipol-tab" data-target="tab-coursework">Plan na 5,0</button>
+          <button class="bipol-tab" data-target="tab-exam">Zadanie kolokwialne</button>
+          <button class="bipol-tab" data-target="tab-quiz">Zejściówki</button>
           <button class="bipol-tab" data-target="tab-glide">Lot szybowy</button>
           <button class="bipol-tab" data-target="tab-methods">Metody</button>
           <button class="bipol-tab" data-target="tab-trends">Baza i trendy</button>
@@ -177,6 +179,8 @@
         {% include "inputs_panel.html" %}
         {% include "studio_panels.html" %}
         {% include "coursework_panel.html" %}
+        {% include "exam_panel.html" %}
+        {% include "quiz_panel.html" %}
         {% include "calculation_tree.html" %}
 
         <!-- MODUŁ CAD: RYSUNEK ZESTAWIENIOWY WG POLSKICH NORM CAD (ZPK MEiL PW / PN-EN ISO) -->
@@ -2418,9 +2422,9 @@
   <script src="/static/js/app.js?v=27"></script>
 <script src="/static/js/didactic_modes.js?v=2"></script>
   <script src="/static/js/constraints-ui.js?v=5"></script>
-  <script src="/static/js/design-basis.js?v=6"></script>
+  <script src="/static/js/design-basis.js?v=7"></script>
   <script src="/static/js/parameter-report.js?v=1"></script>
-  <script src="/static/js/studio.js?v=10"></script>
+  <script src="/static/js/studio.js?v=11"></script>
   <script src="/static/js/aircraft-project.js?v=1"></script>
   <script src="/static/js/aircraft-editor.js?v=2"></script>
   <script src="/static/js/trend-inputs.js?v=2"></script>
@@ -2429,6 +2433,8 @@
   <script src="/static/js/bipol1.js?v=1"></script>
   <script src="/static/js/workspace.js?v=6"></script>
   <script src="/static/js/calculation-tree.js?v=2"></script>
-  <script src="/static/js/coursework.js?v=3"></script>
+  <script src="/static/js/coursework.js?v=4"></script>
+  <script src="/static/js/exam.js?v=1"></script>
+  <script src="/static/js/quiz.js?v=1"></script>
 </body>
 </html>

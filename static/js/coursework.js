@@ -219,7 +219,42 @@
     } finally { iterating = false; freshness(); }
   }
 
+  // Terminy z regulaminu: dla wybranej grupy jeden dzień, bez wyboru — środa i piątek.
+  const GROUP_KEY = 'bipol_course_group_v1';
+  function renderSchedule() {
+    const select = $('courseworkGroup');
+    if (!select) return;
+    const day = select.selectedOptions[0]?.dataset.day || '';
+    const today = new Date(); today.setHours(0, 0, 0, 0);
+    const until = iso => Math.round((new Date(`${iso}T00:00:00`) - today) / 86400000);
+    const state = d => d > 1 ? `za ${d} dni` : d === 1 ? 'jutro' : d === 0 ? 'dziś' : d >= -14 ? `termin minął ${-d} dni temu` : 'minęły ponad 2 tygodnie od terminu';
+    let next = null;
+    document.querySelectorAll('#courseworkSchedule [data-schedule]').forEach(row => {
+      const days = (day ? [day] : ['wednesday', 'friday']).map(key => until(row.dataset[key]));
+      const latest = Math.max(...days);
+      row.querySelector('[data-schedule-state]').textContent = day || days[0] === days[1] ? state(days[0])
+        : latest < 0 ? state(latest) : days[0] >= 0 ? `za ${days[0]}–${days[1]} dni` : `śr.: ${state(days[0])}; pt.: ${state(days[1])}`;
+      row.classList.toggle('coursework-next', false);
+      row.classList.toggle('coursework-past', latest < 0);
+      if (next === null && latest >= 0) next = row;
+    });
+    next?.classList.add('coursework-next');
+    document.querySelectorAll('#courseworkSchedule [data-schedule-day], #courseworkSchedule [data-schedule-head]').forEach(cell => {
+      cell.hidden = Boolean(day) && (cell.dataset.scheduleDay || cell.dataset.scheduleHead) !== day;
+    });
+  }
+
   document.addEventListener('DOMContentLoaded', () => {
+    const group = $('courseworkGroup');
+    if (group) {
+      try { group.value = localStorage.getItem(GROUP_KEY) || ''; } catch (_) { /* brak zapisu */ }
+      if (!group.selectedOptions.length) group.value = '';
+      group.addEventListener('change', () => {
+        try { localStorage.setItem(GROUP_KEY, group.value); } catch (_) { /* tryb prywatny */ }
+        renderSchedule();
+      });
+      renderSchedule();
+    }
     $('courseworkScores').addEventListener('input', saveScores);
     $('courseworkFilter').addEventListener('change', renderSummary);
     $('courseworkItems').addEventListener('input', event => {

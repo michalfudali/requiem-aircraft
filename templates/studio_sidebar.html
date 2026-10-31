@@ -13,6 +13,8 @@
     </details>
     <details class="quiet-nav-group" id="learningNavigation"><summary>Materiały i zaliczenie</summary>
       <button type="button" class="studio-nav-item" data-studio-nav="tab-coursework"><span data-studio-icon="check"></span><span>Plan na 5,0</span></button>
+      <button type="button" class="studio-nav-item" data-studio-nav="tab-exam"><span data-studio-icon="wing"></span><span>Zadanie kolokwialne</span></button>
+      <button type="button" class="studio-nav-item" data-studio-nav="tab-quiz"><span data-studio-icon="book"></span><span>Zejściówki</span></button>
       {% for target, icon, label in [('tab-methods','book','Metody i źródła'),('tab-faculty-docs','download','Materiały dydaktyczne'),('tab-didactic-compendium','info','Kompendium'),('tab-bipol-guide','book','Zakres P1–P6')] %}
       <button type="button" class="studio-nav-item" data-studio-nav="{{ target }}"><span data-studio-icon="{{ icon }}"></span><span>{{ label }}</span></button>
       {% endfor %}

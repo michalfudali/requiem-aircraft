@@ -1,0 +1,62 @@
+<section id="tab-exam" class="tab-content studio-panel">
+  <div class="studio-heading"><div><p class="studio-eyebrow">ZALICZENIE / PRZYKŁADOWE ZADANIE KOLOKWIALNE</p><h1>Skrzydło, obwiednia i obciążenia płata</h1><p>Dane zadania zależą od liczby liter imienia (X) i nazwiska (Y). Najpierw policz samodzielnie, potem porównaj wyniki i rozwiń kroki rozwiązania.</p></div></div>
+  <section class="studio-card">
+    <form id="examForm" class="exam-form" novalidate>
+      <label class="studio-field" for="examFirst">Imię<input id="examFirst" type="text" autocomplete="off" spellcheck="false" maxlength="60"></label>
+      <label class="studio-field" for="examLast">Nazwisko<input id="examLast" type="text" autocomplete="off" spellcheck="false" maxlength="80"></label>
+      <label class="studio-field" for="examX">X — liter w imieniu<input id="examX" type="number" min="1" max="40" step="1" required></label>
+      <label class="studio-field" for="examY">Y — liter w nazwisku<input id="examY" type="number" min="1" max="40" step="1" required></label>
+      <button type="submit" class="btn btn-primary">Pokaż dane zadania</button>
+    </form>
+    <p class="studio-fine-print">Imię i nazwisko zostają w przeglądarce. Do obliczeń wysyłane są tylko liczby liter. Źródło treści: zadanie_kolokwialne_1.pdf ze strony przedmiotu.</p>
+    <p id="examStatus" class="studio-note" role="status" aria-live="polite" hidden></p>
+  </section>
+
+  <div id="examResult" hidden>
+    <section class="studio-card">
+      <h2>Dane zadania</h2>
+      <div id="examData" class="exam-data"></div>
+      <h3>Wyznaczyć</h3>
+      <ul class="exam-goals">
+        <li>parametry geometryczne skrzydła: powierzchnię, rozpiętość, cięciwy u nasady i na końcówce, średnią geometryczną i średnią aerodynamiczną;</li>
+        <li>obwiednię obciążeń;</li>
+        <li>rozkład C<sub>z</sub> wzdłuż rozpiętości (płat podzielony na 4 części);</li>
+        <li>rozkład wymiarującego momentu gnącego i siły tnącej.</li>
+      </ul>
+    </section>
+
+    <section class="studio-card">
+      <div class="studio-card-heading"><div><h2>Sprawdź swoje wyniki</h2><p>Wpisz wartości z własnych obliczeń. T₀ i M₀ to obciążenia dopuszczalne półskrzydła przy n<sub>max</sub>, z pełnym paliwem. Za zgodne uznaje się różnice do 2%, a dla współczynników obciążeń do 0,02.</p></div></div>
+      <form id="examCheck" class="exam-check" novalidate></form>
+      <p id="examCheckSummary" class="studio-note" role="status" aria-live="polite" hidden></p>
+    </section>
+
+    <section class="studio-card">
+      <div class="studio-card-heading"><div><h2>Rozwiązanie krok po kroku</h2><p>Każdy krok podaje wzór, podstawienie i wynik. Kroki są zwinięte, żeby nie podglądać przed własnym obliczeniem.</p></div>
+        <div class="exam-toggle"><button type="button" class="btn btn-outline" data-exam-expand="open">Rozwiń wszystko</button><button type="button" class="btn btn-outline" data-exam-expand="close">Zwiń</button></div></div>
+      <div id="examSteps"></div>
+    </section>
+
+    <section class="studio-card">
+      <h2>Obwiednia obciążeń</h2>
+      <div class="exam-chart"><canvas id="examEnvelopeCanvas" role="img" aria-label="Obwiednia obciążeń: współczynnik obciążenia w funkcji prędkości"></canvas></div>
+      <div id="examPoints"></div>
+    </section>
+
+    <section class="studio-card">
+      <h2>Rozkład C<sub>z</sub> i siły nośnej (Schrenk)</h2>
+      <div id="examSchrenkChart" class="exam-svg"></div>
+      <div id="examSchrenkTable"></div>
+    </section>
+
+    <section class="studio-card">
+      <h2>Siła tnąca i moment gnący</h2>
+      <div class="exam-two">
+        <div id="examShearChart" class="exam-svg"></div>
+        <div id="examMomentChart" class="exam-svg"></div>
+      </div>
+      <div id="examLoadTable"></div>
+      <div id="examNotes" class="studio-fine-print"></div>
+    </section>
+  </div>
+</section>
