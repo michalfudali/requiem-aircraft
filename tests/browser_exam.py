@@ -70,6 +70,7 @@ with sync_playwright() as p:
           for (let i = 3; i < d.length; i += 4) if (d[i]) n++; return {n, w: c.clientWidth}; })()""")
         assert painted['n']>2000 and painted['w']>250,painted
         assert page.locator('#examSchrenkChart svg rect.exam-bar').count()==4
+        assert page.locator('#examPlanform svg polygon').count()==2 and 'SCA = 1,387 m' in page.inner_text('#examPlanform')
         assert page.locator('#examShearChart svg polyline').count()>=2 and page.locator('#examMomentChart svg polyline').count()>=2
         assert page.locator('#examSchrenkTable tbody tr').count()==4 and page.locator('#examLoadTable tbody tr').count()==4
         assert 'bez paliwa' in page.inner_text('#examNotes')
