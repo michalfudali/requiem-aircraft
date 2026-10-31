@@ -146,4 +146,9 @@ Limity sprawdzono w tekście ICAO Annex 16, t. I (wyd. z poprawkami do 1/1/24), 
 | Śmigłowe > 8618 kg | limit rozdz. 10 | rozdz. 14 w EPNdB — poza zakresem modelu dB(A), bez oceny |
 | Odrzutowe | 84 + 4·log₁₀(m/1000) tylko dla przelotu | 14.4: limity boczny, przelot i podejście; suma zapasów ≥ 17 EPNdB, każdy ≥ 1 EPNdB |
 
-Sam model poziomu hałasu (zależności od mocy, M_tip, ciągu i BPR) pozostaje szacunkiem.
+Sam model poziomu hałasu (zależności od mocy, M_tip, ciągu i BPR) pozostaje szacunkiem: przy
+poprawnych limitach 38 z 79 ocenianych tematów (głównie motoszybowce i UL) wychodzi ponad limit,
+co odzwierciedla zgrubność modelu, a nie dane. Audyt opisuje wynik jako szacunek do porównania
+wariantów; rzetelna ocena wymagałaby metody z widmem i kierunkowością (np. SAE AIR 1407).
+Szybowiec bez napędu nie podlega Załącznikowi 16; motoszybowiec samostartujący ocenia się jak
+samolot śmigłowy (10.1.1 wyłącza tylko motoszybowce samoutrzymujące się).
