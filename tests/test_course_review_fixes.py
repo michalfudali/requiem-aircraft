@@ -162,6 +162,55 @@ def test_costs_reproduce_1986_coefficients_and_extrapolate_linearly():
     assert c2002['unit_cost_usd'] == pytest.approx(expected, abs=1)
 
 
+def test_cost_coefficients_match_bipol2_tables():
+    # BIPOL_2 (Galiński, Studium wykonalności), s. 7–10: wzory (13)–(21) i tab. 5.9.
+    from calculations.costs import COEFFICIENTS, RATES, QC_FACTOR, QC_FACTOR_CARGO, ENGINE_C1_1970
+    assert COEFFICIENTS['H_E'] == {1970: (0.027, 0.791, 1.526, 0.183), 1986: (4.860, 0.777, 0.894, 0.163)}
+    assert COEFFICIENTS['C_D'] == {1970: (0.00549, 0.873, 1.890, 0.346), 1986: (45.42, 0.630, 1.300, 0)}
+    assert COEFFICIENTS['H_ML'] == {1970: (20.348, 0.740, 0.543, 0.524), 1986: (7.370, 0.820, 0.484, 0.641)}
+    assert COEFFICIENTS['C_MM'] == {1970: (18.47, 0.689, 0.624, 0.792), 1986: (11.00, 0.921, 0.621, 0.799)}
+    assert COEFFICIENTS['H_T'] == {1970: (2.79, 0.764, 0.899, 0.178, 0.066), 1986: (5.99, 0.777, 0.696, 0.263, 0)}
+    assert COEFFICIENTS['C_FT'] == {1970: (0.000714, 1.160, 1.371, 1.281), 1986: (1243.03, 0.325, 0.822, 1.210)}
+    assert RATES == {1970: {'E': 16.0, 'T': 11.5, 'ML': 10.0, 'QC': 10.0}, 1986: {'E': 59.1, 'T': 61.7, 'ML': 55.4, 'QC': 50.1}}
+    assert (QC_FACTOR, QC_FACTOR_CARGO) == (0.13, 0.076)
+    assert ENGINE_C1_1970 == {'turbojet': 109.0, 'turbofan': 130.0}
+
+
+def test_cost_assumptions_come_from_the_project():
+    params = {'aircraft_type': 'turboprop_regional', 'engine_type': 'prop', 'n_engines': 2}
+    base = calculate_costs(params, 6000, 450, power_kw=1600)
+    cargo = calculate_costs({**params, 'cost_qc_factor': 0.076}, 6000, 450, power_kw=1600)
+    assert base['qc_factor'] == 0.13 and cargo['qc_factor'] == 0.076
+    assert cargo['production']['hours']['QC'] == pytest.approx(0.076 / 0.13 * base['production']['hours']['QC'], abs=1)
+    assert cargo['production']['hours']['ML'] == base['production']['hours']['ML']
+    small = calculate_costs({**params, 'cost_n_production': 100, 'cost_n_amortization': 80, 'cost_profit_pct': 5}, 6000, 450, power_kw=1600)
+    assert (small['series_count'], small['amortization_count'], small['profit_pct']) == (100, 80, 5)
+    assert small['unit_cost_usd'] == pytest.approx(small['production']['total_usd'] / 100 + small['rdte']['total_usd'] / 80, abs=1)
+
+
+def test_turbojet_uses_its_own_1970_engine_coefficient():
+    params = {'aircraft_type': 'jet_business', 'engine_type': 'jet', 'n_engines': 1, 'cost_year': 1970}
+    fan = calculate_costs(params, 1000, 600, thrust_kn=5, mach_max=.6)
+    jet = calculate_costs({**params, 'bypass_ratio': 0}, 1000, 600, thrust_kn=5, mach_max=.6)
+    assert jet['engine_price_usd'] == pytest.approx(fan['engine_price_usd'] * 109 / 130, abs=1)
+    assert 'turboodrzutowy' in jet['engine_basis'] and 'turbowentylatorowy' in fan['engine_basis']
+
+
+def test_transport_topics_use_the_cargo_quality_control_factor_and_cost_inputs_are_validated():
+    from calculations.official_topics import build_official_topics, topic_parameters
+    topics = {t['num']: t for t in build_official_topics()}
+    assert topic_parameters(topics[68])['cost_qc_factor'] == 0.076
+    assert 'cost_qc_factor' not in topic_parameters(topics[78])
+    ok = validate_parameters({'cost_n_production': 300, 'cost_n_amortization': 250, 'cost_qc_factor': '0.076'})
+    assert ok['cost_qc_factor'] == 0.076
+    with pytest.raises(ValueError, match='N_am'):
+        validate_parameters({'cost_n_production': 100, 'cost_n_amortization': 250})
+    with pytest.raises(ValueError, match='całkowita'):
+        validate_parameters({'cost_n_production': 100.5})
+    with pytest.raises(ValueError, match='cost_year'):
+        validate_parameters({'cost_year': None})
+
+
 def test_turbofan_price_uses_formula_15_and_glider_cost_has_a_speed(results):
     c = results['vlj_jet']['bipol_projects']['p2']['cost_analysis']
     assert c['engine_basis'].startswith('wzór (15)')

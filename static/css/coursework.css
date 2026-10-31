@@ -136,6 +136,12 @@
 .airfoil-paste textarea { width:100%; font-family:ui-monospace, Consolas, monospace; font-size:12px; }
 #p3_airfoil_svg_container svg { width:100%; height:auto; border:1px solid #dce6e8; border-radius:6px; }
 #p3_airfoil_desc.airfoil-error { color:#9a3412; }
+.cost-hint { margin:0 0 6px; font-size:0.84rem; color:#334155; }
+.cost-controls { display:grid; grid-template-columns:repeat(auto-fill, minmax(150px, 1fr)); gap:8px; align-items:end; margin:0 0 10px; }
+.cost-controls .studio-field { margin:0; }
+.cost-controls .cost-qc { grid-column:span 2; }
+.cost-controls select { display:block; width:100%; min-width:0; padding:10px; margin-top:8px; font:inherit; border:1px solid #d9e4e8; border-radius:6px; color:#284b58; background:#fcfdfd; }
+.cost-controls .btn { min-height:42px; }
 
 .studio-deadline { display:flex; flex-wrap:wrap; gap:6px 10px; align-items:baseline; margin:0 0 14px; padding:10px 14px; border:1px solid #cfe5df; border-radius:8px; background:#f1faf6; color:#16313c; }
 .studio-deadline span { color:#3f5f68; }
