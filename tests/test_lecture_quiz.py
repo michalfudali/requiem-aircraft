@@ -45,3 +45,4 @@ def test_question_ids_stay_stable_for_saved_progress():
     assert by_id['w15_98'].startswith('Jaką energię musi pochłonąć podwozie')
     assert by_id['w03_106'].startswith('Jakie cechy kadłuba i układu ułatwiają załadunek')
     assert by_id['w14_118'].startswith('Ile wynosi środek masy kadłuba w przykładzie Danileckiego')
+    assert by_id['w06_119'].startswith('Jak definiuje się cechę objętościową usterzenia przedniego')

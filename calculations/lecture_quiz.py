@@ -449,6 +449,9 @@ _Q = (
     ('w14', 8, 'Ile wynosi środek masy kadłuba w przykładzie Danileckiego i jak się go wyznacza?',
      'x_SC = Σm_i·x_i / Σm_i = 5405 kg·m / 1263 kg ≈ 4,28 m. Na tej podstawie liczy się przyspieszenia od ε '
      'i siły masowe w przypadkach jednostkowych.'),
+    ('w06', 9, 'Jak definiuje się cechę objętościową usterzenia przedniego w układzie kaczki i jakie przyjmuje wartości?',
+     'Tak jak dla usterzenia klasycznego: κ_C = S_C·l_C/(S_W·c_a). Ramię l_C leży przed płatem, więc wartość jest ujemna: '
+     'VariEze ok. −0,86 (M = 0,27), XB-70 ok. −0,10 (M = 3,0). Przednie usterzenie przenosi dodatnią siłę nośną.'),
 )
 
 _FILES = {key: source.split(', ')[0] for key, _, _, source in LECTURES}
