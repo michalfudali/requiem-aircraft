@@ -143,3 +143,34 @@ def test_stall_origin_is_compared_with_actual_aileron_edge():
     eta_aileron = audit['metrics']['aileron_inner_eta']
     assert 0.6 < eta_aileron < 0.8 and f"{eta_aileron:.2f}".replace('.', ',') in check['required']
     assert check['passed'] == (audit['metrics']['stall_eta_span'] < eta_aileron)
+
+
+def test_main_gear_angles_follow_lecture_7():
+    """Wykład 7, slajd 17: koło–ogon ≥ α(Cz_max), pion przez ŚC–koło ≥ α(0,9·Cz_max) + 3°."""
+    import math
+    from calculations.paturski_ml import wing_alpha_deg
+    result = run_bipol_project(dict(AIRCRAFT_PRESETS['vlj_jet']))
+    audit = result['engineering_audit']
+    tm = result['bipol_projects']['p4']['paturski_aero']['trim_model']
+    m = audit['metrics']
+    assert m['tailstrike_required_deg'] == pytest.approx(wing_alpha_deg(tm, tm['cz_max_clean']), abs=.05)
+    assert m['tipback_required_deg'] == pytest.approx(wing_alpha_deg(tm, .9 * tm['cz_max_clean']) + 3, abs=.05)
+    # Kąt α płata z tabeli 2.2 to ten sam wzór co w helperze.
+    row = next(r for r in result['bipol_projects']['p4']['paturski_aero']['table_2_2_complete'] if r['cz_inf'] == round(tm['cz_max_clean'], 3))
+    assert row['alpha_p_deg'] == pytest.approx(wing_alpha_deg(tm, tm['cz_max_clean']), abs=.01)
+    checks = {c['id']: c for c in audit['checks']}
+    tip = checks['main_gear_tipback']
+    assert tip['passed'] == (m['tipback_angle_deg'] >= m['tipback_required_deg'])
+    # Podane położenie kół spełnia wymaganie: kąt z tego położenia równa się wymaganemu.
+    b, mac = result['balance'], result['geometry']['wing']['mac']
+    x_aft = b['x_lemac_m'] + b['cg_range']['aft_pct'] / 100 * mac
+    angle = math.degrees(math.atan2(m['main_gear_x_required_m'] - x_aft, m['h_cg_ground_m']))
+    assert angle == pytest.approx(m['tipback_required_deg'], abs=.3)
+    assert any(q['id'] == 'q_main_gear' for q in audit['defense_questions'])
+
+
+def test_sailplane_skips_tricycle_gear_angles():
+    audit = run_bipol_project(dict(AIRCRAFT_PRESETS['glider_pw5']))['engineering_audit']
+    ids = {c['id'] for c in audit['checks']}
+    assert 'main_gear_tipback' not in ids and 'tailstrike_clearance' not in ids
+    assert all(q['id'] != 'q_main_gear' for q in audit['defense_questions'])
