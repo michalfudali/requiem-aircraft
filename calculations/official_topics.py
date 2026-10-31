@@ -392,6 +392,7 @@ def _estimated_m0(params):
 def topic_parameters(topic):
     """Start each topic from its own class, never from the previous open aircraft."""
     from calculations.presets import AIRCRAFT_PRESETS
+    from calculations.costs import QC_FACTOR_CARGO
     d = topic['defaults']
     baseline = {'motoglider': 'motoglider_aos', 'piston_ga': 'ga_trainer',
                 'jet_business': 'vlj_jet', 'jet_transport': 'vlj_jet',
@@ -415,6 +416,9 @@ def topic_parameters(topic):
                      'cs23_level2' if passengers > 1 else 'cs23_level1')
     p.update(_low_speed_seed(topic, d, title))
     p['operating_surface'] = 'water' if topic['num'] in (93, 94, 95, 96, 97, 98, 110) else 'land'
+    if topic['category'] == 'transportowe':
+        # BIPOL_2, wzór (20): kontrola jakości samolotu towarowego 0,076 H_ML zamiast 0,13 H_ML.
+        p['cost_qc_factor'] = QC_FACTOR_CARGO
     p['design_iteration_mode'] = 'coupled'
     if topic['num'] in (71, 74):
         # Explicit preliminary bay envelope for the vehicle-carrying concept.

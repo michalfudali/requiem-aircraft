@@ -39,7 +39,7 @@ Strona przeglądu pokazuje najbliższy termin (dla wybranej grupy albo oba dni).
 
 ## Zejściówki (Materiały i zaliczenie → Zejściówki)
 
-`calculations/lecture_quiz.py`: 106 pytań z 15 wykładów (nowe dopisuje się na końcu listy, bo postęp jest zapisany pod identyfikatorami), każde z odpowiedzią wzorcową
+`calculations/lecture_quiz.py`: 119 pytań z 15 wykładów (nowe dopisuje się na końcu listy, bo postęp jest zapisany pod identyfikatorami), każde z odpowiedzią wzorcową
 i stroną materiału. Symulacja losuje 1–3 pytania z wybranych wykładów (najpierw
 „Do powtórki” i nieocenione) i odmierza 15 minut. Samoocena i wybór wykładów zapisują
 się tylko w przeglądarce.
@@ -160,3 +160,17 @@ samolot śmigłowy (10.1.1 wyłącza tylko motoszybowce samoutrzymujące się).
 JAR-23.341 / 14 CFR 23.341 definiują μ_g = 2(W/S)/(ρ·C·a·g) z C = średnia cięciwa geometryczna
 (S/b). Rozwiązanie zadania kolokwialnego używa jej od 1.11.2026 (wcześniej SCA; różnica w K_g
 ok. 0,5%). Główna obwiednia w `calculations/envelope.py` również używa C = S/b.
+
+## Analiza kosztów P2 — sprawdzenie z BIPOL_2
+
+Współczynniki wzorów (13)–(21), stawki z tab. 5.9 i wzór 5.10 z `calculations/costs.py`
+porównano ze stronami 7–10 BIPOL_2 (tabele są tam obrazami). Wszystkie się zgadzają;
+test `test_cost_coefficients_match_bipol2_tables` przypina je do źródła. Uzupełniono:
+
+- pola założeń w karcie 2.5: N_P, N_am (BIPOL_2: „ustalić z prowadzącym”, N_am ≤ N_P),
+  liczba prototypów, rok kosztów, zysk C_P i kurs PLN/USD. Wartości zapisują się w projekcie,
+  a N_am > N_P daje komunikat zamiast wyniku;
+- wzór (20): H_QC = 0,076 H_ML dla samolotów towarowych (tematy 66–74 mają to ustawione od razu,
+  w pozostałych do wyboru), 0,13 H_ML dla pozostałych;
+- wzór (15), 1970: C₁ = 109 dla silnika turboodrzutowego (bypass_ratio = 0), 130 dla
+  turbowentylatorowego.

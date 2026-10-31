@@ -996,8 +996,10 @@ async function performCalculation() {
   if (reportBtn) reportBtn.setAttribute('data-results-stale', 'true');
   try {
     validateNumericFields(document.getElementById('designForm'));
-    const analysisControls = document.getElementById('trendControls');
-    if (analysisControls) validateNumericFields(analysisControls);
+    for (const id of ['trendControls', 'p2CostControls']) {
+      const analysisControls = document.getElementById(id);
+      if (analysisControls) validateNumericFields(analysisControls);
+    }
     const formData = collectFormData();
     if (btn) {
       btn.disabled = true;
@@ -1940,7 +1942,11 @@ function saveProject(project) {
 function loadProjectIntoForm(project) {
   if (!project || !project.params) return;
   const params = { runway_surface: 'paved', cs22_gust_model: 'amendment3', airfoil: '', airfoil_coordinates: '',
-    profile_thickness_mode: 'auto', tc_ratio: 0.12, ...project.params };
+    profile_thickness_mode: 'auto', tc_ratio: 0.12,
+    cost_n_production: 250, cost_n_prototypes: 4, cost_year: 2026, cost_profit_pct: 12, usd_pln: 4.05, cost_qc_factor: 0.13,
+    ...project.params };
+  // Bez zapisanej wartości N_am równa się serii, jak w calculations/costs.py.
+  if (params.cost_n_amortization == null) params.cost_n_amortization = params.cost_n_production;
   airfoilResultProjectId = null;
   invalidateAirfoil200mm('Oczekiwanie na profil aktualnego projektu.');
   const airfoilInput = document.getElementById('airfoil');
@@ -3563,6 +3569,13 @@ function hydrateSemesterProjectsData(res) {
     setTxt('p2_rdte_hours', costs.rdte_hours?.toLocaleString('pl-PL'));
     setTxt('p2_labor_hours', costs.manufacturing_hours_total?.toLocaleString('pl-PL'));
     setTxt('p2_qc_hours', costs.quality_control_hours?.toLocaleString('pl-PL'));
+    setTxt('p2_qc_factor', costs.qc_factor?.toLocaleString('pl-PL', { maximumFractionDigits: 3 }));
+    setTxt('p2_prototypes', costs.prototypes_rdte);
+    setTxt('p2_rdte_total', costs.rdte && `$${costs.rdte.total_usd.toLocaleString('pl-PL')} USD`);
+    setTxt('p2_production_total', costs.production && `$${costs.production.total_usd.toLocaleString('pl-PL')} USD`);
+    setTxt('p2_series_count', costs.series_count);
+    setTxt('p2_amortization_count', costs.amortization_count);
+    setTxt('p2_profit_pct', costs.profit_pct?.toLocaleString('pl-PL'));
     setTxt('p2_unit_cost', `$${(costs.unit_cost_usd || 0).toLocaleString('pl-PL')} USD`);
     setTxt('p2_selling_price', `${(costs.selling_price_pln || 0).toLocaleString('pl-PL')} PLN ($${(costs.selling_price_usd || 0).toLocaleString('pl-PL')} USD)`);
   }
