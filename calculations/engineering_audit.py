@@ -12,6 +12,7 @@ Autor metodyki i kryteriów:
 """
 import math
 from calculations.atmosphere import G0, RHO0
+from calculations.paturski_ml import wing_alpha_deg
 
 
 def perform_engineering_audit(result: dict) -> dict:
@@ -101,33 +102,89 @@ def perform_engineering_audit(result: dict) -> dict:
     # =========================================================================
     # 2. KĄT OCHRONY OGONA PRZED UDERZENIEM O PAS (Tailstrike Clearance)
     # =========================================================================
-    l_tail_overhang = max(0.5, l_f - x_gear)
+    # Wykład 7 (przykład projektu, slajd 17): kąt od koła głównego do ogona ≥ α przy Cz_max,
+    # kąt między pionem przez ŚC a prostą ŚC–koło główne ≥ α przy 0,9·Cz_max + 3°.
+    # Kąty natarcia płata z tabeli 2.2 (względem cięciwy, bez kąta zaklinowania).
+    deg = lambda v: f"{v:.1f}°".replace(".", ",")  # noqa: E731
+    metres = lambda v: f"{v:.2f} m".replace(".", ",")  # noqa: E731
+    sailplane = params.get("aircraft_type") == "glider"  # szybowiec stoi na kole głównym i płozie ogonowej
+    trim_model = result.get("bipol_projects", {}).get("p4", {}).get("paturski_aero", {}).get("trim_model")
+    if trim_model:
+        alpha_09 = wing_alpha_deg(trim_model, 0.9 * trim_model["cz_max_clean"])
+        alpha_max = wing_alpha_deg(trim_model, trim_model["cz_max_clean"])
+    else:
+        alpha_09 = alpha_max = None
+    tail_required = alpha_max if alpha_max is not None else 12.0
+    tipback_required = alpha_09 + 3.0 if alpha_09 is not None else 15.0
+
     z_tail_bumper = -0.20 * d_f
     h_tail_clearance = z_tail_bumper - z_ground
-    tailstrike_angle_deg = math.degrees(math.atan2(h_tail_clearance, l_tail_overhang))
+    tail_angle = lambda x: math.degrees(math.atan2(h_tail_clearance, max(0.5, l_f - x)))  # noqa: E731
+    tailstrike_angle_deg = tail_angle(x_gear)
     metrics["tailstrike_angle_deg"] = round(tailstrike_angle_deg, 1)
+    metrics["tailstrike_required_deg"] = round(tail_required, 1)
 
-    tailstrike_ok = tailstrike_angle_deg >= 12.0
-    checks.append({
+    tailstrike_ok = tailstrike_angle_deg >= tail_required
+    checks.extend([] if sailplane else [{
         "id": "tailstrike_clearance",
         "category": "Geometria kadłuba i lądowanie",
         "title": "Kąt ochrony ogona (Tailstrike clearance angle)",
-        "value": f"{tailstrike_angle_deg:.1f}°",
-        "required": "≥ 12.0° (ochrona przed tail-strike)",
+        "value": deg(tailstrike_angle_deg),
+        "required": (f"≥ α przy Cz_max = {deg(tail_required)} (wykład 7)" if alpha_max is not None
+                     else "≥ 12,0° (ochrona przed tail-strike)"),
         "passed": tailstrike_ok,
         "severity": "ok" if tailstrike_ok else "warning",
         "didactic_simple": (
             "Gdy pilot podczas lądowania zadziera nos do góry (wyrównanie ze spłaszczeniem), "
             "ogon samolotu opada w dół. Kąt z tyłu kadłuba musi być wystarczająco stromy, "
-            "by ogon nie przytarł o beton."
+            "by ogon nie przytarł o beton nawet przy kącie natarcia maksymalnej siły nośnej."
         ),
         "engineering_note": (
-            f"Dostępny kąt geometryczny ochrony ogona wynosi {tailstrike_angle_deg:.1f}°. "
-            + ("Zapewnia bezpieczny margines podczas rotacji do startu (VR) i przyziemienia." if tailstrike_ok else
-               "Zbyt mały kąt (<12°)! Ryzyko uderzenia ogonem w pas (tail strike) przy lądowaniu na dużym kącie natarcia. "
-               "Zwiększ podcięcie tyłu kadłuba (upsweep) lub przesuń podwozie główne ku tyłowi.")
+            f"Kąt między ziemią a prostą od koła głównego do ogona wynosi {deg(tailstrike_angle_deg)} "
+            f"(wysokość ogona nad ziemią oszacowana na {metres(h_tail_clearance)}). "
+            + ("Ogon nie dotknie ziemi przy kącie natarcia Cz_max." if tailstrike_ok else
+               f"To mniej niż {deg(tail_required)}: ryzyko uderzenia ogonem w pas przy lądowaniu na dużym kącie natarcia. "
+               "Zwiększ podcięcie tyłu kadłuba (upsweep), przesuń podwozie główne ku tyłowi albo wydłuż goleń.")
         )
-    })
+    }])
+
+    # =========================================================================
+    # 2a. KĄT MIĘDZY PIONEM PRZEZ ŚC A KOŁEM GŁÓWNYM (wykład 7, slajd 17)
+    # =========================================================================
+    x_lemac = balance.get("x_lemac_m")
+    if not sailplane and x_lemac is not None:
+        x_cg_aft = float(x_lemac) + float(balance.get("cg_range", {}).get("aft_pct", 30.0)) / 100.0 * mac
+        tipback_deg = math.degrees(math.atan2(x_gear - x_cg_aft, h_cg_ground))
+        x_gear_required = x_cg_aft + h_cg_ground * math.tan(math.radians(tipback_required))
+        gear_pct = 100.0 * (x_gear - x_lemac) / mac
+        gear_required_pct = 100.0 * (x_gear_required - x_lemac) / mac
+        metrics.update(tipback_angle_deg=round(tipback_deg, 1), tipback_required_deg=round(tipback_required, 1),
+                       main_gear_x_required_m=round(x_gear_required, 3), main_gear_required_mac_pct=round(gear_required_pct, 1))
+        tipback_ok = tipback_deg >= tipback_required
+        pct = lambda v: f"{v:.0f}% SCA"  # noqa: E731
+        checks.append({
+            "id": "main_gear_tipback",
+            "category": "Podwozie i bezpieczeństwo naziemne",
+            "title": "Położenie kół głównych za środkiem ciężkości",
+            "value": deg(tipback_deg),
+            "required": (f"≥ α przy 0,9·Cz_max + 3° = {deg(tipback_required)} (wykład 7)" if alpha_09 is not None
+                         else "≥ 15,0° (kąt zadarcia przy starcie)"),
+            "passed": tipback_ok,
+            "severity": "ok" if tipback_ok else "warning",
+            "didactic_simple": (
+                "Przy rotacji do startu samolot obraca się wokół kół głównych. Jeśli środek ciężkości "
+                "znajdzie się za nimi, samolot usiądzie na ogonie. Dlatego koła główne stoją wyraźnie za "
+                "najdalszym tylnym położeniem środka ciężkości."
+            ),
+            "engineering_note": (
+                f"Kąt między pionem przez tylne położenie ŚC a prostą do punktu styku koła głównego wynosi {deg(tipback_deg)} "
+                f"(koła w {pct(gear_pct)}, ŚC na wysokości ok. {metres(h_cg_ground)}). "
+                + ("Samolot zadarty do kąta startowego nie usiądzie na ogonie." if tipback_ok else
+                   f"Wymaganie spełnią koła główne w x ≥ {metres(x_gear_required)} ({pct(gear_required_pct)}); "
+                   f"kąt ochrony ogona wyniósłby wtedy {deg(tail_angle(x_gear_required))}. "
+                   "Przesunięcie kół do tyłu zwiększa obciążenie kółka przedniego i siłę potrzebną do rotacji.")
+            )
+        })
 
     # =========================================================================
     # 3. MIEJSCE POCZĄTKU PRZECIĄGNIĘCIA WG ROZKŁADU SCHRENKA
@@ -641,5 +698,20 @@ def generate_defense_questions(result: dict, metrics: dict) -> list:
             "faculty_tip": "Główne kryterium dynamiczne z wykładów BIPOL I (Handout 11_1): pilot ocenia samolot po parametrze CAP, a nie po samej statyce."
         }
     ]
+    if metrics.get("tipback_angle_deg") is not None:
+        deg = lambda v: f"{v:.1f}°".replace(".", ",")  # noqa: E731
+        questions.append({
+            "id": "q_main_gear",
+            "topic": "Rysunek samolotu — podwozie (P3, wykład 7)",
+            "question": (f"Koła główne stoją pod kątem {deg(metrics['tipback_angle_deg'])} za tylnym położeniem ŚC, a kąt od koła "
+                         f"do ogona wynosi {deg(metrics['tailstrike_angle_deg'])}. Skąd biorą się wymagane wartości tych kątów?"),
+            "expected_answer": (
+                "Z kątów natarcia płata. Kąt między pionem przez ŚC a prostą do koła głównego ma być nie mniejszy niż kąt natarcia "
+                f"przy 0,9·Cz_max plus 3° (u Ciebie {deg(metrics['tipback_required_deg'])}), żeby zadarty do startu samolot nie usiadł "
+                "na ogonie. Kąt od koła głównego do ogona ma być nie mniejszy niż kąt natarcia przy Cz_max (u Ciebie "
+                f"{deg(metrics['tailstrike_required_deg'])}), żeby ogon nie uderzył o pas. Kąt przewrócenia na bok ma być mniejszy niż 60°."
+            ),
+            "faculty_tip": "Prowadzący sprawdza na arkuszu, czy położenie kół wynika z kątów natarcia, a nie z wyglądu rysunku."
+        })
 
     return questions

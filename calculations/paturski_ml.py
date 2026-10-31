@@ -317,6 +317,12 @@ def paturski_project_2_wing(geom_res: dict, params: dict, m0: float = None) -> d
     }
 
 
+def wing_alpha_deg(model: dict, cz_inf: float) -> float:
+    """Kąt natarcia płata [°] przy Cz∞ (tabela 2.2): α = α₀ + Cz∞/a∞ + Cz∞(1+τ)/(πΛ)."""
+    alpha_i_rad = (cz_inf / (math.pi * model["aspect_ratio"])) * (1.0 + model["tau_glauert"])
+    return model["alpha_0_deg"] + cz_inf / model["a_inf_deg"] + math.degrees(alpha_i_rad)
+
+
 def trimmed_polar(model: dict, x_cg_bar: float, rounded=True) -> list:
     """Tabela 2.2 Paturskiego: biegunowa samolotu wyważonego usterzeniem poziomym
     przy środku masy w x_cg_bar (ułamek ŚCA, od noska)."""
@@ -337,9 +343,8 @@ def trimmed_polar(model: dict, x_cg_bar: float, rounded=True) -> list:
         delta_cx_re = (cx_min_2 - cx_min_1) * (1.0 - min(1.0, abs(cz_inf) / cz_max_clean))
         cx_inf_prime = max(0.0040, cx_inf_1 + delta_cx_re)
 
-        alpha_i_rad = (cz_inf / (math.pi * AR)) * (1.0 + tau_glauert)
-        alpha_i_deg = math.degrees(alpha_i_rad)
-        alpha_p_deg = alpha_inf_deg + alpha_i_deg
+        alpha_i_deg = math.degrees((cz_inf / (math.pi * AR)) * (1.0 + tau_glauert))
+        alpha_p_deg = wing_alpha_deg(model, cz_inf)
         cx_i = ((cz_inf ** 2) / (math.pi * AR)) * (1.0 + delta_glauert)
         cx_p_prime = cx_inf_prime + delta_cx_tech + cx_i
 
