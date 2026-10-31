@@ -73,6 +73,17 @@ with sync_playwright() as p:
         assert page.locator('#examShearChart svg polyline').count()>=2 and page.locator('#examMomentChart svg polyline').count()>=2
         assert page.locator('#examSchrenkTable tbody tr').count()==4 and page.locator('#examLoadTable tbody tr').count()==4
         assert 'bez paliwa' in page.inner_text('#examNotes')
+        if width>1100:
+            # Wydruk rozwiązania: wszystkie kroki rozwinięte, wzory KaTeX, obwiednia jako obraz, bez formularza sprawdzania.
+            page.evaluate("if (!window.__open) { window.__open = window.open; window.open = () => { const w = window.__open('about:blank', '_blank'); w.print = () => {}; return w; }; }")
+            with page.context.expect_page() as popup:
+                page.click('#examPrint')
+            sheet=popup.value
+            sheet.wait_for_load_state()
+            html=sheet.content()
+            assert html.count('class="katex"')>60 and 'data:image/png' in html and 'examCheck_S' not in html and 'katex-mathml' not in html.split('</style>')[-1]
+            assert sheet.evaluate("[...document.querySelectorAll('details')].every(d => d.open)")
+            sheet.close()
 
         overflow=page.evaluate('document.documentElement.scrollWidth - window.innerWidth')
         assert overflow<=1,f'poziome przewijanie strony: {overflow}px'
@@ -108,7 +119,7 @@ with sync_playwright() as p:
         assert 'Umiesz 1 z' in page.inner_text('#quizSummary')
         if width>1100:
             # Arkusz do druku: pytania wykładu 12, odpowiedzi od nowej strony.
-            page.evaluate("window.__open = window.open; window.open = () => { const w = window.__open('about:blank', '_blank'); w.print = () => {}; return w; }")
+            page.evaluate("if (!window.__open) { window.__open = window.open; window.open = () => { const w = window.__open('about:blank', '_blank'); w.print = () => {}; return w; }; }")
             with page.context.expect_page() as popup:
                 page.click('#quizPrint')
             sheet=popup.value.content()
