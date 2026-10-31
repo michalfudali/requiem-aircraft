@@ -14,9 +14,21 @@
 <figure><div id="repVn"></div><figcaption>Obwiednia manewrowa, gałęzie podmuchowe i obwiednia z wysuniętymi klapami.</figcaption></figure>
 <p>{{ env.composite_basis }} Dla szybowca granice manewrowe prowadzą od A do D i od G do E; gałęzie podmuchowe łączą właściwe przypadki przy VB i VD. Ograniczenie podmuchowe dla dodatniego i ujemnego n stosuje się osobno.</p>
 <table><caption>Punkty charakterystyczne obwiedni</caption><thead><tr><th>Punkt</th><th class="number">V [km/h]</th><th class="number">n [—]</th></tr></thead><tbody>{% for row in p_data.points_table %}<tr><td>{{ row.point }}</td><td class="number">{{ row.v_kmh|reportnum(1) }}</td><td class="number">{{ row.n|reportnum(2) }}</td></tr>{% endfor %}</tbody></table>
-<h3>Obciążenia do wymiarowania</h3>
+<h3>Obciążenia do wymiarowania — konfiguracja czysta</h3>
 {{ c.section(sheet, 'p6.design') }}
 <table><caption>Porównanie obciążeń manewrowych i wymiarujących</caption><thead><tr><th>Rodzaj obciążenia</th><th class="number">n dodatnie</th><th class="number">n ujemne</th></tr></thead><tbody><tr><td>Manewrowe dopuszczalne</td><td class="number">{{ lim.n_max|reportnum(2) }}</td><td class="number">{{ lim.n_min|reportnum(2) }}</td></tr><tr><td>Skrajne podmuchowe</td><td class="number">{{ lim.n_gust_max|reportnum(2) }}</td><td class="number">{{ lim.n_gust_min|reportnum(2) }}</td></tr><tr><td>Dopuszczalne do wymiarowania</td><td class="number">{{ lim.n_dimensioning_pos|reportnum(2) }}</td><td class="number">{{ lim.n_dimensioning_neg|reportnum(2) }}</td></tr><tr><td>Niszczące do wymiarowania</td><td class="number">{{ lim.n_ult_pos|reportnum(2) }}</td><td class="number">{{ lim.n_ult_neg|reportnum(2) }}</td></tr></tbody></table>
 <h3>Obwiednia od mechanizacji</h3>
-<p>Dla wysuniętych klap wykres przedstawia manewrową pętlę obciążeń do \(n={{ p_data.n_flap|texnum(1) }}\), z paraboliczną granicą przeciągnięcia; nie stosuje się jej powyżej prędkości \(V_F={{ p_data.v_f_kmh|texnum(1) }}\) km/h EAS.{% if lim.basis == 'CS-22' %} Osobne przypadki podmuchów ±7,5 m/s przy VF, wymagane przez CS 22.345(b), nie zostały wyznaczone dla konfiguracji klapowej.{% endif %}</p>
+{% set flap=env.flap %}
+{% if flap.applicable %}
+<p id="flap-model-basis">{{ flap.basis }}. Manewr do \(n={{ flap.n_flap|texnum(1) }}\) i podmuchy ±{{ flap.u_flap_ms|reportnum(2) }} m/s rozpatrzono osobno, do \(V_F={{ flap.v_f_kmh|texnum(1) }}\) km/h EAS. {{ flap.note }}</p>
+<figure><div id="repFlapEnvelope"></div><figcaption>Manewrowa, podmuchowa i wypadkowa obwiednia w konfiguracji do lądowania.</figcaption></figure>
 {{ c.section(sheet, 'p6.flaps') }}
+<table id="flap-loads-table"><caption>Porównanie obciążeń w konfiguracji do lądowania</caption><thead><tr><th>Przypadek</th><th>n dodatnie</th><th>n ujemne</th></tr></thead><tbody>
+{% for name,p,m in [('Manewr','n_maneuver_pos','n_maneuver_neg'),('Podmuch przy VF','n_gust_max','n_gust_min'),('Dopuszczalne do wymiarowania','n_dimensioning_pos','n_dimensioning_neg'),('Niszczące','n_ult_pos','n_ult_neg')] %}
+<tr><td>{{ name }}</td><td class="number">{{ flap.limits[p]|reportnum(2) }}</td><td class="number">{{ flap.limits[m]|reportnum(2) }}</td></tr>
+{% endfor %}</tbody></table>
+{% else %}<p id="flap-model-basis">{{ flap.note }} Obwiednia mechanizacji nie dotyczy tej konfiguracji.</p>{% endif %}
+<h3>Skrajne obciążenia rozpatrywanych konfiguracji</h3>
+{{ c.section(sheet, 'p6.design_all') }}
+{% set all=env.configuration_limits %}
+<p id="configuration-loads-basis">Przypadek decydujący: dodatni — {{ 'mechanizacja do lądowania' if all.governing_positive == 'landing_high_lift' else 'konfiguracja czysta' }}; ujemny — {{ 'mechanizacja do lądowania' if all.governing_negative == 'landing_high_lift' else 'konfiguracja czysta' }}. Jest to porównanie odrębnych przypadków obliczeniowych, bez sumowania ich obciążeń.</p>

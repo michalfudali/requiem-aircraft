@@ -447,6 +447,7 @@
                         <span class="label-text">🛬 Klapa Spływu (Wewnętrzna) <span class="info-circle-icon" data-param="flap_type" tabindex="0">i</span></span>
                       </label>
                       <select id="flap_type" style="border:2px solid #2563eb; background:#eff6ff; font-weight:600;">
+                        <option value="none">Brak klap</option>
                         <option value="plain">1. Klapa zwykła (wysklepiająca)</option>
                         <option value="split">2. Klapa krokodylowa (Split Flap)</option>
                         <option value="junkers">3. Klapa Junkersa (STOL)</option>
@@ -552,7 +553,7 @@
                       <label for="cz_max_lnd">
                         <span class="label-text">Cz_max,lnd (klapa) [-] <span class="info-circle-icon" data-param="cz_max_lnd" tabindex="0">i</span></span>
                       </label>
-                      <input step="any" required type="number" id="cz_max_lnd" min="1.4" max="3.6" value="2.05">
+                      <input step="any" required type="number" id="cz_max_lnd" min="0.1" max="7" value="2.05">
                       <div class="param-didactic-hint" id="hint_cz_max_lnd"></div>
                     </div>
                   </div>

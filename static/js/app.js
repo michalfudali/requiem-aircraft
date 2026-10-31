@@ -729,6 +729,13 @@ function renderFlapDidacticCard(autoUpdateCz = false) {
   const aileronId = document.getElementById('aileron_type')?.value || 'differential';
   const slatId = document.getElementById('slat_type')?.value || 'none';
 
+  if (flapId === 'none') {
+    const aileronName = DIDACTIC_DATABASE.ailerons?.[aileronId]?.name || 'Lotki';
+    const slatName = DIDACTIC_DATABASE.slats?.[slatId]?.name || 'Brak mechanizacji natarcia';
+    card.innerHTML = `<p><strong>Brak klap spływu.</strong> Przyrost siły nośnej i oporu od klap wynosi zero. ${escapeHtml(aileronName)}; ${escapeHtml(slatName)}. Parametry konfiguracji do lądowania wynikają z wybranej mechanizacji natarcia.</p>`;
+    return;
+  }
+
   const flap = DIDACTIC_DATABASE.flaps[flapId] || DIDACTIC_DATABASE.flaps.single_slotted;
   const aileron = (DIDACTIC_DATABASE.ailerons && DIDACTIC_DATABASE.ailerons[aileronId]) || null;
   const slat = DIDACTIC_DATABASE.slats[slatId] || DIDACTIC_DATABASE.slats.none;
@@ -803,7 +810,7 @@ function updateTrailingEdgeLayoutWidget(res) {
 
   const badge = document.getElementById('cs_layout_badge');
   if (badge) {
-    badge.textContent = cs.is_flaperon ? 'Klapolotka (Flaperon)' : 'Klapy wewn. + Lotki zewn.';
+    badge.textContent = cs.is_flaperon ? 'Klapolotka (Flaperon)' : (f.type === 'none' ? 'Lotki — bez klap' : 'Klapy wewn. + Lotki zewn.');
     badge.className = cs.is_flaperon ? 'badge badge-warning' : 'badge badge-info';
   }
 
@@ -4063,9 +4070,34 @@ function hydrateSemesterProjectsData(res) {
     }
 
     const vfEl = document.getElementById('p6_vf_val');
-    if (vfEl && p6.v_f_kmh != null) vfEl.textContent = p6.v_f_kmh;
+    if (vfEl) vfEl.textContent = p6.v_f_kmh == null ? '—' : p6.v_f_kmh;
     const nFlapEl = document.getElementById('p6_n_flap_val');
-    if (nFlapEl && p6.n_flap != null) nFlapEl.textContent = Number(p6.n_flap).toFixed(1);
+    if (nFlapEl) nFlapEl.textContent = p6.n_flap == null ? '—' : Number(p6.n_flap).toFixed(1);
+
+    const flap = p6.high_lift_envelope;
+    for (const id of ['p6_flap_plot', 'highLiftEnvelopePlot']) {
+      const plot = document.getElementById(id);
+      if (plot) plot.innerHTML = BipolVisuals.flapEnvelope(flap);
+    }
+    for (const id of ['p6_flap_status', 'highLiftEnvelopeNote']) {
+      const flapStatus = document.getElementById(id);
+      if (flapStatus) flapStatus.textContent = flap?.applicable ? `${flap.basis}. ${flap.note}` : flap?.note || '';
+    }
+    const summary = document.getElementById('p6_flap_loads_tbody');
+    if (summary) summary.innerHTML = flap?.applicable ? [
+      ['Manewr', flap.limits.n_maneuver_pos, flap.limits.n_maneuver_neg],
+      ['Podmuch przy VF', flap.limits.n_gust_max, flap.limits.n_gust_min],
+      ['Dopuszczalne do wymiarowania — mechanizacja', flap.limits.n_dimensioning_pos, flap.limits.n_dimensioning_neg],
+      ['Niszczące — mechanizacja', flap.limits.n_ult_pos, flap.limits.n_ult_neg]
+    ].map(([label,pos,neg])=>`<tr><td>${escapeHtml(label)}</td><td>${pos.toFixed(2)}</td><td>${neg.toFixed(2)}</td></tr>`).join('') : '';
+    for (const id of ['p6_configuration_loads', 'highLiftEnvelopeSummary']) {
+      const globalSummary = document.getElementById(id);
+      if (globalSummary && p6.configuration_limits) {
+        const loads = p6.configuration_limits;
+        const name = key => key === 'clean' ? 'konfiguracja czysta' : 'mechanizacja do lądowania';
+        globalSummary.textContent = `Skrajne dopuszczalne w rozpatrywanych konfiguracjach: ${loads.n_dimensioning_pos.toFixed(2)} / ${loads.n_dimensioning_neg.toFixed(2)} g. Decyduje: dodatnie — ${name(loads.governing_positive)}; ujemne — ${name(loads.governing_negative)}. Obciążenia niszczące: ${loads.n_ult_pos.toFixed(2)} / ${loads.n_ult_neg.toFixed(2)} g.`;
+      }
+    }
 
     const flapLoopTbody = document.getElementById('p6_flap_loop_tbody');
     if (flapLoopTbody && Array.isArray(p6.flap_envelope_loop)) {

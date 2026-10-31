@@ -1200,9 +1200,13 @@ def _p3_controls(s, r):
         s.calc('eta_f_in', r'\eta_{f,1}', r'\max\left(\eta_k;\;0{,}05\right)', r'\max\left([[eta_k]];\;0{,}05\right)', flaps['eta_in'], '', 3,
                'Początek klapy (przy kadłubie)', check=lambda v: max(v.eta_k, .05), tolerance=.0006)
         s.given('bf_b_zal', r'(b_f/b)_{zał}', float(r['params'].get('flap_span_ratio', .6)), '', 2, 'Założona względna rozpiętość klap', 'Założenia projektu')
-        s.calc('eta_f_out', r'\eta_{f,2}', r'\min\left(0{,}74;\;\max\left(\eta_{f,1}+0{,}15;\;\eta_{f,1}+(b_f/b)_{zał}\right)\right)',
-               r'\min\left(0{,}74;\;\max\left([[eta_f_in]]+0{,}15;\;[[eta_f_in]]+[[bf_b_zal]]\right)\right)', flaps['eta_out'], '', 3,
-               'Koniec klapy', check=lambda v: min(.74, max(v.eta_f_in + .15, v.eta_f_in + v.bf_b_zal)), tolerance=.0006)
+        if flaps['type'] == 'none':
+            s.calc('eta_f_out', r'\eta_{f,2}', r'\eta_{f,1}', r'[[eta_f_in]]', flaps['eta_out'], '', 3,
+                   'Brak klapy — zerowa rozpiętość', check=lambda v:v.eta_f_in, tolerance=.0006)
+        else:
+            s.calc('eta_f_out', r'\eta_{f,2}', r'\min\left(0{,}74;\;\max\left(\eta_{f,1}+0{,}15;\;\eta_{f,1}+(b_f/b)_{zał}\right)\right)',
+                   r'\min\left(0{,}74;\;\max\left([[eta_f_in]]+0{,}15;\;[[eta_f_in]]+[[bf_b_zal]]\right)\right)', flaps['eta_out'], '', 3,
+                   'Koniec klapy', check=lambda v: min(.74, max(v.eta_f_in + .15, v.eta_f_in + v.bf_b_zal)), tolerance=.0006)
     s.calc('bf_b', r'b_f/b', r'\eta_{f,2}-\eta_{f,1}', r'[[eta_f_out]]-[[eta_f_in]]', flaps['bf_over_b'], '', 3,
            'Względna rozpiętość klap (na półrozpiętości)', check=lambda v: v.eta_f_out - v.eta_f_in, tolerance=.0011)
     s.solve('S_f', 'S_f', r'S_f=2\int_{\eta_{f,1}b/2}^{\eta_{f,2}b/2}c(y)\,\mathrm{d}y', flaps['S_flapped_m2'], M2, 2,
@@ -1210,8 +1214,11 @@ def _p3_controls(s, r):
     s.calc('Sf_S', r'S_f/S', r'\frac{S_f}{S}', r'\frac{[[S_f]]}{[[S]]}', flaps['s_flapped_over_s'], '', 4, 'Udział powierzchni z klapami',
            check=lambda v: v.S_f / v.S, tolerance=.0015)
     if not cs['is_flaperon']:
-        s.calc('eta_a_in', r'\eta_{a,1}', r'\min\left(0{,}85;\;\eta_{f,2}+0{,}015\right)', r'\min\left(0{,}85;\;[[eta_f_out]]+0{,}015\right)',
-               ail['eta_in'], '', 3, 'Początek lotki (szczelina 1,5% za klapą)', check=lambda v: min(.85, v.eta_f_out + .015), tolerance=.0006)
+        if flaps['type'] == 'none':
+            s.given('eta_a_in', r'\eta_{a,1}', ail['eta_in'], '', 3, 'Zachowane zewnętrzne położenie lotki, bez klapy wewnętrznej')
+        else:
+            s.calc('eta_a_in', r'\eta_{a,1}', r'\min\left(0{,}85;\;\eta_{f,2}+0{,}015\right)', r'\min\left(0{,}85;\;[[eta_f_out]]+0{,}015\right)',
+                   ail['eta_in'], '', 3, 'Początek lotki (szczelina 1,5% za klapą)', check=lambda v: min(.85, v.eta_f_out + .015), tolerance=.0006)
         s.given('ba_b_zal', r'(b_a/b)_{zał}', float(r['params'].get('aileron_span_ratio', .28)), '', 2, 'Założona względna rozpiętość lotek', 'Założenia projektu')
         s.calc('eta_a_out', r'\eta_{a,2}', r'\min\left(0{,}97;\;\max\left(\eta_{a,1}+0{,}10;\;\eta_{a,1}+(b_a/b)_{zał}\right)\right)',
                r'\min\left(0{,}97;\;\max\left([[eta_a_in]]+0{,}10;\;[[eta_a_in]]+[[ba_b_zal]]\right)\right)', ail['eta_out'], '', 3,
@@ -1896,6 +1903,7 @@ def _p6(s, r):
     env = r['envelope']
     t, lim, sp, gf = env['terms'], env['limits'], env['speeds'], env['gust_factors']
     basis = t['load_basis']
+    flap = env['flap']
     s.section('p6', 'loads', 'Współczynniki obciążeń dopuszczalnych', {'CS-22': SOURCES['CS22'], 'CS-25': SOURCES['CS25']}.get(lim['basis'], SOURCES['CS23']) + ' §.337')
     if basis in ('cs23_normal', 'cs23_commuter', 'cs25'):
         key = 'W_lb6'
@@ -1935,8 +1943,9 @@ def _p6(s, r):
         else:
             s.calc('V_D', 'V_D', r'\max\left(\frac{V_{D,min}}{3{,}6};\;V_A\right)', r'\max\left(\frac{[[V_D_rule]]}{3{,}6};\;[[V_A]]\right)', t['v_d_ms'], MS, 2,
                    'Prędkość obliczeniowa nurkowania', check=lambda v: max(v.V_D_rule / 3.6, v.V_A), tolerance=.03)
-        s.calc('V_F', 'V_F', r'\max\left(1{,}4\,V_{S1};\;2{,}0\,V_{S0}\right)', r'\max\left(1{,}4\cdot[[V_S]];\;2{,}0\cdot[[V_S0]]\right)', t['v_f_ms'], MS, 2,
-               'Prędkość obliczeniowa z wychyloną mechanizacją', 'CS 22.335(b)', check=lambda v: max(1.4 * v.V_S, 2 * v.V_S0), tolerance=.03)
+        if flap['applicable']:
+            s.calc('V_F', 'V_F', r'\max\left(1{,}4\,V_{S1};\;2{,}0\,V_{S0}\right)', r'\max\left(1{,}4\cdot[[V_S]];\;2{,}0\cdot[[V_S0]]\right)', t['v_f_ms'], MS, 2,
+                   'Prędkość obliczeniowa z wychyloną mechanizacją', 'CS 22.335(b)', check=lambda v: max(1.4 * v.V_S, 2 * v.V_S0), tolerance=.03)
         s.calc('V_B', 'V_B', 'V_A', '[[V_A]]', t['v_b_ms'], MS, 2, 'Prędkość podmuchu intensywnego (nie mniejsza niż VA)', 'CS 22.335(c)', check=lambda v: v.V_A)
     else:
         s.calc('WS_psf', r'\left(\frac{W}{S}\right)_{psf}', r'\frac{W/S}{47{,}88}', r'\frac{[[WS_0]]}{47{,}88026}', t['ws_psf'], r'\mathrm{lbf/ft^2}', 2,
@@ -1964,18 +1973,17 @@ def _p6(s, r):
         if gf['vb_gust']:
             s.given('V_B', 'V_B', t['v_b_ms'], MS, 2, 'Prędkość VB: przecięcie linii przeciągnięcia z linią podmuchu 66 ft/s, ograniczone do VC',
                     SOURCES['CS23'] + ' §23.335(c)')
-        s.calc('V_F', 'V_F', r'\max\left(1{,}4\,V_{S1};\;1{,}8\,V_{S0}\right)', r'\max\left(1{,}4\cdot[[V_S]];\;1{,}8\cdot[[V_S0]]\right)', t['v_f_ms'], MS, 2,
-               'Prędkość obliczeniowa z wychyloną mechanizacją', SOURCES['CS23'] + ' §23.345', check=lambda v: max(1.4 * v.V_S, 1.8 * v.V_S0), tolerance=.03)
+        if flap['applicable']:
+            s.calc('V_F', 'V_F', r'\max\left(1{,}4\,V_{S1};\;1{,}8\,V_{S0}\right)', r'\max\left(1{,}4\cdot[[V_S]];\;1{,}8\cdot[[V_S0]]\right)', t['v_f_ms'], MS, 2,
+                   'Prędkość obliczeniowa z wychyloną mechanizacją', flap['basis'], check=lambda v: max(1.4 * v.V_S, 1.8 * v.V_S0), tolerance=.03)
     for key in ('V_A', 'V_C', 'V_D', 'V_F', 'V_G'):
         if key in s.entries:
             _to_kmh(s, key + '_kmh', s.entries[key]['sym'], key, sp[{'V_A': 'v_a_kmh', 'V_C': 'v_c_kmh', 'V_D': 'v_d_kmh', 'V_F': 'v_f_kmh', 'V_G': 'v_g_kmh'}[key]],
                     s.entries[key]['label'])
 
     s.section('p6', 'gust', 'Obciążenia od podmuchów', gf['gust_basis'])
-    chord_key = 'mac'
-    if lim['basis'] == 'CS-22':
-        s.calc('c_g', r'\bar c_g', r'\frac{S}{b}', r'\frac{[[S]]}{[[b]]}', gf['chord_m'], M, 3, 'Średnia cięciwa geometryczna', 'CS 22.341', check=lambda v: v.S / v.b, tolerance=.0011)
-        chord_key = 'c_g'
+    chord_key = 'c_g'
+    s.calc('c_g', r'\bar c_g', r'\frac{S}{b}', r'\frac{[[S]]}{[[b]]}', gf['chord_m'], M, 3, 'Średnia cięciwa geometryczna', gf['chord_basis'], check=lambda v: v.S / v.b, tolerance=.0011)
     s.calc('mu_g', r'\mu_g', r'\frac{2\,m_0/S}{\rho_0\,\bar c\,a}', rf'\frac{{2\cdot[[m0]]/[[S]]}}{{[[rho0]]\cdot[[{chord_key}]]\cdot[[a_w]]}}', gf['mu_g'], '', 2,
            'Cecha masowa samolotu', SOURCES['D'] + ', wzór (2.14)', check=lambda v: 2 * v.m0 / v.S / (v.rho0 * getattr(v, chord_key) * v.a_w), tolerance=.03)
     if lim.get('cs22_gust_model') == 'amendment3':
@@ -2021,7 +2029,7 @@ def _p6(s, r):
     s.calc('n_g_min', r'n_{g,min}', r'1-\max_i\Delta n_{-,i}', r'1-\max\left\{' + ';\\;'.join(f'[[{k}]]' for k in negative_keys) + r'\right\}', lim['n_gust_min'], '', 2,
            'Najmniejsze przeciążenie od podmuchu', check=lambda v: 1 - max(getattr(v, k) for k in negative_keys), tolerance=.006)
 
-    s.section('p6', 'design', 'Obciążenia do wymiarowania', SOURCES['D'] + ', rozdz. 2')
+    s.section('p6', 'design', 'Obciążenia do wymiarowania — konfiguracja czysta', SOURCES['D'] + ', rozdz. 2')
     s.calc('n_dim_p', r'n_{wym,+}', r'\max\left(n_+;\;n_{g,max}\right)', r'\max\left([[n_plus]];\;[[n_g_max]]\right)', lim['n_dimensioning_pos'], '', 2,
            'Dodatnie przeciążenie dopuszczalne do wymiarowania', check=lambda v: max(v.n_plus, v.n_g_max), tolerance=.006)
     s.calc('n_dim_m', r'n_{wym,-}', r'\min\left(n_-;\;n_{g,min}\right)', r'\min\left([[n_minus]];\;[[n_g_min]]\right)', lim['n_dimensioning_neg'], '', 2,
@@ -2031,12 +2039,43 @@ def _p6(s, r):
     s.calc('n_ult_m', r'n_{niszcz,-}', r'\nu\,n_{wym,-}', r'[[nu]]\cdot[[n_dim_m]]', lim['n_ult_neg'], '', 2, 'Ujemne przeciążenie niszczące',
            check=lambda v: v.nu * v.n_dim_m, tolerance=.006)
 
-    flap = env['flap']
-    s.section('p6', 'flaps', 'Obwiednia z wychyloną mechanizacją', SOURCES['CS23'] + ' §23.345 / CS 22.345')
-    s.given('n_f', r'n_f', flap['n_flap'], '', 1, 'Przeciążenie z wychylonymi klapami', SOURCES['CS23'] + ' §23.345 / CS 22.345')
-    v_af = next(pt['v_kmh'] for pt in flap['loop'] if pt['point'].startswith('Af'))
-    s.calc('V_Af', r'V_{A,f}', r'3{,}6\,V_{S0}\sqrt{n_f}', r'3{,}6\cdot[[V_S0]]\cdot\sqrt{[[n_f]]}', v_af, KMH, 1, 'Wejście na przeciążenie nf z klapami',
-           check=lambda v: 3.6 * v.V_S0 * math.sqrt(v.n_f), tolerance=.11)
+    s.section('p6', 'flaps', 'Obwiednia z wychyloną mechanizacją', flap['basis'])
+    if flap['applicable']:
+        fl = flap['limits']
+        s.given('n_f', r'n_f', flap['n_flap'], '', 1, 'Manewrowe przeciążenie z mechanizacją', flap['basis'])
+        v_af = next(pt['v_kmh'] for pt in flap['loop'] if pt['point'].startswith('Af'))
+        s.calc('V_Af', r'V_{A,f}', r'3{,}6\,V_{S0}\sqrt{n_f}', r'3{,}6\cdot[[V_S0]]\cdot\sqrt{[[n_f]]}', v_af, KMH, 1, 'Wejście na przeciążenie nf z mechanizacją',
+               check=lambda v: 3.6 * v.V_S0 * math.sqrt(v.n_f), tolerance=.11)
+        s.given('U_F', r'U_F', flap['u_flap_ms'], MS, 2, 'Podmuch przy VF w konfiguracji do lądowania', flap['basis'])
+        s.calc('dn_F', r'\Delta n_F', r'\frac{K_g\rho_0V_FaU_F}{2\,W/S}',
+               r'\frac{[[K_g]]\cdot[[rho0]]\cdot[[V_F]]\cdot[[a_w]]\cdot[[U_F]]}{2\cdot[[WS_0]]}', flap['gust_at_vf']['delta_n'], '', 4,
+               'Przyrost przeciążenia od podmuchu z mechanizacją', flap['basis'], note=flap['note'],
+               check=lambda v: v.K_g*v.rho0*v.V_F*v.a_w*v.U_F/(2*v.WS_0))
+        for key, sym, formula, subst, value, label, check in (
+            ('n_fg_p', r'n_{g,F,+}', r'1+\Delta n_F', r'1+[[dn_F]]', fl['n_gust_max'], 'Dodatni podmuch z mechanizacją', lambda v:1+v.dn_F),
+            ('n_fg_m', r'n_{g,F,-}', r'1-\Delta n_F', r'1-[[dn_F]]', fl['n_gust_min'], 'Ujemny podmuch z mechanizacją', lambda v:1-v.dn_F),
+            ('n_fd_p', r'n_{wym,F,+}', r'\max(n_f;n_{g,F,+})', r'\max([[n_f]];[[n_fg_p]])', fl['n_dimensioning_pos'], 'Dodatnie wymiarujące z mechanizacją', lambda v:max(v.n_f,v.n_fg_p)),
+            ('n_fd_m', r'n_{wym,F,-}', r'\min(0;n_{g,F,-})', r'\min(0;[[n_fg_m]])', fl['n_dimensioning_neg'], 'Ujemne wymiarujące z mechanizacją', lambda v:min(0,v.n_fg_m)),
+            ('n_fu_p', r'n_{niszcz,F,+}', r'\nu n_{wym,F,+}', r'[[nu]]\cdot[[n_fd_p]]', fl['n_ult_pos'], 'Dodatnie niszczące z mechanizacją', lambda v:v.nu*v.n_fd_p),
+            ('n_fu_m', r'n_{niszcz,F,-}', r'\nu n_{wym,F,-}', r'[[nu]]\cdot[[n_fd_m]]', fl['n_ult_neg'], 'Ujemne niszczące z mechanizacją', lambda v:v.nu*v.n_fd_m),
+        ):
+            s.calc(key,sym,formula,subst,value,'',2,label,check=check)
+
+    all_limits=env['configuration_limits']
+    s.section('p6','design_all','Skrajne obciążenia rozpatrywanych konfiguracji','Konfiguracja czysta i do lądowania; osobne przypadki, bez dodawania obciążeń')
+    for sign, op, base in (('p','max','pos'),('m','min','neg')):
+        suffix='+' if sign=='p' else '-'
+        source=f'n_dim_{sign}'
+        other=f'n_fd_{sign}'
+        formula=rf'\{op}(n_{{wym,{suffix}}};n_{{wym,F,{suffix}}})' if flap['applicable'] else rf'n_{{wym,{suffix}}}'
+        subst=rf'\{op}([[{source}]];[[{other}]])' if flap['applicable'] else f'[[{source}]]'
+        operation=max if sign=='p' else min
+        s.calc('n_all_'+sign,rf'n_{{wym,all,{suffix}}}',formula,subst,all_limits['n_dimensioning_'+base],'',2,
+               'Skrajne przeciążenie dopuszczalne wszystkich konfiguracji',
+               check=lambda v,src=source,oth=other,fn=operation: fn(getattr(v,src),getattr(v,oth)) if flap['applicable'] else getattr(v,src))
+        s.calc('n_all_u_'+sign,rf'n_{{niszcz,all,{suffix}}}',rf'\nu n_{{wym,all,{suffix}}}',rf'[[nu]]\cdot[[n_all_{sign}]]',
+               all_limits['n_ult_'+base],'',2,'Skrajne przeciążenie niszczące wszystkich konfiguracji',
+               check=lambda v,sg=sign:v.nu*getattr(v,'n_all_'+sg))
 
 
 # =============================================================================================
