@@ -71,7 +71,7 @@ def export_report(page,browser,label,expected_svg):
         assert report.locator('.airfoil-1to1 svg path').first.get_attribute('d')==expected
         assert report.locator('.airfoil-1to1 svg').get_attribute('width')=='220.0mm'
     assert not report.locator('.katex-error').count()
-    report.pdf(path=str(OUT/(label+'-report.pdf')),print_background=True)
+    report.pdf(path=str(OUT/(label+'-report.pdf')),format='A4',prefer_css_page_size=True,print_background=True)
     offline.close()
 
 
@@ -174,6 +174,7 @@ def main():
         page.set_viewport_size(dict(width=390,height=850))
         page.locator('#p3_airfoil_svg_container').scroll_into_view_if_needed()
         assert page.evaluate('document.documentElement.scrollWidth<=innerWidth+1')
+        assert page.locator('#airfoil').bounding_box()['width']>=240
         page.screenshot(path=str(OUT/'mobile.png'))
         page.reload();ready(page);inspect(page,'NACA 0015','naca');records.append('reload_and_mobile')
         page.set_viewport_size(dict(width=1440,height=1000))
