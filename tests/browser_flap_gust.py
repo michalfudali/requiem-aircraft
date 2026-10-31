@@ -117,6 +117,7 @@ def main():
         import_project(page,'trainer',AIRCRAFT_PRESETS['ga_trainer'])
         records.append(inspect(page,'trainer',True))
         edit(page,'flap_type','none')
+        reveal_details(page.locator('#flapDidacticCard'))
         assert 'Brak klap spływu' in page.locator('#flapDidacticCard').inner_text()
         assert page.evaluate('currentResults.geometry.control_surfaces.flaps.S_flap_surface_m2')==0
         records.append(inspect(page,'no-flaps',False));export(page,browser,'no-flaps',False)
