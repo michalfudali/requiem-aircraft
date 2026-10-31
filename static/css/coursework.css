@@ -41,3 +41,86 @@
 .defense-q-card[open] { background:#fff; border-color:#b4d3db; }
 .defense-q-answer { margin-top:12px; padding:10px 14px; background:#f4fbf8; border-left:3px solid #168c83; border-radius:0 6px 6px 0; font-size:12px; line-height:1.5; color:#1e3932; }
 .defense-q-tip { margin-top:8px; padding:8px 12px; background:#fffdf5; border-left:3px solid #d89b45; border-radius:0 6px 6px 0; font-size:11px; color:#6d4c13; }
+
+/* Zadanie kolokwialne */
+.exam-form { display:grid; grid-template-columns:repeat(auto-fit, minmax(170px, 1fr)); gap:12px; align-items:end; }
+.exam-data { display:grid; grid-template-columns:repeat(auto-fit, minmax(190px, 1fr)); gap:8px; margin:10px 0 14px; }
+.exam-chip { border:1px solid #dce6e8; border-radius:6px; padding:8px 10px; background:#f8fbfc; display:flex; flex-direction:column; gap:3px; }
+.exam-chip span { font-size:12px; color:#546e7a; }
+.exam-chip strong { font-size:15px; color:#16313c; }
+.exam-goals { margin:6px 0 0; padding-left:20px; line-height:1.55; }
+.exam-check { display:grid; grid-template-columns:repeat(auto-fit, minmax(210px, 1fr)); gap:12px; align-items:start; }
+.exam-check .btn { align-self:end; }
+.exam-check input.exam-ok { border-color:#168c83; background:#f1faf6; }
+.exam-check input.exam-bad { border-color:#c0603a; background:#fff6f1; }
+.exam-verdict { display:block; min-height:1.2em; font-size:12px; font-weight:600; color:#455a64; }
+.exam-toggle { display:flex; gap:8px; flex-wrap:wrap; }
+.exam-section { border:1px solid #dce6e8; border-radius:8px; margin:10px 0; background:#fff; }
+.exam-section > summary { cursor:pointer; padding:11px 14px; display:flex; flex-wrap:wrap; gap:4px 12px; align-items:baseline; }
+.exam-section > summary small { color:#607d8b; }
+.exam-section[open] > summary { border-bottom:1px solid #e6eef0; }
+.exam-entries { padding:6px 14px 12px; }
+.exam-entry { padding:9px 0; border-bottom:1px dashed #e3ecee; }
+.exam-entry:last-child { border-bottom:0; }
+.exam-entry-label { font-size:12px; color:#455a64; margin-bottom:4px; }
+.exam-entry-label small { color:#8aa0a9; }
+.exam-given .exam-math { color:#37505c; }
+.exam-math { overflow-x:auto; overflow-y:hidden; padding:2px 0; }
+.exam-math .katex-display { margin:2px 0; text-align:left; }
+.exam-math .katex-display > .katex { text-align:left; font-size:1.08em; }
+.exam-entry-note { margin:4px 0 0; font-size:12px; color:#805319; }
+.exam-chart { position:relative; min-height:260px; }
+.exam-two { display:grid; grid-template-columns:repeat(auto-fit, minmax(300px, 1fr)); gap:14px; }
+.exam-svg { max-width:620px; }
+.exam-svg figure { margin:0; }
+.exam-svg figcaption { font-size:12px; font-weight:600; color:#37505c; margin-bottom:4px; }
+.exam-svg svg { width:100%; height:auto; font-size:10px; fill:#546e7a; }
+.exam-svg .exam-grid { stroke:#edf2f4; }
+.exam-svg .exam-axis { stroke:#94a3b8; }
+.exam-svg .exam-axis-label { font-size:11px; font-weight:600; fill:#334155; }
+.exam-svg .exam-bar { fill:#cfe5ef; stroke:#0369a1; stroke-width:1; }
+.exam-svg .exam-bar-label { font-size:10px; font-weight:700; fill:#0f3d55; paint-order:stroke; stroke:#fff; stroke-width:3px; }
+.exam-table-wrap { overflow-x:auto; max-width:100%; margin:12px 0; }
+.exam-table td, .exam-table th { white-space:nowrap; text-align:right; }
+.exam-table td:first-child, .exam-table th:first-child { text-align:left; }
+#examNotes p { margin:6px 0; }
+
+/* Terminy oddania */
+.coursework-group { min-width:230px; }
+.coursework-table-wrap { overflow-x:auto; max-width:100%; margin:10px 0; }
+.coursework-schedule th[scope="row"] { text-align:left; font-weight:600; }
+.coursework-schedule tr.coursework-next { background:#eef8f5; }
+.coursework-schedule tr.coursework-next [data-schedule-state] { font-weight:700; color:#0f6b5f; }
+.coursework-schedule tr.coursework-past { color:#7b8f97; }
+@media(max-width:640px) {
+  #courseworkSchedule .studio-card-heading { flex-direction:column; align-items:stretch; }
+  .coursework-group { min-width:0; }
+}
+
+/* Zejściówki */
+.quiz-lectures { border:1px solid #dce6e8; border-radius:8px; padding:10px 14px; display:grid; grid-template-columns:repeat(auto-fit, minmax(260px, 1fr)); gap:6px 16px; margin:0 0 12px; }
+.quiz-lectures legend { font-weight:600; padding:0 4px; }
+.quiz-lectures label { display:flex; gap:8px; align-items:baseline; font-size:13px; }
+.quiz-lectures small { margin-left:auto; color:#607d8b; white-space:nowrap; }
+.quiz-controls { display:flex; flex-wrap:wrap; gap:10px; align-items:end; margin:8px 0; }
+.quiz-controls .studio-field { min-width:120px; }
+.quiz-timer { display:flex; align-items:baseline; gap:10px; margin:14px 0 6px; }
+.quiz-timer strong { font-size:28px; font-variant-numeric:tabular-nums; color:#16313c; }
+.quiz-timer strong.quiz-late { color:#b4441f; }
+.quiz-items { padding-left:22px; display:flex; flex-direction:column; gap:14px; }
+.quiz-item-question { font-weight:600; margin:0 0 6px; }
+.quiz-model { margin-top:8px; padding:10px 12px; background:#f4fbf8; border-left:3px solid #168c83; border-radius:0 6px 6px 0; }
+.quiz-model p { margin:4px 0; }
+.quiz-grade { display:flex; gap:8px; flex-wrap:wrap; margin-top:6px; }
+.quiz-grade [aria-pressed="true"][data-quiz-grade="known"] { background:#e4f5ed; border-color:#168c83; color:#0f5e52; }
+.quiz-grade [aria-pressed="true"][data-quiz-grade="review"] { background:#fff2df; border-color:#d89b45; color:#805319; }
+.quiz-lecture { border:1px solid #dce6e8; border-radius:8px; margin:8px 0; background:#fff; }
+.quiz-lecture > summary { cursor:pointer; padding:10px 14px; display:flex; flex-wrap:wrap; gap:4px 12px; align-items:baseline; }
+.quiz-lecture > summary small { color:#607d8b; }
+.quiz-question { border-top:1px solid #eef3f4; padding:0 14px; }
+.quiz-question > summary { cursor:pointer; padding:9px 0; display:flex; gap:8px; }
+.quiz-state { width:1.2em; flex:none; text-align:center; color:#94a3b8; font-weight:700; }
+[data-quiz-state="known"] > summary .quiz-state { color:#168c83; }
+[data-quiz-state="review"] > summary .quiz-state { color:#c47a16; }
+.quiz-answer { padding:0 0 12px 1.9em; }
+.quiz-answer > p:first-child { margin-top:0; }

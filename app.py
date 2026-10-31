@@ -14,6 +14,8 @@ from calculations import run_bipol_project, refine_bipol_project
 from calculations.presets import AIRCRAFT_PRESETS
 from calculations.aircraft_store import export_source
 from calculations.official_topics import ALL_TOPICS, OFFICIAL_CATEGORIES
+from calculations.coursework import SCHEDULE, GROUP_DAYS, GROUP_HOURS
+from calculations.lecture_quiz import lectures_with_questions
 from calculations.polish_law import catalog_for_frontend
 from calculations.trends import reference_catalog, SOURCES, DATA, CLASSES, get_trend_suggestions
 from calculations.aircraft_db import (
@@ -89,7 +91,11 @@ def index():
         'index.html',
         presets=AIRCRAFT_PRESETS,
         categories=OFFICIAL_CATEGORIES,
-        topics=ALL_TOPICS
+        topics=ALL_TOPICS,
+        schedule=SCHEDULE,
+        group_days=GROUP_DAYS,
+        group_hours=GROUP_HOURS,
+        lectures=lectures_with_questions(),
     )
 
 @app.route('/api/presets', methods=['GET'])
@@ -340,6 +346,16 @@ def get_airfoil_200mm():
 def coursework_grade():
     from calculations.coursework import grade_plan
     return jsonify(grade_plan(request.get_json(force=True)))
+
+
+@app.post('/api/exam/wing-loads')
+def exam_wing_loads():
+    """Zadanie kolokwialne I; liczby liter liczy przeglądarka, imię i nazwisko nie trafiają na serwer."""
+    from calculations.exam_wing import solve_exam1
+    data = request.get_json(force=True)
+    if not isinstance(data, dict):
+        raise ValueError('Podaj liczby liter X i Y.')
+    return jsonify(solve_exam1(data.get('x'), data.get('y')))
 
 
 @app.post('/api/coursework/iterate-polar')
