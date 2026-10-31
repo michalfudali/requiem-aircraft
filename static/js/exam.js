@@ -225,6 +225,50 @@
     requestAnimationFrame(renderEnvelope);
   }
 
+  // Arkusz do druku: dane, wszystkie kroki (KaTeX), wykresy i tabele; płótno obwiedni jako obraz.
+  function printSolution() {
+    if (!result) return;
+    const clone = $('examResult').cloneNode(true);
+    clone.hidden = false;
+    clone.querySelectorAll('details').forEach(d => { d.open = true; });
+    clone.querySelectorAll('form, .exam-toggle, #examCheckSummary, button').forEach(el => el.remove());
+    clone.querySelectorAll('section').forEach(sec => { if (sec.querySelector('h2')?.textContent.startsWith('Sprawdź')) sec.remove(); });
+    const canvas = $('examEnvelopeCanvas'), copy = clone.querySelector('#examEnvelopeCanvas');
+    if (canvas && copy) {
+      const img = document.createElement('img');
+      img.src = canvas.toDataURL('image/png'); img.alt = 'Obwiednia obciążeń'; img.style.width = '100%';
+      copy.replaceWith(img);
+    }
+    // Warstwa MathML służy czytnikom ekranu; w wydruku zostaje sam układ HTML wzorów.
+    clone.querySelectorAll('.katex-mathml').forEach(el => el.remove());
+    // Reguły KaTeX z wczytanego już arkusza strony, z bezwzględnymi adresami fontów (okno about:blank nie ma bazy).
+    let katexCss = '';
+    try {
+      const sheet = [...document.styleSheets].find(st => (st.href || '').includes('katex'));
+      katexCss = [...sheet.cssRules].map(rule => rule.cssText).join(' ')
+        .replace(/url\("?fonts\//g, `url("${location.origin}/static/vendor/katex/fonts/`);
+    } catch (_) { /* bez arkusza KaTeX wzory i tak zostają czytelne */ }
+    const win = window.open('', '_blank');
+    if (!win) return;
+    win.document.write(`<!doctype html><html lang="pl"><head><meta charset="utf-8"><title>Zadanie kolokwialne — X = ${result.x}, Y = ${result.y}</title>`
+      + `<style>${katexCss}</style>`
+      + '<style>@page{size:A4;margin:14mm}body{font:10.5pt/1.4 sans-serif;color:#111;margin:0}h1{font-size:15pt}h2{font-size:12.5pt;margin:12pt 0 4pt}'
+      + '.studio-card{margin:0 0 10pt}.exam-data{display:grid;grid-template-columns:repeat(3,1fr);gap:4pt}'
+      + '.exam-chip{border:1px solid #ccc;border-radius:3pt;padding:3pt 5pt;display:flex;flex-direction:column}.exam-chip span{font-size:8.5pt;color:#444}'
+      + '.exam-section>summary{list-style:none;font-weight:bold;margin:8pt 0 2pt}.exam-section>summary small{font-weight:normal;color:#555;margin-left:6pt}'
+      + '.exam-entry{break-inside:avoid;padding:3pt 0;border-bottom:1px dotted #ccc}.exam-entry-label{font-size:9pt;color:#444}'
+      + '.exam-entry-note{font-size:9pt;color:#7a4b10;margin:2pt 0}.katex-display{margin:2pt 0;text-align:left}.katex-display>.katex{text-align:left}'
+      + 'figure{margin:6pt 0;break-inside:avoid}figcaption{font-size:9pt;font-weight:bold}.exam-two{display:grid;grid-template-columns:1fr 1fr;gap:8pt}'
+      + 'svg{width:100%;height:auto;font-size:10px}.exam-grid{stroke:#eee}.exam-axis{stroke:#999}.exam-bar{fill:#dbe9f0;stroke:#0369a1}'
+      + 'table{border-collapse:collapse;width:100%;font-size:8.5pt;margin:4pt 0}th,td{border-bottom:1px solid #ccc;padding:2pt 4pt;text-align:right}'
+      + 'th:first-child,td:first-child{text-align:left}.exam-svg{max-width:160mm}</style></head><body>'
+      + `<h1>Zadanie kolokwialne BIPOL I — X = ${result.x}, Y = ${result.y} (kategoria ${BipolStudio.escape(result.category_label)})</h1>`
+      + clone.innerHTML + '</body></html>');
+    win.document.close();
+    win.focus();
+    setTimeout(() => win.print(), 400);
+  }
+
   function syncCount(source, target) {
     const count = letters($(source).value);
     if (count) $(target).value = Math.min(40, count);
@@ -236,6 +280,7 @@
     $('examFirst').addEventListener('input', () => syncCount('examFirst', 'examX'));
     $('examLast').addEventListener('input', () => syncCount('examLast', 'examY'));
     $('examForm').addEventListener('submit', solve);
+    $('examPrint').addEventListener('click', printSolution);
     // Ćwiczenie na innym wariancie: typowe długości imion i nazwisk dają wszystkie cztery kategorie.
     $('examRandom').addEventListener('click', () => {
       const pick = (lo, hi) => lo + Math.floor(Math.random() * (hi - lo + 1));

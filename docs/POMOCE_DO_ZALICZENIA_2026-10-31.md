@@ -45,6 +45,7 @@ i stroną materiału. Symulacja losuje 1–3 pytania z wybranych wykładów (naj
 się tylko w przeglądarce.
 Przycisk „Drukuj pytania” tworzy arkusz A4 z pytaniami wybranych wykładów i odpowiedziami
 wzorcowymi od nowej strony. W zadaniu kolokwialnym „Losowe dane” pozwalają ćwiczyć inne warianty X, Y.
+„Drukuj rozwiązanie” tworzy arkusz A4 z danymi, wszystkimi krokami (wzory KaTeX), wykresami i tabelami.
 
 ## Poprawka obwiedni P6
 
