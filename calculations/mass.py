@@ -47,16 +47,16 @@ def calculate_mass_sizing(params: dict):
         remaining = 1.0 - shares["propulsion"]
         shares = {key: (0.0 if key == "propulsion" else value / remaining) for key, value in shares.items()}
     if wing_config == "braced_high":
-        shares["wing"] = round(shares["wing"] * 0.89, 3)
-        shares["fuselage"] = round(1.0 - (shares["wing"] + shares["tail"] + shares["gear"] + shares["propulsion"] + shares["systems"]), 3)
+        shares["wing"] *= 0.89
+        shares["fuselage"] = 1.0 - sum(value for key, value in shares.items() if key != "fuselage")
 
     mass_components = {
-        "m_wing": round(m_empty * shares["wing"], 1),
-        "m_fuselage": round(m_empty * shares["fuselage"], 1),
-        "m_tail": round(m_empty * shares["tail"], 1),
-        "m_gear": round(m_empty * shares["gear"], 1),
-        "m_propulsion": round(m_empty * shares["propulsion"], 1),
-        "m_systems": round(m_empty * shares["systems"], 1),
+        "m_wing": m_empty * shares["wing"],
+        "m_fuselage": m_empty * shares["fuselage"],
+        "m_tail": m_empty * shares["tail"],
+        "m_gear": m_empty * shares["gear"],
+        "m_propulsion": m_empty * shares["propulsion"],
+        "m_systems": m_empty * shares["systems"],
     }
 
     result.update(breakdown=mass_components, n_pax=n_pax, n_crew=n_crew, unmanned=unmanned)

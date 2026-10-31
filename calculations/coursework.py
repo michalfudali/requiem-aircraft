@@ -180,7 +180,7 @@ def review_submission(result):
         'p3_1': [],
         'p3_2': [check('Zakres ŚC', balance['cg_check']['passed'], balance['cg_check']['required']),
                  check('Zapas stateczności ≥5% ŚDA', balance['stability']['static_margin_aft_pct'] >= 5,
-                       f"Wynik: {balance['stability']['static_margin_aft_pct']}% ŚDA.")],
+                       f"Wynik: {balance['stability']['static_margin_aft_pct']:.2f}% ŚDA.")],
         'p3_3': [],
         'p3_4': [],
         'p4_1': course('polar_consistency'),

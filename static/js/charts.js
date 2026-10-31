@@ -971,38 +971,42 @@ function drawBalanceDiagram(canvasId, balance) {
   ctx.fillStyle = '#dc2626';
   ctx.font = 'bold 10px sans-serif';
   ctx.textAlign = 'left';
-  BipolSymbols.fillText(ctx, `Punkt Neutralny (${balance.neutral_point.x_n_mac_pct}%)`, xNp + 5, pad.top + 15);
+  BipolSymbols.fillText(ctx, `Punkt neutralny (${balance.neutral_point.x_n_mac_pct.toFixed(1)}%)`, xNp + 5, pad.top + 15);
   
-  // Safe CG limits box
+  // Observed flight CG range is not a certified safe envelope.
   const xFwd = toX(balance.cg_range.forward_pct);
   const xAft = toX(balance.cg_range.aft_pct);
-  ctx.fillStyle = 'rgba(16, 185, 129, 0.12)';
+  ctx.fillStyle = 'rgba(2, 132, 199, 0.08)';
   ctx.fillRect(xFwd, pad.top, xAft - xFwd, plotH);
   
-  // Connecting states line
-  ctx.strokeStyle = '#0284c7';
-  ctx.lineWidth = 2.5;
+  // Minimum static margin boundary. Loading states are independent cases,
+  // not a chronological loading/fuel-burning path, so do not connect them.
+  const xMargin = toX(balance.neutral_point.x_n_mac_pct - 5);
+  ctx.strokeStyle = '#b45309';
+  ctx.lineWidth = 1.5;
+  ctx.setLineDash([6, 3]);
   ctx.beginPath();
-  states.forEach((s, idx) => {
-    const x = toX(s.xcg_mac_pct);
-    const y = toY(s.mass_kg);
-    if (idx === 0) ctx.moveTo(x, y);
-    else ctx.lineTo(x, y);
-  });
+  ctx.moveTo(xMargin, pad.top);
+  ctx.lineTo(xMargin, pad.top + plotH);
   ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.fillStyle = '#b45309';
+  ctx.textAlign = 'right';
+  BipolSymbols.fillText(ctx, 'Zapas 5% ŚDA', xMargin - 5, pad.top + 30);
   
   // State points
   states.forEach(s => {
     const x = toX(s.xcg_mac_pct);
     const y = toY(s.mass_kg);
-    ctx.fillStyle = '#0284c7';
+    ctx.fillStyle = s.in_flight === false ? '#64748b'
+      : (s.cg_criterion_passed && s.minimum_margin_passed ? '#0284c7' : '#dc2626');
     ctx.beginPath();
     ctx.arc(x, y, 5, 0, Math.PI * 2);
     ctx.fill();
     ctx.fillStyle = '#0f172a';
     ctx.font = '10px sans-serif';
     ctx.textAlign = 'left';
-    BipolSymbols.fillText(ctx, `${s.name} (${s.xcg_mac_pct}%)`, x + 7, y - 4);
+    BipolSymbols.fillText(ctx, `${s.name} (${s.xcg_mac_pct.toFixed(1)}%)`, x + 7, y - 4);
   });
 }
 

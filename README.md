@@ -154,5 +154,5 @@ aplikacja wyświetli je wtedy w tej samej zakładce, tylko na Twoim komputerze. 
 3. **Rozkład siły nośnej wg Schrenka:** Wykres obciążenia trapezowego, eliptycznego i wypadkowego rozkładu Schrenka wzdłuż rozpiętości.
 4. **Krzywa prędkości wznoszenia $w_y(V)$:** Biegunowa prędkości i punkt maksymalnego wznoszenia $w_{y,max}$.
 5. **Obwiednia obciążeń dopuszczalnych $V-n$:** Obwiednia manewrowa i linie podmuchów pionowych metodą wg CS-23 Amdt 4 i Danileckiego (dla CS-25 uproszczenie Pratta).
-6. **Diagram wyważenia:** Wykres wędrówki Środka Masy w % ŚDA dla stanów OEW, ZFW, MTOW, MLW względem Punktu Neutralnego.
+6. **Diagram wyważenia:** Osobne punkty dla stanów załadowania, obliczony zakres środka masy i granica minimalnego zapasu stateczności 5% ŚDA. Tabele P3/P6 korzystają z tej samej oceny co obliczenia; samolot pusty jest stanem naziemnym. Raport P3 podaje też sumę momentów mas i zapas stateczności każdego stanu w locie.
 7. **Rysunek zestawieniowy 3-widokowy SVG (CAD):** Parametryczny rzut z góry, z przodu i z boku uwzględniający górnopłat/dolnopłat, rozpiętość, kadłub i usterzenia.

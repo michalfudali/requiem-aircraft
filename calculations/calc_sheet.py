@@ -1242,7 +1242,7 @@ def _p3_balance(s, r):
            check=lambda v: (v.M_kgr + v.M_sgr - v.xcel * v.mac * v.m_e) / max(1, v.m_e - v.m_sgr))
     if abs(bal['x_lemac_m'] - wp['x_lemac_raw']) > 1e-3:
         s.given('x_LEc', r'x_{N,\bar c}', bal['x_lemac_m'], M, 3,
-                'Położenie noska ŚCA po korekcie (granice 0,28–0,56 lₖ i kryterium BIPOL_3 pkt 8)', SOURCES['B3'] + ', pkt 8')
+                'Położenie noska ŚCA po korekcie (granice 0,25–0,56 lₖ i kryterium BIPOL_3 pkt 8)', SOURCES['B3'] + ', pkt 8')
     else:
         s.calc('x_LEc', r'x_{N,\bar c}', r'x_{N,\bar c}^{(0)}', r'[[x_lemac0]]', bal['x_lemac_m'], M, 3, 'Położenie noska ŚCA',
                check=lambda v: v.x_lemac0)
