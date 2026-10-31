@@ -393,6 +393,19 @@ _Q = (
     ('w15', 6, 'Ile trwa maksymalne ugięcie amortyzatora podczas lądowania i co się dzieje przy zbyt szybkim wciskaniu tłoka?',
      'Nie dłużej niż ok. 0,5 s. Przy zbyt dużej prędkości wciskania tłoka siła reakcji Z gwałtownie rośnie, '
      'a współczynnik pełnoty pracy maleje.'),
+    # -- Dopisane później: na końcu, żeby identyfikatory wcześniejszych pytań (i zapisany postęp) się nie zmieniły.
+    ('w03', 16, 'Jak położenie płata względem kadłuba wpływa na efekt wzniosu w ślizgu?',
+     'W ślizgu strumień opływa kadłub w poprzek. Przy górnopłacie opływ ten zwiększa kąt natarcia skrzydła nawietrznego '
+     'i zmniejsza zawietrznego, co daje moment przechylający przywracający równowagę — jak dodatkowe 1–2° wzniosu. '
+     'Przy dolnopłacie działa odwrotnie, dlatego dolnopłaty mają większy kąt wzniosu niż górnopłaty.'),
+    ('w03', 16, 'Po co stosuje się owiewki na połączeniu skrzydła z kadłubem?',
+     'Zmniejszają opór interferencyjny: w narożu skrzydło–kadłub warstwa przyścienna łatwo się odrywa, zwłaszcza w tylnej '
+     'części przy niekorzystnym gradiencie ciśnienia, i powstaje wir podkowiasty. Owiewka łagodnie wyprowadza opływ, '
+     'co jest szczególnie ważne w dolnopłatach.'),
+    ('w03', 9, 'Jakie cechy kadłuba i układu ułatwiają załadunek samolotu transportowego?',
+     'Tylna rampa ładunkowa w podniesionej tylnej części kadłuba, podłoga ładowni nisko nad ziemią i na wysokości skrzyni '
+     'pojazdu, górnopłat (skrzydło nie przecina kabiny) oraz podwozie główne w gondolach przy kadłubie, które nie wymaga '
+     'wysokich goleni — jak w C-130 czy A400M.'),
 )
 
 _FILES = {key: source.split(', ')[0] for key, _, _, source in LECTURES}
