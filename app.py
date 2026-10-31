@@ -272,7 +272,7 @@ MATERIAL_FOLDERS = ('danilecki', 'bipol', 'mechanika_lotu', 'zpk_cad')
 MATERIAL_SOURCES = [
     {"name": "BIPOL I — strona przedmiotu (ZSiS)",
      "url": "https://www.meil.pw.edu.pl/zsis/ZSiS/Dydaktyka/Prowadzone-przedmioty/BIPOL/BIPOL-I",
-     "note": "Pliki chronione hasłem podawanym na zajęciach."},
+     "note": "Wszystkie 16 prezentacji wykładowych (handouty 1–15) odszyfrowane hasłem bipol i gotowe do podglądu."},
     {"name": "Mechanika Lotu I — materiały do pobrania (ZM)",
      "url": "https://www.meil.pw.edu.pl/zm/ZM/Dydaktyka/Prowadzone-przedmioty/Mechanika-Lotu-I/Materialy-do-pobrania",
      "note": "Wymaga zalogowania danymi od prowadzącego."},

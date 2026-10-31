@@ -439,7 +439,44 @@ def perform_engineering_audit(result: dict) -> dict:
         })
 
     # =========================================================================
-    # 11. SYMULATOR PYTAŃ NA ZEJSZCIÓWKĘ / OBRONĘ (Defense Quiz Simulator)
+    # 11. DYNAMIKA LOTU: KRYTERIUM OCENY WŁASNOŚCI LOTNYCH (CAP & Dutch Roll)
+    # =========================================================================
+    fq = result.get("flying_qualities", {})
+    if fq:
+        sp = fq.get("short_period", {})
+        dr = fq.get("dutch_roll", {})
+        cap_val = sp.get("cap_rad_s2_per_g", 0.0)
+        cap_lvl = sp.get("cap_level", 1)
+        dr_passed = dr.get("cs23_criterion_passed", True)
+        fq_passed = (cap_lvl <= 2) and dr_passed
+
+        metrics["cap_rad_s2_per_g"] = cap_val
+        metrics["flying_qualities_level"] = cap_lvl
+        metrics["dutch_roll_cs23_passed"] = dr_passed
+
+        checks.append({
+            "id": "flying_qualities_cap_check",
+            "category": "Dynamika lotu i pilotaż (Flying Qualities)",
+            "title": "Sterowność podłużna CAP i tłumienie holendrowania (Handout 11)",
+            "value": f"CAP = {cap_val:.3f} rad/(s²·g) (Level {cap_lvl}), Dutch Roll: {'Zgodny z CS-23' if dr_passed else 'Niewystarczające tłumienie'}",
+            "required": "Level 1/2 wg MIL-STD-1797 (0.038–3.6 rad/(s²·g)) oraz tłumienie oscylacji bocznych -ξ/η ≥ 0.0523",
+            "passed": fq_passed,
+            "severity": "ok" if fq_passed else "warning",
+            "didactic_simple": (
+                "Samolot musi reagować na stery płynnie i przewidywalnie dla pilota. "
+                "Jeśli parametr CAP jest za wysoki, samolot jest 'nadsterowny' i pilot może wpaść w niebezpieczne "
+                "oscylacje PIO. Jeśli jest za niski — samolot reaguje jak kloc lodu."
+            ),
+            "engineering_note": (
+                f"Krótkookresowy parametr CAP = {cap_val:.4f} rad/(s²·g) kwalifikuje samolot do Poziomu {cap_lvl} (Handout 11_1). "
+                f"Tłumienie holendrowania -ξ/η = {dr.get('damping_criterion_ratio', 0.0):.4f} (wymagane ≥ 0.0523 wg JAR/CS-23.181). "
+                + ("Płatowiec wykazuje prawidłowe właściwości dynamiczne i pilotażowe." if fq_passed else
+                   "Właściwości dynamiczne wymagają optymalizacji: skoryguj zapas stateczności statycznej lub powierzchnię usterzeń.")
+            )
+        })
+
+    # =========================================================================
+    # 12. SYMULATOR PYTAŃ NA ZEJSZCIÓWKĘ / OBRONĘ (Defense Quiz Simulator)
     # =========================================================================
     defense_questions = generate_defense_questions(result, metrics)
 
@@ -528,6 +565,17 @@ def generate_defense_questions(result: dict, metrics: dict) -> list:
                 "Rewers lotek grozi utratą sterowania poprzecznego: przy dużej prędkości ugięcie lotki skręca całe skrzydło przeciwnie do zamierzonego przechylenia."
             ),
             "faculty_tip": "Klasyczne pytanie na 5.0 z Mechaniki Lotu i Konstruowania Samolotów: student musi powiązać aerodynamikę z odkształceniami sprężystymi struktury."
+        },
+        {
+            "id": "q_flying_qualities",
+            "topic": "Dynamika lotu i sterowność (Handout 11)",
+            "question": f"Parametr oczekiwanej sterowności Twojego samolotu wynosi CAP = {metrics.get('cap_rad_s2_per_g', 0.5):.3f} rad/(s²·g). Od czego zależy CAP i dlaczego zbyt wysoka wartość grozi PIO?",
+            "expected_answer": (
+                "CAP = omega_n_sp² / n_z_alpha = (Kn · MAC · m · g) / Iyy. Oznacza to, że CAP zależy wprost proporcjonalnie od zapasu stateczności statycznej Kn i cięciwy średniej MAC, "
+                "a odwrotnie proporcjonalnie od masowego momentu bezwładności pochylenia Iyy. Zbyt wysoki CAP powoduje nadmierną 'sztywność' kątową i zbyt szybką reakcję w pochyleniu "
+                "w stosunku do przyrostu przeciążenia nz, co prowokuje pilota do przesterowywania drążka i wzbudzenia oscylacji indukowanych przez pilota (PIO)."
+            ),
+            "faculty_tip": "Główne kryterium dynamiczne z wykładów BIPOL I (Handout 11_1): pilot ocenia samolot po parametrze CAP, a nie po samej statyce."
         }
     ]
 
