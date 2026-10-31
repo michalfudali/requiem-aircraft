@@ -66,6 +66,13 @@ def designer_defaults():
     return {'designer_defaults': {f['key']: f['value'] for f in report_metadata({})}}
 
 
+@app.context_processor
+def course_context():
+    """Terminy oddania i pytania do zejściówek dla każdego widoku z panelem zaliczenia."""
+    return dict(schedule=SCHEDULE, group_days=GROUP_DAYS, group_hours=GROUP_HOURS,
+                lectures=lectures_with_questions())
+
+
 def report_parameters():
     if request.method == 'POST':
         return request.get_json(force=True)
@@ -91,11 +98,7 @@ def index():
         'index.html',
         presets=AIRCRAFT_PRESETS,
         categories=OFFICIAL_CATEGORIES,
-        topics=ALL_TOPICS,
-        schedule=SCHEDULE,
-        group_days=GROUP_DAYS,
-        group_hours=GROUP_HOURS,
-        lectures=lectures_with_questions(),
+        topics=ALL_TOPICS
     )
 
 @app.route('/api/presets', methods=['GET'])
