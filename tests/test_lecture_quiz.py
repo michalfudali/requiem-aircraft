@@ -35,3 +35,11 @@ def test_quiz_panel_renders_all_questions():
     assert 'id="tab-quiz"' in html and 'data-studio-nav="tab-quiz"' in html and '/static/js/quiz.js' in html
     assert html.count('class="quiz-question"') == len(QUESTIONS)
     assert html.count('data-quiz-progress=') == len(LECTURES)
+
+
+def test_question_ids_stay_stable_for_saved_progress():
+    """Postęp jest zapisany pod identyfikatorami; nowe pytania dopisuje się na końcu listy."""
+    by_id = {q['id']: q['question'] for q in QUESTIONS}
+    assert by_id['w01_01'].startswith('Co faktycznie kupuje klient')
+    assert by_id['w03_20'].startswith('Jakie są wymagane kąty widoczności')
+    assert by_id['w15_98'].startswith('Jaką energię musi pochłonąć podwozie')
