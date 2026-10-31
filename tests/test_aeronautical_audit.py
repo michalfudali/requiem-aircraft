@@ -128,7 +128,7 @@ def test_underpowered_aircraft_has_no_invented_level_flight_or_range():
     assert not perf['level_flight_available_sl']
     assert perf['speeds']['v_max_sl_kmh']==0
     assert perf['climb']['wy_max_ms'] < 0
-    assert perf['range_and_endurance']['range_km']==0
+    assert perf['range_and_endurance']['range_km'] is None
     assert not next(c for c in r['compliance_checks'] if c['parameter'].startswith('Lot poziomy'))['passed']
     p5 = r['bipol_projects']['p5']
     assert all(row['range_km'] is None for row in p5['range_endurance_comparison'])
@@ -249,8 +249,8 @@ def test_report_range_methods_use_integrations_instead_of_fixed_percent_changes(
     data = r['performance']['paturski_p6']['range_endurance_6_5']
     row = next(row for row in data['table_6_3'] if abs(row['v_kmh']-r['params']['cruise_speed_kmh']) < .06)
     methods = r['bipol_projects']['p5']['range_endurance_comparison']
-    assert methods[1]['range_km'] == row['l_breguet_km']
-    assert methods[1]['endurance_h'] == row['t_breguet_h']
+    assert methods[1]['range_km'] == row['l_breguet_km_unrounded']
+    assert methods[1]['endurance_h'] == row['t_breguet_h_unrounded']
     assert methods[2]['range_km'] == data['range_at_requested_speed_km']
     # For a propeller with constant BSFC and eta, constant-Cz range is independent of speed schedule.
     assert methods[0]['range_km'] == methods[1]['range_km']

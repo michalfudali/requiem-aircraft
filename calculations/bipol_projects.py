@@ -522,19 +522,18 @@ def calculate_all_bipol_projects(mass_res: dict, sizing_res: dict, geom_res: dic
     # Compare real integrations of the same polar and cruise fuel allocation.
     # No synthetic percentage changes between methods or assumed glider range.
     ranges = paturski_res['p6_performance_paturski']['range_endurance_6_5']
-    cruise_row = next((row for row in ranges['table_6_3']
-        if abs(row['v_kmh'] - v_cr_kmh) < .06), None)
+    cruise_row = next((row for row in ranges['table_6_3'] if row['requested_speed']), None)
     range_km_m1 = endurance_h_m1 = range_km_m2 = endurance_h_m2 = None
     range_km_m3 = ranges['range_at_requested_speed_km']
     endurance_h_m3 = ranges['endurance_at_requested_speed_h']
     if cruise_row:
-        range_km_m2, endurance_h_m2 = cruise_row['l_breguet_km'], cruise_row['t_breguet_h']
+        range_km_m2, endurance_h_m2 = cruise_row['l_breguet_km_unrounded'], cruise_row['t_breguet_h_unrounded']
         if engine_type == 'jet':
             endurance_h_m1 = endurance_h_m2
-            range_km_m1 = round(v_cr_kmh * endurance_h_m1, 1)
+            range_km_m1 = v_cr_kmh * endurance_h_m1
         else:
             range_km_m1 = range_km_m2
-            endurance_h_m1 = round(range_km_m1 / v_cr_kmh, 2)
+            endurance_h_m1 = range_km_m1 / v_cr_kmh
     range_endurance_methods = [
         dict(method='Stałe V i Cz, zmienna wysokość — idealny model Bregueta',
              range_km=range_km_m1, endurance_h=endurance_h_m1),
