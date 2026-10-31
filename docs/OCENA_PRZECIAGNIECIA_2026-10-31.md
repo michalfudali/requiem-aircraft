@@ -55,3 +55,10 @@ eksportu HTML/PDF i edycji limitu przez formularz. Po podniesieniu limitu
 ocena wariantu niespełniającego wymagania zmienia się na pozytywną.
 
 Surowe artefakty pozostają w `work/p4-stall-20261031/`.
+
+Po integracji z `master` (`6c3c778`, obejmującym nowy moduł zadań kolokwialnych)
+pełny zestaw zaliczył **1244 testy Python** w 278,66 s, bez pominięć i błędów.
+**36 testów JavaScript** oraz trzy scenariusze Chrome P4 przeszły.
+Sprawdzono również P4 przy szerokości 390 px bez przewijania całej strony
+w poziomie oraz panel kolokwium, terminy i zejściówki przy 1400 i 390 px.
+Trzy raporty PDF mają po 15 stron A4, wszystkie z tekstem.
