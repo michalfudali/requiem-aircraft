@@ -39,13 +39,14 @@ Strona przeglądu pokazuje najbliższy termin (dla wybranej grupy albo oba dni).
 
 ## Zejściówki (Materiały i zaliczenie → Zejściówki)
 
-`calculations/lecture_quiz.py`: 103 pytania z 15 wykładów, każde z odpowiedzią wzorcową
+`calculations/lecture_quiz.py`: 106 pytań z 15 wykładów (nowe dopisuje się na końcu listy, bo postęp jest zapisany pod identyfikatorami), każde z odpowiedzią wzorcową
 i stroną materiału. Symulacja losuje 1–3 pytania z wybranych wykładów (najpierw
 „Do powtórki” i nieocenione) i odmierza 15 minut. Samoocena i wybór wykładów zapisują
 się tylko w przeglądarce.
 Przycisk „Drukuj pytania” tworzy arkusz A4 z pytaniami wybranych wykładów i odpowiedziami
 wzorcowymi od nowej strony. W zadaniu kolokwialnym „Losowe dane” pozwalają ćwiczyć inne warianty X, Y.
 „Drukuj rozwiązanie” tworzy arkusz A4 z danymi, wszystkimi krokami (wzory KaTeX), wykresami i tabelami.
+Rysunek półskrzydła w skali pokazuje paski Schrenka, strefę paliwa i położenie SCA.
 
 ## Poprawka obwiedni P6
 
@@ -153,3 +154,9 @@ co odzwierciedla zgrubność modelu, a nie dane. Audyt opisuje wynik jako szacun
 wariantów; rzetelna ocena wymagałaby metody z widmem i kierunkowością (np. SAE AIR 1407).
 Szybowiec bez napędu nie podlega Załącznikowi 16; motoszybowiec samostartujący ocenia się jak
 samolot śmigłowy (10.1.1 wyłącza tylko motoszybowce samoutrzymujące się).
+
+## Podmuch — cięciwa w parametrze masowym
+
+JAR-23.341 / 14 CFR 23.341 definiują μ_g = 2(W/S)/(ρ·C·a·g) z C = średnia cięciwa geometryczna
+(S/b). Rozwiązanie zadania kolokwialnego używa jej od 1.11.2026 (wcześniej SCA; różnica w K_g
+ok. 0,5%). Główna obwiednia w `calculations/envelope.py` również używa C = S/b.

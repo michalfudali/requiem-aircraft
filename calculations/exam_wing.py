@@ -205,12 +205,13 @@ def solve_exam1(x, y):
 
     def gust(mass):
         ws_m = mass * G / S
-        mu = 2 * ws_m / (RHO0 * c_a * a * G)
+        mu = 2 * ws_m / (RHO0 * (S / b) * a * G)  # JAR-23.341: C — średnia cięciwa geometryczna
         kg = 0.88 * mu / (5.3 + mu)
         return ws_m, mu, kg
     _, mu, kg = gust(m)
-    s.calc('mu', r'\mu_g', r'\frac{2\,(W/S)}{\rho_0\,c_a\,a\,g}', r'\frac{2\cdot[[WS]]}{[[rho0]]\cdot[[c_a]]\cdot[[a]]\cdot[[g]]}',
-           mu, '', 2, 'Masowy parametr samolotu', 'JAR-23.341', check=lambda v: 2 * v.WS / (v.rho0 * v.c_a * v.a * v.g))
+    s.calc('mu', r'\mu_g', r'\frac{2\,(W/S)}{\rho_0\,c_g\,a\,g}', r'\frac{2\cdot[[WS]]}{[[rho0]]\cdot[[c_g]]\cdot[[a]]\cdot[[g]]}',
+           mu, '', 2, 'Masowy parametr samolotu (C — średnia cięciwa geometryczna)', 'JAR-23.341',
+           check=lambda v: 2 * v.WS / (v.rho0 * v.c_g * v.a * v.g))
     s.calc('Kg', 'K_g', r'\frac{0{,}88\,\mu_g}{5{,}3+\mu_g}', r'\frac{0{,}88\cdot[[mu]]}{5{,}3+[[mu]]}', kg, '', 3,
            'Współczynnik złagodzenia podmuchu', 'JAR-23.341', check=lambda v: 0.88 * v.mu / (5.3 + v.mu))
     gusts = []
@@ -354,10 +355,10 @@ def solve_exam1(x, y):
     ws_zf, mu_zf, kg_zf = gust(m_zf)
     s.calc('WS_zf', r'(W/S)_{zf}', r'\frac{m_{zf}\,g}{S}', r'\frac{[[m_zf]]\cdot[[g]]}{[[S]]}', ws_zf, NM2, 1,
            'Obciążenie powierzchni bez paliwa', check=lambda v: v.m_zf * v.g / v.S)
-    s.calc('Kg_zf', r'K_{g,zf}', r'\frac{0{,}88\,\mu_{g,zf}}{5{,}3+\mu_{g,zf}},\;\mu_{g,zf}=\frac{2(W/S)_{zf}}{\rho_0 c_a a g}',
-           r'\frac{0{,}88\,\mu}{5{,}3+\mu},\;\mu=\frac{2\cdot[[WS_zf]]}{[[rho0]]\cdot[[c_a]]\cdot[[a]]\cdot[[g]]}', kg_zf, '', 3,
+    s.calc('Kg_zf', r'K_{g,zf}', r'\frac{0{,}88\,\mu_{g,zf}}{5{,}3+\mu_{g,zf}},\;\mu_{g,zf}=\frac{2(W/S)_{zf}}{\rho_0 c_g a g}',
+           r'\frac{0{,}88\,\mu}{5{,}3+\mu},\;\mu=\frac{2\cdot[[WS_zf]]}{[[rho0]]\cdot[[c_g]]\cdot[[a]]\cdot[[g]]}', kg_zf, '', 3,
            'Współczynnik złagodzenia podmuchu bez paliwa',
-           check=lambda v: (lambda mu_: 0.88 * mu_ / (5.3 + mu_))(2 * v.WS_zf / (v.rho0 * v.c_a * v.a * v.g)))
+           check=lambda v: (lambda mu_: 0.88 * mu_ / (5.3 + mu_))(2 * v.WS_zf / (v.rho0 * v.c_g * v.a * v.g)))
     vs1_zf = vs1 * math.sqrt(m_zf / m)
 
     def gust_zf(label, v, u):
@@ -417,6 +418,7 @@ def solve_exam1(x, y):
         rows=[{k_: (round(v, 6) if isinstance(v, float) else v) for k_, v in r.items()} for r in rows],
         governing=governing,
         zero_fuel=dict(mass=m_zf, n_max=n_zf, M0=n_zf * m0_zf),
+        planform=dict(c_r=value('c_r'), c_t=value('c_t'), b=value('b'), c_a=value('c_a'), y_a=value('y_a'), fuel_span=FUEL_SPAN),
         answers=dict(S=value('S'), b=value('b'), c_r=value('c_r'), c_t=value('c_t'), c_g=value('c_g'), c_a=value('c_a'),
                      n_max=n_max, n_min=n_min, VA_kmh=v_a * 3.6, VC_kmh=v_c * 3.6, VD_kmh=v_d * 3.6,
                      T0=n_max * t0, M0=n_max * m0, M0_dim=value('M0_dim')),
