@@ -418,6 +418,7 @@ def perform_engineering_audit(result: dict) -> dict:
     noise_flyover = float(acoustics.get("noise_flyover", 0.0) or 0.0)
     noise_limit = float(acoustics.get("limit_flyover", 0.0) or 0.0)
     noise_margin = float(acoustics.get("margin_flyover", 0.0) or 0.0)
+    cumulative = acoustics.get("cumulative_margin_epndb")
     noise_unit = acoustics.get("metric_unit", "dBA")
     noise_compliant = acoustics.get("compliant", True)
     m_tip_val = acoustics.get("propeller_tip_mach")
@@ -428,13 +429,15 @@ def perform_engineering_audit(result: dict) -> dict:
     metrics["noise_unit"] = noise_unit
     metrics["propeller_tip_mach"] = m_tip_val
 
-    if noise_flyover > 0.0:
+    if noise_flyover > 0.0 and acoustics.get("limit_flyover") is not None:
         checks.append({
             "id": "noise_compliance_check",
             "category": "Ochrona środowiska i zdatność akustyczna",
             "title": f"Certyfikacja hałasu ({acoustics.get('icao_standard', 'ICAO Annex 16')})",
             "value": f"{noise_flyover:.1f} {noise_unit} (zapas: {noise_margin:+.1f} {noise_unit})",
-            "required": f"≤ {noise_limit:.1f} {noise_unit} (limit przelotu)",
+            "required": (f"Rozdz. 14.4: suma zapasów w 3 punktach ≥ 17 EPNdB (jest {cumulative:.1f}), w każdym ≥ 1; przelot ≤ {noise_limit:.1f} EPNdB"
+                         if cumulative is not None else f"≤ {noise_limit:.1f} {noise_unit} (limit przy starcie)" if noise_limit
+                         else acoustics.get("icao_standard", "nie dotyczy")),
             "passed": noise_compliant,
             "severity": "ok" if noise_compliant else "warning",
             "didactic_simple": (

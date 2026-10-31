@@ -133,3 +133,17 @@ nośnej). Presety: częstości giętne 1,4–5,4 Hz, skrętne 16–64 Hz, V_F = 
 szacunek wstępny; CS-23.629 wymaga analizy drgań lub prób. Testy porównują wynik z niezależnym
 przeszukiwaniem wartości własnych i sprawdzają, że przesunięcie środka masy przekroju do przodu
 podnosi V_F (zasada wyważenia masowego).
+
+## Hałas — limity ICAO Załącznik 16
+
+Limity sprawdzono w tekście ICAO Annex 16, t. I (wyd. z poprawkami do 1/1/24), rozdz. 10.4 i 14.4:
+
+| Przypadek | Było | Jest |
+|---|---|---|
+| Śmigłowe ≤ 8618 kg, wielosilnikowe, wodnosamoloty | 68 dB(A) do 600 kg → 88 dB(A) przy 1500 kg (liniowo w masie) | 10.4 a): 76 dB(A) do 600 kg → 88 dB(A) przy 1400 kg, liniowo względem log masy |
+| Śmigłowe jednosilnikowe lądowe (wniosek o TC od 4.11.1999) | jak wyżej | 10.4 b): 70 dB(A) do 570 kg → 85 dB(A) przy 1500 kg |
+| Akrobacyjne | limit rozdz. 10 | nie dotyczy (10.1.1) |
+| Śmigłowe > 8618 kg | limit rozdz. 10 | rozdz. 14 w EPNdB — poza zakresem modelu dB(A), bez oceny |
+| Odrzutowe | 84 + 4·log₁₀(m/1000) tylko dla przelotu | 14.4: limity boczny, przelot i podejście; suma zapasów ≥ 17 EPNdB, każdy ≥ 1 EPNdB |
+
+Sam model poziomu hałasu (zależności od mocy, M_tip, ciągu i BPR) pozostaje szacunkiem.
