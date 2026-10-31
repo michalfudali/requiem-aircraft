@@ -43,7 +43,7 @@
 {% endif %}
 <h3>Wstępny wybór profilu</h3>
 {{ c.section(sheet, 'p2.airfoil') }}
-<p>Jako profil bazowy przyjęto {{ af.selected_airfoil }}. To roboczy kandydat, nie zweryfikowany dobór: wartości porównawcze wymagają biegunowych źródłowych dla obliczonych Re i Macha oraz stanu powierzchni.</p>
+{% if params.airfoil %}<p>Autor przyjął profil {{ af.selected_airfoil }}. Uzasadnienie wyboru wymaga biegunowych źródłowych dla obliczonych Re i Macha oraz porównania z co najmniej dwoma innymi profilami.</p>{% else %}<p>Jako profil bazowy przyjęto {{ af.selected_airfoil }}. To roboczy kandydat, nie zweryfikowany dobór: wartości porównawcze wymagają biegunowych źródłowych dla obliczonych Re i Macha oraz stanu powierzchni.</p>{% endif %}
 <table><caption>Profile rozpatrzone we wstępnym porównaniu</caption><thead><tr><th>Profil</th><th class="number">\(C_{x,min}\)</th><th class="number">\(C_{x}(C_{z,proj})\)</th><th class="number">\(C_{z,max}\)</th></tr></thead><tbody>{% for candidate in af.candidates %}<tr><td>{{ candidate.name }}{{ ' (przyjęty)' if candidate.name == af.selected_airfoil else '' }}</td><td class="number">{{ candidate.cx_min|reportnum(4) }}</td><td class="number">{{ candidate.cx_cz_proj|reportnum(4) }}</td><td class="number">{{ candidate.cz_max|reportnum(2) }}</td></tr>{% endfor %}</tbody></table>
 <h3>Wrażliwość masy startowej</h3>
 <p>Dla każdej zmiany ponownie rozwiązano bilans masy z tym samym modelem misji i masy pustej; pozostałe założenia zachowano.</p>

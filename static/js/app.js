@@ -3562,27 +3562,13 @@ function hydrateSemesterProjectsData(res) {
       ? `Liczba Macha końcówki śmigła: ${bchk.propeller_tip_mach}; ${bchk.propeller_tip_mach<=.85?'spełnia roboczy limit 0,85':'przekracza roboczy limit 0,85 — zmień średnicę lub obroty'}.`
       : bchk.engine_type==='jet'?'Wlot silnika: brak geometrii i danych silnika do oceny.':'Śmigło i silnik: nie dotyczy.';
     if (chkClearEl) chkClearEl.textContent = 'Prześwit: wymaga wymiarów zabudowy i podwozia; nie został zweryfikowany.';
-    const afDescEl = document.getElementById('p3_airfoil_desc');
-    const selAfName = bp.p2?.airfoil_selection?.selected_airfoil || 'NACA 2412 / Wortmann FX';
-    if (afDescEl) {
-      afDescEl.textContent = p3.airfoil_coordinates_note;
-    }
-    const afSvgEl = document.getElementById("p3_airfoil_svg_container");
-    if (afSvgEl && p3.airfoil_200mm_svg) {
-      afSvgEl.innerHTML = p3.airfoil_200mm_svg;
-    }
-
-    const coordsTbody = document.getElementById('p3_airfoil_coords_tbody');
-    if (coordsTbody && Array.isArray(p3.airfoil_200mm_table)) {
-      coordsTbody.innerHTML = p3.airfoil_200mm_table.map(pt => `
-        <tr>
-          <td>${pt.xc_pct}%</td>
-          <td><b>${pt.x_mm}</b></td>
-          <td>${pt.y_upper_mm}</td>
-          <td>${pt.y_lower_mm}</td>
-          <td>${pt.thick_mm}</td>
-        </tr>
-      `).join('');
+    // Puste pole = profil przyjęty w P2; wpisany profil trafia do parametrów projektu (data-analysis-param).
+    const afNameEl = document.getElementById('airfoil');
+    if (afNameEl) afNameEl.placeholder = bp.p2?.airfoil_selection?.selected_airfoil || 'np. NACA 23012';
+    if (!airfoilProfile) {
+      const afDescEl = document.getElementById('p3_airfoil_desc');
+      if (afDescEl) afDescEl.textContent = p3.airfoil_coordinates_note;
+      if (p3.airfoil_200mm_svg) renderAirfoil200mm({svg: p3.airfoil_200mm_svg, table: p3.airfoil_200mm_table, note: p3.airfoil_coordinates_note});
     }
 
     const t31Tbody = document.getElementById('p3_table31_tbody');
@@ -4085,48 +4071,78 @@ function hydrateSemesterProjectsData(res) {
   }
 }
 
-async function fetchAirfoil200mm() {
+// Profil o cięciwie 200 mm: NACA liczony analitycznie albo rzędne wklejone z katalogu; SVG ma wymiary w mm.
+let airfoilProfile = null;
+
+function renderAirfoil200mm(data) {
+  const fmtMm = v => v == null ? '' : Number(v).toFixed(2).replace('.', ',');
+  const afDescEl = document.getElementById('p3_airfoil_desc');
+  if (afDescEl) {
+    afDescEl.classList.remove('airfoil-error');
+    afDescEl.textContent = data.thickness_pct
+      ? `${data.note} Grubość względna: ${String(data.thickness_pct).replace('.', ',')}% przy ${String(data.thickness_x_pct).replace('.', ',')}% cięciwy.`
+      : data.note;
+  }
+  const afSvgEl = document.getElementById('p3_airfoil_svg_container');
+  if (afSvgEl) afSvgEl.innerHTML = data.svg || '';
+  const coordsTbody = document.getElementById('p3_airfoil_coords_tbody');
+  if (coordsTbody && Array.isArray(data.table)) {
+    coordsTbody.innerHTML = data.table.map(pt => `<tr><td>${pt.xc_pct == null ? '' : String(pt.xc_pct).replace('.', ',')}</td>`
+      + `<td><b>${fmtMm(pt.xu_mm)}</b></td><td>${fmtMm(pt.yu_mm)}</td><td><b>${fmtMm(pt.xl_mm)}</b></td><td>${fmtMm(pt.yl_mm)}</td><td>${fmtMm(pt.thick_mm)}</td></tr>`).join('');
+  }
+  ['btn_print_airfoil', 'btn_download_airfoil'].forEach(id => { const el = document.getElementById(id); if (el) el.disabled = !data.svg; });
+}
+
+async function fetchAirfoil200mm(fromPaste = false) {
   const btn = document.getElementById('btn_fetch_airfoil');
-  const origText = btn ? btn.innerHTML : '';
-  if (btn) {
-    btn.disabled = true;
-    btn.innerHTML = '⏳ Pobieranie...';
-  }
+  const typed = (document.getElementById('airfoil')?.value || '').trim();
+  const name = typed || currentResults?.bipol_projects?.p2?.airfoil_selection?.selected_airfoil || '';
+  const pasted = document.getElementById('airfoil_coordinates')?.value || '';
+  const coordinates = fromPaste ? pasted : '';
+  if (btn) btn.disabled = true;
   try {
-    const afName = (typeof currentResults !== 'undefined' && currentResults?.params?.airfoil) ||
-                   (window.currentAircraftParams && window.currentAircraftParams.airfoil) || 'NACA 23012';
-    const tcRatio = (typeof currentResults !== 'undefined' && currentResults?.geometry?.wing?.tc_ratio) || 0.12;
-    const res = await fetch(`/api/airfoil/200mm?airfoil=${encodeURIComponent(afName)}&tc=${encodeURIComponent(tcRatio)}`);
+    const res = coordinates.trim()
+      ? await fetch('/api/airfoil/200mm', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({airfoil: name, coordinates})})
+      : await fetch(`/api/airfoil/200mm?airfoil=${encodeURIComponent(name)}`);
     const data = await res.json();
-    if (data.status === 'ok') {
-      const afDescEl = document.getElementById('p3_airfoil_desc');
-      if (afDescEl && data.note) afDescEl.textContent = data.note;
-      const afSvgEl = document.getElementById('p3_airfoil_svg_container');
-      if (afSvgEl && data.svg) afSvgEl.innerHTML = data.svg;
-      const coordsTbody = document.getElementById('p3_airfoil_coords_tbody');
-      if (coordsTbody && Array.isArray(data.table)) {
-        coordsTbody.innerHTML = data.table.map(pt => `
-          <tr>
-            <td>${pt.xc_pct}%</td>
-            <td><b>${pt.x_mm}</b></td>
-            <td>${pt.y_upper_mm}</td>
-            <td>${pt.y_lower_mm}</td>
-            <td>${pt.thick_mm}</td>
-          </tr>
-        `).join('');
-      }
-      const box = document.getElementById('airfoilCoordsBox');
-      if (box) box.style.display = 'block';
-    }
+    if (!res.ok) throw new Error(data.message || 'Nie udało się wyznaczyć rzędnych profilu.');
+    airfoilProfile = data;
+    renderAirfoil200mm(data);
+    // Nowy profil zapisuje się w projekcie i trafia do P2, P3 i raportów po przeliczeniu.
+    const saved = currentResults?.params || {};
+    if ((typed !== (saved.airfoil || '').trim() || pasted !== (saved.airfoil_coordinates || '')) && typeof performCalculation === 'function') performCalculation();
+    const box = document.getElementById('airfoilCoordsBox');
+    if (box) box.style.display = 'block';
   } catch (err) {
-    console.error('Błąd pobierania rzędnych profilu 200 mm:', err);
+    const afDescEl = document.getElementById('p3_airfoil_desc');
+    if (afDescEl) { afDescEl.textContent = err.message; afDescEl.classList.add('airfoil-error'); }
   } finally {
-    if (btn) {
-      btn.disabled = false;
-      btn.innerHTML = '📐 Zaktualizowano rzędne';
-      setTimeout(() => { if (btn) btn.innerHTML = origText || '📐 Wyznacz rzędne z biblioteki MEiL'; }, 2200);
-    }
+    if (btn) btn.disabled = false;
   }
+}
+
+function printAirfoil200mm() {
+  const svg = document.querySelector('#p3_airfoil_svg_container svg');
+  if (!svg) return;
+  const win = window.open('', '_blank');
+  if (!win) return;
+  win.document.write(`<!doctype html><html lang="pl"><head><meta charset="utf-8"><title>${escapeHtml(svg.getAttribute('aria-label') || 'Profil 200 mm')}</title>`
+    + '<style>@page{size:A4 landscape;margin:12mm}body{margin:0;font:12px sans-serif}svg{display:block}</style></head><body>'
+    + `${svg.outerHTML}<p>Drukuj w skali 100% (bez „dopasuj do strony”). Odcinek kontrolny ma mieć 100 mm.</p></body></html>`);
+  win.document.close();
+  win.focus();
+  win.print();
+}
+
+function downloadAirfoilSvg() {
+  const svg = document.querySelector('#p3_airfoil_svg_container svg');
+  if (!svg) return;
+  const url = URL.createObjectURL(new Blob([svg.outerHTML], {type: 'image/svg+xml'}));
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `${(airfoilProfile?.airfoil || 'profil').replace(/[^\p{L}\p{N}_-]+/gu, '_')}_200mm.svg`;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
 function toggleAirfoilCoordsTable() {
@@ -4292,6 +4308,8 @@ window.selectSemesterProject = selectSemesterProject;
 window.updateSemesterScores = updateSemesterScores;
 window.toggleAirfoilCoordsTable = toggleAirfoilCoordsTable;
 window.fetchAirfoil200mm = fetchAirfoil200mm;
+window.printAirfoil200mm = printAirfoil200mm;
+window.downloadAirfoilSvg = downloadAirfoilSvg;
 window.toggleMassTable31 = toggleMassTable31;
 window.openIndividualProjectReport = openIndividualProjectReport;
 window.openFolderCoverReport = openFolderCoverReport;

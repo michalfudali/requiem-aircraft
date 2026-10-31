@@ -13,7 +13,7 @@
   <link rel="stylesheet" href="/static/css/workspace.css?v=2">
   <link rel="stylesheet" href="/static/css/calculation-tree.css?v=1">
   <link rel="stylesheet" href="/static/css/experience.css?v=3">
-  <link rel="stylesheet" href="/static/css/coursework.css?v=3">
+  <link rel="stylesheet" href="/static/css/coursework.css?v=5">
 </head>
 <body class="studio-layout">
   <a class="studio-skip-link" href="#studioMainWorkspace">Przejdź do treści</a>
@@ -1365,18 +1365,27 @@
                     </div>
                     <div style="background:#f8fafc; padding:0.75rem; border-radius:6px; border:1px solid #e2e8f0; font-size:0.84rem;">
                       <strong>Rysunek wybranego profilu skrzydła (c = 200 mm):</strong>
-                      <p id="p3_airfoil_desc" style="margin:4px 0;">Profil NACA 23012 do wykreślenia w skali na arkuszu A2/A3 zgodnie z wytycznymi MEiL PW.</p>
+                      <p id="p3_airfoil_desc" style="margin:4px 0;">Profil do wykreślenia na arkuszu z rysunkiem samolotu, w skali 1:1.</p>
+                      <div class="airfoil-controls">
+                        <label class="studio-field" for="airfoil">Oznaczenie profilu (zapisywane w projekcie)<input id="airfoil" data-analysis-param type="text" maxlength="80" placeholder="np. NACA 23012" autocomplete="off"></label>
+                        <button type="button" class="btn btn-outline-sm" id="btn_fetch_airfoil" onclick="fetchAirfoil200mm()">📐 Wyznacz rzędne</button>
+                      </div>
+                      <details class="airfoil-paste"><summary>Wklej rzędne z katalogu (Wortmann, NASA SC(2), Clark Y i inne)</summary>
+                        <label class="studio-field" for="airfoil_coordinates">Plik .dat w formacie Seliga lub Lednicera: nazwa w pierwszym wierszu, dalej pary x y (zapisywane w projekcie)<textarea id="airfoil_coordinates" data-analysis-param rows="6" spellcheck="false" maxlength="60000"></textarea></label>
+                        <button type="button" class="btn btn-outline-sm" onclick="fetchAirfoil200mm(true)">Przeskaluj do 200 mm</button>
+                      </details>
                       <div id="p3_airfoil_svg_container" style="margin:10px 0;"></div>
                       <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin-top:8px;">
                         <button type="button" class="btn btn-outline-sm" onclick="toggleAirfoilCoordsTable()">Pokaż / Ukryj tabelę współrzędnych [mm]</button>
-                        <button type="button" class="btn btn-outline-sm" id="btn_fetch_airfoil" onclick="fetchAirfoil200mm()" style="border-color:#0284c7; color:#0284c7;">📐 Wyznacz rzędne z biblioteki MEiL</button>
+                        <button type="button" class="btn btn-outline-sm" id="btn_print_airfoil" onclick="printAirfoil200mm()" disabled>🖨 Drukuj w skali 1:1</button>
+                        <button type="button" class="btn btn-outline-sm" id="btn_download_airfoil" onclick="downloadAirfoilSvg()" disabled>Pobierz SVG</button>
                       </div>
                     </div>
                   </div>
                   <div id="airfoilCoordsBox" style="display:none; overflow-x:auto; margin-bottom:1rem;">
                     <table class="b-table">
                       <thead>
-                        <tr><th>x/c [%]</th><th>x [mm]</th><th>y_górne [mm]</th><th>y_dolne [mm]</th><th>Grubość [mm]</th></tr>
+                        <tr><th>x/c [%]</th><th>x górne [mm]</th><th>y górne [mm]</th><th>x dolne [mm]</th><th>y dolne [mm]</th><th>Grubość [mm]</th></tr>
                       </thead>
                       <tbody id="p3_airfoil_coords_tbody"></tbody>
                     </table>
@@ -2421,7 +2430,7 @@
   <script src="/static/js/studio-visuals.js?v=2"></script>
   <script src="/static/js/didactic_data.js?v=14"></script>
   <script src="/static/js/charts.js?v=19"></script>
-  <script src="/static/js/app.js?v=31"></script>
+  <script src="/static/js/app.js?v=32"></script>
 <script src="/static/js/didactic_modes.js?v=2"></script>
   <script src="/static/js/constraints-ui.js?v=5"></script>
   <script src="/static/js/design-basis.js?v=7"></script>
@@ -2435,8 +2444,8 @@
   <script src="/static/js/bipol1.js?v=1"></script>
   <script src="/static/js/workspace.js?v=6"></script>
   <script src="/static/js/calculation-tree.js?v=2"></script>
-  <script src="/static/js/coursework.js?v=4"></script>
-  <script src="/static/js/exam.js?v=1"></script>
-  <script src="/static/js/quiz.js?v=1"></script>
+  <script src="/static/js/coursework.js?v=5"></script>
+  <script src="/static/js/exam.js?v=2"></script>
+  <script src="/static/js/quiz.js?v=2"></script>
 </body>
 </html>
