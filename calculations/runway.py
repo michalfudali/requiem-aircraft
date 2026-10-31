@@ -3,6 +3,38 @@ import math
 from calculations.atmosphere import G0, RHO0
 
 
+def rolling_coefficient(params):
+    """Use the same explicit or surface-based rolling assumption in sizing and flight."""
+    if params.get('mu_ground') is not None:
+        return float(params['mu_ground'])
+    return .055 if params.get('runway_surface') == 'grass' else .03
+
+
+def landing_air_path(approach_speed_ms, approach_angle_deg=3.5, obstacle_height_m=15., load_factor=1.15):
+    """Straight approach followed by a constant-radius flare, down to touchdown.
+
+    If the obstacle plane cuts the flare, start on the arc itself. This ideal
+    geometry assumes constant approach speed and is not an AFM field distance.
+    """
+    v, angle, height, n = map(float, (approach_speed_ms, approach_angle_deg, obstacle_height_m, load_factor))
+    if (not all(math.isfinite(x) for x in (v, angle, height, n)) or v <= 0
+            or not 0 < angle < 90 or height < 0 or n <= 1):
+        raise ValueError('Nieprawidłowe dane geometryczne podejścia i wyrównania.')
+    gamma = math.radians(angle)
+    radius = v * v / (G0 * (n - 1))
+    flare_height = radius * 2 * math.sin(gamma / 2) ** 2
+    if height < flare_height:
+        effective_angle = 2 * math.asin(math.sqrt(height / (2 * radius)))
+        straight = 0.
+    else:
+        effective_angle = gamma
+        straight = (height - flare_height) / math.tan(gamma)
+    flare = radius * math.sin(effective_angle)
+    return dict(radius_m=radius, flare_height_m=flare_height,
+                effective_flare_angle_rad=effective_angle, straight_m=straight,
+                flare_horizontal_m=flare, distance_m=straight + flare)
+
+
 def takeoff_distance(ws, cz_max, cx0, k, engine, loading, eta=.82, eta_to=.65, mu_ground=0.03):
     """loading is P/W [W/N] for propellers or T/W [-] for jets.
 
@@ -85,7 +117,7 @@ def refine_takeoff_sizing(sizing, geom, aero, params, mass):
     dp = sizing['design_point']
     requirement = required_takeoff_loading(mass * G0 / geom['wing']['S'], aero['cz_max_to'], aero['cx0_to'],
                                            aero['k_to'], engine, target, params['prop_efficiency'],
-                                           params['prop_eff_to'])
+                                           params['prop_eff_to'], mu_ground=rolling_coefficient(params))
     if requirement is None:
         raise ValueError('Zadana całkowita długość startu jest nieosiągalna w modelu. Zwiększ drogę startu lub zmniejsz obciążenie powierzchni.')
     sizing['takeoff_model_requirement'] = requirement

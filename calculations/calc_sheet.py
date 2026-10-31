@@ -1767,10 +1767,20 @@ def _p5_landing(s, r):
            check=lambda v: v.V_app ** 2 / (.15 * v.g))
     s.calc('h_fl', r'h_{wyr}', r'R_{wyr}\left(1-\cos\gamma_{pod}\right)', r'[[R_fl]]\cdot\left(1-\cos[[gamma_app]]^{\circ}\right)', t['h_flare'], M, 2,
            'Wysokość rozpoczęcia wyrównania', check=lambda v: v.R_fl * (1 - math.cos(math.radians(v.gamma_app))))
-    s.calc('s_air', r's_{pow}', r'\max\left(20;\;\frac{15-\min(12;\,h_{wyr})}{\tan\gamma_{pod}}+R_{wyr}\sin\gamma_{pod}\right)',
-           r'\max\left(20;\;\frac{15-\min(12;\,[[h_fl]])}{\tan[[gamma_app]]^{\circ}}+[[R_fl]]\cdot\sin[[gamma_app]]^{\circ}\right)', ld['air_approach_m'], M, 1,
-           'Odcinek powietrzny lądowania', check=lambda v: max(20, (15 - min(12, v.h_fl)) / math.tan(math.radians(v.gamma_app)) + v.R_fl * math.sin(math.radians(v.gamma_app))),
-           tolerance=.15)
+    if t['h_flare'] > 15:
+        s.calc('gamma_fl', r'\theta_{wyr}', r'2\arcsin\sqrt{\frac{15}{2R_{wyr}}}',
+               r'2\arcsin\sqrt{\frac{15}{2\cdot[[R_fl]]}}', t['effective_flare_angle_rad'], r'\mathrm{rad}', 5,
+               'Kąt łuku od przeszkody 15 m do przyziemienia (przeszkoda wewnątrz wyrównania)',
+               check=lambda v: 2 * math.asin(math.sqrt(15 / (2 * v.R_fl))))
+        s.calc('s_air', r's_{pow}', r'R_{wyr}\sin\theta_{wyr}', r'[[R_fl]]\cdot\sin[[gamma_fl]]', ld['air_approach_m'], M, 1,
+               'Odcinek powietrzny lądowania — część łuku wyrównania',
+               check=lambda v: v.R_fl * math.sin(v.gamma_fl), tolerance=.15)
+    else:
+        s.calc('s_air', r's_{pow}', r'\frac{15-h_{wyr}}{\tan\gamma_{pod}}+R_{wyr}\sin\gamma_{pod}',
+               r'\frac{15-[[h_fl]]}{\tan[[gamma_app]]^{\circ}}+[[R_fl]]\cdot\sin[[gamma_app]]^{\circ}', ld['air_approach_m'], M, 1,
+               'Odcinek powietrzny lądowania — prosta ścieżka i łuk wyrównania',
+               check=lambda v: (15 - v.h_fl) / math.tan(math.radians(v.gamma_app)) + v.R_fl * math.sin(math.radians(v.gamma_app)),
+               tolerance=.15)
     s.calc('s_free', r's_{sw}', r'1{,}5\,V_{TD}', r'1{,}5\cdot[[V_TD]]', ld['free_roll_m'], M, 1, 'Dobieg swobodny (1,5 s)', check=lambda v: 1.5 * v.V_TD, tolerance=.06)
     s.given('mu_h', r'\mu_h', t['mu_brake'], '', 2, 'Współczynnik tarcia przy hamowaniu', 'Założenie')
     s.calc('q_dob', r'q_{śr}', r'\frac{\rho_0}{2}\left(\frac{V_{TD}}{\sqrt2}\right)^2', r'\frac{[[rho0]]}{2}\cdot\left(\frac{[[V_TD]]}{\sqrt2}\right)^2', t['q_rms'], PA, 1,
@@ -1821,12 +1831,12 @@ def _p5_range(s, r):
            atan_term, r'\mathrm{rad}', 5, 'Różnica funkcji arctan', check=lambda q: math.atan(2 * q.g * q.m_p_cr / q.A_R) - math.atan(2 * q.g * q.m_k_cr / q.A_R))
     if jet:
         s.calc('t_R', 't', r'\frac{10}{g\,q_e}\sqrt{\frac{\pi\Lambda_e}{C_{x0}}}\,\Delta\Phi', r'\frac{10}{[[g]]\cdot[[q_e]]}\cdot\sqrt{\frac{\pi\cdot[[Lambda_e]]}{[[Cx0]]}}\cdot[[atan_R]]',
-               row['t_const_v_h'], H_, 2, 'Długotrwałość przelotu', check=lambda q: 10 / (q.g * q.q_e) * math.sqrt(math.pi * q.Lambda_e / q.Cx0) * q.atan_R, tolerance=.011)
+               row.get('t_const_v_h_unrounded', row['t_const_v_h']), H_, 5, 'Długotrwałość przelotu', check=lambda q: 10 / (q.g * q.q_e) * math.sqrt(math.pi * q.Lambda_e / q.Cx0) * q.atan_R, tolerance=.011)
     else:
         s.calc('t_R', 't', r'\frac{1000\,\eta_p}{g\,V\,q_e}\sqrt{\frac{\pi\Lambda_e}{C_{x0}}}\,\Delta\Phi',
-               r'\frac{1000\cdot[[eta_p]]}{[[g]]\cdot[[V_cr]]\cdot[[q_e]]}\cdot\sqrt{\frac{\pi\cdot[[Lambda_e]]}{[[Cx0]]}}\cdot[[atan_R]]', row['t_const_v_h'], H_, 2,
+               r'\frac{1000\cdot[[eta_p]]}{[[g]]\cdot[[V_cr]]\cdot[[q_e]]}\cdot\sqrt{\frac{\pi\cdot[[Lambda_e]]}{[[Cx0]]}}\cdot[[atan_R]]', row.get('t_const_v_h_unrounded', row['t_const_v_h']), H_, 5,
                'Długotrwałość przelotu', check=lambda q: 1000 * q.eta_p / (q.g * q.V_cr * q.q_e) * math.sqrt(math.pi * q.Lambda_e / q.Cx0) * q.atan_R, tolerance=.011)
-    s.calc('L_R', 'L', r'3{,}6\,V\,t', r'3{,}6\cdot[[V_cr]]\cdot[[t_R]]', row['l_const_v_km'], KM, 0, 'Zasięg przy wymaganej prędkości i wysokości',
+    s.calc('L_R', 'L', r'3{,}6\,V\,t', r'3{,}6\cdot[[V_cr]]\cdot[[t_R]]', row.get('l_const_v_km_unrounded', row['l_const_v_km']), KM, 1, 'Zasięg przy wymaganej prędkości i wysokości',
            check=lambda q: 3.6 * q.V_cr * q.t_R, tolerance=max(1.0, .004 * row['l_const_v_km']))
 
 

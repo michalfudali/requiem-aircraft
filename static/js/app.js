@@ -1925,7 +1925,7 @@ function saveProject(project) {
 
 function loadProjectIntoForm(project) {
   if (!project || !project.params) return;
-  const params = { ...project.params };
+  const params = { runway_surface: 'paved', ...project.params };
   params.m_pax = (params.m_pax || 0) + (params.m_bag || 0);
   params.m_bag = 0;
   formBaseParams = { ...params };

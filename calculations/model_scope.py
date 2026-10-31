@@ -70,8 +70,9 @@ def suppress_water_distances(performance):
     takeoff.update(available=False, model_available=False, surface='water', note=WATER_NOTE)
     takeoff.pop('terms', None)
     landing = performance['landing']
-    for key in ('air_approach_m', 'free_roll_m', 'braking_roll_m', 'ground_roll_m', 'distance_from_15m'):
+    for key in ('air_approach_m', 'free_roll_m', 'braking_roll_m', 'ground_roll_m', 'distance_from_15m',
+                'approach_straight_m', 'flare_horizontal_m'):
         landing[key] = None
-    for key in ('mu_brake', 'v_rms', 'q_rms', 'phi_ge', 'cz_roll', 'cx_roll', 'a_mean'):
+    for key in ('mu_brake', 'v_rms', 'q_rms', 'phi_ge', 'cz_roll', 'cx_roll', 'a_mean', 'effective_flare_angle_rad'):
         landing['terms'].pop(key, None)
     landing.update(available=False, model_available=False, surface='water', note=WATER_NOTE)

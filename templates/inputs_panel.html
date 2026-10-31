@@ -296,6 +296,11 @@
                         <input step="any" required type="number" id="takeoff_run_m" min="60" max="3500" value="210">
                         <div class="param-didactic-hint" id="hint_takeoff_run_m"></div>
                       </div></details>
+                      <div class="input-group" data-param="runway_surface">
+                        <label for="runway_surface">Nawierzchnia rozbiegu</label>
+                        <select id="runway_surface"><option value="paved">Utwardzona</option><option value="grass">Trawa</option></select>
+                        <small>Domyślne tarcie toczne przy starcie: 0,030 / 0,055. Hamowanie przy lądowaniu ma osobne założenie μ = 0,40.</small>
+                      </div>
                       <div class="input-group" data-param="climb_rate_ms">
                         <label for="climb_rate_ms">
                           <span class="label-text">Wznoszenie przy ziemi w_y [m/s] <span class="info-circle-icon" data-param="climb_rate_ms" tabindex="0">i</span></span>

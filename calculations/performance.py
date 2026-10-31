@@ -17,7 +17,7 @@ Obliczenia:
 import math
 from calculations.atmosphere import isa_atmosphere, G0, RHO0
 from calculations.paturski_ml import paturski_project_6_performance
-from calculations.runway import takeoff_distance
+from calculations.runway import takeoff_distance, rolling_coefficient, landing_air_path
 from calculations.flight_model import flight_point, level_flight_envelope, mission_masses
 from calculations.model_scope import is_water, suppress_water_distances
 from calculations.mission_cruise import assess_mission_range
@@ -116,7 +116,7 @@ def calculate_performance(m0: float, geom: dict, aero: dict, sizing: dict, param
     takeoff = takeoff_distance(ws, cz_max_to, aero['cx0_to'], k_to, engine_type,
         (dp.get('tw') if engine_type == 'jet' else dp.get('pw')) or 0.,
         eta_p, float(params.get('prop_eff_to', .65)),
-        mu_ground=(0.055 if params.get('runway_surface') == 'grass' else float(params.get('mu_ground', 0.03))))
+        mu_ground=rolling_coefficient(params))
     takeoff = {key: round(value, 1) if isinstance(value, float) else value
                for key, value in takeoff.items()}
 
@@ -130,9 +130,9 @@ def calculate_performance(m0: float, geom: dict, aero: dict, sizing: dict, param
     v_app_ms, v_td_ms = 1.30 * vs_landing, 1.15 * vs_landing
     cx0_lnd = aero["cx0_lnd"]
     gamma_app_rad = math.radians(3.5)
-    r_flare = (v_app_ms ** 2) / (G0 * 0.15)
-    h_flare = r_flare * (1.0 - math.cos(gamma_app_rad))
-    s_air_lnd = max(20.0, (15.0 - min(12.0, h_flare)) / math.tan(gamma_app_rad) + r_flare * math.sin(gamma_app_rad))
+    landing_path = landing_air_path(v_app_ms, approach_angle_deg=math.degrees(gamma_app_rad))
+    r_flare, h_flare = landing_path['radius_m'], landing_path['flare_height_m']
+    s_air_lnd = landing_path['distance_m']
 
     s_free_lnd = 1.5 * v_td_ms
     mu_brake = 0.40
@@ -203,7 +203,10 @@ def calculate_performance(m0: float, geom: dict, aero: dict, sizing: dict, param
             "terms": dict(ws_lnd=ws_lnd, vs=vs_landing, v_app=v_app_ms, v_td=v_td_ms, cx0_lnd=cx0_lnd,
                           k_lnd=aero["k_lnd"], cz_max_lnd=cz_max_lnd, gamma_app_deg=3.5, r_flare=r_flare,
                           h_flare=h_flare, mu_brake=mu_brake, v_rms=v_rms_lnd, q_rms=q_rms_lnd,
-                          phi_ge=phi_ge, cz_roll=cz_lnd_roll, cx_roll=cx_lnd_roll, a_mean=a_mean_brake),
+                          phi_ge=phi_ge, cz_roll=cz_lnd_roll, cx_roll=cx_lnd_roll, a_mean=a_mean_brake,
+                          effective_flare_angle_rad=landing_path['effective_flare_angle_rad']),
+            "approach_straight_m": landing_path['straight_m'],
+            "flare_horizontal_m": landing_path['flare_horizontal_m'],
             "mass_kg": landing_mass,
             "vs_landing_mass_kmh": vs_landing * 3.6,
             "air_approach_m": round(s_air_lnd, 1),

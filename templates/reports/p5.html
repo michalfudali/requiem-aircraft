@@ -20,6 +20,7 @@
 <h3>Lądowanie</h3>
 {% if res.params.operating_surface == 'water' %}<p>{{ perf.landing.note }}</p>{% else %}
 <p>Lądowanie obliczono dla masy na końcu misji: odcinek powietrzny (podejście pod kątem 3,5° i wyrównanie), dobieg swobodny przez 1,5 s i hamowanie.</p>
+<p>Odcinek powietrzny obejmuje prostą ścieżkę i łuk wyrównania; jeśli przeszkoda 15 m leży wewnątrz łuku, uwzględniono tylko jego część do przyziemienia. Współczynnik hamowania μ = 0,40 jest osobnym założeniem modelu, niezależnym od wyboru nawierzchni rozbiegu.</p>
 {{ c.section(sheet, 'p5.landing') }}
 {% endif %}
 <table><caption>Obliczeniowe długości i czas startu oraz lądowania</caption><thead><tr><th>Wielkość</th><th class="number">Droga [m]</th><th class="number">Czas [s]</th></tr></thead><tbody>{% for label,value,time in [('Rozbieg',perf.takeoff.ground_roll_m,perf.takeoff.ground_roll_time_s),('Start nad przeszkodę 15 m',perf.takeoff.distance_to_15m,perf.takeoff.time_to_15m_s),('Dobieg',perf.landing.ground_roll_m,none),('Lądowanie znad przeszkody 15 m',perf.landing.distance_from_15m,none)] %}<tr><td>{{ label }}</td><td class="number">{{ value|reportnum(1) }}</td><td class="number">{{ time|reportnum(1) }}</td></tr>{% endfor %}</tbody></table>

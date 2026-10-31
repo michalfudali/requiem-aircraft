@@ -1304,6 +1304,8 @@ def paturski_project_6_performance(geom_res: dict, sizing_res: dict, params: dic
                 "l_breguet_km": round(l_const_alpha_km, 1),
                 "t_const_v_h": round(t_const_v_h, 2),
                 "l_const_v_km": round(l_const_v_km, 1),
+                "t_const_v_h_unrounded": t_const_v_h,
+                "l_const_v_km_unrounded": l_const_v_km,
             })
         return rows
 
