@@ -190,3 +190,14 @@ Audyt sprawdza kąt od koła głównego do ogona (≥ α przy C_z,max) i kąt mi
 położenie ŚC a kołem głównym (≥ α przy 0,9·C_z,max + 3°), z kątami natarcia płata z tabeli 2.2.
 Przy niespełnionym warunku podaje położenie kół, które go spełnia. Wyważenie nadal przyjmuje koła
 w 45% SCA, a wysokość ŚC nad ziemią jest szacowana, więc wynik to wskazówka do rysunku, nie wymiar.
+
+## Dobór profilu P2 — porównanie kandydatów (BIPOL_3, kroki 7–9)
+
+W karcie 2.2 autor wpisuje 3–4 profile z katalogu dla Re i M z P2: „nazwa; C_x,min; C_x(C_z,proj);
+C_z,max; przeciągnięcie” (średnik lub tabulator, przecinek dziesiętny dozwolony). Aplikacja układa
+ranking wg kryterium z kroku 9: najmniejszy C_x(C_z,proj) dla osiągów przelotowych albo największy
+C_z,max dla STOL, samolotów szkolnych i rolniczych (automatycznie wg tytułu tematu, do zmiany).
+Liczy doskonałość profilu w punkcie projektowym K = C_z,proj/C_x(C_z,proj) i wskazuje, czy przyjęty
+profil jest najlepszy wg kryterium. Wybór zostaje przy autorze (pole profilu w P3). C_z,max
+przyjętego profilu z tej tabeli trafia do oszacowania C_z,max płata ze Schrenka, jeśli w karcie 3.4
+nie wpisano innej wartości. Bez danych tabela pokazuje tylko nazwy kandydatów, bez liczb.

@@ -1944,7 +1944,7 @@ function loadProjectIntoForm(project) {
   const params = { runway_surface: 'paved', cs22_gust_model: 'amendment3', airfoil: '', airfoil_coordinates: '',
     profile_thickness_mode: 'auto', tc_ratio: 0.12,
     cost_n_production: 250, cost_n_prototypes: 4, cost_year: 2026, cost_profit_pct: 12, usd_pln: 4.05, cost_qc_factor: 0.13,
-    airfoil_cz_max: 0,
+    airfoil_cz_max: 0, airfoil_comparison: '', airfoil_criterion: 'auto',
     ...project.params };
   // Bez zapisanej wartości N_am równa się serii, jak w calculations/costs.py.
   if (params.cost_n_amortization == null) params.cost_n_amortization = params.cost_n_production;
@@ -3535,11 +3535,21 @@ function hydrateSemesterProjectsData(res) {
           <td>${c.cx_min ?? "—"}</td>
           <td>${c.cx_cz_proj ?? "—"}</td>
           <td>${c.cz_max ?? "—"}</td>
-          <td>${c.k_max ?? "—"}</td>
+          <td>${c.k_proj ?? "—"}</td>
           <td>${escapeHtml(c.stall)}</td>
-          <td><span class="badge ${c.recommended ? 'badge-success' : 'badge-info'}">${c.recommended ? '✓ Wybrany' : 'Alternatywa'}</span></td>
+          <td><span class="badge ${c.recommended ? 'badge-success' : 'badge-info'}">${c.recommended ? '✓ Przyjęty' : c.best ? 'Najlepszy wg kryterium' : (c.rank ? `Miejsce ${c.rank}` : 'Alternatywa')}</span></td>
         </tr>
       `).join('');
+    }
+    const afNote = document.getElementById('p2_airfoil_note');
+    if (afNote) {
+      afNote.classList.toggle('airfoil-error', Boolean(afSel.comparison_error));
+      afNote.textContent = afSel.comparison_error
+        ? afSel.comparison_error
+        : afSel.comparison_by_author
+          ? `Kryterium: ${afSel.criterion_label}. Najlepszy: ${afSel.best_airfoil}; przyjęty profil: ${afSel.selected_airfoil}`
+            + (afSel.best_airfoil === afSel.selected_airfoil ? '.' : ' — uzasadnij wybór przeciągnięciem lub innymi wymaganiami (krok 9).')
+          : 'Brak danych porównawczych: wpisz Cx i Cz_max 3–4 profili z katalogu dla Re i M powyżej.';
     }
 
     const sensTbody = document.getElementById('p2_sensitivity_tbody');
@@ -3668,7 +3678,7 @@ function hydrateSemesterProjectsData(res) {
     if (schrenkNote && sch.max_cz1 != null) {
       const ratio = `(c_z/C_z)_max = ${fmt(sch.max_cz1)} przy η = ${fmt(sch.stall_eta_span)}`;
       schrenkNote.textContent = sch.cz_max_wing_est != null
-        ? `C_z,max płata = ${fmt(sch.airfoil_cz_max)} / ${fmt(sch.max_cz1)} = ${fmt(sch.cz_max_wing_est)} (${ratio}). `
+        ? `C_z,max płata = ${fmt(sch.airfoil_cz_max)} / ${fmt(sch.max_cz1)} = ${fmt(sch.cz_max_wing_est)} (${ratio}; c_z,max profilu: ${sch.airfoil_cz_max_source}). `
           + (sch.cz_max_consistent ? 'Nie mniej niż założone C_z,max — założenie jest osiągalne.'
                                    : `Mniej niż założone C_z,max — profil musiałby mieć c_z,max ≥ ${fmt(sch.airfoil_cz_max_required)}.`)
         : `Aby płat osiągnął założone C_z,max, profil musi mieć c_z,max ≥ ${fmt(sch.airfoil_cz_max_required)} (${ratio}). `
