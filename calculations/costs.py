@@ -51,8 +51,9 @@ def engine_price(params, year, thrust_kn, power_kw, mach_max):
     n = max(1, int(params.get("n_engines", 1) or 1))
     if engine_type == "none":
         return 0.0, "brak zespołu napędowego"
-    if "engine_price_usd" in params:
-        return float(params["engine_price_usd"]), "cena podana w założeniach"
+    # Galiński (2016), rozdz. 2.7.3: wzory na cenę silnika są „dla formalności”; lepsza jest cena z oferty.
+    if params.get("engine_price_usd"):
+        return float(params["engine_price_usd"]), "cena z oferty producenta (dane autora)"
     if engine_type == "jet":
         t_lb = (thrust_kn or 0.0) * LBF_PER_KN / n
         # Stopień dwuprzepływowości 0 oznacza silnik jednoprzepływowy (turboodrzutowy).
@@ -71,11 +72,17 @@ def engine_price(params, year, thrust_kn, power_kw, mach_max):
     return rate * per_engine_kw, f"założenie spoza wzoru (15): silnik {kind}, {rate:.0f} USD/kW × {per_engine_kw:.0f} kW"
 
 
+def default_amortization_count(params):
+    """Galiński (2016), rozdz. 2.7: n_am ≈ 150 dla samolotów lekkich, ≈ 250 dla komunikacyjnych."""
+    category = str(params.get("category") or "")
+    return 250 if category.startswith("cs25") or category == "cs23_commuter" else 150
+
+
 def calculate_costs(params, m_empty_kg, v_max_kmh, thrust_kn=None, power_kw=None, mach_max=0.3):
     year = int(params.get("cost_year", 2026))
     n_rdte = int(params.get("cost_n_prototypes", 4))
     n_prod = int(params.get("cost_n_production", 250))
-    n_am = int(params.get("cost_n_amortization", n_prod))
+    n_am = int(params.get("cost_n_amortization") or min(n_prod, default_amortization_count(params)))
     rate_rdte = float(params.get("cost_rate_rdte_per_month", n_rdte / 36.0))
     rate_prod = float(params.get("cost_rate_production_per_month", 5.0))
     profit = float(params.get("cost_profit_pct", 12.0)) / 100.0
@@ -86,7 +93,7 @@ def calculate_costs(params, m_empty_kg, v_max_kmh, thrust_kn=None, power_kw=None
 
     rates = {k: _extrapolate(RATES[1970][k], RATES[1986][k], year) for k in RATES[1986]}
     c_en_one, engine_basis = engine_price(params, year, thrust_kn, power_kw, mach_max)
-    avionics = float(params.get("avionics_price_usd", AVIONICS_USD.get(params.get("aircraft_type"), DEFAULT_AVIONICS_USD)))
+    avionics = float(params.get("avionics_price_usd") or AVIONICS_USD.get(params.get("aircraft_type"), DEFAULT_AVIONICS_USD))
 
     def phase(n, rate, rdte):
         hours, by_year = {}, {}

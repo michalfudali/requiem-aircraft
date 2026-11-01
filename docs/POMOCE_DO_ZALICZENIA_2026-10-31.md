@@ -201,3 +201,15 @@ Liczy doskonałość profilu w punkcie projektowym K = C_z,proj/C_x(C_z,proj) i 
 profil jest najlepszy wg kryterium. Wybór zostaje przy autorze (pole profilu w P3). C_z,max
 przyjętego profilu z tej tabeli trafia do oszacowania C_z,max płata ze Schrenka, jeśli w karcie 3.4
 nie wpisano innej wartości. Bez danych tabela pokazuje tylko nazwy kandydatów, bez liczb.
+
+## Koszty — uzupełnienia z książki Galińskiego (2016)
+
+Strona przedmiotu poleca do kolokwium „Wybrane zagadnienia projektowania samolotów” (C. Galiński,
+2016). Jej rozdz. 2.7 powtarza współczynniki BIPOL_2 i dodaje dwie wskazówki, które aplikacja
+teraz stosuje:
+
+- domyślne N_am: ok. 150 szt. dla samolotów lekkich, ok. 250 dla komunikacyjnych (CS-23 commuter
+  i CS-25), nie więcej niż N_P;
+- wzory na cenę silnika są podane „dla formalności, ich stosowanie nie jest polecane”: lepsza jest
+  cena z zapytania ofertowego. Karta 2.5 ma pola na cenę silnika z oferty i awioniki
+  (0 = szacunek); arkusz podaje wtedy źródło „Oferta producenta”.

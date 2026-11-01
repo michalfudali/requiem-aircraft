@@ -1945,9 +1945,12 @@ function loadProjectIntoForm(project) {
     profile_thickness_mode: 'auto', tc_ratio: 0.12,
     cost_n_production: 250, cost_n_prototypes: 4, cost_year: 2026, cost_profit_pct: 12, usd_pln: 4.05, cost_qc_factor: 0.13,
     airfoil_cz_max: 0, airfoil_comparison: '', airfoil_criterion: 'auto',
+    engine_price_usd: 0, avionics_price_usd: 0,
     ...project.params };
   // Bez zapisanej wartości N_am równa się serii, jak w calculations/costs.py.
-  if (params.cost_n_amortization == null) params.cost_n_amortization = params.cost_n_production;
+  // Galiński (2016), rozdz. 2.7: n_am ≈ 150 dla lekkich, ≈ 250 dla komunikacyjnych (jak default_amortization_count).
+  if (params.cost_n_amortization == null) params.cost_n_amortization = Math.min(params.cost_n_production,
+    /^cs25/.test(params.category || '') || params.category === 'cs23_commuter' ? 250 : 150);
   airfoilResultProjectId = null;
   invalidateAirfoil200mm('Oczekiwanie na profil aktualnego projektu.');
   const airfoilInput = document.getElementById('airfoil');
@@ -3582,6 +3585,9 @@ function hydrateSemesterProjectsData(res) {
     setTxt('p2_qc_hours', costs.quality_control_hours?.toLocaleString('pl-PL'));
     setTxt('p2_qc_factor', costs.qc_factor?.toLocaleString('pl-PL', { maximumFractionDigits: 3 }));
     setTxt('p2_prototypes', costs.prototypes_rdte);
+    setTxt('p2_engine_basis', costs.engine_basis);
+    setTxt('p2_engine_price', costs.engine_price_usd != null ? `$${costs.engine_price_usd.toLocaleString('pl-PL')} USD` : undefined);
+    setTxt('p2_avionics_price', costs.avionics_price_usd != null ? `$${costs.avionics_price_usd.toLocaleString('pl-PL')} USD` : undefined);
     setTxt('p2_rdte_total', costs.rdte && `$${costs.rdte.total_usd.toLocaleString('pl-PL')} USD`);
     setTxt('p2_production_total', costs.production && `$${costs.production.total_usd.toLocaleString('pl-PL')} USD`);
     setTxt('p2_series_count', costs.series_count);
