@@ -1944,10 +1944,13 @@ function loadProjectIntoForm(project) {
   const params = { runway_surface: 'paved', cs22_gust_model: 'amendment3', airfoil: '', airfoil_coordinates: '',
     profile_thickness_mode: 'auto', tc_ratio: 0.12,
     cost_n_production: 250, cost_n_prototypes: 4, cost_year: 2026, cost_profit_pct: 12, usd_pln: 4.05, cost_qc_factor: 0.13,
-    airfoil_cz_max: 0,
+    airfoil_cz_max: 0, airfoil_comparison: '', airfoil_criterion: 'auto',
+    engine_price_usd: 0, avionics_price_usd: 0,
     ...project.params };
   // Bez zapisanej wartości N_am równa się serii, jak w calculations/costs.py.
-  if (params.cost_n_amortization == null) params.cost_n_amortization = params.cost_n_production;
+  // Galiński (2016), rozdz. 2.7: n_am ≈ 150 dla lekkich, ≈ 250 dla komunikacyjnych (jak default_amortization_count).
+  if (params.cost_n_amortization == null) params.cost_n_amortization = Math.min(params.cost_n_production,
+    /^cs25/.test(params.category || '') || params.category === 'cs23_commuter' ? 250 : 150);
   airfoilResultProjectId = null;
   invalidateAirfoil200mm('Oczekiwanie na profil aktualnego projektu.');
   const airfoilInput = document.getElementById('airfoil');
@@ -3535,11 +3538,21 @@ function hydrateSemesterProjectsData(res) {
           <td>${c.cx_min ?? "—"}</td>
           <td>${c.cx_cz_proj ?? "—"}</td>
           <td>${c.cz_max ?? "—"}</td>
-          <td>${c.k_max ?? "—"}</td>
+          <td>${c.k_proj ?? "—"}</td>
           <td>${escapeHtml(c.stall)}</td>
-          <td><span class="badge ${c.recommended ? 'badge-success' : 'badge-info'}">${c.recommended ? '✓ Wybrany' : 'Alternatywa'}</span></td>
+          <td><span class="badge ${c.recommended ? 'badge-success' : 'badge-info'}">${c.recommended ? '✓ Przyjęty' : c.best ? 'Najlepszy wg kryterium' : (c.rank ? `Miejsce ${c.rank}` : 'Alternatywa')}</span></td>
         </tr>
       `).join('');
+    }
+    const afNote = document.getElementById('p2_airfoil_note');
+    if (afNote) {
+      afNote.classList.toggle('airfoil-error', Boolean(afSel.comparison_error));
+      afNote.textContent = afSel.comparison_error
+        ? afSel.comparison_error
+        : afSel.comparison_by_author
+          ? `Kryterium: ${afSel.criterion_label}. Najlepszy: ${afSel.best_airfoil}; przyjęty profil: ${afSel.selected_airfoil}`
+            + (afSel.best_airfoil === afSel.selected_airfoil ? '.' : ' — uzasadnij wybór przeciągnięciem lub innymi wymaganiami (krok 9).')
+          : 'Brak danych porównawczych: wpisz Cx i Cz_max 3–4 profili z katalogu dla Re i M powyżej.';
     }
 
     const sensTbody = document.getElementById('p2_sensitivity_tbody');
@@ -3572,6 +3585,9 @@ function hydrateSemesterProjectsData(res) {
     setTxt('p2_qc_hours', costs.quality_control_hours?.toLocaleString('pl-PL'));
     setTxt('p2_qc_factor', costs.qc_factor?.toLocaleString('pl-PL', { maximumFractionDigits: 3 }));
     setTxt('p2_prototypes', costs.prototypes_rdte);
+    setTxt('p2_engine_basis', costs.engine_basis);
+    setTxt('p2_engine_price', costs.engine_price_usd != null ? `$${costs.engine_price_usd.toLocaleString('pl-PL')} USD` : undefined);
+    setTxt('p2_avionics_price', costs.avionics_price_usd != null ? `$${costs.avionics_price_usd.toLocaleString('pl-PL')} USD` : undefined);
     setTxt('p2_rdte_total', costs.rdte && `$${costs.rdte.total_usd.toLocaleString('pl-PL')} USD`);
     setTxt('p2_production_total', costs.production && `$${costs.production.total_usd.toLocaleString('pl-PL')} USD`);
     setTxt('p2_series_count', costs.series_count);
@@ -3591,6 +3607,14 @@ function hydrateSemesterProjectsData(res) {
       ? `Liczba Macha końcówki śmigła: ${bchk.propeller_tip_mach}; ${bchk.propeller_tip_mach<=.85?'spełnia roboczy limit 0,85':'przekracza roboczy limit 0,85 — zmień średnicę lub obroty'}.`
       : bchk.engine_type==='jet'?'Wlot silnika: brak geometrii i danych silnika do oceny.':'Śmigło i silnik: nie dotyczy.';
     if (chkClearEl) chkClearEl.textContent = 'Prześwit: wymaga wymiarów zabudowy i podwozia; nie został zweryfikowany.';
+    const gearEl = document.getElementById('p3_chk_gear');
+    const am = res.engineering_audit?.metrics || {};
+    const deg = v => `${Number(v).toLocaleString('pl-PL', { maximumFractionDigits: 1 })}°`;
+    if (gearEl) gearEl.textContent = am.tipback_angle_deg == null
+      ? 'Podwozie: kąty z wykładu 7 nie dotyczą (szybowiec na kole i płozie).'
+      : `Podwozie (wykład 7): kąt za ŚC ${deg(am.tipback_angle_deg)} (wymagane ≥ ${deg(am.tipback_required_deg)}`
+        + (am.tipback_angle_deg >= am.tipback_required_deg ? ')' : `, koła w ≥ ${Number(am.main_gear_required_mac_pct).toFixed(0)}% SCA)`)
+        + `; koło–ogon ${deg(am.tailstrike_angle_deg)} (≥ ${deg(am.tailstrike_required_deg)}); przewrócenie na bok ${deg(am.tipover_angle_deg)} (< 60°). Wysokość ŚC szacowana.`;
     // Puste pole = profil przyjęty w P2; wpisany profil trafia do parametrów projektu (data-analysis-param).
     const afNameEl = document.getElementById('airfoil');
     if (afNameEl) afNameEl.placeholder = bp.p2?.airfoil_selection?.selected_airfoil || 'np. NACA 23012';
@@ -3676,7 +3700,7 @@ function hydrateSemesterProjectsData(res) {
     if (schrenkNote && sch.max_cz1 != null) {
       const ratio = `(c_z/C_z)_max = ${fmt(sch.max_cz1)} przy η = ${fmt(sch.stall_eta_span)}`;
       schrenkNote.textContent = sch.cz_max_wing_est != null
-        ? `C_z,max płata = ${fmt(sch.airfoil_cz_max)} / ${fmt(sch.max_cz1)} = ${fmt(sch.cz_max_wing_est)} (${ratio}). `
+        ? `C_z,max płata = ${fmt(sch.airfoil_cz_max)} / ${fmt(sch.max_cz1)} = ${fmt(sch.cz_max_wing_est)} (${ratio}; c_z,max profilu: ${sch.airfoil_cz_max_source}). `
           + (sch.cz_max_consistent ? 'Nie mniej niż założone C_z,max — założenie jest osiągalne.'
                                    : `Mniej niż założone C_z,max — profil musiałby mieć c_z,max ≥ ${fmt(sch.airfoil_cz_max_required)}.`)
         : `Aby płat osiągnął założone C_z,max, profil musi mieć c_z,max ≥ ${fmt(sch.airfoil_cz_max_required)} (${ratio}). `

@@ -1038,7 +1038,8 @@ def _p2_cost(s, r):
            'Koszt materiałów i półfabrykatów', SOURCES['B2'] + ', wzór (17)',
            check=lambda v: max(0, v.C_MM_86 + (v.C_MM_86 - v.C_MM_70) * (v.rok - 1986) / 16), tolerance=max(1.0, 1e-6 * items['C_MM']))
     s.given('n_sil', 'n_s', t['n_engines'], '', 0, 'Liczba silników', 'Założenia projektu')
-    s.given('C_sil', 'C_s', t['engine_price_raw'], USD, 0, 'Cena jednego silnika — ' + ca['engine_basis'], SOURCES['B2'] + ', wzór (15)')
+    s.given('C_sil', 'C_s', t['engine_price_raw'], USD, 0, 'Cena jednego silnika — ' + ca['engine_basis'],
+            'Oferta producenta' if 'oferty' in ca['engine_basis'] else SOURCES['B2'] + ', wzór (15)')
     s.given('C_av', r'C_{av}', t['avionics_raw'], USD, 0, 'Cena awioniki na egzemplarz', 'Założenie')
     s.calc('C_EN', 'C_{EN}', r'N_P\left(n_sC_s+C_{av}\right)', r'[[N_P]]\cdot\left([[n_sil]]\cdot[[C_sil]]+[[C_av]]\right)', items['C_EN'], USD, 0,
            'Koszt silników i awioniki serii', SOURCES['B2'] + ', wzór (15)', check=lambda v: v.N_P * (v.n_sil * v.C_sil + v.C_av))

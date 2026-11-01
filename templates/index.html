@@ -13,7 +13,7 @@
   <link rel="stylesheet" href="/static/css/workspace.css?v=2">
   <link rel="stylesheet" href="/static/css/calculation-tree.css?v=1">
   <link rel="stylesheet" href="/static/css/experience.css?v=3">
-  <link rel="stylesheet" href="/static/css/coursework.css?v=7">
+  <link rel="stylesheet" href="/static/css/coursework.css?v=8">
 </head>
 <body class="studio-layout">
   <a class="studio-skip-link" href="#studioMainWorkspace">Przejdź do treści</a>
@@ -1247,10 +1247,18 @@
                   <p style="font-size:0.86rem; color:#475569; margin-bottom:0.6rem;">
                     Re w przelocie: <strong id="p2_re_val">---</strong> &bull; M_max: <strong id="p2_mach_val">---</strong> &bull; Rekomendowany katalog: <strong id="p2_catalog_val">---</strong> &bull; Cz_proj = <strong id="p2_czproj_val">---</strong>.
                   </p>
+                  <details class="airfoil-paste" id="p2AirfoilControls"><summary>Wpisz dane 3–4 profili z katalogu (BIPOL_3, kroki 7–9)</summary>
+                    <label class="studio-field" for="airfoil_comparison">Jeden profil w wierszu: nazwa; C<sub>x,min</sub>; C<sub>x</sub>(C<sub>z,proj</sub>); C<sub>z,max</sub>; przeciągnięcie — średnik lub tabulator, przecinek dziesiętny dozwolony (zapisywane w projekcie)<textarea id="airfoil_comparison" data-analysis-param rows="5" spellcheck="false" maxlength="4000" placeholder="NACA 23012; 0,0062; 0,0071; 1,55; umiarkowane, ostrzeżenie drganiami"></textarea></label>
+                    <div class="cost-controls">
+                      <label class="studio-field cost-qc" for="airfoil_criterion">Kryterium wyboru (krok 9)<select id="airfoil_criterion" data-analysis-param><option value="auto">automatycznie wg tematu</option><option value="cruise">najmniejszy Cx(Cz_proj) — osiągi przelotowe</option><option value="lift">największy Cz_max — STOL, szkolny, rolniczy</option></select></label>
+                      <button type="button" class="btn btn-outline-sm" onclick="performCalculation()">Przelicz</button>
+                    </div>
+                  </details>
+                  <p id="p2_airfoil_note" class="cost-hint"></p>
                   <div style="overflow-x:auto;">
                     <table class="b-table">
                       <thead>
-                        <tr><th>Profil kandydacki</th><th>Cx min</th><th>Cx(Cz_proj)</th><th>Cz max</th><th>(Cz/Cx)_max</th><th>Przeciągnięcie</th><th>Status</th></tr>
+                        <tr><th>Profil kandydacki</th><th>Cx min</th><th>Cx(Cz_proj)</th><th>Cz max</th><th>K(Cz_proj)</th><th>Przeciągnięcie</th><th>Status</th></tr>
                       </thead>
                       <tbody id="p2_airfoil_tbody"></tbody>
                     </table>
@@ -1296,7 +1304,7 @@
                   <span class="badge badge-success">Obowiązkowe</span>
                 </div>
                 <div class="subpoint-body">
-                  <p class="cost-hint">BIPOL_2: wartości N<sub>P</sub> i N<sub>am</sub> ustala się z prowadzącym (zwykle N<sub>am</sub> ≈ 250 szt., N<sub>am</sub> ≤ N<sub>P</sub>). Zmienione założenia trafiają do projektu po przeliczeniu.</p>
+                  <p class="cost-hint">BIPOL_2: wartości N<sub>P</sub> i N<sub>am</sub> ustala się z prowadzącym (N<sub>am</sub> ≤ N<sub>P</sub>; Galiński 2016, rozdz. 2.7: samoloty lekkie N<sub>am</sub> ≈ 150, komunikacyjne ≈ 250). Cenę silnika i awioniki najlepiej wziąć z zapytania ofertowego; 0 oznacza szacunek. Zmienione założenia trafiają do projektu po przeliczeniu.</p>
                   <div class="cost-controls" id="p2CostControls">
                     <label class="studio-field" for="cost_n_production">Seria N<sub>P</sub> [szt.]<input id="cost_n_production" data-analysis-param type="number" min="1" max="100000" step="1" value="250"></label>
                     <label class="studio-field" for="cost_n_amortization">Amortyzacja rozwoju N<sub>am</sub> [szt.]<input id="cost_n_amortization" data-analysis-param type="number" min="1" max="100000" step="1" value="250"></label>
@@ -1304,6 +1312,8 @@
                     <label class="studio-field" for="cost_year">Rok kosztów<input id="cost_year" data-analysis-param type="number" min="1970" max="2100" step="1" value="2026"></label>
                     <label class="studio-field" for="cost_profit_pct">Zysk C<sub>P</sub> [%]<input id="cost_profit_pct" data-analysis-param type="number" min="0" max="100" step="0.5" value="12"></label>
                     <label class="studio-field" for="usd_pln">Kurs [PLN/USD]<input id="usd_pln" data-analysis-param type="number" min="0.5" max="50" step="0.01" value="4.05"></label>
+                    <label class="studio-field" for="engine_price_usd">Cena silnika z oferty [USD]<input id="engine_price_usd" data-analysis-param type="number" min="0" max="100000000" step="100" value="0"></label>
+                    <label class="studio-field" for="avionics_price_usd">Awionika na egzemplarz [USD]<input id="avionics_price_usd" data-analysis-param type="number" min="0" max="100000000" step="100" value="0"></label>
                     <label class="studio-field cost-qc" for="cost_qc_factor">Kontrola jakości, wzór (20)<select id="cost_qc_factor" data-analysis-param><option value="0.13">0,13 H_ML — samolot ogólny</option><option value="0.076">0,076 H_ML — samolot towarowy</option></select></label>
                     <button type="button" class="btn btn-outline-sm" onclick="performCalculation()">Przelicz koszty</button>
                   </div>
@@ -1311,6 +1321,8 @@
                     <tr><td>Prace badawczo-rozwojowe R&D (H_E)</td><td><b id="p2_rdte_hours">---</b> roboczogodzin</td></tr>
                     <tr><td>Robocizna produkcyjna montażu (H_ML)</td><td><b id="p2_labor_hours">---</b> roboczogodzin</td></tr>
                     <tr><td>Kontrola jakości (H_QC = <span id="p2_qc_factor">0,13</span> H_ML)</td><td><b id="p2_qc_hours">---</b> roboczogodzin</td></tr>
+                    <tr><td>Cena silnika (1 szt.) — <span id="p2_engine_basis">---</span></td><td><b id="p2_engine_price">--- USD</b></td></tr>
+                    <tr><td>Awionika na egzemplarz</td><td><b id="p2_avionics_price">--- USD</b></td></tr>
                     <tr><td>Koszt fazy rozwoju RDT&amp;E (prototypy: <span id="p2_prototypes">4</span>)</td><td><b id="p2_rdte_total">--- USD</b></td></tr>
                     <tr><td>Koszt produkcji serii</td><td><b id="p2_production_total">--- USD</b></td></tr>
                     <tr><td>Minimalna cena jednostkowa wg wzoru 5.10 (C_P = 0, N_P = <span id="p2_series_count">250</span>, N_am = <span id="p2_amortization_count">250</span>)</td><td><b id="p2_unit_cost" style="color:#005691;">--- USD</b></td></tr>
@@ -1376,7 +1388,7 @@
                         <li>Widoczność pilota: do sprawdzenia na zwymiarowanym przekroju kabiny.</li>
                         <li id="p3_chk_prop_mach">Prędkość końcówki śmigła: <b>M_tip &le; 0.85</b> (bezpieczna)</li>
                         <li id="p3_chk_prop_clear">Prześwit śmigła nad gruntem: <b>&ge; 230 mm</b> (zapewniony)</li>
-                        <li>Stateczność na podwoziu: do sprawdzenia z rzeczywistą wysokością środka masy.</li>
+                        <li id="p3_chk_gear">Stateczność na podwoziu: do sprawdzenia z rzeczywistą wysokością środka masy.</li>
                       </ul>
                     </div>
                     <div style="background:#f8fafc; padding:0.75rem; border-radius:6px; border:1px solid #e2e8f0; font-size:0.84rem;">
@@ -2463,7 +2475,7 @@
   <script src="/static/js/studio-visuals.js?v=3"></script>
   <script src="/static/js/didactic_data.js?v=14"></script>
   <script src="/static/js/charts.js?v=19"></script>
-  <script src="/static/js/app.js?v=38"></script>
+  <script src="/static/js/app.js?v=41"></script>
   <script src="/static/js/didactic_modes.js?v=3"></script>
   <script src="/static/js/constraints-ui.js?v=6"></script>
   <script src="/static/js/design-basis.js?v=7"></script>

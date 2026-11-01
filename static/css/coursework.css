@@ -135,7 +135,8 @@
 .airfoil-paste summary { cursor:pointer; font-size:0.84rem; }
 .airfoil-paste textarea { width:100%; font-family:ui-monospace, Consolas, monospace; font-size:12px; }
 #p3_airfoil_svg_container svg { width:100%; height:auto; border:1px solid #dce6e8; border-radius:6px; }
-#p3_airfoil_desc.airfoil-error { color:#9a3412; }
+#p3_airfoil_desc.airfoil-error, #p2_airfoil_note.airfoil-error { color:#9a3412; }
+#airfoil_comparison { width:100%; font-family:ui-monospace, Consolas, monospace; font-size:12px; }
 .cost-hint { margin:0 0 6px; font-size:0.84rem; color:#334155; }
 .cost-controls { display:grid; grid-template-columns:repeat(auto-fill, minmax(150px, 1fr)); gap:8px; align-items:end; margin:0 0 10px; }
 .cost-controls .studio-field { margin:0; }
