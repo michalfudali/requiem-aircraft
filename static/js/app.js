@@ -3601,6 +3601,14 @@ function hydrateSemesterProjectsData(res) {
       ? `Liczba Macha końcówki śmigła: ${bchk.propeller_tip_mach}; ${bchk.propeller_tip_mach<=.85?'spełnia roboczy limit 0,85':'przekracza roboczy limit 0,85 — zmień średnicę lub obroty'}.`
       : bchk.engine_type==='jet'?'Wlot silnika: brak geometrii i danych silnika do oceny.':'Śmigło i silnik: nie dotyczy.';
     if (chkClearEl) chkClearEl.textContent = 'Prześwit: wymaga wymiarów zabudowy i podwozia; nie został zweryfikowany.';
+    const gearEl = document.getElementById('p3_chk_gear');
+    const am = res.engineering_audit?.metrics || {};
+    const deg = v => `${Number(v).toLocaleString('pl-PL', { maximumFractionDigits: 1 })}°`;
+    if (gearEl) gearEl.textContent = am.tipback_angle_deg == null
+      ? 'Podwozie: kąty z wykładu 7 nie dotyczą (szybowiec na kole i płozie).'
+      : `Podwozie (wykład 7): kąt za ŚC ${deg(am.tipback_angle_deg)} (wymagane ≥ ${deg(am.tipback_required_deg)}`
+        + (am.tipback_angle_deg >= am.tipback_required_deg ? ')' : `, koła w ≥ ${Number(am.main_gear_required_mac_pct).toFixed(0)}% SCA)`)
+        + `; koło–ogon ${deg(am.tailstrike_angle_deg)} (≥ ${deg(am.tailstrike_required_deg)}); przewrócenie na bok ${deg(am.tipover_angle_deg)} (< 60°). Wysokość ŚC szacowana.`;
     // Puste pole = profil przyjęty w P2; wpisany profil trafia do parametrów projektu (data-analysis-param).
     const afNameEl = document.getElementById('airfoil');
     if (afNameEl) afNameEl.placeholder = bp.p2?.airfoil_selection?.selected_airfoil || 'np. NACA 23012';
