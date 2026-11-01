@@ -1346,9 +1346,19 @@ def _p3_schrenk(s, r):
     s.given('cz1_max', r'\left(c_z/C_z\right)_{max}', pin['max_cz1'], '', 3, f"Największe lokalne c_z przy y = {pin['stall_y_m']:.2f} m".replace('.', ','),
             'Tabela Schrenka')
     s.given('Cz_max', r'C_{z\,max}', float(aero['cz_max_clean']), '', 2, 'Maksymalny współczynnik siły nośnej w konfiguracji gładkiej', 'Założenia projektu')
-    s.calc('Cz_max_wing', r'C_{z\,max,p}', r'\frac{1{,}06\,C_{z\,max}}{\max\left(1;\;(c_z/C_z)_{max}\right)}',
-           r'\frac{1{,}06\cdot[[Cz_max]]}{\max\left(1;\;[[cz1_max]]\right)}', summary['cz_max_wing_est'], '', 3,
-           'Szacunkowy maksymalny współczynnik siły nośnej płata', check=lambda v: 1.06 * v.Cz_max / max(1, v.cz1_max), tolerance=.0011)
+    # Płat przeciąga się, gdy najbardziej obciążony przekrój osiąga c_z,max profilu (opis Projektu 3).
+    if summary['airfoil_cz_max']:
+        s.given('cz_prof', r'c_{z\,max,prof}', summary['airfoil_cz_max'], '', 2, 'Maksymalny współczynnik siły nośnej profilu przy Re lotu',
+                'Katalog profili (dane autora)')
+        s.calc('Cz_max_wing', r'C_{z\,max,p}', r'\frac{c_{z\,max,prof}}{(c_z/C_z)_{max}}', r'\frac{[[cz_prof]]}{[[cz1_max]]}',
+               summary['cz_max_wing_est'], '', 3, 'Maksymalny współczynnik siły nośnej płata — '
+               + ('nie mniejszy niż założony' if summary['cz_max_consistent'] else 'mniejszy niż założony C_z,max'),
+               check=lambda v: v.cz_prof / max(1, v.cz1_max), tolerance=.0011)
+    else:
+        s.calc('cz_prof_req', r'c_{z\,max,prof}', r'C_{z\,max}\,(c_z/C_z)_{max}', r'[[Cz_max]]\cdot[[cz1_max]]',
+               summary['airfoil_cz_max_required'], '', 3,
+               'Wymagany c_z,max profilu, aby płat osiągnął założone C_z,max — wpisz wartość z katalogu profili',
+               check=lambda v: v.Cz_max * max(1, v.cz1_max), tolerance=.0011)
 
 
 def _p3_wing_aero(s, r):

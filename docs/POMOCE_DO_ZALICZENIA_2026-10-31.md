@@ -174,3 +174,19 @@ test `test_cost_coefficients_match_bipol2_tables` przypina je do źródła. Uzup
   w pozostałych do wyboru), 0,13 H_ML dla pozostałych;
 - wzór (15), 1970: C₁ = 109 dla silnika turboodrzutowego (bypass_ratio = 0), 130 dla
   turbowentylatorowego.
+
+## C_z,max płata z rozkładu Schrenka (P3, podpunkt 3.4)
+
+Opis Projektu 3 każe oszacować ze Schrenka maksymalny współczynnik siły nośnej płata. Dawny wzór
+1,06·C_z,max / (c_z/C_z)_max nie miał źródła i dawał praktycznie założone C_z,max. Teraz
+C_z,max,p = c_z,max,prof / (c_z/C_z)_max: płat przeciąga się, gdy najbardziej obciążony przekrój
+osiąga c_z,max profilu. Wartość c_z,max profilu (z katalogu, dla Re przy przeciągnięciu) wpisuje
+autor w karcie 3.4; bez niej aplikacja podaje, jakiego c_z,max profil potrzebuje, by płat osiągnął
+założone C_z,max.
+
+## Podwozie — kąty z wykładu 7
+
+Audyt sprawdza kąt od koła głównego do ogona (≥ α przy C_z,max) i kąt między pionem przez tylne
+położenie ŚC a kołem głównym (≥ α przy 0,9·C_z,max + 3°), z kątami natarcia płata z tabeli 2.2.
+Przy niespełnionym warunku podaje położenie kół, które go spełnia. Wyważenie nadal przyjmuje koła
+w 45% SCA, a wysokość ŚC nad ziemią jest szacowana, więc wynik to wskazówka do rysunku, nie wymiar.

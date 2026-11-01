@@ -236,3 +236,18 @@ def test_p5_explains_why_range_or_cruise_requirements_fail(results):
             assert p5['performance_findings'], name
     finding = results['regional_turboprop']['bipol_projects']['p5']['performance_findings'][0]
     assert '0,94·Kmax' in finding
+
+
+def test_wing_cz_max_follows_from_schrenk_and_the_profile_maximum():
+    """Opis Projektu 3: Cz_max płata ze Schrenka = c_z,max profilu / (c_z/C_z)_max (bez stałej 1,06)."""
+    from calculations.bipol_projects import schrenk_cz_max
+    assert schrenk_cz_max(0, 1.45, 1.06) == {'airfoil_cz_max': None, 'airfoil_cz_max_required': pytest.approx(1.537),
+                                             'cz_max_wing_est': None, 'cz_max_consistent': None}
+    given = schrenk_cz_max(1.6, 1.45, 1.06)
+    assert given['cz_max_wing_est'] == pytest.approx(1.6 / 1.06, abs=1e-3) and given['cz_max_consistent']
+    assert schrenk_cz_max(1.5, 1.45, 1.06)['cz_max_consistent'] is False
+    params = {**AIRCRAFT_PRESETS['ga_trainer'], 'airfoil_cz_max': 1.6}
+    summary = run_bipol_project(validate_parameters(params))['bipol_projects']['p3']['schrenk_summary']
+    assert summary['cz_max_wing_est'] == pytest.approx(1.6 / summary['max_cz1'], abs=1e-3)
+    with pytest.raises(ValueError, match='airfoil_cz_max'):
+        validate_parameters({'airfoil_cz_max': 5})

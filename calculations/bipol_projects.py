@@ -14,6 +14,20 @@ from calculations.high_lift import stall_requirement
 from calculations.costs import calculate_costs
 from calculations.polish_law import SUBCATEGORIES, K_CATEGORIES, resolve_category
 
+def schrenk_cz_max(airfoil_cz_max, cz_max_assumed, max_cz1):
+    """Cz_max płata ze Schrenka (opis Projektu 3): płat przeciąga się, gdy najbardziej obciążony przekrój
+    osiąga c_z,max profilu, więc Cz_max,p = c_z,max,prof / (c_z/C_z)_max. Bez c_z,max profilu z katalogu
+    podaje się wartość, której profil potrzebuje, by płat osiągnął założone Cz_max."""
+    ratio = max(1.0, float(max_cz1))
+    required = cz_max_assumed * ratio
+    if not airfoil_cz_max:
+        return {"airfoil_cz_max": None, "airfoil_cz_max_required": round(required, 3), "cz_max_wing_est": None,
+                "cz_max_consistent": None}
+    wing = float(airfoil_cz_max) / ratio
+    return {"airfoil_cz_max": float(airfoil_cz_max), "airfoil_cz_max_required": round(required, 3),
+            "cz_max_wing_est": round(wing, 3), "cz_max_consistent": wing >= cz_max_assumed}
+
+
 def calculate_all_bipol_projects(mass_res: dict, sizing_res: dict, geom_res: dict, aero_res: dict, perf_res: dict, env_res: dict, bal_res: dict, params: dict, profile_context=None) -> dict:
     """
     Integruje i wylicza kompletne pakiety danych dla 6 projektów semestralnych:
@@ -423,7 +437,8 @@ def calculate_all_bipol_projects(mass_res: dict, sizing_res: dict, geom_res: dic
             "max_cz1": geom_res.get("schrenk_Pinpoint", {}).get("max_cz1", 1.08),
             "stall_eta_span": geom_res.get("schrenk_Pinpoint", {}).get("stall_eta_span", 0.55),
             "stall_y_m": geom_res.get("schrenk_Pinpoint", {}).get("stall_y_m", round(0.55 * 0.5 * b, 2)),
-            "cz_max_wing_est": round((cz_max_clean * 1.06) / max(1.0, geom_res.get("schrenk_Pinpoint", {}).get("max_cz1", 1.08)), 3)
+            **schrenk_cz_max(params.get("airfoil_cz_max"), cz_max_clean,
+                             geom_res.get("schrenk_Pinpoint", {}).get("max_cz1", 1.08)),
         },
         "control_surfaces": geom_res.get("control_surfaces", {}),
         "points_max": {"obligatory": 22, "optional": 5, "total": 27}
