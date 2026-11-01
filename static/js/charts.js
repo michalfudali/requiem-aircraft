@@ -3,6 +3,22 @@
  * Wydział MEiL PW - Zakład Samolotów i Śmigłowców
  */
 
+// Theme helper for aerospace charts (Light & Dark mode support)
+function getChartTheme() {
+  const isDark = (document.documentElement.getAttribute('data-theme') === 'dark') ||
+                 (document.body && document.body.getAttribute('data-theme') === 'dark');
+  return {
+    isDark,
+    grid: isDark ? 'rgba(255, 255, 255, 0.09)' : '#e2e8f0',
+    gridLight: isDark ? 'rgba(255, 255, 255, 0.05)' : '#f1f5f9',
+    gridStrong: isDark ? 'rgba(255, 255, 255, 0.22)' : '#cbd5e1',
+    text: isDark ? '#94a3b8' : '#64748b',
+    title: isDark ? '#f1f5f9' : '#334155',
+    surface: isDark ? '#0f172a' : '#ffffff',
+    accent: isDark ? '#38bdf8' : '#0284c7'
+  };
+}
+
 // Helper to setup retina-sharp canvas without layout growth on high-DPI screens
 function initCanvas(canvasId) {
   const canvas = document.getElementById(canvasId);
@@ -85,9 +101,10 @@ function drawMatchingChart(canvasId, sizing) {
 
   function render(cursor = null) {
     ctx.clearRect(0, 0, width, height);
+    const theme = getChartTheme();
 
     // Grid lines
-    ctx.strokeStyle = '#e2e8f0';
+    ctx.strokeStyle = theme.grid;
     ctx.lineWidth = 1;
     for (let i = 0; i <= 5; i++) {
       const yVal = yMin + (i / 5) * (yMax - yMin);
@@ -374,8 +391,9 @@ function drawPolarChart(canvasId, aero) {
   function toX(val) { return pad.left + ((val - xMin) / (xMax - xMin)) * plotW; }
   function toY(val) { return pad.top + plotH - ((val - yMin) / (yMax - yMin)) * plotH; }
   
+  const theme = getChartTheme();
   // Grid
-  ctx.strokeStyle = '#e2e8f0';
+  ctx.strokeStyle = theme.grid;
   ctx.lineWidth = 1;
   for (let i = 0; i <= 5; i++) {
     const yVal = yMin + (i / 5) * (yMax - yMin);
@@ -384,7 +402,7 @@ function drawPolarChart(canvasId, aero) {
     ctx.moveTo(pad.left, y);
     ctx.lineTo(pad.left + plotW, y);
     ctx.stroke();
-    ctx.fillStyle = '#64748b';
+    ctx.fillStyle = theme.text;
     ctx.font = '11px sans-serif';
     ctx.textAlign = 'right';
     BipolSymbols.fillText(ctx, yVal.toFixed(1), pad.left - 6, y + 4);
@@ -498,8 +516,9 @@ function drawSchrenkChart(canvasId, schrenkData) {
     ctx.textAlign = 'right';
     BipolSymbols.fillText(ctx, 'Strefa lotek (η ≥ 0.65)', toX(0.98), pad.top + 14);
 
+    const theme = getChartTheme();
     // Grid
-    ctx.strokeStyle = '#e2e8f0';
+    ctx.strokeStyle = theme.grid;
     ctx.lineWidth = 1;
     for (let i = 0; i <= 5; i++) {
       const yVal = (i / 5) * cMax;
@@ -508,7 +527,7 @@ function drawSchrenkChart(canvasId, schrenkData) {
       ctx.moveTo(pad.left, y);
       ctx.lineTo(pad.left + plotW, y);
       ctx.stroke();
-      ctx.fillStyle = '#64748b';
+      ctx.fillStyle = theme.text;
       ctx.font = '11px sans-serif';
       ctx.textAlign = 'right';
       BipolSymbols.fillText(ctx, yVal.toFixed(2), pad.left - 6, y + 4);
@@ -716,8 +735,9 @@ function drawClimbChart(canvasId, climbData) {
   function toX(val) { return pad.left + ((val - xMin) / (xMax - xMin)) * plotW; }
   function toY(val) { return pad.top + plotH - ((val - yMin) / (yMax - yMin)) * plotH; }
   
+  const theme = getChartTheme();
   // Grid
-  ctx.strokeStyle = '#e2e8f0';
+  ctx.strokeStyle = theme.grid;
   ctx.lineWidth = 1;
   for (let i = 0; i <= 5; i++) {
     const yVal = yMin + (i / 5) * (yMax - yMin);
@@ -726,7 +746,7 @@ function drawClimbChart(canvasId, climbData) {
     ctx.moveTo(pad.left, y);
     ctx.lineTo(pad.left + plotW, y);
     ctx.stroke();
-    ctx.fillStyle = '#64748b';
+    ctx.fillStyle = theme.text;
     ctx.font = '11px sans-serif';
     ctx.textAlign = 'right';
     BipolSymbols.fillText(ctx, yVal.toFixed(1), pad.left - 6, y + 4);

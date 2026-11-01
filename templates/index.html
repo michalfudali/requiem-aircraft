@@ -15,6 +15,18 @@
   <link rel="stylesheet" href="/static/css/pilot-loading.css?v=2">
   <link rel="stylesheet" href="/static/css/experience.css?v=3">
   <link rel="stylesheet" href="/static/css/coursework.css?v=8">
+  <link rel="stylesheet" href="/static/css/modern-ui.css?v=1">
+  <script>
+    (function () {
+      try {
+        const saved = localStorage.getItem('bipol_theme');
+        const isDark = saved === 'dark' || (!saved && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
+        if (isDark) {
+          document.documentElement.setAttribute('data-theme', 'dark');
+        }
+      } catch (_) {}
+    })();
+  </script>
 </head>
 <body class="studio-layout">
   <a class="studio-skip-link" href="#studioMainWorkspace">Przejdź do treści</a>
@@ -33,9 +45,21 @@
         </div>
       </div>
       <div class="navbar-actions">
-        <a id="openReportBtn" href="/report" target="_blank" class="btn btn-success">
+        <button type="button" class="nav-search-trigger" id="btnNavSearch" aria-label="Szukaj (Ctrl+K)" title="Szybkie wyszukiwanie parametrów, modułów i poleceń (Ctrl+K)">
+          <span>🔍 Szukaj...</span> <kbd>Ctrl+K</kbd>
+        </button>
+        <button type="button" id="navRecalcPill" class="nav-recalc-pill synced" title="Projekt jest zsynchronizowany. Kliknij lub naciśnij Ctrl+Enter aby przeliczyć.">
+          <span>✓ Gotowe</span> <kbd>Ctrl+Enter</kbd>
+        </button>
+        <a id="openReportBtn" href="/report" target="_blank" class="btn btn-success" title="Otwórz pełny raport z projektu">
           Raport
         </a>
+        <button type="button" class="theme-toggle-btn" id="themeToggleBtn" aria-label="Przełącz motyw (Alt+T)" title="Przełącz motyw (Alt+T)">
+          🌙
+        </button>
+        <button type="button" class="theme-toggle-btn" id="btnShortcutsNav" aria-label="Skróty klawiszowe (?)" title="Skróty klawiszowe (?)">
+          ⌨️
+        </button>
       </div>
     </div>
   </header>
@@ -2517,5 +2541,6 @@
   <script src="/static/js/pilot-loading.js?v=2"></script>
   <script src="/static/js/ballast-ui.js?v=1"></script>
   <script src="/static/js/coursework.js?v=5"></script>
+  <script src="/static/js/modern-ui.js?v=1"></script>
 </body>
 </html>

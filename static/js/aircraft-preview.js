@@ -267,8 +267,15 @@
     const screen=p=>[380+(p[0]-(minX+maxX)/2)*scale,205+(p[1]-(minY+maxY)/2)*scale];
     const str=points=>points.map(p=>screen(p).map(v=>v.toFixed(2)).join(',')).join(' ');
     const title=({iso:'AXONOMETRIA',top:'RZUT Z GÓRY',side:'RZUT Z BOKU',front:'RZUT Z PRZODU'})[view] || 'WIDOK SWOBODNY';
-    let svg=`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 410" role="img" aria-label="${escape(aircraft.name)} — obracany schemat samolotu" data-yaw="${angle.yaw}" data-elevation="${angle.elevation}" data-proportions="${aircraft.proportions}"><title>${escape(aircraft.name)} — schemat poglądowy</title><defs><radialGradient id="aircraft-studio-light"><stop stop-color="#ffffff"/><stop offset="1" stop-color="#f1f5f8"/></radialGradient></defs><rect width="760" height="410" fill="url(#aircraft-studio-light)"/>`;
-    if(angle.elevation>0&&angle.elevation<70) svg+='<ellipse cx="385" cy="321" rx="232" ry="16" fill="#cad6df" opacity=".22"/>';
+    const isDark = (typeof document !== 'undefined') &&
+                   ((document.documentElement.getAttribute('data-theme') === 'dark') ||
+                    (document.body && document.body.getAttribute('data-theme') === 'dark'));
+    const bgStart = isDark ? '#0e1726' : '#ffffff';
+    const bgEnd = isDark ? '#070c14' : '#f1f5f8';
+    const textColor = isDark ? '#94a3b8' : '#607989';
+    const shadowColor = isDark ? '#1e293b' : '#cad6df';
+    let svg=`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 410" role="img" aria-label="${escape(aircraft.name)} — obracany schemat samolotu" data-yaw="${angle.yaw}" data-elevation="${angle.elevation}" data-proportions="${aircraft.proportions}"><title>${escape(aircraft.name)} — schemat poglądowy</title><defs><radialGradient id="aircraft-studio-light"><stop stop-color="${bgStart}"/><stop offset="1" stop-color="${bgEnd}"/></radialGradient></defs><rect width="760" height="410" fill="url(#aircraft-studio-light)"/>`;
+    if(angle.elevation>0&&angle.elevation<70) svg+=`<ellipse cx="385" cy="321" rx="232" ry="16" fill="${shadowColor}" opacity="${isDark ? '.35' : '.22'}"/>`;
     // Painter order is recalculated for every orientation, including underside views.
     projected.forEach(face=>{face.depth=face.projected.reduce((sum,p)=>sum+p[2],0)/face.points.length+(face.line ? .0001 : 0);});
     projected.sort((a,b)=>a.depth-b.depth);
@@ -290,7 +297,7 @@
     svg+=`<circle cx="${cg[0].toFixed(2)}" cy="${cg[1].toFixed(2)}" r="4" fill="#e1a94c" stroke="white" stroke-width="1.5"><title>Środek ciężkości</title></circle>`;
     const shortName=aircraft.name.length>54?aircraft.name.slice(0,51)+'…':aircraft.name;
     const mode=aircraft.proportions==='concept'?'KONCEPCJA · PROPORCJE UPROSZCZONE':'PROPORCJE Z OBLICZEŃ';
-    svg+=`<g font-family="system-ui, sans-serif" font-size="11" fill="#607989"><text x="25" y="32">${title}</text><text x="735" y="32" text-anchor="end">${Math.round(angle.yaw)}° / ${Math.round(angle.elevation)}°</text><text x="25" y="375">${escape(shortName)}</text><text x="735" y="375" text-anchor="end">S = ${format(aircraft.area)} m² · b = ${format(aircraft.span)} m</text><text x="25" y="397">${mode}</text><text x="735" y="397" text-anchor="end">● Środek ciężkości</text></g></svg>`;
+    svg+=`<g font-family="system-ui, sans-serif" font-size="11" fill="${textColor}"><text x="25" y="32">${title}</text><text x="735" y="32" text-anchor="end">${Math.round(angle.yaw)}° / ${Math.round(angle.elevation)}°</text><text x="25" y="375">${escape(shortName)}</text><text x="735" y="375" text-anchor="end">S = ${format(aircraft.area)} m² · b = ${format(aircraft.span)} m</text><text x="25" y="397">${mode}</text><text x="735" y="397" text-anchor="end">● Środek ciężkości</text></g></svg>`;
     return svg;
   }
   // The interactive mesh uses a depth buffer and interpolated normals. SVG remains
