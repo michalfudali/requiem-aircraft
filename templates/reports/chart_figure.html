@@ -1,0 +1,20 @@
+{#- Rysunek, z którego odczytano daną wejściową (karta obliczeń). Wymaga: fid, res, params. -#}
+{% set ta = res.bipol_projects.p1.trend_analysis %}{% set tp = ta.two_point %}{% set bp = res.mass.preliminary_polar %}
+{% set corke = res.mass.mission_assumptions.corke %}
+{% if fid == 'corke' and corke and corke.get('mach_start') %}
+<figure id="fig-corke">{{ charts.corke_chart(corke) }}<figcaption>Stosunek mas w funkcji liczby Macha dla wznoszenia i rozpędzania (wykres Corke’a {{ cite('corke') }}) z odczytami dla M<sub>p</sub> i M<sub>k</sub>.</figcaption></figure>
+{% elif fid == 'raymer' and bp.get('wetted_aspect_ratio') and params.get('raymer_family') %}
+<figure id="fig-raymer">{{ charts.raymer_chart(params.raymer_family, bp.wetted_aspect_ratio, bp.kmax) }}<figcaption>Maksymalna doskonałość w funkcji wydłużenia odniesionego do powierzchni omywanej (wg Raymera {{ cite('raymer') }}) z zaznaczonym odczytem.</figcaption></figure>
+{% elif fid == 'mass-trend' and ta.mass_fit %}
+<figure id="fig-mass-trend">{{ trend_chart(ta, 'mass', [(tp.x1, tp.y1, 'punkt 1'), (tp.x2, tp.y2, 'punkt 2')] if tp else []) }}<figcaption>Udział masy pustej w funkcji masy startowej samolotów podobnych z linią trendu; zaznaczono punkty odczytane z linii trendu.</figcaption></figure>
+{% elif fid == 'schrenk' %}
+<figure id="fig-schrenk">{{ charts.schrenk_chart(res.geometry.schrenk) }}<figcaption>Rozkład obciążenia na półrozpiętości skrzydła dla C<sub>z</sub> = 1.</figcaption></figure>
+{% elif fid == 'glauert' %}
+<figure id="fig-glauert">{{ charts.glauert_charts(res.bipol_projects.paturski_ml.p2_wing_aero.terms) }}<figcaption>Poprawki Glauerta z zaznaczonymi wartościami dla projektowanego skrzydła (przybliżenie wykresów {{ cite('paturski') }}).</figcaption></figure>
+{% elif fid == 'climb' and res.bipol_projects.paturski_ml.p6_performance_paturski.table_6_1_power_balance_h0 %}
+<figure id="fig-climb">{{ charts.climb_chart(res.bipol_projects.paturski_ml.p6_performance_paturski.table_6_1_power_balance_h0) }}<figcaption>Prędkość wznoszenia w funkcji prędkości lotu na poziomie morza (bilans mocy).</figcaption></figure>
+{% elif fid == 'mission' %}
+<figure id="fig-mission">{{ charts.mission_profile_chart(params, res.mass) }}<figcaption>Schemat profilu misji (skala pozioma umowna).</figcaption></figure>
+{% elif fid == 'sketch' %}
+<figure id="fig-sketch">{{ report_sketch(res) }}<figcaption>Szkic samolotu w trzech rzutach. Wymiary w milimetrach.</figcaption></figure>
+{% endif %}

@@ -8,7 +8,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>{{ params.name }} — karta obliczeń — BIPOL I</title>
+  <title>{{ params.name }} — karta obliczeń</title>
   {% include 'math_assets.html' %}
   <style>{{ report_assets.css|safe }}</style>
 </head>
@@ -33,35 +33,31 @@
     </header>
     <section class="report-part" data-parameter-report>
       <h2>Zakres karty obliczeń</h2>
-      <p>Karta zawiera {{ 'pełny tok obliczeń wybranych wielkości — od danych wejściowych, przez wszystkie wielkości pośrednie, do wyniku' if chain else 'wzory wybranych wielkości z podstawieniem danych; wartości wielkości pośrednich podano w tabelach danych ze wskazaniem miejsca ich obliczenia' }}. Każdy wynik zapisano jako wzór ogólny, podstawienie liczb i wynik z jednostką. Obliczenia wykonano dla wariantu „{{ params.name }}” w atmosferze ISA; wzory i oznaczenia odpowiadają materiałom BIPOL I i Mechaniki Lotu I.</p>
+      <p>Karta zawiera {{ 'pełny tok obliczeń wybranych wielkości — od danych wejściowych, przez wszystkie wielkości pośrednie, do wyniku' if chain else 'wzory wybranych wielkości z podstawieniem danych; wartości wielkości pośrednich podano w tabelach danych wraz z miejscem ich obliczenia' }}. Każdy wynik zapisano wzorem ogólnym, podstawieniem liczb i wynikiem z jednostką, a przy każdej danej wejściowej podano jej pochodzenie. Wykresy, z których odczytano dane, zamieszczono przy obliczeniach, które z nich korzystają. Obliczenia wykonano dla samolotu „{{ params.name }}” w atmosferze wzorcowej ISA.</p>
+      {% set part_title = {'const': 'Stałe fizyczne', 'p1': 'Projekt 1. ' ~ doc.titles.p1, 'p2': 'Projekt 2. ' ~ doc.titles.p2, 'p3': 'Projekt 3. ' ~ doc.titles.p3, 'p4': 'Projekt 4. ' ~ doc.titles.p4, 'p5': 'Projekt 5. ' ~ doc.titles.p5, 'p6': 'Projekt 6. ' ~ doc.titles.p6} %}
       {% if selected %}
       <table><caption>Wybrane wielkości i ich wartości</caption><thead><tr><th>Wielkość</th><th>Symbol i wartość</th><th>Część projektu</th></tr></thead><tbody>
-      {% for e in selected %}<tr><td><a href="#q-{{ e.key }}">{{ e.label }}</a></td><td>{% if e.kind == 'table' %}wzór tabelaryczny{% else %}\({{ e.sym }} = {{ e.value_tex }}\){% endif %}</td><td>{{ sheet.where(e.key) }}</td></tr>{% endfor %}
+      {% for e in selected %}<tr><td><a href="#q-{{ e.key }}">{{ e.label|subs }}</a></td><td>{% if e.kind == 'table' %}wzór tabelaryczny{% else %}\({{ e.sym }} = {{ e.value_tex }}\){% endif %}</td><td>{{ part_title[e.project] }} — {{ sheet.sections[e.section].title|lower }}</td></tr>{% endfor %}
       </tbody></table>
       {% endif %}
-      {% set ns = namespace(project=None) %}
+      {% set ns = namespace(project=None, figures=[]) %}
       {% for kind, key in plan %}
         {% if kind == 'block' %}
           {% set block = sheet.blocks[key] %}
           {% set trace = res.mass.guideline_traces[key.replace('mass_iteration_', '')] %}
-          {% if ns.project != block.project %}{% set ns.project = block.project %}<h2 class="parameter-project">{{ project_titles[block.project] }}</h2>{% endif %}
+          {% if ns.project != block.project %}{% set ns.project = block.project %}<h2 class="parameter-project">{{ part_title[block.project] }}</h2>{% endif %}
           <h3 id="block-{{ key }}">{{ block.title }}</h3>
           {% with full = full_iterations %}{% include 'reports/mass_iteration.html' %}{% endwith %}
         {% else %}
           {% set section = sheet.sections[key] %}
-          {% if ns.project != section.project %}{% set ns.project = section.project %}<h2 class="parameter-project">{{ project_titles[section.project] }}</h2>{% endif %}
+          {% if ns.project != section.project %}{% set ns.project = section.project %}<h2 class="parameter-project">{{ part_title[section.project] }}</h2>{% endif %}
           {{ c.section(sheet, key, only=members[key], chain=chain, heading='h3') }}
+          {% for fid in charts.figure_ids(sheet, members[key]) if fid not in ns.figures %}{% set ns.figures = ns.figures + [fid] %}{% include 'reports/chart_figure.html' %}{% endfor %}
         {% endif %}
       {% endfor %}
-      <h3>Źródła wzorów</h3>
-      <ol class="bibliography">
-        <li>Galiński, C., <em>BIPOL_1 — Analizy wstępne</em>; Galiński, C., Grabowski, T., <em>BIPOL_1 — Wyprowadzenie wzorów</em>. Materiały dydaktyczne BIPOL I, PW.</li>
-        <li><em>BIPOL_2 — Studium wykonalności</em> oraz <em>BIPOL_3 — Analiza masowa</em>, materiały dydaktyczne BIPOL I, PW.</li>
-        <li>Paturski, Z., <em>Przewodnik po projektach z Mechaniki Lotu</em>, PW.</li>
-        <li>Danilecki, S., <em>Konstruowanie samolotów</em>; Raymer, D. P., <em>Aircraft Design: A Conceptual Approach</em>, AIAA.</li>
-        <li>EASA CS-23 Amdt 4 (metoda obwiedni), CS-22 Amdt 3 (opcjonalnie Amdt 2 — Pratt), CS-25.</li>
-      </ol>
-      <p class="small">Model służy do obliczeń dydaktycznych wstępnego projektu i nie stanowi potwierdzenia zdatności do lotu.</p>
+      <h3>Literatura</h3>
+      <ol class="bibliography" data-bibliography></ol>
+      <p class="small">Obliczenia mają charakter wstępny i nie stanowią potwierdzenia zdatności samolotu do lotu.</p>
     </section>
   </main>
   <script>{{ report_assets.document|safe }}</script>

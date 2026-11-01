@@ -158,11 +158,7 @@
           <button class="bipol-tab" data-target="tab-calculation-tree">Drzewo obliczeń</button>
           <button class="bipol-tab" data-target="tab-variants">Warianty</button>
           <button class="bipol-tab" data-target="tab-reports">Raporty</button>
-          <button class="bipol-tab" data-target="tab-coursework">Plan na 5,0</button>
-          <button class="bipol-tab" data-target="tab-exam">Zadanie kolokwialne</button>
-          <button class="bipol-tab" data-target="tab-quiz">Zejściówki</button>
           <button class="bipol-tab" data-target="tab-glide">Lot szybowy</button>
-          <button class="bipol-tab" data-target="tab-methods">Metody</button>
           <button class="bipol-tab" data-target="tab-trends">Baza i trendy</button>
           <button class="bipol-tab" data-target="tab-cad">📐 CAD A3Z</button>
           <button class="bipol-tab" data-target="tab-p1-p2">📦 P1/P2: MTOW & Matching</button>
@@ -171,16 +167,11 @@
           <button class="bipol-tab" data-target="tab-p5">🚀 P5: Osiągi Samolotu</button>
           <button class="bipol-tab" data-target="tab-p6">⚖️ P6: Obwiednia V-n & Wyważenie</button>
           <button class="bipol-tab" data-target="tab-compliance">✅ Weryfikacja Założeń</button>
-          <button class="bipol-tab" data-target="tab-didactic-compendium">🎓 Kompendium (Galiński)</button>
-          <button class="bipol-tab" data-target="tab-faculty-docs">📥 Materiały MEiL & Danilecki (62 PDF)</button>
-          <button class="bipol-tab" data-target="tab-bipol-guide">📋 Regulamin P1–P6</button>
         </div>
 
         {% include "inputs_panel.html" %}
         {% include "studio_panels.html" %}
         {% include "coursework_panel.html" %}
-        {% include "exam_panel.html" %}
-        {% include "quiz_panel.html" %}
         {% include "calculation_tree.html" %}
 
         <!-- MODUŁ CAD: RYSUNEK ZESTAWIENIOWY WG POLSKICH NORM CAD (ZPK MEiL PW / PN-EN ISO) -->
@@ -834,8 +825,33 @@
               </table>
             </div>
           </div>
+
+          <!-- AUDYT INŻYNIERSKI & PUŁAPKI KONSTRUKCYJNE -->
+          <section class="studio-card" id="courseworkEngineeringAuditCard" style="margin-top:1.5rem;">
+            <div class="studio-card-heading">
+              <div>
+                <h2>🛡️ Audyt Inżynierski &amp; Pułapki Konstrukcyjne</h2>
+                <p id="courseworkAuditSubtitle">Krytyczne sprawdzenia kątów podwozia, flatteru, hałasu ICAO, własności lotnych CAP i asymetrii ciągu OEI.</p>
+              </div>
+              <span class="badge" id="courseworkAuditBadge">-</span>
+            </div>
+            <div id="courseworkAuditList" class="audit-checks-grid"></div>
+          </section>
+
+          <!-- PYTANIA PROWADZĄCEGO NA OBRONIE -->
+          <section class="studio-card" id="courseworkDefenseQuestionsCard" style="margin-top:1.5rem;">
+            <div class="studio-card-heading">
+              <div>
+                <h2>🎓 Pytania Egzaminacyjne i Wzorcowe Odpowiedzi</h2>
+                <p>Spersonalizowane pytania inżynierskie wygenerowane dla bieżącego projektu samolotu.</p>
+              </div>
+            </div>
+            <div id="courseworkDefenseQuestionsList" class="defense-questions-list"></div>
+          </section>
         </div>
 
+        <!-- HIDDEN ACADEMIC PANELS -->
+        <div style="display:none;" aria-hidden="true">
         <!-- TAB: KOMPENDIUM KONSTRUKTORA (MONOGRAFIA PROF. C. GALIŃSKIEGO & ZPK CAD1) -->
         <div id="tab-didactic-compendium" class="tab-content">
           <div class="b-card">
@@ -1003,6 +1019,7 @@
 
         </div> <!-- /#holisticWorkspace -->
 
+        </div>
         <!-- WORKSPACE 2: TRYB REALIZACJI PROJEKTÓW SEMESTRALNYCH BIPOL I (P1 DO P6) -->
         <div id="semesterWorkstation" style="display:none;">
 
@@ -1916,7 +1933,7 @@
       <div class="session-starter-hero">
         <div style="font-size:2.4rem; margin-bottom:0.3rem;">✈️ 🎓 📐</div>
         <h2>Witaj w Środowisku BiPOL Requiem MEiL PW!</h2>
-        <p>Wybierz jedną z dwóch wersji portalu dopasowaną do Twojego trybu pracy</p>
+        <p>Zintegrowane środowisko projektowania i obliczeń samolotu CAD/CAE</p>
       </div>
       <div class="session-starter-body">
         <div class="session-starter-choices" style="margin-bottom:1.1rem;">
@@ -1936,7 +1953,7 @@
           </div>
 
           <!-- Wersja 2: Poszczególne Projekty Semestralne -->
-          <div class="starter-choice-card primary" id="starterProjectsCard" style="border-color:#1e40af; background:linear-gradient(180deg, #eff6ff 0%, #ffffff 100%); text-align:left; align-items:flex-start;">
+          <div class="starter-choice-card primary" id="starterProjectsCard" style="display:none;" style="border-color:#1e40af; background:linear-gradient(180deg, #eff6ff 0%, #ffffff 100%); text-align:left; align-items:flex-start;">
             <div style="display:flex; justify-content:space-between; width:100%; align-items:center; margin-bottom:0.4rem;">
               <span style="font-size:2rem;">🎓</span>
               <span class="badge" style="background:#1e40af; color:#fff;">WERSJA 2 PORTALU (KURS BIPOL I)</span>
@@ -2490,7 +2507,5 @@
   <script src="/static/js/workspace.js?v=6"></script>
   <script src="/static/js/calculation-tree.js?v=2"></script>
   <script src="/static/js/coursework.js?v=5"></script>
-  <script src="/static/js/exam.js?v=4"></script>
-  <script src="/static/js/quiz.js?v=2"></script>
 </body>
 </html>

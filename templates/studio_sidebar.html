@@ -6,22 +6,25 @@
     <button type="button" class="studio-nav-item{% if target == 'tab-overview' %} active{% endif %}" data-studio-nav="{{ target }}"><span data-studio-icon="{{ icon }}"></span><span>{{ label }}</span></button>
     {% endfor %}
     <button type="button" class="studio-nav-item" data-studio-nav="tab-calculation-tree"><span data-studio-icon="layers"></span><span>Drzewo obliczeń</span></button>
-    <details class="quiet-nav-group" id="analysisNavigation"><summary>Analizy szczegółowe</summary>
+    <details class="quiet-nav-group" id="analysisNavigation" open><summary>Analizy szczegółowe</summary>
       {% for target, icon, label in [('tab-p1-p2','target','Masy i napęd'),('tab-p3','wing','Geometria i wyważenie'),('tab-p4','chart','Aerodynamika'),('tab-p5','clock','Osiągi'),('tab-glide','glider','Lot szybowy'),('tab-p6','shield','Obwiednia obciążeń'),('tab-compliance','check','Weryfikacja')] %}
       <button type="button" class="studio-nav-item" data-studio-nav="{{ target }}"><span data-studio-icon="{{ icon }}"></span><span>{{ label }}</span></button>
       {% endfor %}
     </details>
-    <details class="quiet-nav-group" id="learningNavigation"><summary>Materiały i zaliczenie</summary>
-      <a class="studio-nav-item" href="/ml1"><span data-studio-icon="book"></span><span>Mechanika Lotu I · P1–P6</span></a>
-      <button type="button" class="studio-nav-item" data-studio-nav="tab-coursework"><span data-studio-icon="check"></span><span>Plan na 5,0</span></button>
-      <button type="button" class="studio-nav-item" data-studio-nav="tab-exam"><span data-studio-icon="wing"></span><span>Zadanie kolokwialne</span></button>
-      <button type="button" class="studio-nav-item" data-studio-nav="tab-quiz"><span data-studio-icon="book"></span><span>Zejściówki</span></button>
-      {% for target, icon, label in [('tab-methods','book','Metody i źródła'),('tab-faculty-docs','download','Materiały dydaktyczne'),('tab-didactic-compendium','info','Kompendium'),('tab-bipol-guide','book','Zakres P1–P6')] %}
-      <button type="button" class="studio-nav-item" data-studio-nav="{{ target }}"><span data-studio-icon="{{ icon }}"></span><span>{{ label }}</span></button>
-      {% endfor %}
-      <button type="button" class="studio-nav-item" id="btnModeProjects" onclick="setPortalMode('projects')"><span data-studio-icon="book"></span><span>Projekty semestralne</span></button>
-    </details>
-    <button type="button" class="studio-nav-item quiet-return" id="btnModeHolistic" onclick="setPortalMode('holistic')"><span data-studio-icon="arrow"></span><span>Wróć do projektu</span></button>
+    <div style="display:none;" aria-hidden="true">
+      <details id="learningNavigation">
+        <summary></summary>
+        <button type="button" id="btnModeProjects" onclick="setPortalMode('projects')"></button>
+        <button type="button" data-studio-nav="tab-coursework"></button>
+        <button type="button" data-studio-nav="tab-exam"></button>
+        <button type="button" data-studio-nav="tab-quiz"></button>
+        <button type="button" data-studio-nav="tab-methods"></button>
+        <button type="button" data-studio-nav="tab-faculty-docs"></button>
+        <button type="button" data-studio-nav="tab-didactic-compendium"></button>
+        <button type="button" data-studio-nav="tab-bipol-guide"></button>
+      </details>
+      <button type="button" id="btnModeHolistic" onclick="setPortalMode('holistic')"></button>
+    </div>
   </nav>
   <div class="studio-sidebar-foot"><strong>PW / MEiL</strong><p>Pracownia projektowa</p></div>
 </aside>

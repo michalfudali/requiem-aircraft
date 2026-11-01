@@ -1,66 +1,68 @@
-{#- Schemat iteracji masy startowej 1:1 z BIPOL_1, s. 4. Wymaga: trace, full (bool), res. -#}
+{#- Wyznaczenie masy startowej krok po kroku. Wymaga: trace, full (bool), res. -#}
 {% import 'reports/calc.html' as c %}
 <section class="mass-iteration" data-mass-iteration="{{ trace.method }}">
 {% if trace.method == 'iterative' %}
-<p>Masę startową wyznaczono <strong>metodą iteracyjną</strong> BIPOL_1 (s. 4), przeznaczoną dla samolotów zrzucających ładunek w trakcie lotu. Procedura z materiału:</p>
+<p>Ponieważ samolot zrzuca część ładunku w locie, masę startową wyznaczono <strong>metodą iteracyjną</strong> {{ cite('galinski_aw') }}. W każdej iteracji wykonuje się następujące kroki:</p>
 <ol class="guideline-steps">
-  <li>Zakładamy masę startową.</li>
-  <li>Obliczamy masę samolotu po starcie.</li>
-  <li>Obliczamy masę po wznoszeniu (masa na początku wznoszenia jest równa masie po starcie).</li>
-  <li>Obliczamy masę po dolocie do celu.</li>
-  <li>Obliczamy masę po wykonaniu zadania (samolot może zrzucić część ładunku płatnego).</li>
-  <li>Obliczamy masę po powrocie.</li>
-  <li>Obliczamy masę po oczekiwaniu w kolejce do lądowania.</li>
-  <li>Obliczamy masę po lądowaniu i kołowaniu.</li>
-  <li>Obliczamy masę samolotu pustego: od masy po lądowaniu odejmujemy ładunek, rezerwę paliwa i paliwo niezużywalne.</li>
-  <li>Wyznaczamy realistyczną masę pustego: zakładana masa startowa × udział masy pustego z równania (1).</li>
-  <li>Obliczamy różnicę mas z punktów 9 i 10.</li>
-  <li>Modyfikujemy masę startową i wracamy do punktu 1.</li>
+  <li>Zakłada się masę startową.</li>
+  <li>Oblicza się masę samolotu po starcie.</li>
+  <li>Oblicza się masę po wznoszeniu (masa na początku wznoszenia jest równa masie po starcie).</li>
+  <li>Oblicza się masę po dolocie do celu.</li>
+  <li>Oblicza się masę po wykonaniu zadania (z uwzględnieniem zrzuconego ładunku).</li>
+  <li>Oblicza się masę po powrocie.</li>
+  <li>Oblicza się masę po oczekiwaniu na lądowanie.</li>
+  <li>Oblicza się masę po lądowaniu i kołowaniu.</li>
+  <li>Wyznacza się masę samolotu pustego z misji: od masy po lądowaniu odejmuje się ładunek, rezerwę paliwa i paliwo niezużywalne.</li>
+  <li>Wyznacza się masę pustego z zależności statystycznej: zakładana masa startowa razy udział masy pustej.</li>
+  <li>Oblicza się różnicę mas z kroków 9 i 10.</li>
+  <li>Koryguje się masę startową i wraca do kroku 1.</li>
 </ol>
-<p>Obliczenia prowadzi się do zgodności mas 0,1%. Pierwszą korektę wykonano o różnicę mas: \(m_0^{(2)}=m_0^{(1)}-\Delta^{(1)}\). Od trzeciej iteracji, zgodnie z zaleceniem materiału, masę startową wyznacza prosta \(m_0(\Delta)\) przez dwie ostatnie iteracje, przecięta z \(\Delta=0\). Załogę traktuje się jak ładunek pozostający na pokładzie; rezerwę i paliwo niezużywalne opisuje współczynnik \(k_{rez}={{ trace.reserve_factor|texnum(2) }}\).</p>
+<p>Obliczenia prowadzono do zgodności mas pustego w granicach 0,1%. Pierwszą korektę wykonano o różnicę mas: \(m_0^{(2)}=m_0^{(1)}-\Delta^{(1)}\); od trzeciej iteracji nową masę startową wyznacza prosta \(m_0(\Delta)\) przez dwie ostatnie iteracje, przecięta z \(\Delta=0\). Załogę traktuje się jak ładunek pozostający na pokładzie; rezerwę i paliwo niezużywalne opisuje współczynnik \(k_{rez}={{ trace.reserve_factor|texnum(2) }}\).</p>
 {% else %}
-<p>Masę startową wyznaczono <strong>metodą proporcji</strong> BIPOL_1 (s. 4), przeznaczoną dla samolotów niezrzucających ładunku. Procedura z materiału:</p>
+<p>Samolot nie zrzuca ładunku w locie, dlatego masę startową wyznaczono <strong>metodą proporcji</strong> {{ cite('galinski_aw') }}:</p>
 <ol class="guideline-steps">
-  <li>Obliczamy stosunek masy przed i po każdej fazie lotu.</li>
-  <li>Obliczamy iloczyn wyznaczonych proporcji \(M_{ff}\).</li>
-  <li>Obliczamy stosunek masy paliwa do masy startowej, wzór (4): \(m_f/m_0=k_{rez}\,(1-M_{ff})\), \(k_{rez}={{ trace.reserve_factor|texnum(2) }}\).</li>
-  <li>Do wzoru (5) \(m_0=\dfrac{m_{zał}+m_{ład}}{1-m_f/m_0-m_e/m_0}\) wstawiamy równanie (1) i rozwiązujemy go iteracyjnie, zaczynając od założonej masy startowej.</li>
+  <li>Oblicza się stosunek mas przed i po każdej fazie lotu.</li>
+  <li>Oblicza się iloczyn tych stosunków \(M_{ff}\).</li>
+  <li>Oblicza się udział masy paliwa \(m_f/m_0=k_{rez}\,(1-M_{ff})\), przy \(k_{rez}={{ trace.reserve_factor|texnum(2) }}\).</li>
+  <li>Zakłada się masę startową.</li>
+  <li>Dla tej masy oblicza się udział masy pustej z zależności statystycznej.</li>
+  <li>Z równania bilansu masy \(m_0=\dfrac{m_{zał}+m_{ład}}{1-m_f/m_0-m_e/m_0}\) oblicza się nową masę startową i powtarza kroki 5–6.</li>
 </ol>
-<p>Iteracje prowadzi się do zmiany masy startowej nie większej niż 0,1%. Stosunki mas faz lotu podano w tabeli faz misji; dla misji bez zadania przy maksymalnym ciągu nie zależą one od masy.</p>
+<p>Iteracje prowadzono do zmiany masy startowej nie większej niż 0,1%. Stosunki mas w fazach lotu zestawiono w tabeli faz misji.</p>
 {% endif %}
-{% if trace.error %}<p class="calc-note">Zapis iteracji przerwano: {{ trace.error }} Wynik bilansu przyjęto z rozwiązania równania masowego.</p>{% else %}
-<figure class="flow">{{ figs.flow_diagram(trace) }}<figcaption>Schemat {{ 'metody iteracyjnej' if trace.method == 'iterative' else 'metody proporcji' }} BIPOL_1 z wartościami ostatniej iteracji (k = {{ trace.final_k }}).</figcaption></figure>
+{% if trace.error %}<p class="calc-note">Zapisu kolejnych iteracji nie wykonano: {{ trace.error }} Masę startową przyjęto z rozwiązania równania bilansu masy.</p>{% else %}
+<figure class="flow">{{ figs.flow_diagram(trace) }}<figcaption>Schemat wyznaczania masy startowej {{ 'metodą iteracyjną' if trace.method == 'iterative' else 'metodą proporcji' }} z wartościami ostatniej iteracji (k = {{ trace.final_k }}).</figcaption></figure>
 {% set rows = trace.rows %}
 {% for row in rows %}{% if full or loop.first %}
-<h4 class="iteration-heading">Iteracja {{ row.k }}{% if loop.first %} — pełny zapis punktów procedury{% endif %}</h4>
+<h4 class="iteration-heading">Iteracja {{ row.k }}{% if loop.first %} — wszystkie kroki{% endif %}</h4>
 <div class="iteration-steps">{% for step in worked_iteration(trace, loop.index0) %}
-<div class="calc calc-step"><p class="calc-label">Punkt {{ step.point }}. {{ step.label }}</p><div class="equation"><div class="formula">\[{{ step.tex }}\]</div></div></div>{% endfor %}</div>
+<div class="calc calc-step"><p class="calc-label">Krok {{ step.point }}. {{ step.label|replace("(pkt 12)", "(krok 12)")|subs }}</p><div class="equation"><div class="formula">\[{{ step.tex }}\]</div></div></div>{% endfor %}</div>
 {% endif %}{% endfor %}
 {% if not full and rows|length > 1 %}
-<h4 class="iteration-heading">Iteracje {{ rows[1].k }}–{{ rows[-1].k }} — {{ 'korekta masy startowej' if trace.method == 'iterative' else 'kolejne przybliżenia wzoru (5)' }}</h4>
-<p>Kolejne iteracje powtarzają punkty z iteracji 1 dla nowej masy startowej. Poniżej zapisano {{ 'korektę masy (pkt 12)' if trace.method == 'iterative' else 'obliczenie nowej masy startowej (pkt 6)' }}; pozostałe wartości zawierają tabele.</p>
+<h4 class="iteration-heading">Iteracje {{ rows[1].k }}–{{ rows[-1].k }} — {{ 'korekta masy startowej' if trace.method == 'iterative' else 'kolejne przybliżenia masy startowej' }}</h4>
+<p>Kolejne iteracje powtarzają kroki iteracji 1 dla nowej masy startowej. Poniżej zapisano {{ 'korektę masy (krok 12)' if trace.method == 'iterative' else 'obliczenie nowej masy startowej (krok 6)' }}; pozostałe wartości zestawiono w tabelach.</p>
 {% for row in rows[1:] %}{% set steps = worked_iteration(trace, loop.index) %}{% set step = (steps|selectattr('point', 'equalto', '6')|first) if trace.method == 'proportion' else steps[0] %}
-<div class="calc calc-step"><p class="calc-label">Iteracja {{ row.k }}, punkt {{ step.point }}. {{ step.label }}</p><div class="equation"><div class="formula">\[{{ step.tex }}\]</div></div></div>{% endfor %}
+<div class="calc calc-step"><p class="calc-label">Iteracja {{ row.k }}, krok {{ step.point }}. {{ step.label|replace("(pkt 12)", "(krok 12)")|subs }}</p><div class="equation"><div class="formula">\[{{ step.tex }}\]</div></div></div>{% endfor %}
 {% endif %}
 {% if trace.method == 'iterative' %}
 <table class="compact-table long-table iteration-table"><caption>Masy po fazach misji w kolejnych iteracjach [kg]</caption>
 <thead><tr><th class="number">k</th>{% for i in range(8) %}<th class="number">m{{ ['₀','₁','₂','₃','₄','₅','₆','₇'][i] }}</th>{% endfor %}</tr></thead><tbody>
 {% for row in rows %}<tr><td class="number">{{ row.k }}</td><td class="number">{{ row.m0|reportnum(1) }}</td>{% for i in range(1, 8) %}<td class="number">{{ row.masses['m' ~ i]|reportnum(1) }}</td>{% endfor %}</tr>{% endfor %}
 </tbody></table>
-<table class="compact-table iteration-table"><caption>Masa pustego z misji i z równania (1) w kolejnych iteracjach</caption>
-<thead><tr><th class="number">k</th><th class="number">m₀⁽ᵏ⁾ [kg]</th><th class="number">mₑ,mis [kg]</th><th class="number">mₑ/m₀ (1)</th><th class="number">mₑ,tr [kg]</th><th class="number">Δ [kg]</th><th class="number">|Δ|/mₑ,tr [%]</th><th>Korekta (pkt 12)</th></tr></thead><tbody>
-{% for row in rows %}<tr><td class="number">{{ row.k }}</td><td class="number">{{ row.m0|reportnum(2) }}</td><td class="number">{{ row.me_mission|reportnum(2) }}</td><td class="number">{{ row.empty_fraction|reportnum(4) }}</td><td class="number">{{ row.me_trend|reportnum(2) }}</td><td class="number">{{ row.delta|reportnum(3) }}</td><td class="number">{{ (100 * row.relative)|reportnum(4) }}</td><td>{% if loop.last %}koniec{% elif row.rule == 'secant' %}sieczna → {{ row.next_m0|reportnum(2) }}{% else %}m₀ − Δ → {{ row.next_m0|reportnum(2) }}{% endif %}</td></tr>{% endfor %}
+<table class="compact-table iteration-table"><caption>Masa pustego z misji i z zależności statystycznej w kolejnych iteracjach</caption>
+<thead><tr><th class="number">k</th><th class="number">m₀⁽ᵏ⁾ [kg]</th><th class="number">mₑ,mis [kg]</th><th class="number">mₑ/m₀</th><th class="number">mₑ,stat [kg]</th><th class="number">Δ [kg]</th><th class="number">|Δ|/mₑ,stat [%]</th><th>Korekta (krok 12)</th></tr></thead><tbody>
+{% for row in rows %}<tr><td class="number">{{ row.k }}</td><td class="number">{{ row.m0|reportnum(2) }}</td><td class="number">{{ row.me_mission|reportnum(2) }}</td><td class="number">{{ row.empty_fraction|reportnum(4) }}</td><td class="number">{{ row.me_trend|reportnum(2) }}</td><td class="number">{{ row.delta|reportnum(3) }}</td><td class="number">{{ (100 * row.relative)|reportnum(4) }}</td><td>{% if loop.last %}koniec{% elif row.rule == 'secant' %}prosta przez dwa punkty → {{ row.next_m0|reportnum(2) }}{% else %}m₀ − Δ → {{ row.next_m0|reportnum(2) }}{% endif %}</td></tr>{% endfor %}
 </tbody></table>
 {% else %}
-<table class="compact-table iteration-table"><caption>Kolejne przybliżenia wzoru (5) z równaniem (1)</caption>
+<table class="compact-table iteration-table"><caption>Kolejne przybliżenia masy startowej z równania bilansu masy</caption>
 <thead><tr><th class="number">k</th><th class="number">m₀⁽ᵏ⁾ [kg]</th><th class="number">m_f/m₀</th><th class="number">mₑ/m₀</th><th class="number">1 − m_f/m₀ − mₑ/m₀</th><th class="number">m₀⁽ᵏ⁺¹⁾ [kg]</th><th class="number">zmiana [%]</th></tr></thead><tbody>
 {% for row in rows %}<tr><td class="number">{{ row.k }}</td><td class="number">{{ row.m0|reportnum(2) }}</td><td class="number">{{ row.fuel_fraction|reportnum(5) }}</td><td class="number">{{ row.empty_fraction|reportnum(5) }}</td><td class="number">{{ row.denominator|reportnum(5) }}</td><td class="number">{{ row.next_m0|reportnum(2) }}</td><td class="number">{{ (100 * row.relative)|reportnum(4) }}</td></tr>{% endfor %}
 </tbody></table>
 {% endif %}
-<figure>{{ figs.convergence_chart(trace) }}<figcaption>Zbieżność iteracji: {% if trace.method == 'iterative' %}zakładana masa startowa oraz masa pustego z misji (pkt 9) i z równania (1) (pkt 10){% else %}masa zakładana i masa otrzymana ze wzoru (5){% endif %}.</figcaption></figure>
-<figure>{{ figs.error_chart(trace) }}<figcaption>Błąd względny kolejnych iteracji na tle kryterium 0,1% z BIPOL_1.</figcaption></figure>
-{% if trace.method == 'iterative' and rows|length > 1 %}<figure>{{ figs.secant_chart(trace) }}<figcaption>Różnica mas Δ w funkcji zakładanej masy startowej. Linie przerywane: proste przez dwa ostatnie punkty, przecięte z Δ = 0 (pkt 12).</figcaption></figure>{% endif %}
+<figure>{{ figs.convergence_chart(trace) }}<figcaption>Zbieżność iteracji: {% if trace.method == 'iterative' %}zakładana masa startowa oraz masa pustego z misji (krok 9) i z zależności statystycznej (krok 10){% else %}masa zakładana i masa otrzymana z równania bilansu masy{% endif %}.</figcaption></figure>
+<figure>{{ figs.error_chart(trace) }}<figcaption>Błąd względny kolejnych iteracji na tle kryterium zbieżności 0,1%.</figcaption></figure>
+{% if trace.method == 'iterative' and rows|length > 1 %}<figure>{{ figs.secant_chart(trace) }}<figcaption>Różnica mas Δ w funkcji zakładanej masy startowej. Linie przerywane: proste przez dwa ostatnie punkty, przecięte z Δ = 0 (krok 12).</figcaption></figure>{% endif %}
 <figure>{{ figs.mission_chart_for(trace, res.mass) }}<figcaption>Masa samolotu po kolejnych fazach misji dla masy startowej z ostatniej iteracji.</figcaption></figure>
-<p>Kryterium zgodności 0,1% spełniono w iteracji {{ trace.converged_at or '—' }}. Obliczenia kontynuowano do ustalenia masy startowej z dokładnością zapisu (0,1 kg) w iteracji {{ trace.final_k }}: \(m_0={{ trace.m0|texnum(1) }}\) kg. W dalszych częściach projektu przyjęto \(m_0={{ res.mass.m0|texnum(1) }}\) kg z rozwiązania tego samego bilansu; różnica wynosi {{ (trace.m0 - res.mass.m0)|abs|reportnum(2) }} kg.</p>
+<p>Kryterium zgodności 0,1% spełniono w iteracji {{ trace.converged_at or '—' }}. Obliczenia kontynuowano do ustalenia masy startowej z dokładnością 0,1 kg w iteracji {{ trace.final_k }}: \(m_0={{ trace.m0|texnum(1) }}\) kg. W dalszych częściach projektu przyjęto \(m_0={{ res.mass.m0|texnum(1) }}\) kg z rozwiązania tego samego bilansu; różnica wynosi {{ (trace.m0 - res.mass.m0)|abs|reportnum(2) }} kg.</p>
 {% endif %}
 </section>

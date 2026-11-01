@@ -15,7 +15,6 @@ from calculations.presets import AIRCRAFT_PRESETS
 from calculations.aircraft_store import export_source
 from calculations.official_topics import ALL_TOPICS, OFFICIAL_CATEGORIES
 from calculations.coursework import SCHEDULE, GROUP_DAYS, GROUP_HOURS
-from calculations.lecture_quiz import lectures_with_questions
 from calculations.polish_law import catalog_for_frontend
 from calculations.trends import reference_catalog, SOURCES, DATA, CLASSES, get_trend_suggestions
 from calculations.aircraft_db import (
@@ -32,6 +31,9 @@ from calculations.drawing_sheet import drawing_sheet
 from calculations import report_figures
 from calculations.calc_sheet import build_sheet, worked_iteration
 from calculations.report_docx import build_docx
+from calculations.report_origin import (number_references, xref, cite, origin, origin_ref, render_tokens, subscripts,
+                                         component_source)
+from calculations import report_charts
 
 app = Flask(__name__)
 from calculations.ml1.web import blueprint as ml1_blueprint
@@ -41,12 +43,16 @@ app.jinja_env.globals['trend_chart'] = trend_chart
 app.jinja_env.globals['math_assets'] = math_assets
 app.jinja_env.filters['reportnum'] = report_number
 app.jinja_env.filters['texnum'] = tex_number
+app.jinja_env.filters['subs'] = subscripts
+app.jinja_env.filters['component_source'] = component_source
 app.jinja_env.filters['trendnum'] = lambda v, digits=3: f'{v:.{digits}f}' if isinstance(v, (int, float)) else '—'
 app.jinja_env.globals['report_metadata'] = report_metadata
 app.jinja_env.globals['report_sketch'] = report_sketch
 app.jinja_env.globals['drawing_sheet'] = drawing_sheet
 app.jinja_env.globals['figs'] = report_figures
 app.jinja_env.globals['worked_iteration'] = worked_iteration
+app.jinja_env.globals.update(xref=xref, cite=cite, origin=origin, origin_ref=origin_ref, tokens=render_tokens,
+                             charts=report_charts, zip=zip)
 PROJECT_TITLES = {'const': 'Stałe fizyczne', 'p1': 'P1 · Projekt koncepcyjny', 'p2': 'P2 · Studium wykonalności',
                   'p3': 'P3 · Projekt wstępny i analiza masowa', 'p4': 'P4 · Charakterystyki aerodynamiczne',
                   'p5': 'P5 · Osiągi', 'p6': 'P6 · Obwiednia obciążeń'}
@@ -72,7 +78,7 @@ def designer_defaults():
 def course_context():
     """Terminy oddania i pytania do zejściówek dla każdego widoku z panelem zaliczenia."""
     return dict(schedule=SCHEDULE, group_days=GROUP_DAYS, group_hours=GROUP_HOURS,
-                lectures=lectures_with_questions())
+                lectures=[])
 
 
 def report_parameters():
@@ -351,14 +357,7 @@ def coursework_grade():
     return jsonify(grade_plan(request.get_json(force=True)))
 
 
-@app.post('/api/exam/wing-loads')
-def exam_wing_loads():
-    """Zadanie kolokwialne I; liczby liter liczy przeglądarka, imię i nazwisko nie trafiają na serwer."""
-    from calculations.exam_wing import solve_exam1
-    data = request.get_json(force=True)
-    if not isinstance(data, dict):
-        raise ValueError('Podaj liczby liter X i Y.')
-    return jsonify(solve_exam1(data.get('x'), data.get('y')))
+
 
 
 @app.post('/api/coursework/iterate-polar')
@@ -378,7 +377,23 @@ def report():
         raise ValueError('Wybierz poprawny zakres raportu: P1–P6.')
     params = report_parameters()
     results = run_bipol_project(params)
-    return render_template('report.html', **document_context(results, selected_sections))
+    return finished(render_template('report.html', **document_context(results, selected_sections)), results)
+
+
+def data_literature(results):
+    """Bazy danych analizy trendów jako pozycje literatury (cytowane kluczem src-<id>)."""
+    sources = results['bipol_projects']['p1']['trend_analysis'].get('sources', {})
+    entries = {}
+    for key, source in sources.items():
+        name = f'<a href="{source["url"]}">{source["name"]}</a>' if source.get('url') else source['name']
+        citation = source.get('citation', '').replace('MEiL PW BIPOL', 'MEiL PW')
+        entries['src-' + key] = f'{name}. {citation} Licencja: {source.get("license", "—")}.'
+    return entries
+
+
+def finished(document, results):
+    """Numery rysunków, tabel, wzorów i pozycji literatury w odwołaniach tekstu."""
+    return number_references(document, data_literature(results))
 
 
 def document_context(results, sections, folder_cover=False):
@@ -390,9 +405,10 @@ def document_context(results, sections, folder_cover=False):
         'document': 'static/js/report.js',
         'editor': 'static/js/report-editor.js',
     }
+    sheet = build_sheet(results)
     return dict(res=results, params=results['params'], selected_sections=sections,
-                sheet=build_sheet(results),
-                doc=report_document(results, sections, request.args, folder_cover),
+                sheet=sheet,
+                doc=report_document(results, sections, request.args, folder_cover, sheet),
                 figure_results={key: results[key] for key in
                                 ('sizing', 'aerodynamics', 'envelope', 'geometry', 'performance', 'bipol_projects')},
                 report_assets={name: (Path(app.root_path) / path).read_text(encoding='utf-8')
@@ -453,9 +469,9 @@ def parameter_report():
                 placed.add(block)
         plan.append(('section', section))
     plan += [('block', b) for b in blocks if b not in placed]
-    return render_template('parameter_report.html', **context, plan=plan, members=members, chain=chain,
-                           selected=selected, selected_blocks=[sheet.blocks[b] for b in blocks if '@' + b in keys],
-                           full_iterations=full_iterations, project_titles=PROJECT_TITLES)
+    return finished(render_template('parameter_report.html', **context, plan=plan, members=members, chain=chain,
+                                    selected=selected, selected_blocks=[sheet.blocks[b] for b in blocks if '@' + b in keys],
+                                    full_iterations=full_iterations, project_titles=PROJECT_TITLES), results)
 
 
 @app.route('/holistic')
@@ -484,8 +500,8 @@ def project_report(p_id):
         abort(404)
     results = run_bipol_project(report_parameters())
     sections = [] if p_id == 'folder_cover' else [p_id]
-    return render_template('project_report.html',
-                           **document_context(results, sections, p_id == 'folder_cover'))
+    return finished(render_template('project_report.html',
+                                    **document_context(results, sections, p_id == 'folder_cover')), results)
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))

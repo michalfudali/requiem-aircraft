@@ -1,29 +1,33 @@
-{#- Zapis obliczeń jak w Mathcadzie: dane → wzór → podstawienie → wynik. -#}
+{#- Zapis obliczeń: dane z pochodzeniem → wzór → podstawienie → wynik. -#}
 {% macro entry(e) -%}
 <div class="calc calc-{{ e.kind }}" id="q-{{ e.key }}" data-calc="{{ e.key }}">
-  <p class="calc-label">{{ e.label }}{% if e.source %} <span class="calc-source">[{{ e.source }}]</span>{% endif %}</p>
+  <p class="calc-label">{{ e.label|subs }}</p>
   <div class="equation"><div class="formula">\[{{ e.tex }}\]</div></div>
   {%- if e.note %}<p class="calc-note">{{ e.note }}</p>{% endif %}
 </div>
 {%- endmacro %}
 
-{% macro data_table(sheet, givens, refs, caption) -%}
+{#- Dane sekcji. Pochodzenie każdej wielkości: wymaganie, założenie, warunek brzegowy, przepisy,
+    odczyt z wykresu zamieszczonego w sprawozdaniu albo wynik wcześniejszego obliczenia. -#}
+{% macro data_table(sheet, givens, refs, caption, key='', project=None, with_constants=True) -%}
+{% set refs = refs if with_constants else refs|rejectattr('project', 'equalto', 'const')|list %}
 {% if givens or refs %}
-<table class="compact-table data-table"><caption>{{ caption }}</caption>
-  <thead><tr><th>Wielkość</th><th>Symbol i wartość</th><th>Źródło</th></tr></thead><tbody>
-  {%- for e in givens %}<tr data-given="{{ e.key }}"><td>{{ e.label }}</td><td>\({{ e.sym }} = {{ e.value_tex }}\)</td><td>{{ e.source or 'Założenie' }}{% if e.note %}. {{ e.note }}{% endif %}</td></tr>{% endfor %}
-  {%- for e in refs %}<tr data-ref="{{ e.key }}"><td>{{ e.label }}</td><td>\({{ e.sym }} = {{ e.value_tex }}\)</td><td>{{ sheet.where(e.key) }}</td></tr>{% endfor %}
+<table class="compact-table data-table"{% if key %} id="dane-{{ key|replace('.', '-') }}"{% endif %}><caption>{{ caption }}</caption>
+  <thead><tr><th>Wielkość</th><th>Symbol i wartość</th><th>Pochodzenie</th></tr></thead><tbody>
+  {%- for e in givens %}<tr data-given="{{ e.key }}"><td>{{ e.label|subs }}</td><td>\({{ e.sym }} = {{ e.value_tex }}\)</td><td>{{ origin(e) }}{% if e.note %}. {{ e.note }}{% endif %}</td></tr>{% endfor %}
+  {%- for e in refs %}<tr data-ref="{{ e.key }}"><td>{{ e.label|subs }}</td><td>\({{ e.sym }} = {{ e.value_tex }}\)</td><td>{{ origin_ref(sheet, e.key, project) }}</td></tr>{% endfor %}
   </tbody></table>
 {% endif %}
 {%- endmacro %}
 
-{#- Cała sekcja arkusza; only — wybrane klucze, chain — tok obliczeń bez tabeli odwołań. -#}
+{#- Cała sekcja arkusza; only — wybrane klucze, chain — tok obliczeń bez tabeli odwołań.
+    W sprawozdaniu projektu (only=None) stałe fizyczne podaje tabela we wstępie. -#}
 {% macro section(sheet, key, only=None, chain=False, heading=None) -%}
 {%- set v = sheet.view(key, only, chain) -%}
 {%- if v.givens or v['items'] -%}
 <div class="calc-section" data-sheet-section="{{ key }}">
   {% if heading %}<{{ heading }}>{{ v.title }}</{{ heading }}>{% endif %}
-  {{ data_table(sheet, v.givens, v.refs, 'Dane: ' ~ v.title|lower) }}
+  {{ data_table(sheet, v.givens, v.refs, 'Dane: ' ~ v.title[:1]|lower ~ v.title[1:], key, v.project, only is not none) }}
   {% for e in v['items'] %}{{ entry(e) }}{% endfor %}
 </div>
 {%- endif -%}

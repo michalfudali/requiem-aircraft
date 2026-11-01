@@ -424,7 +424,7 @@ def _p1(s, r):
         aero = r['aerodynamics']
         cx = aero['cx0_clean'] + aero['k_clean'] * s.entries['Cz_cr']['value'] ** 2
         s.calc('Cx_cr', r'C_{x,cr}', r'C_{x0}+k\,C_{z,cr}^2', r'[[Cx0]]+[[k]]\cdot[[Cz_cr]]^2', cx, '', 5,
-               'Współczynnik oporu w przelocie (biegunowa P4)', check=lambda v: v.Cx0 + v.k * v.Cz_cr ** 2)
+               'Współczynnik oporu w przelocie', check=lambda v: v.Cx0 + v.k * v.Cz_cr ** 2)
         drag = s.entries['q_cr']['value'] * geom['wing']['S'] * cx
         s.calc('D_cr', r'D_{cr}', r'q_{cr}\,S\,C_{x,cr}', r'[[q_cr]]\cdot[[S]]\cdot[[Cx_cr]]', drag, N_, 0,
                'Opór w przelocie', check=lambda v: v.q_cr * v.S * v.Cx_cr)
@@ -444,7 +444,7 @@ def _p1_polar(s, r):
     span_fixed = _span_fixed(r)
     ar_key = _ar_key(r)
     s.given(ar_key, r'\Lambda', pp['aspect_ratio'], '', 2,
-            'Wydłużenie przyjęte z analizy trendów' if not span_fixed else 'Wydłużenie do biegunowej szacunkowej',
+            'Wydłużenie skrzydła' if not span_fixed else 'Wydłużenie do biegunowej szacunkowej',
             SOURCES['B1'] + ', s. 2')
     s.given('e_1', 'e', pp['oswald_e'], '', 3, 'Współczynnik Oswalda', SOURCES['B1'] + ': e ≈ 0,8')
     ar = '[[' + ar_key + ']]'
@@ -452,7 +452,7 @@ def _p1_polar(s, r):
         base = float(p['cx0'])
         extra = pp['cx0'] - base
         if extra > 1e-12:
-            s.given('Cx0_baz', r'C_{x0,baz}', base, '', 4, 'Opór zerowy przyjęty z tabeli BIPOL_1', SOURCES['B1'] + ', tabela Cx0')
+            s.given('Cx0_baz', r'C_{x0,baz}', base, '', 4, 'Opór zerowy przyjęty dla klasy samolotu', SOURCES['B1'] + ', tabela Cx0')
             names = [n for n, on in (('zastrzały', p.get('wing_config') == 'braced_high'),
                                      ('klapa Junkersa', p.get('flap_type') == 'junkers'),
                                      ('slot stały', p.get('slat_type') == 'fixed_slot')) if on]
@@ -460,22 +460,22 @@ def _p1_polar(s, r):
             s.calc('Cx0_1', r'C_{x0}', r'C_{x0,baz}+\Delta C_{x0,konf}', r'[[Cx0_baz]]+[[dCx0_konf]]', pp['cx0'], '', 4,
                    'Opór zerowy biegunowej szacunkowej', check=lambda v: v.Cx0_baz + v.dCx0_konf)
         else:
-            s.given('Cx0_1', r'C_{x0}', pp['cx0'], '', 4, 'Opór zerowy przyjęty z tabeli BIPOL_1', SOURCES['B1'] + ', tabela Cx0')
+            s.given('Cx0_1', r'C_{x0}', pp['cx0'], '', 4, 'Opór zerowy przyjęty dla klasy samolotu', SOURCES['B1'] + ', tabela Cx0')
         s.calc('Kmax_1', r'K_{max}', r'\frac{1}{2}\sqrt{\frac{\pi\Lambda e}{C_{x0}}}',
                r'\frac{1}{2}\sqrt{\frac{\pi\cdot' + ar + r'\cdot[[e_1]]}{[[Cx0_1]]}}', pp['kmax'], '', 3,
                'Maksymalna doskonałość szacunkowa', SOURCES['B1'] + ', wzór (3)',
                check=lambda v: .5 * math.sqrt(math.pi * getattr(v, ar_key) * v.e_1 / v.Cx0_1))
     else:
-        s.given('Swet_S_szk', r'(S_{wet}/S)_{szk}', pp['swet_ratio'], '', 3, 'Stosunek odczytany ze szkicu odręcznego',
+        s.given('Swet_S_szk', r'(S_{wet}/S)_{szk}', pp['swet_ratio'], '', 3, 'Stosunek S_wet/S zmierzony na szkicu',
                 SOURCES['B1'] + ', rys. 1')
         if pp['mode'] == 'raymer':
             s.calc('AR_wet', r'\Lambda_{wet}', r'\frac{\Lambda}{(S_{wet}/S)_{szk}}', r'\frac{' + ar + r'}{[[Swet_S_szk]]}', pp['wetted_aspect_ratio'], '', 3,
                    'Wydłużenie odniesione do powierzchni omywanej',
                    check=lambda v: getattr(v, ar_key) / v.Swet_S_szk)
-            s.given('Kmax_1', r'K_{max}', pp['kmax'], '', 2, 'Odczyt z rys. 2 dla Λwet (interpolacja odcinkowa)',
+            s.given('Kmax_1', r'K_{max}', pp['kmax'], '', 2, 'Maksymalna doskonałość z wykresu dla Λ_wet',
                     SOURCES['B1'] + ', rys. 2 (Raymer)')
         else:
-            s.given('Kmax_1', r'K_{max}', pp['kmax'], '', 2, 'Odczyt autora z rys. 2', SOURCES['B1'] + ', rys. 2')
+            s.given('Kmax_1', r'K_{max}', pp['kmax'], '', 2, 'Maksymalna doskonałość z wykresu', SOURCES['B1'] + ', rys. 2')
         s.calc('Cx0_1', r'C_{x0}', r'\frac{\pi\Lambda e}{4K_{max}^2}', r'\frac{\pi\cdot' + ar + r'\cdot[[e_1]]}{4\cdot[[Kmax_1]]^2}',
                pp['cx0'], '', 5, 'Opór zerowy z maksymalnej doskonałości', SOURCES['B1'] + ', wzór (3)',
                check=lambda v: math.pi * getattr(v, ar_key) * v.e_1 / (4 * v.Kmax_1 ** 2))
@@ -492,17 +492,17 @@ def _p1_trend(s, r):
     tp = ta.get('two_point')
     if not (ta.get('mass_fit') and tp):
         return
-    s.section('p1', 'trend', 'Współczynniki równania (1) z analizy trendów', SOURCES['B1'] + ', wzór (1)')
+    s.section('p1', 'trend', 'Współczynniki zależności masy pustej z analizy trendów', SOURCES['B1'] + ', wzór (1)')
     s.given('tr_x1', 'x_1', tp['x1'], KG, 0, 'Punkt 1 linii trendu — masa startowa', 'Linia regresji próby P1')
     s.given('tr_y1', 'y_1', tp['y1'], '', 4, 'Punkt 1 linii trendu — mₑ/m₀', 'Linia regresji próby P1')
     s.given('tr_x2', 'x_2', tp['x2'], KG, 0, 'Punkt 2 linii trendu — masa startowa', 'Linia regresji próby P1')
     s.given('tr_y2', 'y_2', tp['y2'], '', 4, 'Punkt 2 linii trendu — mₑ/m₀', 'Linia regresji próby P1')
     s.calc('tr_C', 'C', r'\frac{\log\left(y_1/y_2\right)}{\log\left(x_1/x_2\right)}',
            r'\frac{\log\left([[tr_y1]]/[[tr_y2]]\right)}{\log\left([[tr_x1]]/[[tr_x2]]\right)}', tp['C'], '', 5,
-           'Wykładnik równania (1) z próby', SOURCES['B1'] + ', s. 1',
+           'Wykładnik C zależności masy pustej', SOURCES['B1'] + ', s. 1',
            check=lambda v: math.log(v.tr_y1 / v.tr_y2) / math.log(v.tr_x1 / v.tr_x2))
     s.calc('tr_A', 'A', r'\frac{y_1}{x_1^{C}}', r'\frac{[[tr_y1]]}{[[tr_x1]]^{[[tr_C]]}}', tp['A'], '', 5,
-           'Współczynnik równania (1) z próby', SOURCES['B1'] + ', s. 1', check=lambda v: v.tr_y1 / v.tr_x1 ** v.tr_C)
+           'Współczynnik A zależności masy pustej', SOURCES['B1'] + ', s. 1', check=lambda v: v.tr_y1 / v.tr_x1 ** v.tr_C)
 
 
 # =============================================================================================
@@ -517,13 +517,13 @@ def _p2(s, r):
     phases = {ph['key']: ph for ph in mass['mission_phases']}
     s.block('mass_iteration_' + mass['primary_method'], 'p2',
             'Schemat iteracji masy startowej — ' + ('metoda proporcji' if mass['primary_method'] == 'proportion'
-                                                   else 'metoda iteracyjna') + ' (BIPOL_1, s. 4)',
+                                                   else 'metoda iteracyjna') + '',
             deps=['m_zal', 'm_lad', 'e_m0'], note='Metoda użyta w bilansie projektu.')
     for method, other in mass['guideline_traces'].items():
         if method != mass['primary_method']:
             s.block('mass_iteration_' + method, 'p2',
                     'Schemat iteracji masy startowej — ' + ('metoda proporcji' if method == 'proportion'
-                                                           else 'metoda iteracyjna') + ' (BIPOL_1, s. 4)',
+                                                           else 'metoda iteracyjna') + '',
                     deps=['m_zal', 'm_lad', 'e_m0'], note='Metoda porównawcza; daje tę samą masę bez zrzutu ładunku.')
 
     s.section('p2', 'mission', 'Profil misji i stosunki mas w fazach lotu', SOURCES['B1'] + ', s. 4–6')
@@ -576,11 +576,11 @@ def _p2(s, r):
                 s.calc('M_k', 'M_k', r'\frac{V_{cr}}{a_H}', r'\frac{[[V_cr]]}{[[a_cr]]}', corke['mach_end'], '', 4,
                        'Liczba Macha na końcu wznoszenia', check=lambda v: v.V_cr / v.a_cr)
                 source = SOURCES['B1'] + ', rys. 3 (Corke, oś M logarytmiczna)'
-                s.given('W_p', r'\bar W(M_p)', corke['ordinate_start'], '', 5, 'Rzędna wykresu Corke’a dla Mp', source)
-                s.given('W_k', r'\bar W(M_k)', corke['ordinate_end'], '', 5, 'Rzędna wykresu Corke’a dla Mk', source)
+                s.given('W_p', r'\bar W(M_p)', corke['ordinate_start'], '', 5, 'Stosunek mas z wykresu Corke’a dla M_p', source)
+                s.given('W_k', r'\bar W(M_k)', corke['ordinate_end'], '', 5, 'Stosunek mas z wykresu Corke’a dla M_k', source)
             else:
-                s.given('W_p', r'\bar W(M_p)', corke['ordinate_start'], '', 5, 'Odczyt autora z rys. 3', SOURCES['B1'] + ', rys. 3')
-                s.given('W_k', r'\bar W(M_k)', corke['ordinate_end'], '', 5, 'Odczyt autora z rys. 3', SOURCES['B1'] + ', rys. 3')
+                s.given('W_p', r'\bar W(M_p)', corke['ordinate_start'], '', 5, 'Stosunek mas z wykresu Corke’a', SOURCES['B1'] + ', rys. 3')
+                s.given('W_k', r'\bar W(M_k)', corke['ordinate_end'], '', 5, 'Stosunek mas z wykresu Corke’a', SOURCES['B1'] + ', rys. 3')
             s.calc('r_CL', r'\frac{m_2}{m_1}', r'\frac{\bar W(M_k)}{\bar W(M_p)}', r'\frac{[[W_k]]}{[[W_p]]}', corke['fraction'],
                    '', 5, 'Wznoszenie i rozpędzanie', SOURCES['B1'] + ', s. 4–5', check=lambda v: v.W_k / v.W_p)
         legs = [('r_CR', r'\frac{m_3}{m_2}', 'R_1' if back else 'R_km', phases['cruise']['fraction'],
@@ -675,24 +675,24 @@ def _p2(s, r):
     if powered and 'mf_m0' in s.entries:
         s.calc('m0', 'm_0', r'\frac{m_{zał}+m_{ład}}{1-\dfrac{m_f}{m_0}-\dfrac{m_e}{m_0}}',
                r'\frac{[[m_zal]]+[[m_lad]]}{1-[[mf_m0]]-[[e_m0]]}', m0, KG, 1,
-               'Masa startowa — rozwiązanie wzoru (5) z równaniem (1)', SOURCES['B1'] + ', wzór (5)',
+               'Masa startowa z równania bilansu masy', SOURCES['B1'] + ', wzór (5)',
                note='Równanie rozwiązano iteracyjnie; kolejne przybliżenia pokazuje schemat iteracji masy.',
                check=lambda v: (v.m_zal + v.m_lad) / (1 - v.mf_m0 - v.e_m0), deps=[block])
     elif not powered:
         s.calc('m0', 'm_0', r'\frac{m_{zał}+m_{ład}}{1-\dfrac{m_e}{m_0}}', r'\frac{[[m_zal]]+[[m_lad]]}{1-[[e_m0]]}', m0, KG, 1,
-               'Masa startowa bez paliwa — wzór (5) z równaniem (1)', SOURCES['B1'] + ', wzór (5)',
+               'Masa startowa z równania bilansu masy (samolot bez paliwa)', SOURCES['B1'] + ', wzór (5)',
                note='Równanie rozwiązano iteracyjnie; kolejne przybliżenia pokazuje schemat iteracji masy.',
                check=lambda v: (v.m_zal + v.m_lad) / (1 - v.e_m0), deps=[block])
     else:
         s.solve('m0', 'm_0', r'\Delta(m_0)=m_{e,mis}(m_0)-m_0\frac{m_e}{m_0}=0', m0, KG, 1,
-                'Masa startowa — zgodność masy pustego z misji i z równania (1)', SOURCES['B1'] + ', s. 4, pkt 9–12',
+                'Masa startowa — zgodność masy pustego z misji i z zależności statystycznej', SOURCES['B1'] + ', s. 4, pkt 9–12',
                 note='Kolejne przybliżenia pokazuje schemat iteracji masy.', deps=[block, 'e_m0', 'm_zal', 'm_lad'])
     s.calc('m_e', 'm_e', r'm_0\,\frac{m_e}{m_0}', r'[[m0]]\cdot[[e_m0]]', mass['m_empty'], KG, 1, 'Masa własna (pustego samolotu)',
            SOURCES['B1'] + ', pkt 10', check=lambda v: v.m0 * v.e_m0)
     if powered:
         burns = [ph for ph in mass['mission_phases'] if ph['fuel_burn_kg'] > 1e-9]
         s.calc('m_f_spal', r'm_{f,spal}', r'\sum_i \Delta m_{f,i}', '+'.join(tex_value(ph['fuel_burn_kg'], 2) for ph in burns),
-               mass['fuel_burn_kg'], KG, 2, 'Paliwo spalone w fazach misji (tabela faz)', deps=['m0'],
+               mass['fuel_burn_kg'], KG, 2, 'Paliwo spalone w fazach misji', deps=['m0'],
                check=lambda v, b=[ph['fuel_burn_kg'] for ph in burns]: sum(b))
         s.calc('m_f', 'm_f', r'k_{rez}\,m_{f,spal}', r'[[k_rez]]\cdot[[m_f_spal]]', mass['m_fuel'], KG, 1,
                'Masa paliwa z rezerwą i paliwem niezużywalnym', SOURCES['B1'] + ', wzór (4)', check=lambda v: v.k_rez * v.m_f_spal)
@@ -711,7 +711,7 @@ def _p2_empty_law(s, r):
     p, mass = r['params'], r['mass']
     law = mass['empty_mass_law']
     mode = law['mode']
-    s.section('p2', 'empty', 'Udział masy własnej — równanie (1)', SOURCES['B1'] + ', wzór (1)')
+    s.section('p2', 'empty', 'Udział masy własnej', SOURCES['B1'] + ', wzór (1)')
     source = {'class_correlation': 'Korelacja klasy (robocza; do zastąpienia analizą własnej próby)',
               'trend': f"Regresja próby P1 ({law.get('n', '—')} konstrukcji)",
               'bipol1_trend': 'Współczynniki z analizy trendów P1', 'coefficients': 'Współczynniki podane przez autora',
@@ -726,13 +726,13 @@ def _p2_empty_law(s, r):
         s.given('mp_y2', 'y_2', float(p['mass_point_y2']), '', 4, 'Punkt 2 wykresu — mₑ/m₀', source)
         s.calc('C_e', 'C', r'\frac{\log\left(y_1/y_2\right)}{\log\left(x_1/x_2\right)}',
                r'\frac{\log\left([[mp_y1]]/[[mp_y2]]\right)}{\log\left([[mp_x1]]/[[mp_x2]]\right)}', law['C'], '', 5,
-               'Wykładnik równania (1)', SOURCES['B1'] + ', s. 1',
+               'Wykładnik C zależności masy pustej', SOURCES['B1'] + ', s. 1',
                check=lambda v: math.log(v.mp_y1 / v.mp_y2) / math.log(v.mp_x1 / v.mp_x2))
         s.calc('A_e', 'A', r'\frac{y_1}{x_1^{C}}', r'\frac{[[mp_y1]]}{[[mp_x1]]^{[[C_e]]}}', law['A'], '', 5,
-               'Współczynnik równania (1)', SOURCES['B1'] + ', s. 1', check=lambda v: v.mp_y1 / v.mp_x1 ** v.C_e)
+               'Współczynnik A zależności masy pustej', SOURCES['B1'] + ', s. 1', check=lambda v: v.mp_y1 / v.mp_x1 ** v.C_e)
     else:
-        s.given('A_e', 'A', law['A'], '', 5, 'Współczynnik równania (1)', source)
-        s.given('C_e', 'C', law['C'], '', 5, 'Wykładnik równania (1)', source)
+        s.given('A_e', 'A', law['A'], '', 5, 'Współczynnik A zależności masy pustej', source)
+        s.given('C_e', 'C', law['C'], '', 5, 'Wykładnik C zależności masy pustej', source)
     s.given('K_vs', 'K_{vs}', law['k_vs'], '', 2, 'Współczynnik stałości skosu (1,0 — stały; 1,04 — zmienny)', SOURCES['B1'] + ', s. 1')
     m0, value = mass['m0'], mass['m_empty'] / mass['m0']
     if mode == 'class_correlation':
@@ -860,7 +860,7 @@ def _p2_matching(s, r):
                check=lambda v: v.TW_cr / v.phi_cr)
         req = [('TW_TO', 'start'), ('TW_wzn', 'wznoszenie'), ('TW_cr_inst', 'przelot')]
         s.given('TW_extra', r'(T/W)_{zad}', max((v for k,v in at.items() if k not in ('start','wznoszenie','przelot')), default=0), '', 5,
-                'Dodatkowe ograniczenie misji: prędkość maksymalna lub holowanie; zero przy braku wymagania', 'Dodatkowe krzywe wykresu doboru P2')
+                'Dodatkowe wymaganie misji: prędkość maksymalna lub holowanie', 'Dodatkowe krzywe wykresu doboru P2')
         tw0 = round(max(at.values()) * 1.06, 3)
         s.calc('TW_dob', r'\left(\tfrac{T}{W}\right)_{dob}', r'1{,}06\,\max\{(T/W)_{TO};(T/W)_{wzn};(T/W)_{cr,0};(T/W)_{zad}\}',
                r'1{,}06\cdot\max\left\{[[TW_TO]];\;[[TW_wzn]];\;[[TW_cr_inst]];\;[[TW_extra]]\right\}', tw0, '', 3,
@@ -868,12 +868,12 @@ def _p2_matching(s, r):
                check=lambda v: round(1.06 * max(v.TW_TO, v.TW_wzn, v.TW_cr_inst, v.TW_extra), 3))
         if sz.get('flight_model_requirement') is not None:
             s.given('TW_P4', r'(T/W)_{P4}', sz['flight_model_requirement']['required_rating']/(mass['m0']*G0), '', 5,
-                    'Wymaganie przelotu i wznoszenia z końcowej biegunowej P4', 'Równowaga sił i mocy')
+                    'Ciąg względny potrzebny w przelocie i wznoszeniu', 'Równowaga sił i mocy')
             s.given('TW_TO_check', r'(T/W)_{TO,mod}', sz.get('takeoff_model_requirement', 0), '', 5,
-                    'Wymaganie modelu startu; zero oznacza wyłączenie ograniczenia, gdy model nie ma zastosowania', 'P5')
+                    'Wymaganie startu do wysokości 15 m', 'P5')
             s.calc('TW', r'T/W', r'\max\{(T/W)_{dob};1{,}06(T/W)_{P4};1{,}06(T/W)_{TO,mod}\}',
                    r'\max\{[[TW_dob]];1{,}06[[TW_P4]];1{,}06[[TW_TO_check]]\}', dp['tw'], '', 5,
-                   'Przyjęty ciąg względny po sprawdzeniu P4 i P5',
+                   'Przyjęty ciąg względny po sprawdzeniu przelotu, wznoszenia i startu',
                    check=lambda v: max(v.TW_dob, 1.06*v.TW_P4, 1.06*v.TW_TO_check))
         elif sz.get('takeoff_model_requirement') is not None:
             s.given('TW_mod', r'\left(\tfrac{T}{W}\right)_{TO,mod}', sz['takeoff_model_requirement'], '', 4,
@@ -901,7 +901,7 @@ def _p2_matching(s, r):
                'Moc względna do przelotu (przeliczona na moc startową)', check=lambda v: v.TW_cr * v.V_cr / (v.eta_p * v.phi_cr))
         pw0 = round(max(at.values()) * 1.08, 2)
         s.given('PW_extra', r'(N/W)_{zad}', max((v for k,v in at.items() if k not in ('start','wznoszenie','przelot')), default=0), r'\mathrm{W/N}', 5,
-                'Dodatkowe ograniczenie misji: prędkość maksymalna lub holowanie; zero przy braku wymagania', 'Dodatkowe krzywe wykresu doboru P2')
+                'Dodatkowe wymaganie misji: prędkość maksymalna lub holowanie', 'Dodatkowe krzywe wykresu doboru P2')
         s.calc('PW_dob', r'\left(\tfrac{N}{W}\right)_{dob}', r'1{,}08\,\max\{(N/W)_{TO};(N/W)_{wzn};(N/W)_{cr};(N/W)_{zad}\}',
                r'1{,}08\cdot\max\left\{[[PW_TO]];\;[[PW_wzn]];\;[[PW_cr]];\;[[PW_extra]]\right\}', pw0, r'\mathrm{W/N}', 2,
                'Moc względna z wykresu doboru (8% zapasu)', SOURCES['B2'],
@@ -912,12 +912,12 @@ def _p2_matching(s, r):
         required = dp['required_power_kw']
         if sz.get('flight_model_requirement') is not None:
             s.given('P_P4', r'N_{P4}', sz['flight_model_requirement']['required_rating']/1000, KW, 3,
-                    'Wymaganie mocy na wale z końcowej biegunowej P4 (przelot i wznoszenie)', 'Równowaga sił i mocy')
+                    'Moc na wale potrzebna w przelocie i wznoszeniu', 'Równowaga sił i mocy')
             s.given('PW_TO_check', r'(N/W)_{TO,mod}', sz.get('takeoff_model_requirement', 0), r'\mathrm{W/N}', 5,
-                    'Wymaganie modelu startu; zero oznacza wyłączenie ograniczenia, gdy model nie ma zastosowania', 'P5')
+                    'Wymaganie startu do wysokości 15 m', 'P5')
             s.calc('P_wym', r'N_{wym}', r'\max\{N_{dob};1{,}08N_{P4};1{,}08(N/W)_{TO,mod}m_0g/1000\}',
                    r'\max\{[[P_dob]];1{,}08[[P_P4]];1{,}08[[PW_TO_check]][[m0]][[g]]/1000\}', required, KW, 2,
-                   'Moc wymagana po sprawdzeniu P4 i P5',
+                   'Moc wymagana po sprawdzeniu przelotu, wznoszenia i startu',
                    check=lambda v: max(v.P_dob, 1.08*v.P_P4, 1.08*v.PW_TO_check*v.m0*v.g/1000))
         elif sz.get('takeoff_model_requirement') is not None:
             s.given('PW_mod', r'\left(\tfrac{N}{W}\right)_{TO,mod}', sz['takeoff_model_requirement'], r'\mathrm{W/N}', 3,
@@ -1000,8 +1000,8 @@ def _p2_cost(s, r):
     s.given('N_P', 'N_P', ca['series_count'], r'\text{szt.}', 0, 'Liczba egzemplarzy serii', 'Założenie')
     s.given('N_am', r'N_{am}', ca['amortization_count'], r'\text{szt.}', 0, 'Liczba egzemplarzy, na które rozkłada się koszty rozwoju', 'Założenie')
     s.given('rok', r'r', year, '', 0, 'Rok kosztów', 'Założenie')
-    s.table('cer', 'Zależności kosztowe (Corke)', r'H,\,C=C_1\,W_s^{C_2}\,V_{max}^{C_3}\,N^{C_4}\left(Q^{C_5}\right)',
-            note='Współczynniki C₁–C₅ dla 1970 i 1986 r. — BIPOL_2, wzory (13)–(21).', deps=['W_lb', 'V_kt', 'N_P'])
+    s.table('cer', 'Zależności kosztowe Corke’a', r'H,\,C=C_1\,W_s^{C_2}\,V_{max}^{C_3}\,N^{C_4}\left(Q^{C_5}\right)',
+            note='Współczynniki C₁–C₅ dla danych statystycznych z 1970 i 1986 r.', deps=['W_lb', 'V_kt', 'N_P'])
     s.table('extrap', 'Ekstrapolacja do roku kosztów', r'X_{r}=X_{1986}+\left(X_{1986}-X_{1970}\right)\frac{r-1986}{1986-1970}',
             note='Roboczogodziny i stawki ekstrapoluje się osobno; koszt robocizny jest ich iloczynem.', deps=['rok'])
     by = prod['by_year']
@@ -1038,14 +1038,14 @@ def _p2_cost(s, r):
            'Koszt materiałów i półfabrykatów', SOURCES['B2'] + ', wzór (17)',
            check=lambda v: max(0, v.C_MM_86 + (v.C_MM_86 - v.C_MM_70) * (v.rok - 1986) / 16), tolerance=max(1.0, 1e-6 * items['C_MM']))
     s.given('n_sil', 'n_s', t['n_engines'], '', 0, 'Liczba silników', 'Założenia projektu')
-    s.given('C_sil', 'C_s', t['engine_price_raw'], USD, 0, 'Cena jednego silnika — ' + ca['engine_basis'],
+    s.given('C_sil', 'C_s', t['engine_price_raw'], USD, 0, 'Cena jednego silnika — ' + ca['engine_basis'].replace('założenie spoza wzoru (15): ', 'cena jednostkowa: ').replace('wzór (15): ', 'zależność kosztowa: '),
             'Oferta producenta' if 'oferty' in ca['engine_basis'] else SOURCES['B2'] + ', wzór (15)')
     s.given('C_av', r'C_{av}', t['avionics_raw'], USD, 0, 'Cena awioniki na egzemplarz', 'Założenie')
     s.calc('C_EN', 'C_{EN}', r'N_P\left(n_sC_s+C_{av}\right)', r'[[N_P]]\cdot\left([[n_sil]]\cdot[[C_sil]]+[[C_av]]\right)', items['C_EN'], USD, 0,
            'Koszt silników i awioniki serii', SOURCES['B2'] + ', wzór (15)', check=lambda v: v.N_P * (v.n_sil * v.C_sil + v.C_av))
     s.calc('C_prod', r'C_{prod}', r'C_E+C_{ML}+C_{MM}+C_T+C_{QC}+C_{EN}', r'[[C_E]]+[[C_ML]]+[[C_MM]]+[[C_T]]+[[C_QC]]+[[C_EN]]',
            prod['total_raw'], USD, 0, 'Koszt produkcji serii', check=lambda v: v.C_E + v.C_ML + v.C_MM + v.C_T + v.C_QC + v.C_EN)
-    s.given('C_RDTE', r'C_{RDT\&E}', rdte['total_raw'], USD, 0, f'Koszt fazy rozwoju ({rdte["n"]} prototypy) — tabela kosztów', SOURCES['B2'])
+    s.given('C_RDTE', r'C_{RDT\&E}', rdte['total_raw'], USD, 0, f'Koszt fazy rozwoju ({rdte["n"]} prototypy) — suma składników', SOURCES['B2'])
     s.given('z_zysk', 'z', t['profit'], '', 3, 'Zysk producenta', 'Założenie')
     s.calc('C_min', r'C_{min}', r'\frac{C_{prod}}{N_P}+\frac{C_{RDT\&E}}{N_{am}}', r'\frac{[[C_prod]]}{[[N_P]]}+\frac{[[C_RDTE]]}{[[N_am]]}',
            t['min_price_raw'], USD, 0, 'Minimalna opłacalna cena egzemplarza', SOURCES['B2'] + ', wzór (5.10)',
@@ -1162,7 +1162,7 @@ def _p3(s, r):
            check=lambda v: v.l_k / v.d_k)
 
     s.section('p3', 'tail', 'Usterzenia — metoda cech objętościowych', SOURCES['B1'] + ', s. 1; Usterzenie_wymiary')
-    s.given('l_H', 'l_H', ht['l_h'], M, 2, 'Ramię usterzenia poziomego: x_H − (x_N,ŚCA + 0,25 c̄), z pętli położenia skrzydła',
+    s.given('l_H', 'l_H', ht['l_h'], M, 2, 'Ramię usterzenia poziomego l_H = x_H − (x_N,ŚCA + 0,25 c̄)',
             'P3, wyważenie (dokładność pętli 0,015 m)')
     s.given('V_H', 'V_H', ht['vh_coeff'], '', 3, 'Cecha objętościowa usterzenia poziomego', 'Średnia z analizy trendów / założenie')
     s.calc('S_H', 'S_H', r'\frac{V_H\,S\,\bar c}{l_H}', r'\frac{[[V_H]]\cdot[[S]]\cdot[[mac]]}{[[l_H]]}', ht['S_h'], M2, 2,
@@ -1176,7 +1176,7 @@ def _p3(s, r):
     s.calc('mac_H', r'\bar c_H', r'\frac{2}{3}c_{0H}\frac{1+\lambda_H+\lambda_H^2}{1+\lambda_H}',
            r'\frac{2}{3}\cdot[[c_rH]]\cdot\frac{1+[[lambda_H]]+[[lambda_H]]^2}{1+[[lambda_H]]}', ht['mac_h'], M, 3,
            'Średnia cięciwa usterzenia poziomego', check=lambda v: 2 / 3 * v.c_rH * (1 + v.lambda_H + v.lambda_H ** 2) / (1 + v.lambda_H))
-    s.given('l_V', 'l_V', vt['l_v'], M, 2, 'Ramię usterzenia pionowego z pętli położenia skrzydła', 'P3, wyważenie')
+    s.given('l_V', 'l_V', vt['l_v'], M, 2, 'Ramię usterzenia pionowego', 'P3, wyważenie')
     s.given('V_V', 'V_V', vt['vv_coeff'], '', 4, 'Cecha objętościowa usterzenia pionowego', 'Średnia z analizy trendów / założenie')
     s.calc('S_V', 'S_V', r'\frac{V_V\,S\,b}{l_V}', r'\frac{[[V_V]]\cdot[[S]]\cdot[[b]]}{[[l_V]]}', vt['S_v'], M2, 2,
            'Powierzchnia usterzenia pionowego', check=lambda v: v.V_V * v.S * v.b / v.l_V)
@@ -1255,7 +1255,7 @@ def _p3_balance(s, r):
            check=lambda v: (v.M_kgr + v.M_sgr - v.xcel * v.mac * v.m_e) / max(1, v.m_e - v.m_sgr))
     if abs(bal['x_lemac_m'] - wp['x_lemac_raw']) > 1e-3:
         s.given('x_LEc', r'x_{N,\bar c}', bal['x_lemac_m'], M, 3,
-                'Położenie noska ŚCA po korekcie (granice 0,25–0,56 lₖ i kryterium BIPOL_3 pkt 8)', SOURCES['B3'] + ', pkt 8')
+                'Położenie noska ŚCA względem nosa kadłuba', SOURCES['B3'] + ', pkt 8')
     else:
         s.calc('x_LEc', r'x_{N,\bar c}', r'x_{N,\bar c}^{(0)}', r'[[x_lemac0]]', bal['x_lemac_m'], M, 3, 'Położenie noska ŚCA',
                check=lambda v: v.x_lemac0)
@@ -1320,7 +1320,7 @@ def _p3_balance(s, r):
     rows = r['bipol_projects']['p3']['table_3_1_components']
     s.section('p3', 'inertia', 'Momenty bezwładności (masy skupione zespołów)', SOURCES['B3'] + ', wzory (2.3)–(2.4)')
     zcg = inertia['zcg_m']
-    s.calc('z_cg', r'z_{SM}', r'\frac{\sum_i m_iz_i}{\sum_i m_i}', '', zcg, M, 3, 'Wysokość środka masy (suma po wierszach tabeli mas)',
+    s.calc('z_cg', r'z_{SM}', r'\frac{\sum_i m_iz_i}{\sum_i m_i}', '', zcg, M, 3, 'Wysokość środka masy',
            deps=['x_cg'], check=lambda v: sum(q['mass_kg'] * q['z_m'] for q in rows) / sum(q['mass_kg'] for q in rows))
     xcg = next(st for st in r['balance']['loading_states'] if st['key'] == 'mtow')['xcg_m']
     sums = dict(jx=sum(q['mass_kg'] * (q['y_rms_m'] ** 2 + (q['z_m'] - zcg) ** 2) for q in rows),
@@ -1332,7 +1332,7 @@ def _p3_balance(s, r):
             ('J_y', 'J_y', r'\sum_i m_i\left((x_i-x_{SM})^2+(z_i-z_{SM})^2\right)', inertia['jy_cg_kgm2'], 'Moment bezwładności względem osi poprzecznej'),
             ('J_z', 'J_z', r'\sum_i m_i\left((x_i-x_{SM})^2+y_i^2\right)', inertia['jz_cg_kgm2'], 'Moment bezwładności względem osi pionowej'),
             ('J_xz', 'J_{xz}', r'\sum_i m_i\,(x_i-x_{SM})(z_i-z_{SM})', inertia['jxz_cg_kgm2'], 'Moment dewiacji')):
-        s.calc(key, sym, formula, '', value, KGM2, 1, label + ' (suma po wierszach tabeli mas)', deps=['z_cg', 'x_cg'],
+        s.calc(key, sym, formula, '', value, KGM2, 1, label + '', deps=['z_cg', 'x_cg'],
                check=lambda v, val=sums[key.lower().replace('_', '')]: val, tolerance=.06)
 
 
@@ -1360,7 +1360,7 @@ def _p3_schrenk(s, r):
     else:
         s.calc('cz_prof_req', r'c_{z\,max,prof}', r'C_{z\,max}\,(c_z/C_z)_{max}', r'[[Cz_max]]\cdot[[cz1_max]]',
                summary['airfoil_cz_max_required'], '', 3,
-               'Wymagany c_z,max profilu, aby płat osiągnął założone C_z,max — wpisz wartość z katalogu profili',
+               'Wymagany c_z,max profilu, przy którym płat osiąga założone C_z,max',
                check=lambda v: v.Cz_max * max(1, v.cz1_max), tolerance=.0011)
 
 
@@ -1446,38 +1446,38 @@ def _p4(s, r):
            'Współczynnik oporu kadłuba odniesiony do przekroju czołowego', SOURCES['ML'] + ', wzór (3.1)',
            check=lambda v: max(.08, min(.15, v.Cf_k * v.eta_kf * v.eta_M * v.S_ck / v.S_kc)), tolerance=2e-3)
     if abs(t['cx_k_eff'] - t['cx_k_frontal']) > 1e-9:
-        s.given('Cx_k_eff', r'C_{x,k,ef}', t['cx_k_eff'], '', 4, 'Opór kadłuba z dolnym progiem statystyki Tabeli C (kabina, okucia)', SOURCES['ML'] + ', tab. C')
+        s.given('Cx_k_eff', r'C_{x,k,ef}', t['cx_k_eff'], '', 4, 'Opór kadłuba z uwzględnieniem kabiny i okuć', SOURCES['ML'] + ', tab. C')
     s.calc('kappa_H', r"\kappa'_H", r'\frac{S_H\,l_H}{S\,\bar c}\left(\frac{V_H}{V}\right)^2', r'\frac{[[S_H]]\cdot[[l_H]]}{[[S]]\cdot[[mac]]}\cdot' + tex_value(t['vh_vinf_sq'], 2),
            t['kappa_h_prime'], '', 4, 'Względna cecha objętościowa usterzenia z hamowaniem strug', SOURCES['ML'] + ', wzory (3.2)–(3.5)',
            check=lambda v: v.S_H * v.l_H / (v.S * v.mac) * t['vh_vinf_sq'])
     s.calc('Lambda_eH', r'\Lambda_{eH}', r'\Lambda_H e_H', r'[[AR_H]]\cdot' + tex_value(t['e_h'], 2), t['lambda_eh'], '', 2,
            'Wydłużenie efektywne usterzenia poziomego', check=lambda v: v.AR_H * t['e_h'])
-    s.table('parasite_rows', 'Opory szkodliwe zespołów (tab. 3.1)', r'C_{x,szk,min}=\frac{\sum_j C_{x,j}S_j}{S}',
-            note='Iloczyny Cₓⱼ·Sⱼ — tabela oporu zespołów.', deps=['S'])
+    s.table('parasite_rows', 'Opory szkodliwe zespołów nienośnych', r'C_{x,szk,min}=\frac{\sum_j C_{x,j}S_j}{S}',
+            note='Iloczyny Cₓⱼ·Sⱼ — tabela oporów zespołów nienośnych.', deps=['S'])
     sailplane = r['params'].get('aircraft_type') in ('glider', 'motoglider')
-    s.given('sum_CxS', r'\sum_j C_{x,j}S_j', t['sum_cxj_sj'], M2, 4, 'Suma iloczynów z tabeli oporów zespołów', 'Tabela 3.1')
+    s.given('sum_CxS', r'\sum_j C_{x,j}S_j', t['sum_cxj_sj'], M2, 4, 'Suma iloczynów C_x,j·S_j zespołów nienośnych', 'Tabela 3.1')
     low = '0{,}002' if sailplane else '0{,}008'
     s.calc('Cx_szk', r'C_{x,szk,min}', r'\min\left(0{,}042;\;\max\left(' + low + r';\;\frac{\sum_j C_{x,j}S_j}{S}\right)\right)',
            r'\min\left(0{,}042;\;\max\left(' + low + r';\;\frac{[[sum_CxS]]}{[[S]]}\right)\right)', p3['cx_szk_min'], '', 5, 'Minimalny opór szkodliwy zespołów',
            check=lambda v: max(.002 if sailplane else .008, min(.042, v.sum_CxS / v.S)), tolerance=2e-5)
 
-    s.section('p4', 'trim', 'Biegunowa samolotu wyważonego (tabela 2.2)', SOURCES['ML'] + ', tab. 2.2')
+    s.section('p4', 'trim', 'Biegunowa samolotu wyważonego', SOURCES['ML'] + ', tab. 2.2')
     tm = p3['trim_model']
-    s.given('x_sc_trim', r'\bar x', .28, '', 2, 'Położenie ŚM przyjęte do tabeli biegunowej', SOURCES['ML'])
+    s.given('x_sc_trim', r'\bar x', .28, '', 2, 'Położenie środka masy przyjęte do obliczeń biegunowej', SOURCES['ML'])
     s.given('k_int', r'k_{int}', tm['k_interf'], '', 2, 'Poprawka interferencji', SOURCES['ML'])
     s.given('zeta', r'\zeta', tm['zeta_szk'], '', 1, 'Parametr przyrostu oporu szkodliwego z Cz', SOURCES['ML'])
     s.given('Cx_H0', r'C_{x,H0}', tm['cx_h0'], '', 4, 'Opór minimalny usterzenia poziomego (profil + szczeliny)', SOURCES['ML'] + ', wzór (3.6)')
-    s.table('trim_rows', 'Kolejne wiersze tabeli 2.2',
+    s.table('trim_rows', 'Wiersze tabeli charakterystyk samolotu',
             r"\alpha=\alpha_0+\frac{C_{z\infty}}{a_\infty}+\frac{C_{z\infty}(1+\tau)}{\pi\Lambda},\quad "
             r"C'_{x,p}=C'_{x\infty}+\Delta C_{x,tech}+\frac{C_{z\infty}^2(1+\delta)}{\pi\Lambda},\quad "
             r"C_{z,H}=\frac{C_{m,SA}+(\bar x-\bar x_{SA})C_{z\infty}}{\kappa'_H},\quad "
             r"C_{x,H}=C_{x,H0}+\frac{C_{z,H}^2}{\pi\Lambda_{eH}},\quad "
             r"C_x=\left(C'_{x,p}+C_{x,szk,min}\left(1+\frac{|C_{z\infty}|}{\zeta}\right)+\frac{S_H}{S}C_{x,H}\right)(1+k_{int}),\quad "
             r"C_z=C_{z\infty}+\frac{S_H}{S}C_{z,H}",
-            note='Wiersze tabeli — tabela biegunowej samolotu.', deps=['tau_G', 'delta_G', 'dCx_tech', 'kappa_H', 'Lambda_eH', 'Cx_szk', 'k_int', 'zeta', 'Cx_H0', 'x_sc_trim'])
+            note='Wyniki — tabela charakterystyk aerodynamicznych samolotu.', deps=['tau_G', 'delta_G', 'dCx_tech', 'kappa_H', 'Lambda_eH', 'Cx_szk', 'k_int', 'zeta', 'Cx_H0', 'x_sc_trim'])
 
     fit = p3['analytical_polar_fit']
-    s.section('p4', 'fit', 'Biegunowa analityczna z tabeli 2.2 (metoda najmniejszych kwadratów)', SOURCES['ML'] + ', wzór (3.11)')
+    s.section('p4', 'fit', 'Biegunowa analityczna samolotu (metoda najmniejszych kwadratów)', SOURCES['ML'] + ', wzór (3.11)')
     s.given('n_fit', 'n', fit['n_fit'], '', 0, f"Liczba punktów 0 ≤ Cz∞ ≤ 0,85 Cz,max", 'Tabela 2.2')
     s.given('Sx', r'\sum x', fit['sum_x'], '', 5, 'Suma x = Cz²', 'Tabela 2.2')
     s.given('Sy', r'\sum y', fit['sum_y'], '', 5, 'Suma y = Cx', 'Tabela 2.2')
@@ -1522,7 +1522,7 @@ def _p4_compressibility(s, r):
     t = cp['terms']
     wing = r['geometry']['wing']
     source = cp['source']
-    s.section('p4', 'compressibility', 'Diagnostyka ściśliwości w przelocie przy MTOW', source)
+    s.section('p4', 'compressibility', 'Wpływ ściśliwości w przelocie', source)
     s.given('wave_chi25', r'\chi_{25}', wing['sweep_deg'], DEG, 2,
             'Skos linii ćwiartek cięciw', 'Założenia geometrii')
     s.calc('wave_chi50', r'\chi_{50}', r'\arctan\left(\tan\chi_{25}-\frac{c_r-c_t}{2b}\right)',
@@ -1535,10 +1535,10 @@ def _p4_compressibility(s, r):
            check=lambda v: math.cos(math.radians(v.wave_chi50)))
     s.calc('wave_cl', r'C_{z,cr}', r'\frac{2m_0g}{\rho_H V_{cr}^2 S}',
            r'\frac{2\cdot[[m0]]\cdot[[g]]}{[[rho_cr]]\cdot[[V_cr]]^2\cdot[[S]]}',
-           t['cl'], '', 5, 'Współczynnik siły nośnej dla diagnostyki przelotu', 'Lot poziomy przy MTOW',
+           t['cl'], '', 5, 'Współczynnik siły nośnej w przelocie przy masie startowej', 'Lot poziomy przy MTOW',
            check=lambda v: 2*v.m0*v.g/(v.rho_cr*v.V_cr**2*v.S))
     s.given('wave_kappa', r'\kappa_A', cp['kappa_a'], '', 2, 'Współczynnik technologiczny profilu', source,
-            note=cp['technology_source'])
+            note='')
     s.calc('M_dd_korn', r'M_{dd}', r'\frac{\kappa_A}{\cos\chi_{50}}-\frac{t/c}{\cos^2\chi_{50}}-\frac{C_{z,cr}}{10\cos^3\chi_{50}}',
            r'\frac{[[wave_kappa]]}{[[wave_cos]]}-\frac{[[tc]]}{[[wave_cos]]^2}-\frac{[[wave_cl]]}{10\cdot[[wave_cos]]^3}',
            t['m_dd'], '', 5, 'Liczba Macha rozbieżności oporu wg Korna', source,
@@ -1552,7 +1552,9 @@ def _p4_compressibility(s, r):
     if cp['model_applicable']:
         s.calc('wave_cx', r'\Delta C_{x,wave}', r'20\max(0;M-M_{kr})^4',
                r'20\max(0;[[M_cr]]-[[M_crit_korn]])^4', t['delta_cx_wave'], '', 7,
-               'Diagnostyczny przyrost oporu falowego; poza biegunową osiągów', source, note=cp['note'],
+               'Szacunkowy przyrost oporu falowego', source,
+               note=('Liczba Macha przelotu przekracza krytyczną; osiągi wymagają biegunowej zależnej od liczby Macha.'
+                     if cp['requires_wave_polar'] else 'Przy tej liczbie Macha opór falowy jest pomijalny; biegunowej nie korygowano.'),
                check=lambda v: 20*max(0,v.M_cr-v.M_crit_korn)**4)
 
 
@@ -1563,7 +1565,7 @@ def _p4_highlift(s, r):
     fd = high_lift(p, aero['oswald_e'], geometry=geom)
     base = FLAPS[p.get('flap_type', 'single_slotted')]
     slat = {'none': (0, 0), 'slats_auto': (.35, .008), 'fixed_slot': (.30, .012), 'krueger': (.25, .010)}[p.get('slat_type', 'none')]
-    s.section('p4', 'highlift', 'Mechanizacja płata: klapy 20° i 40°', SOURCES['B2'] + ', s. 4')
+    s.section('p4', 'highlift', 'Mechanizacja płata', SOURCES['B2'] + ', s. 4')
     s.given('dCz_TO_p', r'\Delta c_{z,TO}', base[0], '', 3, 'Przyrost profilowy przy klapach 20°', 'Tabela mechanizacji (wartości wstępne)')
     s.given('dCz_L_p', r'\Delta c_{z,L}', base[1], '', 3, 'Przyrost profilowy przy klapach 40°', 'Tabela mechanizacji (wartości wstępne)')
     s.calc('dCz_TO', r'\Delta C_{z,TO}', r'\Delta c_{z,TO}\frac{S_f}{S}', r'[[dCz_TO_p]]\cdot[[Sf_S]]', fd['delta_cz_to'], '', 4,
@@ -1718,9 +1720,9 @@ def _p5_climb(s, r):
     offer = p6['offer_chart_summary']
     s.section('p5', 'climb', 'Wznoszenie i pułap (metoda mocy)', SOURCES['ML'] + ', P6, tab. 6.1–6.2')
     jet = p['engine_type'] == 'jet'
-    s.table('climb_rows', 'Bilans mocy (tab. 6.1)', r'N_n=\tfrac12\rho V^3SC_{x0}+\frac{2k(mg)^2}{\rho VS},\qquad '
+    s.table('climb_rows', 'Bilans mocy przy ziemi', r'N_n=\tfrac12\rho V^3SC_{x0}+\frac{2k(mg)^2}{\rho VS},\qquad '
             + (r'N_r=1000\,T\varphi_H V,' if jet else r'N_r=1000\,\eta_p N\varphi_H,') + r'\qquad w=\frac{N_r-N_n}{mg}',
-            note='Punkty bilansu mocy — tabela 6.1.', deps=['Cx0', 'k', 'm0', 'S'])
+            note='Pozostałe punkty — tabela bilansu mocy.', deps=['Cx0', 'k', 'm0', 'S'])
     v = offer['v_w_h0_kmh'] / 3.6
     s.given('V_wy', r'V_{w}', v, MS, 2, 'Prędkość największego wznoszenia przy ziemi (maksimum w(V))', 'Tabela 6.1')
     nn = .5 * RHO0 * v ** 3 * r['geometry']['wing']['S'] * r['aerodynamics']['paturski_p3']['analytical_polar_fit']['cx0_approx'] \
@@ -1740,7 +1742,7 @@ def _p5_climb(s, r):
     s.calc('w_max', r'w_{max}', r'\frac{N_r-N_n}{m_0g}', r'\frac{[[N_r_wy]]-[[N_n_wy]]}{[[m0]]\cdot[[g]]}', perf['climb']['wy_max_ms'], MS, 2,
            'Największa prędkość wznoszenia przy ziemi', check=lambda q: (q.N_r_wy - q.N_n_wy) / (q.m0 * q.g), tolerance=.011)
     ceil = p6['table_6_2_climb_and_ceilings']['ceilings']
-    s.solve('H_t', 'H_t', r'w_{max}(H_t)=0', perf['ceiling']['absolute_ceiling_m'], M, 0, 'Pułap teoretyczny (bisekcja w modelu ISA)',
+    s.solve('H_t', 'H_t', r'w_{max}(H_t)=0', perf['ceiling']['absolute_ceiling_m'], M, 0, 'Pułap teoretyczny',
             deps=['w_max'])
     s.solve('H_p', 'H_p', rf'w_{{max}}(H_p)={tex_value(ceil["w_crit_ceiling_ms"], 1)}\;\mathrm{{m/s}}', perf['ceiling']['service_ceiling_m'], M, 0,
             'Pułap praktyczny', deps=['w_max'])
@@ -1867,7 +1869,7 @@ def _p5_range(s, r):
     s.section('p5', 'range', 'Zasięg i długotrwałość przy wymaganej prędkości', SOURCES['ML'] + ', P6, wzory (6.13)–(6.38)')
     fit = r['aerodynamics']['paturski_p3']['analytical_polar_fit']
     jet = p['engine_type'] == 'jet'
-    s.table('range_rows', 'Zasięg i długotrwałość (tab. 6.3)',
+    s.table('range_rows', 'Zasięg i długotrwałość dla kolejnych prędkości',
             (r'L=3{,}6\,V\,t,\qquad t=\frac{10}{g\,q_e}\sqrt{\frac{\pi\Lambda_e}{C_{x0}}}\left[\arctan\frac{2gm_p}{A}-\arctan\frac{2gm_k}{A}\right]' if jet else
              r'L=3{,}6\,V\,t,\qquad t=\frac{1000\,\eta_p}{g\,V\,q_e}\sqrt{\frac{\pi\Lambda_e}{C_{x0}}}\left[\arctan\frac{2gm_p}{A}-\arctan\frac{2gm_k}{A}\right]')
             + r',\qquad A=\rho SV^2\sqrt{C_{x0}\pi\Lambda_e}', note='Wartości dla kolejnych prędkości — tabela zasięgu.', deps=['Cx0', 'Lambda_e'])
@@ -1879,10 +1881,10 @@ def _p5_range(s, r):
     raw = float(p.get('sfc', .62 if jet else 265))
     qe = raw * 10 / G0 if jet else (raw / 1000 if raw > 10 else raw)
     if jet:
-        s.calc('q_e', 'q_e', r'\frac{10\,c_Tg}{g}', r'\frac{10\cdot[[TSFC]]}{[[g]]}', qe, r'\mathrm{kg/(daN\,h)}', 4, 'Jednostkowe zużycie paliwa w jednostkach tabeli 6.3',
+        s.calc('q_e', 'q_e', r'\frac{10\,c_Tg}{g}', r'\frac{10\cdot[[TSFC]]}{[[g]]}', qe, r'\mathrm{kg/(daN\,h)}', 4, 'Jednostkowe zużycie paliwa w jednostkach tabeli zasięgu',
                check=lambda v: 10 * v.TSFC / v.g)
     else:
-        s.calc('q_e', 'q_e', r'\frac{SFC}{1000}', r'\frac{[[SFC]]}{1000}', qe, r'\mathrm{kg/(kW\,h)}', 4, 'Jednostkowe zużycie paliwa w jednostkach tabeli 6.3',
+        s.calc('q_e', 'q_e', r'\frac{SFC}{1000}', r'\frac{[[SFC]]}{1000}', qe, r'\mathrm{kg/(kW\,h)}', 4, 'Jednostkowe zużycie paliwa w jednostkach tabeli zasięgu',
                check=lambda v: v.SFC / 1000)
     rho = s.entries['rho_cr']['value']
     v = float(p['cruise_speed_kmh']) / 3.6
@@ -1909,7 +1911,7 @@ def _p5_glide(s, r):
     s.section('p5', 'glide', 'Lot ślizgowy — równowaga sił', SOURCES['ML'] + ', P4, wzory (4.3)–(4.5)')
     s.given('rho_gl', r'\rho_H', glide['rho'], r'\mathrm{kg/m^3}', 4, 'Gęstość powietrza na wysokości lotu ślizgowego', 'ISA')
     for key, label, pt in (('opt', 'największej doskonałości', best), ('ek', 'najmniejszego opadania', sink)):
-        s.given('Cz_g' + key, rf'C_{{z,{key}}}', pt['cz'], '', 4, f'Cz punktu {label} (tabela biegunowej prędkości)', 'Biegunowa P4')
+        s.given('Cz_g' + key, rf'C_{{z,{key}}}', pt['cz'], '', 4, f'C_z punktu {label}', 'Biegunowa P4')
         s.calc('Cx_g' + key, rf'C_{{x,{key}}}', r'C_{x0}+k\,C_z^2', rf'[[Cx0]]+[[k]]\cdot[[Cz_g{key}]]^2', pt['cx'], '', 5, f'Cx punktu {label}',
                check=lambda v, k=key: v.Cx0 + v.k * getattr(v, 'Cz_g' + k) ** 2)
         s.calc('V_g' + key, rf'V_{{{key}}}', r'\sqrt{\frac{2m_0g}{\rho_HS\sqrt{C_z^2+C_x^2}}}',
@@ -2048,7 +2050,7 @@ def _p6(s, r):
         s.calc('H_g', 'H', r'(H/\bar c_g)\,\bar c_g', r'[[H_g_ratio]]\cdot[[c_g]]', gf['gust_length_m'], M, 3,
                'Długość podmuchu 1-cos', 'CS 22.341 Amdt 3', check=lambda v: v.H_g_ratio * v.c_g)
         s.calc('mu_g_reduced', r'\mu_g/(H/\bar c_g)', r'\frac{\mu_g}{H/\bar c_g}', r'\frac{[[mu_g]]}{[[H_g_ratio]]}', gf['mu_g']/gf['gust_length_ratio'], '', 5,
-               'Względna cecha masowa w modelu podmuchu', check=lambda v: v.mu_g / v.H_g_ratio)
+               'Względna cecha masowa samolotu', check=lambda v: v.mu_g / v.H_g_ratio)
         s.calc('K_g', 'K_g', r'\frac{0{,}96\,\mu_g/(H/\bar c_g)}{0{,}475+\mu_g/(H/\bar c_g)}',
                r'\frac{0{,}96\cdot[[mu_g_reduced]]}{0{,}475+[[mu_g_reduced]]}', gf['k_g'], '', 4,
                'Współczynnik łagodzenia podmuchu 1-cos', 'CS 22.341 Amdt 3', check=lambda v: .96 * v.mu_g_reduced / (.475 + v.mu_g_reduced))
@@ -2105,7 +2107,8 @@ def _p6(s, r):
         s.given('U_F', r'U_F', flap['u_flap_ms'], MS, 2, 'Podmuch przy VF w konfiguracji do lądowania', flap['basis'])
         s.calc('dn_F', r'\Delta n_F', r'\frac{K_g\rho_0V_FaU_F}{2\,W/S}',
                r'\frac{[[K_g]]\cdot[[rho0]]\cdot[[V_F]]\cdot[[a_w]]\cdot[[U_F]]}{2\cdot[[WS_0]]}', flap['gust_at_vf']['delta_n'], '', 4,
-               'Przyrost przeciążenia od podmuchu z mechanizacją', flap['basis'], note=flap['note'],
+               'Przyrost przeciążenia od podmuchu z mechanizacją', flap['basis'],
+               note='Konfiguracja do lądowania, masa startowa, poziom morza; manewr i podmuch rozpatrzono osobno.',
                check=lambda v: v.K_g*v.rho0*v.V_F*v.a_w*v.U_F/(2*v.WS_0))
         for key, sym, formula, subst, value, label, check in (
             ('n_fg_p', r'n_{g,F,+}', r'1+\Delta n_F', r'1+[[dn_F]]', fl['n_gust_max'], 'Dodatni podmuch z mechanizacją', lambda v:1+v.dn_F),
@@ -2191,7 +2194,7 @@ def worked_iteration(trace, index):
         elif prev['rule'] == 'secant':
             add(point, 'Przyspieszenie zbieżności: prosta przez dwa ostatnie przybliżenia', f"m_0^{{({k})}} = {_t(row['m0'], 2)}{unit}")
         else:
-            add(point, f'Masa startowa: wynik wzoru (5) z iteracji {k - 1}', f"m_0^{{({k})}} = {_t(row['m0'], 2)}{unit}")
+            add(point, f'Masa startowa: wynik równania bilansu z iteracji {k - 1}', f"m_0^{{({k})}} = {_t(row['m0'], 2)}{unit}")
     if trace['method'] == 'iterative':
         _worked_mission(trace, row, add)
     else:
@@ -2241,7 +2244,7 @@ def _worked_mission(trace, row, add):
         f"m_{{e,mis}} = m_7-(m_{{ład}}-m_{{zrzut}})-m_{{zał}}-m_{{f,rez}} = {_t(row['m_landing'], 2)}-{_t(trace['payload'] - trace['drop'], 2)}"
         f"-{_t(trace['crew'], 2)}-{_t(row['reserve'], 3)} = {_t(row['me_mission'], 2)}{unit}")
     formula, numbers = _law_tex(trace, row['m0'], row['empty_fraction'])
-    add('10', 'Realistyczna masa pustego: zakładana masa startowa razy udział z równania (1)',
+    add('10', 'Masa pustego z zależności statystycznej: zakładana masa startowa razy udział masy pustej',
         f"m_{{e,tr}} = m_0^{{(k)}}\\,{formula} = {_t(row['m0'], 2)}\\cdot{numbers} = {_t(row['me_trend'], 2)}{unit}")
     criterion = r'\le 0{,}1\,\%' if row['relative'] <= trace['tolerance'] else r'> 0{,}1\,\%'
     add('11', 'Różnica mas pustego z punktów 9 i 10',
@@ -2258,10 +2261,10 @@ def _worked_proportion(trace, row, add):
     else:
         fuel = (f"\\frac{{m_f}}{{m_0}} = k_{{rez}}\\left(1-M_{{ff}}\\right) = {_t(trace['reserve_factor'], 2)}\\cdot\\left(1-{_t(row['mff'], 5)}\\right)"
                 f" = {_t(row['fuel_fraction'], 5)}")
-    add('3', 'Udział paliwa (wzór (4))', fuel)
+    add('3', 'Udział masy paliwa', fuel)
     formula, numbers = _law_tex(trace, row['m0'], row['empty_fraction'])
-    add('5', 'Udział masy pustego z równania (1)', f"\\frac{{m_e}}{{m_0}} = {formula} = {numbers} = {_t(row['empty_fraction'], 5)}")
-    add('6', 'Nowa masa startowa ze wzoru (5)',
+    add('5', 'Udział masy pustego z zależności statystycznej', f"\\frac{{m_e}}{{m_0}} = {formula} = {numbers} = {_t(row['empty_fraction'], 5)}")
+    add('6', 'Nowa masa startowa z równania bilansu masy',
         f"m_0^{{({k + 1})}} = \\frac{{m_{{zał}}+m_{{ład}}}}{{1-\\dfrac{{m_f}}{{m_0}}-\\dfrac{{m_e}}{{m_0}}}}"
         f" = \\frac{{{_t(trace['useful'], 1)}}}{{1-{_t(row['fuel_fraction'], 5)}-{_t(row['empty_fraction'], 5)}}} = {_t(row['next_m0'], 2)}{unit}")
     criterion = r'\le 0{,}1\,\%' if row['relative'] <= trace['tolerance'] else r'> 0{,}1\,\%'

@@ -11,7 +11,8 @@ from markupsafe import Markup
 
 from calculations.report_document import report_number
 
-SERIES = (('#2a78d6', '', 'circle'), ('#eb6834', '6 4', 'square'), ('#1baf7a', '2 3', 'triangle'))
+SERIES = (('#2a78d6', '', 'circle'), ('#eb6834', '6 4', 'square'), ('#1baf7a', '2 3', 'triangle'),
+          ('#7b4fc9', '10 3 2 3', 'circle'), ('#8a6d1d', '1 3', 'square'))
 INK, MUTED, GRID, SURFACE = '#1d1d1b', '#55544f', '#e3e3df', '#ffffff'
 FONT = 'font-family="Arial, Helvetica, sans-serif"'
 HALO = 'stroke="#ffffff" stroke-width="3" paint-order="stroke" '
@@ -58,7 +59,7 @@ def _legend(items, x, y):
 
 
 def line_chart(series, title, xlabel, ylabel, x_ticks=None, x_labels=None, log_y=False, hlines=(), extra=None,
-               height=300):
+               height=300, x_range=None, y_floor=None):
     """series: [(label, slot, [(x, y, tooltip), ...])]; jedna oś y, wspólne jednostki."""
     width, left, right, bottom = 680, 74, 24, 54
     top = 46 if len(series) > 1 else 28
@@ -67,7 +68,7 @@ def line_chart(series, title, xlabel, ylabel, x_ticks=None, x_labels=None, log_y
     if extra:
         xs += [p[0] for p in extra.get('points', [])]
         ys += [p[1] for p in extra.get('points', [])]
-    xmin, xmax = min(xs), max(xs)
+    xmin, xmax = (min(xs), max(xs)) if x_range is None else x_range
     if xmin == xmax:
         xmin, xmax = xmin - 1, xmax + 1
     if log_y:
@@ -79,11 +80,15 @@ def line_chart(series, title, xlabel, ylabel, x_ticks=None, x_labels=None, log_y
     else:
         ymin, ymax = min(ys), max(ys)
         pad = (ymax - ymin) * .08 or abs(ymax) * .05 or 1
-        ticks, _ = _nice_ticks(ymin - pad, ymax + pad)
+        low = ymin - pad if y_floor is None else max(y_floor, ymin - pad)
+        ticks, _ = _nice_ticks(low, ymax + pad)
         ymin, ymax = ticks[0], ticks[-1]
     xpad = (xmax - xmin) * .04
     x0, x1 = xmin - xpad, xmax + xpad
     plot_w, plot_h = width - left - right, height - top - bottom
+    if x_ticks is None:
+        x_ticks, step = _nice_ticks(xmin, xmax, 6)
+        x_labels = [_num(x, 0 if step >= 1 else 1 if step >= .1 else 2) for x in x_ticks]
 
     def px(x):
         return left + (x - x0) / (x1 - x0) * plot_w
@@ -142,10 +147,10 @@ def convergence_chart(trace):
     if trace['method'] == 'iterative':
         series = [('m₀⁽ᵏ⁾ zakładana', 0, [(r['k'], r['m0'], f"k={r['k']}: m₀ = {_num(r['m0'])} kg") for r in rows]),
                   ('mₑ z misji (pkt 9)', 1, [(r['k'], r['me_mission'], f"k={r['k']}: mₑ,mis = {_num(r['me_mission'])} kg") for r in rows]),
-                  ('mₑ z równania (1) (pkt 10)', 2, [(r['k'], r['me_trend'], f"k={r['k']}: mₑ,tr = {_num(r['me_trend'])} kg") for r in rows])]
+                  ('mₑ z zależności masy pustej (pkt 10)', 2, [(r['k'], r['me_trend'], f"k={r['k']}: mₑ,tr = {_num(r['me_trend'])} kg") for r in rows])]
     else:
         series = [('m₀⁽ᵏ⁾ zakładana', 0, [(r['k'], r['m0'], f"k={r['k']}: m₀⁽ᵏ⁾ = {_num(r['m0'])} kg") for r in rows]),
-                  ('m₀⁽ᵏ⁺¹⁾ ze wzoru (5)', 1, [(r['k'], r['next_m0'], f"k={r['k']}: m₀⁽ᵏ⁺¹⁾ = {_num(r['next_m0'])} kg") for r in rows])]
+                  ('m₀⁽ᵏ⁺¹⁾ z równania bilansu masy', 1, [(r['k'], r['next_m0'], f"k={r['k']}: m₀⁽ᵏ⁺¹⁾ = {_num(r['next_m0'])} kg") for r in rows])]
     return line_chart(series, 'Zbieżność iteracji masy startowej', 'Numer iteracji k', 'Masa [kg]', x_ticks=ks,
                       hlines=[(trace['m0'], f"m₀ = {_num(trace['m0'])} kg")])
 
@@ -237,7 +242,7 @@ def flow_diagram(trace):
 def _diamond(cx, cy, half_w, text):
     return (f'<path d="M{cx} {cy - 38}L{cx + half_w} {cy}L{cx} {cy + 38}L{cx - half_w} {cy}Z" fill="#fff8ec" stroke="#a86621" stroke-width="1"/>'
             f'<text x="{cx}" y="{cy - 3}" text-anchor="middle" font-size="11" font-weight="bold" fill="{INK}" {FONT}>{html.escape(text)}</text>'
-            f'<text x="{cx}" y="{cy + 12}" text-anchor="middle" font-size="10" fill="{MUTED}" {FONT}>(kryterium BIPOL_1)</text>')
+            f'<text x="{cx}" y="{cy + 12}" text-anchor="middle" font-size="10" fill="{MUTED}" {FONT}>(kryterium zbieżności)</text>')
 
 
 def _svg_open(height, label, title, defs):
@@ -263,7 +268,7 @@ def _flow_iterative(trace, final, law, defs):
         ('8) Masa po lądowaniu i kołowaniu', f"m₇ = m₆·{ratio('landing')} = {_num(m['m7'])} kg"),
     ]
     bw, x1, x2 = 300, 20, 360
-    svg = _svg_open(580, 'Schemat iteracji masy startowej, metoda iteracyjna BIPOL_1', 'Schemat iteracji masy (BIPOL_1, s. 4)', defs)
+    svg = _svg_open(580, 'Schemat iteracji masy startowej, metoda iteracyjna', 'Schemat iteracyjnego wyznaczania masy startowej', defs)
     svg.append(_box(x1, 20, bw, 62, '12) Korekta masy startowej', ['k = 1:  m₀⁽²⁾ = m₀⁽¹⁾ − Δ⁽¹⁾',
                                                                     'k ≥ 2: m₀⁽ᵏ⁺¹⁾ = m₀⁽ᵏ⁾ − Δ⁽ᵏ⁾·(m₀⁽ᵏ⁾ − m₀⁽ᵏ⁻¹⁾)/(Δ⁽ᵏ⁾ − Δ⁽ᵏ⁻¹⁾)'],
                     tone='#fff8ec', border='#a86621'))
@@ -278,7 +283,7 @@ def _flow_iterative(trace, final, law, defs):
     blocks = [
         (y9, '9) Masa pustego z misji', ['mₑ,mis = m₇ − m_ład,poz − m_zał − m_f,rez',
                                          f"= {_num(n['m_landing'])} − {_num(trace['payload'] - trace['drop'])} − {_num(trace['crew'])} − {_num(n['reserve'], 2)} = {_num(n['me_mission'])} kg"]),
-        (y9 - 80, '10) Masa pustego z równania (1)', [f"mₑ,tr = m₀·A·m₀^C·K_vs = m₀·{_num(n['empty_fraction'], 4)}", f"= {_num(n['me_trend'])} kg"]),
+        (y9 - 80, '10) Masa pustego z zależności statystycznej', [f"mₑ,tr = m₀·A·m₀^C·K_vs = m₀·{_num(n['empty_fraction'], 4)}", f"= {_num(n['me_trend'])} kg"]),
         (y9 - 160, '11) Różnica mas', [f"Δ = mₑ,mis − mₑ,tr = {_num(n['delta'], 3)} kg", f"|Δ|/mₑ,tr = {n['relative'] * 100:.4f}%".replace('.', ',')]),
     ]
     for y, title, body in blocks:
@@ -306,11 +311,11 @@ def _flow_proportion(trace, final, law, defs):
     """Kolumna lewa: pkt 1–4 w dół; prawa: równanie (1), wzór (5) i warunek w górę."""
     first, n = trace['rows'][0], final
     bw, x1, x2 = 300, 20, 360
-    svg = _svg_open(490, 'Schemat iteracji masy startowej, metoda proporcji BIPOL_1', 'Schemat metody proporcji (BIPOL_1, s. 4)', defs)
+    svg = _svg_open(490, 'Schemat iteracji masy startowej, metoda proporcji', 'Schemat wyznaczania masy startowej metodą proporcji', defs)
     left = [
         ('1) Stosunki mas w fazach lotu', ['mᵢ₊₁/mᵢ: start, wznoszenie, przelot,', 'oczekiwanie, lądowanie (tabela faz)']),
         ('2) Iloczyn stosunków', [f"M_ff = Π mᵢ₊₁/mᵢ = {_num(first['mff'], 5)}"]),
-        ('3) Udział paliwa — wzór (4)', [f"m_f/m₀ = {_num(trace['reserve_factor'], 2)}·(1 − M_ff) = {_num(first['fuel_fraction'], 5)}"]),
+        ('3) Udział masy paliwa', [f"m_f/m₀ = {_num(trace['reserve_factor'], 2)}·(1 − M_ff) = {_num(first['fuel_fraction'], 5)}"]),
         ('4) Założenie masy startowej', [f"m₀⁽¹⁾ = {_num(trace['start'])} kg", f"({trace['start_rule']})"]),
     ]
     for i, (title, body) in enumerate(left):
@@ -319,9 +324,9 @@ def _flow_proportion(trace, final, law, defs):
         if i:
             svg.append(_arrow([(x1 + bw / 2, y - 38), (x1 + bw / 2, y)]))
     cx = x2 + bw / 2
-    svg.append(_box(x2, 320, bw, 62, '5) Udział masy pustego — równanie (1)', [f"mₑ/m₀ = A·(m₀⁽ᵏ⁾)^C·K_vs = {_num(n['empty_fraction'], 4)}",
+    svg.append(_box(x2, 320, bw, 62, '5) Udział masy pustego z zależności statystycznej', [f"mₑ/m₀ = A·(m₀⁽ᵏ⁾)^C·K_vs = {_num(n['empty_fraction'], 4)}",
                                                                                f"A = {_num(law['A'], 5)}, C = {_num(law['C'], 5)}, K_vs = {_num(law['k_vs'], 2)}"]))
-    svg.append(_box(x2, 220, bw, 62, '6) Nowa masa startowa — wzór (5)', ['m₀⁽ᵏ⁺¹⁾ = (m_zał + m_ład)/(1 − m_f/m₀ − mₑ/m₀)',
+    svg.append(_box(x2, 220, bw, 62, '6) Nowa masa startowa z równania bilansu', ['m₀⁽ᵏ⁺¹⁾ = (m_zał + m_ład)/(1 − m_f/m₀ − mₑ/m₀)',
                                                                          f"= {_num(trace['useful'])}/{_num(n['denominator'], 5)} = {_num(n['next_m0'])} kg"]))
     svg.append(_arrow([(x1 + bw, 351), (x2, 351)]))
     svg.append(_arrow([(cx, 320), (cx, 282)]))
