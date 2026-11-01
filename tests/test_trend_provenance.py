@@ -123,10 +123,10 @@ def test_api_filters_by_propulsion(client):
 def test_p1_and_p2_reports_state_the_method(client):
     params = {**AIRCRAFT_PRESETS['ga_trainer'], 'empty_mass_trend_A': 0.5, 'empty_mass_trend_C': 0.035}
     html = client.post('/report?sections=p1,p2', json=params).get_data(as_text=True)
-    assert 'Średnie parametry próby wymagane w BIPOL_1' in html
-    assert 'Wartości sugerowane przez analizę trendów' in html
+    assert 'Średnie wartości parametrów w próbie' in html
+    assert 'Wartości parametrów wynikające z analizy trendów' in html
     assert 'pięć lat po roku opracowania projektu' in html
-    assert 'równania (1) analizy trendów' in html
+    assert 'wyznaczonej w analizie trendów (projekt 1)' in html
 
 
 def test_wizard_and_panel_offer_the_origin_of_values(client):

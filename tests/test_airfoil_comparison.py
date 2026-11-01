@@ -50,7 +50,7 @@ def test_project_uses_the_comparison_and_feeds_schrenk():
     own = run_bipol_project({**params, 'airfoil_cz_max': 1.7})['bipol_projects']['p3']['schrenk_summary']
     assert own['airfoil_cz_max'] == 1.7 and own['airfoil_cz_max_source'] == 'karta 3.4'
     html = app.test_client().post('/report/project/p2', json=params).get_data(as_text=True)
-    assert 'najlepszy wg kryterium jest NACA 4412, przyjęto NACA 2415' in html and 'NACA 2415 (przyjęty)' in html
+    assert 'Najlepszy według kryterium jest profil NACA 4412; przyjęto NACA 2415' in html and 'NACA 2415 (przyjęty)' in html
 
 
 def test_invalid_comparison_is_reported_before_calculation():

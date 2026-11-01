@@ -82,7 +82,7 @@ def _clean_check(check):
     name = re.sub(r'^\[[^\]]+\]\s*', '', check['parameter']).replace(' (BIPOL_3)', '')
     name = re.sub(r'\s?\bP[1-6]\b', '', name).replace('biegunowej i osiągów', 'biegunowej i osiągów samolotu')
     name = name.replace('położeń ŚC', 'położeń środka masy').replace('(tylne ŚM)', '(tylne położenie środka masy)')
-    decimal = lambda text: re.sub(r'(?<=\d)\.(?=\d)', ',', str(text))  # noqa: E731
+    decimal = lambda text: re.sub(r'(?<=\d)\.(?=\d)', ',', str(text)).replace(' pax', ' pas.')  # noqa: E731
     return {**check, 'parameter': name, 'required': decimal(check['required']).replace('ŚDA', 'ŚCA'),
             'actual': decimal(check['actual']).replace('ŚDA', 'ŚCA')}
 
@@ -92,7 +92,7 @@ def _relevant_checks(results, sections):
     for check in results['compliance_checks']:
         name = check['parameter']
         # Klasyfikacja programu i zalecenia certyfikacyjne nie są kryteriami tego opracowania.
-        if name.startswith('[CS') or '_' in str(check['required']):
+        if '_' in str(check['required']):
             continue
         relevant = ('p1' in sections and 'stateczności' not in name)
         relevant |= ('p5' in sections and not name.startswith('[') and 'stateczności' not in name)
@@ -109,7 +109,8 @@ def _concept(results):
     powered, jet = p['engine_type'] != 'none', p['engine_type'] == 'jet'
     controls = geom.get('control_surfaces', {})
     layout = CONFIGURATION.get(wing['wing_config'], 'jednopłat')
-    text = [f'Samolot zaprojektowano w układzie klasycznym jako {layout} z usterzeniem w tylnej części kadłuba. '
+    noun = 'Samolot' if powered else 'Szybowiec'
+    text = [f'{noun} zaprojektowano w układzie klasycznym jako {layout} z usterzeniem w tylnej części kadłuba. '
             f'Skrzydło ma obrys {wing["planform_name_pl"].lower()}, wydłużenie {number(wing["AR"])} '
             f'i zbieżność {number(wing["eta"])}.'
             + (f' Mechanizację skrzydła stanowią: {controls["flaps"]["name"].lower()}; sterowanie poprzeczne — '
@@ -122,7 +123,7 @@ def _concept(results):
         text.append(f'Napęd stanowi {"jeden silnik" if engines == 1 else f"{engines} silniki"} {kind} '
                     f'umieszczony{"" if engines == 1 else "e"} {place}.')
     else:
-        text.append('Samolot nie ma napędu własnego; start odbywa się za holem lub z wyciągarki.')
+        text.append('Szybowiec nie ma napędu własnego; start odbywa się za holem lub z wyciągarki.')
     gear = {'fuselage': 'do kadłuba', 'wing': 'do skrzydła'}.get(p.get('gear_attachment'))
     if gear:
         text.append(f'Podwozie główne mocowane jest {gear}.')

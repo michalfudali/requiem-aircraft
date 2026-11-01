@@ -1,6 +1,6 @@
 {% import 'reports/calc.html' as c %}
 {% set perf=res.performance %}{% set glide=perf.glide %}
-<p>Osiągi wyznaczono dla geometrii z projektu 3, biegunowej z projektu 4 i charakterystyk zespołu napędowego, w atmosferze wzorcowej {{ cite('paturski') }}. Prędkości charakterystyczne i wznoszenie obliczono przy masie startowej {{ res.mass.m0|reportnum(1) }} kg, przelot — dla mas na początku i końcu odcinka przelotowego z bilansu misji, a podejście i lądowanie — dla masy do lądowania {{ perf.landing.mass_kg|reportnum(1) }} kg. Prędkości lotu podano jako rzeczywiste (TAS).</p>
+{% if doc.powered %}<p>Osiągi wyznaczono dla geometrii z projektu 3, biegunowej z projektu 4 i charakterystyk zespołu napędowego, w atmosferze wzorcowej {{ cite('paturski') }}. Prędkości charakterystyczne i wznoszenie obliczono przy masie startowej {{ res.mass.m0|reportnum(1) }} kg, przelot — dla mas na początku i końcu odcinka przelotowego z bilansu misji, a podejście i lądowanie — dla masy do lądowania {{ perf.landing.mass_kg|reportnum(1) }} kg. Prędkości lotu podano jako rzeczywiste (TAS).</p>{% else %}<p>Osiągi szybowca wyznaczono dla geometrii z projektu 3 i biegunowej z projektu 4, w atmosferze wzorcowej, przy masie startowej {{ res.mass.m0|reportnum(1) }} kg {{ cite('paturski') }}. Obejmują prędkości charakterystyczne, lądowanie i lot ślizgowy. Prędkości lotu podano jako rzeczywiste (TAS).</p>{% endif %}
 <h3>Prędkości charakterystyczne</h3>
 {% include 'reports/compressibility.html' %}
 {{ c.section(sheet, 'p5.speeds') }}

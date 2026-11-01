@@ -122,9 +122,10 @@ def test_p3_report_contains_full_scale_airfoil_page():
     from app import app
     html = app.test_client().get('/report?preset=ga_trainer&sections=p3').get_data(as_text=True)
     assert 'figure class="airfoil-1to1"' in html and 'width="220.0mm"' in html
-    assert 'Rzędne profilu [mm] dla cięciwy 200 mm' in html
+    assert 'id="tab-airfoil-coordinates"' in html and '[mm] dla cięciwy 200 mm' in html
     jet = app.test_client().get('/report?preset=vlj_jet&sections=p3').get_data(as_text=True)
-    assert 'figure class="airfoil-1to1"' not in jet and 'Wklej' in jet  # SC(2): bez wzoru, rzędne z katalogu
+    # SC(2): bez wzoru analitycznego, rzędne przyjmuje się z katalogu profili.
+    assert 'figure class="airfoil-1to1"' not in jet and 'rzędne przyjmuje się z katalogu profili' in jet
 
 
 @pytest.mark.parametrize('name,alpha0,cm', [('NACA 2412', -2.077, -0.0531), ('NACA 4412', -4.154, -0.1062),
