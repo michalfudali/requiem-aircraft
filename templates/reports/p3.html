@@ -28,6 +28,17 @@
 <h3>Punkt neutralny i zapas stateczności</h3>
 <p>Punkt neutralny wyznaczono z równania stateczności podłużnej: środek aerodynamiczny układu płat–kadłub–gondole przesunięty o udział usterzenia poziomego. Zapas stateczności jest różnicą położeń punktu neutralnego i środka masy.</p>
 {{ c.section(sheet, 'p3.neutral') }}
+{% set pilot=bal.pilot_loading %}{% if pilot and pilot.available %}
+<h3>Wpływ masy załogi przy stałym płatowcu</h3>
+<p>{{ pilot.note }}</p>
+<p>Badany zakres {{ pilot.domain_kg[0]|reportnum(1) }}–{{ pilot.domain_kg[1]|reportnum(1) }} kg/os. Wspólny przedział spełniający kryteria modelu we wszystkich stanach:
+{% if pilot.common_interval %}{{ pilot.common_interval.min_kg|reportnum(2) }}–{{ pilot.common_interval.max_kg|reportnum(2) }} kg/os.{% else %}brak.{% endif %}
+Uwzględniono masę projektową {{ pilot.limits.maximum_mass_kg|reportnum(1) }} kg, zakres ŚC P3 i minimalny zapas stateczności 5% ŚDA. Przedział wyznaczono przez przecięcie nierówności liniowych po pomnożeniu warunków ŚC przez dodatnią masę całkowitą.</p>
+<table><caption>Załoga lekka i ciężka — stała geometria i pozostałe masy</caption><thead><tr><th>Stan</th><th>ŚC 55 kg [% ŚDA]</th><th>ŚC 110 kg [% ŚDA]</th><th>Nadwyżka masy / 110 kg [kg]</th><th>Przedział [kg/os.]</th></tr></thead><tbody>{% for row in pilot.cases %}<tr><td>{{ row.name }}</td><td>{{ row.light.xcg_mac_pct|reportnum(2) }}</td><td>{{ row.heavy.xcg_mac_pct|reportnum(2) }}</td><td>{{ row.heavy.mass_excess_kg|reportnum(2) }}</td><td>{% if row.interval %}{{ row.interval.min_kg|reportnum(2) }}–{{ row.interval.max_kg|reportnum(2) }}{% else %}Brak{% endif %}</td></tr>{% endfor %}</tbody></table>
+{{ c.section(sheet, 'p3.pilot_loading') }}
+<table><caption>Ograniczenia przedziału masy osoby: a · m_os + b ≥ 0</caption><thead><tr><th>Stan</th><th>Kryterium</th><th>a</th><th>b</th></tr></thead><tbody>{% for row in pilot.cases %}{% for v in row.constraints %}<tr><td>{{ row.name }}</td><td>{{ v.label }}</td><td>{{ v.a|reportnum(6) }}</td><td>{{ v.b|reportnum(6) }}</td></tr>{% endfor %}{% endfor %}</tbody></table>
+{% if res.params.category in ['cs22_glider','cs22_motoglider'] %}<p>{{ pilot.cs22_note }}</p>{% endif %}
+{% endif %}
 <h3>Momenty bezwładności</h3>
 <p>Momenty bezwładności oszacowano z mas skupionych zespołów (tabela mas), bez własnych momentów bezwładności zespołów. Sumy obejmują wszystkie wiersze tabeli.</p>
 {{ c.section(sheet, 'p3.inertia') }}

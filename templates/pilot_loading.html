@@ -1,0 +1,31 @@
+<section id="pilotLoading" class="pilot-loading" hidden aria-labelledby="pilotLoadingTitle">
+  <h5 id="pilotLoadingTitle">Wpływ masy załogi na wyważenie</h5>
+  <p id="pilotLoadingStale" role="status" hidden>Dane projektu zmieniono. Przelicz projekt, aby zaktualizować analizę załadowania.</p>
+  <p id="pilotLoadingNote"></p>
+  <p id="pilotLoadingInterval" role="status"></p>
+  <div class="pilot-loading-controls">
+    <label>Stan załadowania <select id="pilotLoadingCase"></select></label>
+    <label for="pilotLoadingMass">Masa każdej osoby załogi z wyposażeniem [kg]
+      <input id="pilotLoadingMass" type="range" min="55" max="110" step="0.1" value="90">
+      <output id="pilotLoadingMassValue" for="pilotLoadingMass"></output>
+    </label>
+    <button type="button" class="btn btn-outline-sm" id="pilotLoadingGraph">Wzory w drzewie obliczeń</button>
+  </div>
+  <div id="pilotLoadingLegend" class="pilot-loading-legend"></div>
+  <div id="pilotLoadingChart"></div>
+  <p>Zielone tło: przedział spełniający kryteria tego stanu. Czerwone punkty: co najmniej jedno kryterium niespełnione. Niebieski punkt: wybrana masa osoby.</p>
+  <div id="pilotLoadingReadout" aria-live="polite"></div>
+  <div id="pilotLoadingMath" class="pilot-loading-math"></div>
+  <details><summary>Porównaj 55 kg i 110 kg we wszystkich stanach</summary>
+    <div class="pilot-loading-table"><table class="b-table">
+      <thead><tr><th>Stan</th><th>ŚC przy 55 kg [% ŚDA]</th><th>ŚC przy 110 kg [% ŚDA]</th><th>Nadwyżka masy przy 110 kg [kg]</th><th>Przedział spełniający kryteria [kg/os.]</th></tr></thead>
+      <tbody id="pilotLoadingRows"></tbody>
+    </table></div>
+  </details>
+  <details><summary>Nierówności wyznaczające przedział: a · masa osoby + b ≥ 0</summary>
+    <p>Każda nierówność jest konieczna. Warunki ŚC pomnożono przez dodatnią masę całkowitą; warunek masy zapisano jako m₀ − m ≥ 0. Wspólny przedział jest dokładnym przecięciem tych ograniczeń i badanej dziedziny.</p>
+    <div class="pilot-loading-table"><table class="b-table"><thead><tr><th>Stan</th><th>Kryterium</th><th>a</th><th>b</th></tr></thead><tbody id="pilotLoadingConstraints"></tbody></table></div>
+  </details>
+  <p><a href="https://www.faa.gov/sites/faa.gov/files/2023-09/Weight_Balance_Handbook.pdf" target="_blank" rel="noopener">Metoda momentów mas — FAA, rozdział 2</a>.</p>
+  <p id="pilotLoadingCS22"></p>
+</section>
