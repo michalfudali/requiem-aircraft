@@ -144,6 +144,7 @@ def test_report_includes_drop_and_completeness(client):
     response=client.post('/report?sections=p1,p2',json=p)
     assert response.status_code==200
     html=response.get_data(as_text=True)
-    assert 'Paliwo i zrzut w poszczególnych fazach' in html
-    assert 'Kompletność danych i uzgodnień' in html
+    assert 'Paliwo i zrzut ładunku w poszczególnych fazach' in html
+    # Sprawozdanie nie zawiera list kontrolnych dla autora.
+    assert 'Kompletność danych i uzgodnień' not in html
     assert 'nie zakłada się zrzutu' not in html

@@ -1,6 +1,8 @@
 """Submission prose must reflect results, preserve authorship, and share one format."""
 from datetime import date
 from copy import deepcopy
+import re
+
 import pytest
 from app import app
 from calculations import run_bipol_project
@@ -66,5 +68,46 @@ def test_individual_and_combined_exports_share_findings_and_author_notes(result)
             assert 'Inż. Projektant BIPOL' not in html and 'Jan Kowalski' not in html
             assert 'gwarantuje spełnienie' not in html and '✔' not in html
             assert '<caption>' in html and '<figcaption>' in html
-            assert 'Podsumowanie i zgodność' in html and 'Bibliografia' in html
+            assert 'Podsumowanie i zgodność' in html and 'Literatura' in html
             assert '<script src=' not in html
+
+
+def _document_text(html):
+    """Treść sprawozdania (bez pasków narzędzi i skryptów) do sprawdzania języka."""
+    return html[html.find('<main class="document'):html.rfind('</main>')]
+
+
+@pytest.mark.parametrize('preset', ['pzl_kos', 'glider_pw5', 'vlj_jet'])
+def test_report_reads_like_an_engineering_report_without_tool_or_course_tags(preset):
+    with app.test_client() as client:
+        html = client.get(f'/report?preset={preset}').get_data(as_text=True)
+    body = _document_text(html)
+    for tag in ('BIPOL_', 'calc-source', 'Wytyczne z zajęć', 'wytycznymi prowadzącego', 'Do uzupełnienia',
+                'Kompletność BIPOL', 'submission-review', 'Identyfikator wariantu', 'maks. ', 'pkt',
+                'Skąd?', 'w programie', 'Domknięcie P2', 'Biegunowa P4', 'Wybierz oznaczenie', 'wklej rzędne',
+                'IMG2026', 'class="xref"', 'data-cite='):
+        assert tag not in body, tag
+    # Numerowane odwołania do rysunków i tabel oraz spis literatury w kolejności cytowania.
+    assert re.search(r'Odczyt z wykresu Corke’a dla liczby Macha M<sub>p</sub> \(rys\. \d+\)', body) or preset == 'glider_pw5'
+    assert '<ol class="bibliography" data-bibliography><li id="lit-' in body
+    assert 'id="tab-requirements"' in body and 'id="tab-summary-p6"' in body
+
+
+def test_every_input_value_states_where_it_comes_from(result):
+    from calculations.calc_sheet import build_sheet
+    from calculations.report_origin import origin_text
+    sheet = build_sheet(result)
+    for entry in sheet.entries.values():
+        if entry['kind'] == 'given':
+            text = origin_text(entry)
+            assert text and text not in ('Założenie początkowe', 'Dane z literatury'), (entry['key'], text)
+            assert 'BIPOL' not in text and ' P4' not in text and 'P2' not in text, (entry['key'], text)
+
+
+def test_chart_readings_include_the_chart_in_the_report():
+    with app.test_client() as client:
+        html = client.get('/report?preset=pzl_kos').get_data(as_text=True)
+    body = _document_text(html)
+    for figure in ('fig-corke', 'fig-mass-trend', 'fig-mission', 'fig-schrenk', 'fig-glauert', 'fig-propeller',
+                   'fig-offer-speeds', 'fig-offer-climb', 'fig-altitude', 'fig-cg', 'fig-glide-masses'):
+        assert f'id="{figure}"' in body, figure

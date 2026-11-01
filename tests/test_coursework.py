@@ -131,8 +131,8 @@ def test_report_scopes_evidence_escapes_text_and_keeps_grades_private(client, re
     response = client.post('/report?sections=p3', json={**result['params'], 'coursework': value})
     assert response.status_code == 200
     html = response.get_data(as_text=True)
-    assert 'id="submission-review"' in html
-    assert '&lt;script&gt;unsafe()&lt;/script&gt; Arkusz 3' in html
+    # Sprawozdanie dla przełożonego nie zawiera list kontrolnych, punktów ani notatek roboczych autora.
+    assert 'id="submission-review"' not in html and 'Arkusz 3' not in html
     assert '<script>unsafe()</script>' not in html and 'TYLKO-P6' not in html
     assert 'Punkty przyznane' not in html and 'Ocena według wpisanych punktów' not in html
 

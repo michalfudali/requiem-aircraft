@@ -1,12 +1,5 @@
-<section id="report-sources"><h3>Bibliografia</h3>
-<ol class="bibliography">
-<li>Figat, M., <em>Opis projektów do przedmiotu BIPOL I</em>, Politechnika Warszawska, Wydział MEiL, rok akademicki 2022/23. Zakres projektów P1–P6 i wzory stron tytułowych.</li>
-<li>Galiński, C., <em>BIPOL_1 — Analizy wstępne</em>, s. 1–6; Galiński, C., Grabowski, T., <em>BIPOL_1 — Wyprowadzenie wzorów</em>, s. 1–9. Materiały dydaktyczne BIPOL I, PW.</li>
-<li><em>BIPOL_2</em>, materiały dydaktyczne BIPOL I, PW. Profil misji, bilans masy i parametryczne szacowanie kosztów.</li>
-<li>Paturski, Z., <em>Mechanika Lotu I — materiały do projektów 2–6</em>, PW. Aerodynamika płata i samolotu, lot ślizgowy, charakterystyki napędu i osiągi.</li>
-<li>Danilecki, S., <em>Konstruowanie samolotów</em>. Materiał udostępniony w zasobach dydaktycznych projektu.</li>
-<li>Wytyczne przekazane na zajęciach BIPOL I, notatki udostępnione przez autora projektu: fotografie IMG20261021122713–IMG20261021122751. Założenia misji, dobór próby, zakres wykresów i forma rysunków.</li>
-{% if 'p1' in selected_sections %}{% set ta=res.bipol_projects.p1.trend_analysis %}{% for source in ta.sources.values() %}<li>{% if source.url %}<a href="{{ source.url }}">{{ source.name }}</a>{% else %}{{ source.name }}{% endif %}. {{ source.citation }} Licencja: {{ source.license }}. {{ source.get('attribution','') }}</li>{% endfor %}{% endif %}
-</ol>
+<section id="report-sources"><h3>Literatura</h3>
+<p>Pozycje podano w kolejności ich pierwszego przywołania w tekście.</p>
+<ol class="bibliography" data-bibliography></ol>
 {% if params.get('source_notes') %}<section id="author-sources"><h4>Źródła uzupełniające</h4><p class="author-text">{{ params.source_notes }}</p></section>{% endif %}
 </section>

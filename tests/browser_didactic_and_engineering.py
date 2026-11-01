@@ -50,7 +50,7 @@ with sync_playwright() as p:
 
     # 2. TEST AUDYTU INŻYNIERSKIEGO W ZAKŁADCE WYMAGAŃ (COURSEWORK)
     print("2. Sprawdzanie audytu inżynierskiego w zakładce Coursework...")
-    navigate(page, 'tab-coursework')
+    navigate(page, 'tab-compliance')
     page.wait_for_timeout(600)
 
     audit_card = page.locator('#courseworkEngineeringAuditCard')

@@ -57,7 +57,7 @@ def test_report_renders_only_requested_sections(sections):
     for section in ('p1', 'p2', 'p3', 'p4', 'p5', 'p6'):
         assert (f'data-report-section="{section}"' in text) == (section in sections.split(','))
     assert 'Podsumowanie i zgodność' in text
-    assert 'Zakres modelu i założenia' in text
+    assert 'Ograniczenia przyjętych metod' in text
     assert '<script src=' not in text
     assert '<link rel="stylesheet"' not in text
 

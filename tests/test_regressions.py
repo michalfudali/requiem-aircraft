@@ -135,7 +135,7 @@ def test_unknown_performance_class_is_warning_in_api_and_report(client):
     result = client.post('/api/calculate', json=AIRCRAFT_PRESETS['vlj_jet']).json
     check = next(c for c in result['compliance_checks'] if '23.2005(c)' in c['parameter'])
     assert check['severity'] == 'warning'
-    assert b'DO OCENY' in client.get('/report?preset=vlj_jet').data
+    assert '<td>do oceny</td>' in client.get('/report?preset=vlj_jet').get_data(as_text=True)
 
 
 @pytest.mark.parametrize('url', ['/', '/holistic', '/projekty', '/report', '/report/project/folder_cover'] + [f'/report/project/p{i}' for i in range(1,7)])

@@ -2,26 +2,29 @@
 {%- set field = doc.metadata|selectattr('key','equalto',key)|first -%}
 <span data-report-meta="{{ key }}"{% if not field.value %} class="empty-metadata"{% endif %}>{{ field.value }}</span>
 {%- endmacro %}
+{% macro value_cell(row) -%}
+{%- if row.digits is none %}{{ row.value }}{% else %}{{ row.value|reportnum(row.digits) }}{% endif -%}
+{%- endmacro %}
 <!DOCTYPE html>
 <html lang="pl">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>{{ params.name }} — {{ doc.title }} — BIPOL I</title>
+  <title>{{ params.name }} — {{ doc.title }}</title>
   {% include 'math_assets.html' %}
   <script>{{ report_assets.symbols|safe }}</script>
   <style>{{ report_assets.css|safe }}</style>
 </head>
 <body>
   <aside class="report-toolbar no-print" aria-label="Ustawienia wydruku">
-    <div class="toolbar-row"><strong>{{ 'Okładka teczki' if doc.folder_cover else 'Sprawozdanie BIPOL I' }}</strong><a href="/" class="back-link">Wróć do projektu</a><button id="edit-report" type="button" aria-pressed="false">Edytuj treść</button><button id="download-docx" type="button">Pobierz DOCX</button><button id="print-report">Drukuj / zapisz PDF</button></div>
+    <div class="toolbar-row"><strong>{{ 'Okładka teczki' if doc.folder_cover else 'Sprawozdanie z projektu' }}</strong><a href="/" class="back-link">Wróć do projektu</a><button id="edit-report" type="button" aria-pressed="false">Edytuj treść</button><button id="download-docx" type="button">Pobierz DOCX</button><button id="print-report">Drukuj / zapisz PDF</button></div>
     <div class="edit-bar"><p class="edit-status" id="edit-status" role="status" aria-live="polite"></p><button id="restore-edits" type="button" hidden>Wczytaj poprzednie poprawki</button><button id="discard-edits" type="button" class="secondary" hidden>Odrzuć</button><button id="reset-edits" type="button" class="secondary" hidden>Przywróć wersję wygenerowaną</button></div>
     <details{% if doc.metadata|rejectattr('value')|list %} open{% endif %}>
       <summary>Dane na stronie tytułowej</summary>
       <div class="metadata-grid">{% for field in doc.metadata %}<label>{{ field.label }}<input data-report-meta-input="{{ field.key }}" data-label="{{ field.label }}" value="{{ field.value }}" maxlength="160"></label>{% endfor %}</div>
     </details>
     <p class="metadata-status" id="metadata-status" role="status"></p>
-    {% if 'p1' in selected_sections or 'p3' in selected_sections %}<details><summary>Rysunek wymagany przez prowadzącego</summary><p>P1: odręcznie na gładkim A4. P3: papier milimetrowy. Trzy rzuty, dziób w lewo w widoku bocznym i do góry w widoku z góry. Zaznacz mocowanie podwozia.</p><div class="toolbar-row"><button id="print-drawing-plain">Wzór A4 gładki</button><button id="print-drawing-grid">Wzór A4 z siatką</button></div><p>Wydrukuj w skali 100%, bez dopasowania do strony. Wzór wspiera wykonanie własnego rysunku odręcznego.</p></details>{% endif %}
+    {% if 'p1' in selected_sections or 'p3' in selected_sections %}<details><summary>Arkusze do rysunku samolotu</summary><p>Szkic koncepcyjny wykonuje się na gładkim arkuszu A4, rysunek projektu wstępnego na papierze milimetrowym: trzy rzuty, dziób w lewo w widoku z boku i do góry w widoku z góry, z zaznaczonym mocowaniem podwozia.</p><div class="toolbar-row"><button id="print-drawing-plain">Arkusz A4 gładki</button><button id="print-drawing-grid">Arkusz A4 z siatką</button></div><p>Drukuj w skali 100%, bez dopasowania do strony.</p></details>{% endif %}
   </aside>
   {% if 'p1' in selected_sections or 'p3' in selected_sections %}<div class="drawing-page">{{ drawing_sheet(res) }}</div>{% endif %}
   <main class="document">
@@ -34,36 +37,51 @@
         <div class="cover-subject">Budowa i Projektowanie<br>Obiektów Latających I</div>
         <div class="cover-place">Warszawa {{ meta('academic_year') }}</div>
         {% else %}
-        <div class="cover-project"><h1>{% if selected_sections|length == 1 %}Projekt {{ selected_sections[0][1:] }}<br>{{ doc.title }}{% else %}Budowa i Projektowanie<br>Obiektów Latających I{% endif %}</h1><p class="aircraft-name">{{ params.name }}</p>{% if selected_sections|length > 1 %}<p class="small">{{ doc.title }}<br>Zakres: {{ selected_sections|join(', ')|upper }}</p>{% endif %}</div>
+        <div class="cover-project"><h1>{% if selected_sections|length == 1 %}Projekt {{ selected_sections[0][1:] }}<br>{{ doc.title }}{% else %}{{ doc.title }}{% endif %}</h1><p class="aircraft-name">{{ params.name }}</p>{% if selected_sections|length > 1 %}<p class="small">Projekty {% for key in selected_sections %}{{ key[1:] }}{% if not loop.last %}, {% endif %}{% endfor %}</p>{% endif %}</div>
         <div class="cover-date">Data oddania projektu: {{ meta('submission_date') }}</div><div class="cover-grade">Ocena: ………………</div>
         {% endif %}
       </div>
     </header>
     {% if not doc.folder_cover %}
-    {% if selected_sections|length > 1 %}<div class="document-intro"><h1>{{ doc.title }}</h1><p>{{ params.name }}</p></div>{% endif %}
-    {% if selected_sections|length > 1 %}<nav class="toc" aria-label="Spis treści"><h2>Spis treści</h2><ol>{% for key in selected_sections %}<li><a href="#report-{{ key }}">{{ key|upper }}. {{ doc.titles[key] }}</a></li>{% endfor %}<li><a href="#report-summary">Podsumowanie i zgodność z wymaganiami</a></li><li><a href="#report-sources">Bibliografia</a></li>{% if 'p1' in selected_sections %}<li><a href="#reference-sample">Załącznik A. Konstrukcje porównawcze</a></li>{% endif %}</ol></nav>{% endif %}
+    {% if selected_sections|length > 1 %}<nav class="toc" aria-label="Spis treści"><h2>Spis treści</h2><ol><li><a href="#report-intro">Wstęp, wymagania i założenia</a></li>{% for key in selected_sections %}<li><a href="#report-{{ key }}">Projekt {{ key[1:] }}. {{ doc.titles[key] }}</a></li>{% endfor %}<li><a href="#report-summary">Podsumowanie i zgodność z wymaganiami</a></li><li><a href="#report-sources">Literatura</a></li>{% if 'p1' in selected_sections %}<li><a href="#reference-sample">Załącznik A. Konstrukcje porównawcze</a></li>{% endif %}</ol></nav>{% endif %}
+    <section class="report-part report-intro" id="report-intro">
+      <h2>Wstęp</h2>
+      <p>Przedmiotem opracowania jest samolot „{{ params.name }}”. {% if selected_sections|length > 1 %}Opracowanie obejmuje kolejne etapy projektowania: {% for key in selected_sections %}{{ doc.titles[key]|lower }}{% if not loop.last %}, {% endif %}{% endfor %}. Wyniki każdego etapu są danymi wejściowymi następnego.{% else %}Opracowanie obejmuje etap: {{ doc.titles[selected_sections[0]]|lower }}. Wielkości wyznaczone w innych etapach projektu przyjęto z ich wyników i wskazano to przy każdej z nich.{% endif %}</p>
+      <p>Obliczenia prowadzono w układzie SI, w atmosferze wzorcowej ISA. Każdą obliczaną wielkość zapisano wzorem ogólnym, podstawieniem liczb i wynikiem z jednostką. Przy każdej danej wejściowej podano jej pochodzenie: wymaganie tematu, założenie początkowe, warunek brzegowy, wymaganie przepisów budowy, odczyt z wykresu zamieszczonego w opracowaniu albo wynik wcześniejszych obliczeń (z numerem wzoru). Obliczenia powtarzalne zestawiono w tabelach, a dla każdej tabeli podano wzór jej wierszy.</p>
+      {% if doc.assumptions %}
+      <table class="compact-table" id="tab-requirements"><caption>Wymagania tematu, założenia początkowe i warunki brzegowe</caption><thead><tr><th>Wielkość</th><th>Symbol i wartość</th><th>Rodzaj</th><th>Uzasadnienie</th></tr></thead><tbody>
+      {% for row in doc.assumptions %}<tr><td>{{ row.entry.label|subs }}</td><td>\({{ row.entry.sym }} = {{ row.entry.value_tex }}\)</td><td>{{ row.kind }}</td><td>{{ tokens(row.text) }}</td></tr>{% endfor %}
+      </tbody></table>
+      {% endif %}
+      {% if doc.constants %}
+      <table class="compact-table" id="tab-constants"><caption>Stałe fizyczne i parametry atmosfery wzorcowej na poziomie morza</caption><thead><tr><th>Wielkość</th><th>Symbol i wartość</th></tr></thead><tbody>
+      {% for e in doc.constants %}<tr><td>{{ e.label|subs }}</td><td>\({{ e.sym }} = {{ e.value_tex }}\)</td></tr>{% endfor %}
+      </tbody></table>
+      <p>Parametry atmosfery na wysokości lotu obliczono ze wzorów atmosfery wzorcowej {{ cite('isa') }}.</p>
+      {% endif %}
+    </section>
     {% for key in selected_sections %}
     {% set p_data = res.bipol_projects[key] %}
     <section class="report-part" id="report-{{ key }}" data-report-section="{{ key }}">
-      <h2>{{ key|upper }}. {{ doc.titles[key] }}</h2>
+      <h2>Projekt {{ key[1:] }}. {{ doc.titles[key] }}</h2>
       {% include 'reports/' ~ key ~ '.html' %}
-      <div class="findings"><h3>Wnioski</h3>{% for paragraph in doc.conclusions[key] %}<p>{{ paragraph }}</p>{% endfor %}</div>
+      <div class="findings"><h3>Podsumowanie projektu {{ key[1:] }}</h3>{% for paragraph in doc.conclusions[key] %}<p>{{ paragraph }}</p>{% endfor %}
+        <table id="tab-summary-{{ key }}"><caption>Wyniki projektu {{ key[1:] }} przekazywane do dalszych etapów</caption><thead><tr><th>Wielkość</th><th class="number">Wartość</th><th>Jednostka</th></tr></thead><tbody>{% for row in doc.summaries[key] %}<tr><td>{{ row.label|subs }}</td><td class="number">{{ value_cell(row) }}</td><td>{{ row.unit }}</td></tr>{% endfor %}</tbody></table>
+      </div>
     </section>
     {% endfor %}
     <section class="report-end" id="report-summary">
-      {% if doc.scope_limitations %}<h2>Zakres wymagający odrębnej weryfikacji</h2><ul>{% for note in doc.scope_limitations %}<li>{{ note }}</li>{% endfor %}</ul>{% endif %}
       <h2>Podsumowanie i zgodność z wymaganiami</h2>
-      <p>Wyniki dotyczą wariantu „{{ params.name }}” i zakresu {{ selected_sections|join(', ')|upper }}. Najważniejsze parametry przekazywane do kolejnych etapów zestawiono poniżej.</p>
-      <table><caption>Parametry wynikowe rozpatrywanego wariantu</caption><thead><tr><th>Wielkość</th><th class="number">Wartość</th><th>Jednostka</th></tr></thead><tbody>{% for label,value,unit,digits in doc.summary %}<tr><td>{{ label }}</td><td class="number">{{ value|reportnum(digits) }}</td><td>{{ unit }}</td></tr>{% endfor %}</tbody></table>
+      <p>Najważniejsze parametry samolotu „{{ params.name }}” zestawiono poniżej.</p>
+      <table><caption>Podstawowe parametry samolotu</caption><thead><tr><th>Wielkość</th><th class="number">Wartość</th><th>Jednostka</th></tr></thead><tbody>{% for row in doc.summary %}<tr><td>{{ row.label|subs }}</td><td class="number">{{ value_cell(row) }}</td><td>{{ row.unit }}</td></tr>{% endfor %}</tbody></table>
       {% if doc.checks %}
-      <table class="compact-table"><caption>Porównanie wyników z przyjętymi kryteriami</caption><thead><tr><th>Kryterium</th><th>Wymaganie</th><th>Wynik</th><th>Ocena</th></tr></thead><tbody>{% for c in doc.checks %}<tr><td>{{ c.parameter }}</td><td>{{ c.required }}</td><td>{{ c.actual }}</td><td>{{ 'SPEŁNIONE' if c.passed else ('DO OCENY' if c.severity == 'warning' else 'NIESPEŁNIONE') }}</td></tr>{% endfor %}</tbody></table>
-      {% if doc.failed %}<p>Nie wszystkie rozpatrzone kryteria zostały spełnione. Korekty wymagają: {% for c in doc.failed %}{{ c.parameter|lower }}{% if not loop.last %}; {% endif %}{% endfor %}. Przed przyjęciem wariantu do dalszego opracowania należy skorygować odpowiednie założenia i powtórzyć obliczenia.</p>{% else %}<p>Spełniono {{ doc.checks|selectattr('passed')|list|length }} z {{ doc.checks|length }} rozpatrzonych kryteriów.{% if doc.pending %} Pozostałe kryteria wymagają uzupełnienia danych wskazanych w tabeli.{% endif %}</p>{% endif %}
+      <table class="compact-table"><caption>Porównanie wyników z wymaganiami i kryteriami</caption><thead><tr><th>Kryterium</th><th>Wymaganie</th><th>Wynik</th><th>Ocena</th></tr></thead><tbody>{% for c in doc.checks %}<tr><td>{{ c.parameter }}</td><td>{{ c.required }}</td><td>{{ c.actual }}</td><td>{{ 'spełnione' if c.passed else ('do oceny' if c.severity == 'warning' else 'niespełnione') }}</td></tr>{% endfor %}</tbody></table>
+      {% if doc.failed %}<p>Nie wszystkie wymagania zostały spełnione. Korekty wymagają: {% for c in doc.failed %}{{ c.parameter|lower }}{% if not loop.last %}; {% endif %}{% endfor %}. Przed przyjęciem wariantu do dalszych prac należy zmienić odpowiednie założenia i powtórzyć obliczenia.</p>{% else %}<p>Spełniono {{ doc.checks|selectattr('passed')|list|length }} z {{ doc.checks|length }} rozpatrzonych wymagań.{% if doc.pending %} Pozostałe wymagają uzupełnienia danych podanych w tabeli.{% endif %}</p>{% endif %}
       {% endif %}
       {% if params.get('report_notes') %}<section id="author-notes"><h3>Uwagi i wnioski autora</h3><p class="author-text">{{ params.report_notes }}</p></section>{% endif %}
-      {% include 'reports/submission_review.html' %}
-      <h3>Zakres modelu i założenia</h3>
-      <p>Obliczenia wykonano dla atmosfery ISA i geometrii wstępnej. Przyjęto paraboliczną biegunową oporu oraz uproszczone charakterystyki napędu. Osiągi i położenie środka masy zależą od tych założeń; wyniki stanowią podstawę dalszego wymiarowania, a nie potwierdzenie zdatności do lotu.</p>
-      <p>{% if 'p3' in selected_sections %}Rozkład mas oparto na oszacowaniu udziałów zespołów i ich ramion. Schemat trzech rzutów dokumentuje proporcje modelu; wymagany arkusz rysunkowy i szczegóły konstrukcyjne opracowuje się oddzielnie. {% endif %}{% if 'p2' in selected_sections %}Dane porównawcze profili i model kosztowy mają charakter wstępny. {% endif %}{% if 'p6' in selected_sections %}Obwiednię wyznaczono dla przyjętych obciążeń manewrowych i podmuchowych. Ocena wytrzymałości wymaga osobnej analizy struktury.{% endif %}</p>
+      <h3>Ograniczenia przyjętych metod</h3>
+      <p>Obliczenia wykonano dla atmosfery wzorcowej i geometrii wstępnej, z paraboliczną biegunową samolotu i uproszczonymi charakterystykami zespołu napędowego. Wyniki są podstawą dalszego wymiarowania; nie zastępują badań w locie ani wykazania zgodności z przepisami.{% if 'p3' in selected_sections %} Rozkład mas oparto na udziałach mas zespołów i ich ramionach; po wykonaniu rysunku zabudowy należy go uściślić.{% endif %}{% if 'p2' in selected_sections %} Charakterystyki profili i koszty mają charakter wstępny.{% endif %}{% if 'p6' in selected_sections %} Obwiednia obciążeń nie określa wytrzymałości struktury; ta wymaga osobnych obliczeń.{% endif %}</p>
+      {% if doc.scope_limitations %}<ul>{% for note in doc.scope_limitations %}<li>{{ note }}</li>{% endfor %}</ul>{% endif %}
       {% include 'reports/sources.html' %}
     </section>
     {% if 'p1' in selected_sections %}{% include 'reports/reference_sample.html' %}{% endif %}

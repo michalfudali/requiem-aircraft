@@ -75,6 +75,7 @@ svg .axis-label { font: 12px Arial, sans-serif; fill: #222; }
 .bibliography { padding-left: 6mm; font-size: 10pt; break-inside: avoid; }
 .bibliography li { margin-bottom: 3mm; overflow-wrap: anywhere; break-inside: avoid; }
 .bibliography a { text-decoration: underline; text-underline-offset: 2px; }
+tr.highlight td { background: #f1f5f9; font-weight: 600; }
 .report-toolbar { font: 14px/1.4 Arial, sans-serif; background: #fff; padding: 12px max(16px, calc((100vw - 800px)/2)); border-bottom: 1px solid #ccc; }
 .toolbar-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
 .toolbar-row strong { flex: 1; }

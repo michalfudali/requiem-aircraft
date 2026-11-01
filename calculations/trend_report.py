@@ -4,7 +4,8 @@ from markupsafe import Markup
 from calculations.trends import predict
 
 
-def trend_chart(analysis, mode):
+def trend_chart(analysis, mode, marks=()):
+    """marks: odczyty z wykresu [(x, y, opis)] zaznaczane czarnymi punktami."""
     if mode == 'mass':
         points = [(r['m0'], r['empty_fraction'], r['model']) for r in analysis['similar_aircraft']
                   if r['empty_fraction'] is not None and .15 < r['empty_fraction'] < .95]
@@ -50,5 +51,9 @@ def trend_chart(analysis, mode):
             svg.append(f'<path d="M{x(fit["x_max"]):.2f} {y(predict(fit,fit["x_max"])):.2f}L{x(forecast[0]):.2f} {y(forecast[1]):.2f}" stroke="#a86621" stroke-dasharray="5 3" fill="none"/>')
     for xv, yv, model in points:
         svg.append(f'<circle cx="{x(xv):.2f}" cy="{y(yv):.2f}" r="3.5" fill="#5478a9"><title>{html.escape(model)}: {xv:g}; {yv:g}</title></circle>')
+    for xv, yv, label in marks:
+        svg.append(f'<circle cx="{x(xv):.2f}" cy="{y(yv):.2f}" r="5.5" fill="#1d1d1b" stroke="#fff" stroke-width="2"/>'
+                   f'<text x="{x(xv) + 8:.2f}" y="{y(yv) - 8:.2f}" font-size="11" font-weight="bold" '
+                   f'stroke="#fff" stroke-width="3" paint-order="stroke">{html.escape(label)}</text>')
     svg.append(f'<text x="340" y="284" text-anchor="middle" font-size="12">{html.escape(xlabel)}</text><text transform="translate(14 140) rotate(-90)" text-anchor="middle" font-size="12">{html.escape(ylabel)}</text></svg>')
     return Markup(''.join(svg))
