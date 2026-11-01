@@ -38,6 +38,7 @@ Uwzględniono masę projektową {{ pilot.limits.maximum_mass_kg|reportnum(1) }} 
 {{ c.section(sheet, 'p3.pilot_loading') }}
 <table><caption>Ograniczenia przedziału masy osoby: a · m_os + b ≥ 0</caption><thead><tr><th>Stan</th><th>Kryterium</th><th>a</th><th>b</th></tr></thead><tbody>{% for row in pilot.cases %}{% for v in row.constraints %}<tr><td>{{ row.name }}</td><td>{{ v.label }}</td><td>{{ v.a|reportnum(6) }}</td><td>{{ v.b|reportnum(6) }}</td></tr>{% endfor %}{% endfor %}</tbody></table>
 {% if res.params.category in ['cs22_glider','cs22_motoglider'] %}<p>{{ pilot.cs22_note }}</p>{% endif %}
+{% include 'reports/ballast.html' %}
 {% endif %}
 <h3>Momenty bezwładności</h3>
 <p>Momenty bezwładności oszacowano z mas skupionych zespołów (tabela mas), bez własnych momentów bezwładności zespołów. Sumy obejmują wszystkie wiersze tabeli.</p>

@@ -12,7 +12,7 @@ from calculations.presets import AIRCRAFT_PRESETS
 def example():
     # Fixed 180 kg airframe; 332 kg m moment. Crew at 1.13 m, 80 kg nominal.
     mass = dict(n_crew=1, m_crew=80., m0=260.)
-    geom = dict(wing=dict(mac=.7))
+    geom = dict(wing=dict(mac=.7), fuselage=dict(length=6.))
     balance = dict(x_lemac_m=1.5, arms=dict(crew=1.13),
                    neutral_point=dict(x_n_mac_pct=45.), cg_range=dict(delta_pct=15.),
                    loading_states=[dict(key='oew', name='Pusty', mass_kg=180., moment_kg_m=332.),

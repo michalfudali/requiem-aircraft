@@ -6,4 +6,5 @@
 .pilot-loading-legend{display:flex;gap:.4rem 1.2rem;flex-wrap:wrap;padding:.5rem 0;font-size:.8rem}
 .pilot-loading [data-failed=true]{color:#a52f2f}.pilot-loading [data-failed=false]{color:#087065}
 #pilotLoadingStale{color:#a35b17;font-weight:600}
+.ballast-panel{padding:1rem 0;border-top:1px solid #cddce5}.ballast-panel>summary{font-size:1rem;color:#17394c}#ballastAxis svg{display:block;width:100%;height:auto;font:12px system-ui,sans-serif;fill:#526a7a}#ballastResult{padding:.7rem;border-radius:6px;background:#edf6f7}#ballastResult[data-feasible=false]{background:#fff4e9;color:#8d531a}
 @media(max-width:600px){.pilot-loading-controls{display:grid}.pilot-loading-controls label{min-width:0}.pilot-loading-math{font-size:.8rem}}

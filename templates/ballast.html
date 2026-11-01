@@ -1,0 +1,23 @@
+<details id="ballastPanel" class="ballast-panel">
+  <summary>Dobór balastu korekcyjnego dla wybranej masy załogi</summary>
+  <p id="ballastNote"></p>
+  <p id="ballastOptimal" role="status"></p>
+  <div class="pilot-loading-controls">
+    <label for="ballastStation">Sprawdź miejsce balastu [m od nosa]
+      <input id="ballastStation" type="range" min="0" max="10" step="any" value="0">
+      <output id="ballastStationValue" for="ballastStation"></output>
+    </label>
+    <button id="ballastUseOptimal" type="button" class="btn btn-outline-sm">Ustaw położenie minimalnego balastu</button>
+    <button id="ballastExport" type="button" class="btn btn-outline-sm">Pobierz obliczenia LaTeX</button>
+    <button id="ballastGraph" type="button" class="btn btn-outline-sm">Wzory dla 55 kg w drzewie</button>
+  </div>
+  <div id="ballastAxis"></div>
+  <p id="ballastResult" aria-live="polite"></p>
+  <div id="ballastMath" class="pilot-loading-math"></div>
+  <div class="pilot-loading-table"><table class="b-table">
+    <thead><tr><th>Stan</th><th>ŚC przed [% ŚDA]</th><th>ŚC po [% ŚDA]</th><th>Masa po [kg]</th><th>Zapas po [% ŚDA]</th><th>Kryteria modelu</th></tr></thead>
+    <tbody id="ballastStates"></tbody>
+  </table></div>
+  <p>Jeden balast o stałej masie i położeniu musi spełniać kryteria we wszystkich pokazanych stanach. Osiągi i obciążenia wymagają ponownego przeliczenia po zmianie projektu.</p>
+  <p><a href="https://www.faa.gov/sites/faa.gov/files/2023-09/Weight_Balance_Handbook.pdf" target="_blank" rel="noopener">FAA — dobór balastu, rozdział 7</a>.</p>
+</details>

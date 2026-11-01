@@ -42,7 +42,7 @@
   }
   document.addEventListener('DOMContentLoaded',()=>{
     if(!$('pilotLoading'))return;
-    function stale(value=true){if(!study?.available)return;$('pilotLoadingStale').hidden=!value;for(const id of ['pilotLoadingCase','pilotLoadingMass','pilotLoadingGraph'])$(id).disabled=value;}
+    function stale(value=true){if(!study?.available)return;$('pilotLoadingStale').hidden=!value;for(const control of $('pilotLoading').querySelectorAll('input,select,button'))control.disabled=value;}
     document.addEventListener('bipol:project',()=>{study=null;$('pilotLoading').hidden=true;});
     document.addEventListener('bipol:calculating',()=>stale());
     $('designForm')?.addEventListener('input',()=>stale(),true);$('designForm')?.addEventListener('change',()=>stale(),true);
