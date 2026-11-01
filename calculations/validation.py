@@ -106,6 +106,11 @@ def validate_parameters(data):
     for optional_speed in ('loiter_speed_kmh','climb_start_speed_kmh'):
         if p.get(optional_speed) == 0:
             p.pop(optional_speed)
+    if p.get('airfoil_comparison'):
+        from calculations.airfoil_comparison import parse_comparison
+        if not isinstance(p['airfoil_comparison'], str) or len(p['airfoil_comparison']) > 4000:
+            raise ValueError('Porównanie profili: wymagany tekst do 4000 znaków.')
+        parse_comparison(p['airfoil_comparison'])
     for key in ('report_notes', 'source_notes'):
         if key in p and (not isinstance(p[key], str) or len(p[key]) > 15000):
             raise ValueError(f'Pole {key}: wymagany tekst do 15000 znaków.')
@@ -180,6 +185,7 @@ def validate_parameters(data):
     for key, allowed in {'trend_source': ('all', 'fast', 'cado', 'motogliders', 'geometry_trends', 'user'),
                          'wing_input_mode': ('loading', 'span_aspect', 'span_area', 'area_aspect'),
                          'payload_input_mode': ('seats', 'total'),
+                         'airfoil_criterion': ('auto', 'cruise', 'lift'),
                          'power_input_mode': ('sized', 'fixed'),
                          'gear_attachment': ('fuselage', 'wing'),
                          'runway_surface': ('paved', 'grass'),
