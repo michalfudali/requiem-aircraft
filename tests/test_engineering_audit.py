@@ -163,7 +163,8 @@ def test_main_gear_angles_follow_lecture_7():
     assert tip['passed'] == (m['tipback_angle_deg'] >= m['tipback_required_deg'])
     # Podane położenie kół spełnia wymaganie: kąt z tego położenia równa się wymaganemu.
     b, mac = result['balance'], result['geometry']['wing']['mac']
-    x_aft = b['x_lemac_m'] + b['cg_range']['aft_pct'] / 100 * mac
+    x_aft = b['x_lemac_m'] + max(35, b['cg_range']['aft_pct']) / 100 * mac  # BIPOL_3, krok 10
+    assert m['tipback_cg_mac_pct'] == pytest.approx(max(35, b['cg_range']['aft_pct']), abs=.05)
     angle = math.degrees(math.atan2(m['main_gear_x_required_m'] - x_aft, m['h_cg_ground_m']))
     assert angle == pytest.approx(m['tipback_required_deg'], abs=.3)
     assert any(q['id'] == 'q_main_gear' for q in audit['defense_questions'])

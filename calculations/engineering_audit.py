@@ -153,12 +153,15 @@ def perform_engineering_audit(result: dict) -> dict:
     # =========================================================================
     x_lemac = balance.get("x_lemac_m")
     if not sailplane and x_lemac is not None:
-        x_cg_aft = float(x_lemac) + float(balance.get("cg_range", {}).get("aft_pct", 30.0)) / 100.0 * mac
+        # BIPOL_3, krok 10: przy rysowaniu podwozia przyjąć ŚC w 35% SCA (albo dalej, jeśli tak wynika z wyważenia).
+        cg_ref_pct = max(35.0, float(balance.get("cg_range", {}).get("aft_pct", 30.0)))
+        x_cg_aft = float(x_lemac) + cg_ref_pct / 100.0 * mac
         tipback_deg = math.degrees(math.atan2(x_gear - x_cg_aft, h_cg_ground))
         x_gear_required = x_cg_aft + h_cg_ground * math.tan(math.radians(tipback_required))
         gear_pct = 100.0 * (x_gear - x_lemac) / mac
         gear_required_pct = 100.0 * (x_gear_required - x_lemac) / mac
         metrics.update(tipback_angle_deg=round(tipback_deg, 1), tipback_required_deg=round(tipback_required, 1),
+                       tipback_cg_mac_pct=round(cg_ref_pct, 1),
                        main_gear_x_required_m=round(x_gear_required, 3), main_gear_required_mac_pct=round(gear_required_pct, 1))
         tipback_ok = tipback_deg >= tipback_required
         pct = lambda v: f"{v:.0f}% SCA"  # noqa: E731
@@ -177,8 +180,9 @@ def perform_engineering_audit(result: dict) -> dict:
                 "najdalszym tylnym położeniem środka ciężkości."
             ),
             "engineering_note": (
-                f"Kąt między pionem przez tylne położenie ŚC a prostą do punktu styku koła głównego wynosi {deg(tipback_deg)} "
-                f"(koła w {pct(gear_pct)}, ŚC na wysokości ok. {metres(h_cg_ground)}). "
+                f"Kąt między pionem przez ŚC w {pct(cg_ref_pct)} (tylne położenie, nie mniej niż 35% SCA wg BIPOL_3) a prostą "
+                f"do punktu styku koła głównego wynosi {deg(tipback_deg)} (koła w {pct(gear_pct)}, ŚC na wysokości ok. "
+                f"{metres(h_cg_ground)}). "
                 + ("Samolot zadarty do kąta startowego nie usiądzie na ogonie." if tipback_ok else
                    f"Wymaganie spełnią koła główne w x ≥ {metres(x_gear_required)} ({pct(gear_required_pct)}); "
                    f"kąt ochrony ogona wyniósłby wtedy {deg(tail_angle(x_gear_required))}. "
