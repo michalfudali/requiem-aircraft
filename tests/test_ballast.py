@@ -1,12 +1,14 @@
 """Published lever example, a nontrivial LP minimum and conservation checks."""
 from copy import deepcopy
 from math import isfinite
+from random import Random
 
 import pytest
 
 from calculations.ballast import ballast_model, solve_ballast
 from calculations import run_bipol_project
 from calculations.presets import AIRCRAFT_PRESETS
+from calculations.calc_sheet import build_sheet
 
 
 def model_for(cases, lower, upper, maximum, length=5.):
@@ -110,9 +112,30 @@ def test_translating_the_datum_preserves_mass_and_relative_station():
     assert result['station_m']-shift == pytest.approx(1480/600,rel=1e-10)
 
 
+def test_known_feasible_corrections_bound_the_global_and_fixed_station_minima():
+    rng=Random(18031)
+    for _ in range(150):
+        w=rng.uniform(1.,800.);station=rng.uniform(0.,5.)
+        cases=[]
+        for _ in range(rng.randrange(1,8)):
+            m=rng.uniform(50.,250.)
+            target=rng.uniform(2.4,2.6)
+            x=(target*(m+w)-w*station)/m
+            cases.append((m,x))
+        ceiling=max(m for m,x in cases)+w+rng.uniform(0.,50.)
+        model=model_for(cases,2.4,2.6,ceiling)
+        for result in (solve_ballast(model,0.),solve_ballast(model,0.,station)):
+            assert result['feasible']
+            assert result['mass_kg']<=w+1e-7
+            for row in result['after']:
+                assert row['passed'],(result,row)
+                assert 2.4-1e-10<=row['xcg_m']<=2.6+1e-10
+                assert row['mass_kg']<=ceiling+1e-9
+
+
 @pytest.fixture(scope='module',params=list(AIRCRAFT_PRESETS)+['small_tail'])
 def design(request):
-    params=({**AIRCRAFT_PRESETS['ga_trainer'],'v_h':.4,'locked_params':['v_h']}
+    params=({**AIRCRAFT_PRESETS['motoglider_aos'],'v_h':.35,'locked_params':['v_h']}
             if request.param=='small_tail' else AIRCRAFT_PRESETS[request.param])
     return run_bipol_project(params)
 
@@ -134,3 +157,6 @@ def test_real_references_conserve_mass_moment_and_every_constraint(design):
                 chosen=solve_ballast(model,reference['person_kg'],reference['station_m'])
                 assert chosen['mass_kg'] == pytest.approx(reference['mass_kg'],abs=1e-8)
     assert model==saved
+    for key,entry in build_sheet(design).entries.items():
+        if entry['section']=='p3.ballast' and entry['kind']=='calc':
+            assert entry['consistent'],key

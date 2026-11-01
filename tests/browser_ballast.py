@@ -5,7 +5,7 @@ from pathlib import Path
 
 ROOT=Path(__file__).resolve().parents[1];sys.path[:0]=[str(ROOT),str(ROOT/'tests')]
 from playwright.sync_api import sync_playwright
-from browser_helpers import serve_in_process,reveal_details,edit_inputs
+from browser_helpers import serve_in_process,reveal_details,edit_inputs,navigate
 from calculations.ballast import solve_ballast
 from calculations.presets import AIRCRAFT_PRESETS
 from app import app
@@ -29,7 +29,7 @@ with sync_playwright() as p:
     file=OUT/'ballast-input.json';file.write_text(json.dumps(dict(name='Korekta wyważenia',params=params)),encoding='utf-8')
     old=page.evaluate('getActiveProjectId()');page.locator('#projectImportFileInput').set_input_files(file)
     page.wait_for_function('(id)=>getActiveProjectId()!==id&&!document.querySelector("#calcBtn").disabled',arg=old,timeout=60000)
-    reveal_details(page.locator('#btnModeProjects'));page.locator('#btnModeProjects').click();page.locator('#pill-p3').click()
+    navigate(page,'tab-p3')
     panel=page.locator('#ballastPanel');reveal_details(panel);panel.locator('summary').click();panel.scroll_into_view_if_needed()
     page.locator('#pilotLoadingMass').fill('55')
     model=page.evaluate('BipolBallastUI.model');reference=solve_ballast(model,55.)

@@ -22,6 +22,8 @@ from markupsafe import Markup, escape
 # Literatura (kolejność numerów wynika z kolejności cytowania w dokumencie)
 # ---------------------------------------------------------------------------------------------
 LITERATURE = {
+    'faa_weight_balance': 'FAA: <em>Aircraft Weight and Balance Handbook</em>, FAA-H-8083-1B, '
+                          '2016, rozdz. 2 i 7. https://www.faa.gov/sites/faa.gov/files/2023-09/Weight_Balance_Handbook.pdf',
     'galinski_aw': 'Galiński C.: <em>Analizy wstępne</em>. Materiały pomocnicze do projektowania samolotów, '
                    'Politechnika Warszawska, Wydział MEiL, Zakład Samolotów i Śmigłowców, Warszawa.',
     'galinski_wz': 'Galiński C., Goetzendorf-Grabowski T.: <em>Wyprowadzenie wzorów do analiz wstępnych</em>. '
@@ -214,6 +216,7 @@ ORIGIN = {
     'xcg_aft': ('calc', 'z zestawienia stanów załadowania {tab:loading-states}'),
     'pilot_light': ('ass', 'lekka osoba załogi z wyposażeniem — skrajny przypadek wyważenia {lit:grabowski_am}'),
     'pilot_heavy': ('ass', 'ciężka osoba załogi z wyposażeniem — skrajny przypadek wyważenia {lit:grabowski_am}'),
+    'ballast_x_min': ('bc', 'początek zakresu badanego położenia balastu — nos kadłuba'),
     'dx_n': ('ass', 'przesunięcie punktu neutralnego od śmigła i gondol, wg położenia napędu'),
     'eta_H': ('ass', 'hamowanie strug i interferencja na usterzeniu poziomym'),
     # --- Projekt 3: płat ---

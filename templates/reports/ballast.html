@@ -1,6 +1,6 @@
 {% set ballast=pilot.ballast %}
 <h3>Dobór balastu korekcyjnego</h3>
-<p>{{ ballast.model.note }} Każdą z poniższych mas załogi analizowano oddzielnie. Położenie optymalizowano w zakresie {{ ballast.model.station_domain_m[0]|reportnum(3) }}–{{ ballast.model.station_domain_m[1]|reportnum(3) }} m od nosa. Przyjęte miejsca są granicami geometrycznymi, a nie zatwierdzonymi miejscami mocowania.</p>
+<p>{{ ballast.model.note }} Każdą z poniższych mas załogi analizowano oddzielnie {{ cite('faa_weight_balance') }}. Położenie optymalizowano w zakresie {{ ballast.model.station_domain_m[0]|reportnum(3) }}–{{ ballast.model.station_domain_m[1]|reportnum(3) }} m od nosa. Przyjęte miejsca są granicami geometrycznymi, a nie zatwierdzonymi miejscami mocowania.</p>
 <p>Bilans po dodaniu balastu o masie w i ramieniu x_B: m_nowy = m + w, M_nowy = M + w·x_B. Wprowadzając Z = w·x_B, warunki masy, ŚC i zapasu stateczności zapisano jako A_i·w + B_i·Z + C_i ≥ 0. Ich przecięcie z 0 ≤ Z ≤ l_k·w i w ≥ 0 jest wielokątem. Minimalizację masy wykonano na jego wierzchołkach, z zachowaniem przypadków zdegenerowanych.</p>
 {% for ref in ballast.references %}
 <h4>{{ ref.person_kg|reportnum(0) }} kg na osobę załogi</h4>

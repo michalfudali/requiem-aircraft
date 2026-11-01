@@ -399,6 +399,11 @@
             </div>
           </div>
 
+          <div class="subpoint-card" id="pilotLoadingCard">
+            <div class="subpoint-header"><h4>Wyważenie przy zmiennej masie załogi i dobór balastu</h4></div>
+            <div class="subpoint-body">{% include 'pilot_loading.html' %}</div>
+          </div>
+
           <!-- Podpunkt 3.2: Średnia Cięciwa Aerodynamiczna (ŚDA / MAC) -->
           <div class="subpoint-card">
             <div class="subpoint-header">
@@ -1465,7 +1470,6 @@
                       <tbody id="p3_loading_tbody"></tbody>
                     </table>
                   </div>
-                  {% include 'pilot_loading.html' %}
                   <div style="margin-top:0.75rem; background:#eff6ff; padding:0.75rem; border-radius:6px; font-size:0.84rem; color:#1e3a8a;">
                     <strong>Momenty bezwładności i twierdzenie Steinera (do 1/4 ŚDA):</strong><br>
                     Momenty w ŚM: <code>Jx = <span id="p3_jx">---</span> kg&bull;m²</code> &bull; <code>Jy = <span id="p3_jy">---</span> kg&bull;m²</code> &bull; <code>Jz = <span id="p3_jz">---</span> kg&bull;m²</code>.<br>
