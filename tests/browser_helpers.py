@@ -1,4 +1,17 @@
 """Shared navigation helpers for the focused workspace UI."""
+def launch_chromium(playwright, **options):
+    """Use an explicit browser, installed Chrome, or Playwright's Chromium."""
+    import os
+    from pathlib import Path
+    explicit = os.environ.get('BIPOL_BROWSER_PATH')
+    if explicit:
+        return playwright.chromium.launch(executable_path=explicit, **options)
+    installed = Path('C:/Program Files/Google/Chrome/Application/chrome.exe')
+    if installed.is_file():
+        return playwright.chromium.launch(executable_path=str(installed), **options)
+    return playwright.chromium.launch(**options)
+
+
 def reveal_details(locator):
     for details in locator.locator('xpath=ancestor::details').all():
         if details.get_attribute('open') is None:

@@ -6,7 +6,7 @@ from pathlib import Path
 ROOT=Path(__file__).resolve().parents[1]
 sys.path[:0]=[str(ROOT),str(ROOT/'tests')]
 from playwright.sync_api import sync_playwright
-from browser_helpers import serve_in_process,navigate,edit_inputs
+from browser_helpers import serve_in_process,navigate,edit_inputs,launch_chromium
 from calculations.presets import AIRCRAFT_PRESETS
 
 OUT=ROOT/'work'/'tree-20261101'/'browser';OUT.mkdir(parents=True,exist_ok=True)
@@ -24,7 +24,7 @@ def search(page,key):
 
 
 with sync_playwright() as p:
-    browser=p.chromium.launch(executable_path='C:/Program Files/Google/Chrome/Application/chrome.exe',headless=True)
+    browser=launch_chromium(p,headless=True)
     context=browser.new_context(viewport=dict(width=1600,height=1100),accept_downloads=True)
     page=context.new_page();serve_in_process(page,BASE);errors=[];page.on('pageerror',lambda e:errors.append(str(e)))
     page.goto(BASE);ready(page);navigate(page,'tab-calculation-tree')

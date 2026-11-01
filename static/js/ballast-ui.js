@@ -38,6 +38,7 @@
   document.addEventListener('DOMContentLoaded',()=>{
     if(!$('ballastPanel'))return;
     $('ballastStation').addEventListener('input',render);$('pilotLoadingMass').addEventListener('input',render);
+    new ResizeObserver(()=>{if($('ballastAxis').clientWidth)render();}).observe($('ballastAxis'));
     $('ballastPanel').addEventListener('toggle',()=>{if($('ballastPanel').open)render();});
     $('ballastUseOptimal').addEventListener('click',()=>{if(optimal?.feasible&&optimal.station_m!==null){$('ballastStation').value=optimal.station_m;render();}});
     $('ballastGraph').addEventListener('click',()=>{document.querySelector('[data-studio-nav="tab-calculation-tree"]')?.click();const tree=window.BipolCalculationTree,key=tree?.state.model?.byId.has('ballast_light_mass')?'ballast_light_mass':'ballast_light_problem';tree?.selectEntry(key,true);});

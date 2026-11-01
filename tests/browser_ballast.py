@@ -5,7 +5,7 @@ from pathlib import Path
 
 ROOT=Path(__file__).resolve().parents[1];sys.path[:0]=[str(ROOT),str(ROOT/'tests')]
 from playwright.sync_api import sync_playwright
-from browser_helpers import serve_in_process,reveal_details,edit_inputs,navigate
+from browser_helpers import serve_in_process,reveal_details,edit_inputs,navigate,launch_chromium
 from calculations.ballast import solve_ballast
 from calculations.presets import AIRCRAFT_PRESETS
 from app import app
@@ -21,7 +21,7 @@ def compare(a,b):
             assert x['passed'] and y['passed']
 
 with sync_playwright() as p:
-    browser=p.chromium.launch(executable_path='C:/Program Files/Google/Chrome/Application/chrome.exe',headless=True)
+    browser=launch_chromium(p,headless=True)
     page=browser.new_page(viewport=dict(width=1500,height=1000),accept_downloads=True);serve_in_process(page,'http://ballast.test')
     errors=[];page.on('pageerror',lambda e:errors.append(str(e)))
     page.goto('http://ballast.test');page.wait_for_function('currentResults!==null&&!document.querySelector("#calcBtn").disabled',timeout=60000)
@@ -49,6 +49,7 @@ with sync_playwright() as p:
     panel.screenshot(path=str(OUT/'ballast.png'))
     page.set_viewport_size(dict(width=390,height=844));panel.scroll_into_view_if_needed()
     assert page.evaluate('document.documentElement.scrollWidth<=innerWidth+1')
+    page.wait_for_function('document.querySelector("#ballastAxis svg").viewBox.baseVal.width<=Math.max(340,document.querySelector("#ballastAxis").clientWidth)+1')
     assert page.evaluate('''()=>[...document.querySelectorAll('#ballastMath .katex-html')].every(e=>e.getBoundingClientRect().left>=document.querySelector('#ballastMath').getBoundingClientRect().left-1)''')
     panel.screenshot(path=str(OUT/'ballast-mobile.png'));page.set_viewport_size(dict(width=1500,height=1000))
     page.locator('#ballastStation').press('End')
