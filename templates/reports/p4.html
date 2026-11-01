@@ -2,6 +2,8 @@
 {% set a=res.aerodynamics %}{% set cs=res.geometry.control_surfaces %}{% set p3a=a.paturski_p3 %}
 <p>Charakterystyki aerodynamiczne określono dla konfiguracji gładkiej, startowej i do lądowania. Biegunową samolotu złożono z charakterystyk płata (P3), oporu zespołów nienośnych i oporu wyważenia usterzeniem poziomym (Paturski, Projekt 3), a następnie przybliżono biegunową analityczną [2, 4].</p>
 <h3>Opór szkodliwy zespołów nienośnych</h3>
+{% include 'reports/compressibility.html' %}
+{{ c.section(sheet, 'p4.compressibility') }}
 {% include 'reports/profile_geometry.html' %}
 <p>Opór kadłuba obliczono wzorem (3.1) z oporu tarcia płyty turbulentnej, współczynnika kształtu i poprawki ściśliwości. Pozostałe zespoły ujęto iloczynami \(C_{x,j}S_j\) z danych tunelowych i statystyki Tabeli C.</p>
 {{ c.section(sheet, 'p4.parasite') }}

@@ -8,7 +8,7 @@ def is_water(params):
     return params.get('operating_surface', 'land') == 'water'
 
 
-def assessment(params, mass):
+def assessment(params, mass, aero=None):
     checks, limitations = [], []
     water = None
     if is_water(params):
@@ -57,6 +57,14 @@ def assessment(params, mass):
         limitations.append(note)
         checks.append(dict(parameter='[Zakres] Gabaryty ładowni', required='Długość, szerokość i wysokość użytkowa',
                            actual='Brak danych', passed=False, severity='warning', note=note))
+    comp = (aero or {}).get('compressibility', {})
+    if comp.get('requires_wave_polar'):
+        note = ('Przelot przy zadanym TAS i wysokości, oceniony przy MTOW: ' + comp['note'])
+        limitations.append(note)
+        checks.append(dict(parameter='[Ściśliwość] Zakres biegunowej P4 i osiągów P5 w przelocie',
+                           required='Biegunowa właściwa dla M i Cz; poza początkiem oporu falowego dodatkowy model',
+                           actual='Niezweryfikowane dla zadanej prędkości i wysokości',
+                           passed=False, severity='warning', note=note))
     return dict(operating_surface=params.get('operating_surface', 'land'), water=water,
                 limitations=limitations, checks=checks)
 

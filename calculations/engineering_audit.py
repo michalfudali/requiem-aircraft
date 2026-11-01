@@ -350,10 +350,11 @@ def perform_engineering_audit(result: dict) -> dict:
     # 7. ZAGADNIENIA ŚCIŚLIWOŚCI I LICZBA MACHA (Raymer rozdz. 12)
     # =========================================================================
     comp = aero.get("compressibility", {})
-    mach_cr = float(comp.get("mach", 0.0) or 0.0)
-    m_dd = float(comp.get("m_dd", 0.75) or 0.75)
-    m_crit = float(comp.get("m_crit", 0.68) or 0.68)
-    delta_cx_w = float(comp.get("delta_cx_wave", 0.0) or 0.0)
+    raw_comp = comp.get('terms', comp)
+    mach_cr = float(raw_comp.get("mach", 0.0))
+    m_dd = float(raw_comp.get("m_dd", 0.75))
+    m_crit = float(raw_comp.get("m_crit", 0.68))
+    delta_cx_w = raw_comp.get("delta_cx_wave")
 
     mach_ok = comp.get("drag_divergence_safe", True)
     metrics["mach_cruise"] = mach_cr
@@ -366,19 +367,20 @@ def perform_engineering_audit(result: dict) -> dict:
             "category": "Aerodynamika dużych prędkości i ściśliwość",
             "title": "Margines liczby Macha rozbieżności oporu (M vs M_dd)",
             "value": f"M = {mach_cr:.2f} (M_dd = {m_dd:.2f})",
-            "required": "M < M_dd (przelot poniżej stromej rozbieżności oporu)",
+            "required": "Punkt w zakresie korelacji oraz M < M_dd; dodatkowo sprawdź zakres biegunowej",
             "passed": mach_ok,
             "severity": "ok" if mach_ok else "warning",
             "didactic_simple": (
                 "Gdy samolot zbliża się do prędkości dźwięku, na skrzydle powstają fale uderzeniowe, "
-                "które gwałtownie zwiększają opór powietrza (ściana oporu falowego). Przelot powinien "
-                "odbywać się poniżej liczby Macha M_dd."
+                "które zwiększają opór powietrza. Początek oporu falowego M_kr występuje wcześniej niż "
+                "rozbieżność oporu M_dd; dodatni margines do M_dd nie dowodzi poprawności biegunowej bez oporu falowego."
             ),
             "engineering_note": (
-                f"Liczba Macha w przelocie wynosi M = {mach_cr:.3f}, a liczba Macha rozbieżności oporu wg Korna-Masona M_dd = {m_dd:.3f}. "
-                + (f"Margines bezpieczeństwa ΔM = {m_dd - mach_cr:.2f} jest zachowany (ΔCx,wave = {delta_cx_w:.4f})." if mach_ok else
-                   f"Przelot powyżej rozbieżności oporu! Przyrost oporu falowego wynosi ΔCx,wave = {delta_cx_w:.4f}. "
-                   "Rozważ profil nadkrytyczny, zmniejszenie grubości względnej t/c skrzydła lub zwiększenie skosu krawędzi natarcia.")
+                f"Przelot przy MTOW: M = {mach_cr:.3f}, M_kr = {m_crit:.3f}, M_dd = {m_dd:.3f}; "
+                f"margines korelacji ΔM = {m_dd - mach_cr:.3f}. "
+                + (f"Diagnostyczny ΔCx,wave = {delta_cx_w:.5f}. " if delta_cx_w is not None else
+                   "Przyrost oporu jest niedostępny poza zakresem korelacji. ")
+                + comp.get('note', '')
             )
         })
 

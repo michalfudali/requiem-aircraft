@@ -3600,6 +3600,14 @@ function hydrateSemesterProjectsData(res) {
       svg: p3.airfoil_200mm_svg, table: p3.airfoil_200mm_table, note: p3.airfoil_coordinates_note,
       error: !p3.airfoil_200mm_svg });
     const profileGeometry = res.profile_geometry;
+    const compression = res.aerodynamics?.compressibility;
+    const compressionNote = document.getElementById('p4_compressibility_summary');
+    if (compressionNote && compression) {
+      compressionNote.textContent = `Przelot przy MTOW: M = ${compression.mach}, Cz = ${compression.terms.cl.toFixed(4)}, ` +
+        `M_kr = ${compression.m_crit}, M_dd = ${compression.m_dd}. ${compression.profile_family}; κ_A = ${compression.kappa_a}. ` +
+        `${compression.technology_source} ${compression.note}`;
+      compressionNote.dataset.wavePolarRequired = String(compression.requires_wave_polar);
+    }
     document.querySelectorAll('[data-profile-thickness-summary]').forEach(el => {
       el.textContent = profileGeometry
         ? `${profileGeometry.source}: t/c = ${Number(profileGeometry.tc_ratio.toFixed(6))}. ${profileGeometry.note}` : '';

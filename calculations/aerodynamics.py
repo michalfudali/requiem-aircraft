@@ -16,71 +16,10 @@ import math
 from calculations.atmosphere import isa_atmosphere, G0, RHO0
 from calculations.paturski_ml import paturski_project_2_wing, paturski_project_3_aircraft_aero, default_retractable_gear
 from calculations.high_lift import high_lift
-from calculations.validation import NUMERIC_LIMITS
+from calculations.compressibility import calculate_compressibility, equivalent_half_chord_sweep
 from calculations.instructor import FLAP_TAKEOFF_DEFLECTION_DEG, FLAP_LANDING_DEFLECTION_DEG
 
 
-
-
-def calculate_compressibility(mach: float, cz: float, tc: float = 0.12, sweep_deg: float = 0.0, airfoil_name: str = "") -> dict:
-    """
-    Oblicza efekty ściśliwości, liczbę Macha krytyczną (M_cr), rozbieżności oporu (M_dd)
-    oraz przyrost oporu falowego wg korelacji Korna-Masona i Locka (Raymer rozdz. 12, Torenbeek 5.4).
-    """
-    m = max(0.0, float(mach))
-    sweep_rad = math.radians(sweep_deg)
-    cos_sweep = max(0.5, math.cos(sweep_rad))
-
-    af_upper = (airfoil_name or "").upper()
-    if "SC(" in af_upper or "SC2" in af_upper or "SUPERCRITICAL" in af_upper:
-        kappa_a = 0.95
-        profile_family = "Profil nadkrytyczny (supercritical)"
-    elif "6" in af_upper and "NACA" in af_upper:
-        kappa_a = 0.90
-        profile_family = "Profil laminarny NACA serii 6"
-    else:
-        kappa_a = 0.87
-        profile_family = "Profil klasyczny NACA / konwencjonalny"
-
-    cz_pos = max(0.0, float(cz))
-    tc_eff = float(tc)
-    tc_low, tc_high = NUMERIC_LIMITS['tc_ratio']
-    if not math.isfinite(tc_eff) or not tc_low <= tc_eff <= tc_high:
-        raise ValueError(f'Grubość t/c w modelu ściśliwości musi być w zakresie {tc_low:g}–{tc_high:g}.')
-    m_dd_calc = (kappa_a / cos_sweep) - (tc_eff / (cos_sweep ** 2)) - (cz_pos / (10.0 * (cos_sweep ** 3)))
-    m_dd = round(max(0.40, min(0.98, m_dd_calc)), 3)
-
-    delta_m_cr = 0.10 / (1.0 + 2.0 * tc_eff)
-    m_cr = round(max(0.35, m_dd - delta_m_cr), 3)
-
-    beta = math.sqrt(max(0.05, 1.0 - min(0.90, m) ** 2)) if m < 1.0 else 0.316
-    prandtl_glauert_factor = round(1.0 / beta, 3)
-
-    if m <= m_cr:
-        delta_cx_wave = 0.0
-    elif m <= m_dd:
-        ratio = (m - m_cr) / max(0.01, m_dd - m_cr)
-        delta_cx_wave = round(0.0020 * (ratio ** 3), 5)
-    else:
-        delta_m = m - m_dd
-        delta_cx_wave = round(0.0020 + 20.0 * (delta_m ** 4), 5)
-
-    margin_to_divergence = round(m_dd - m, 3)
-    is_safe = m < m_dd
-
-    return {
-        "mach": round(m, 3),
-        "m_crit": m_cr,
-        "m_dd": m_dd,
-        "delta_cx_wave": delta_cx_wave,
-        "prandtl_glauert_factor": prandtl_glauert_factor,
-        "margin_to_divergence": margin_to_divergence,
-        "drag_divergence_safe": is_safe,
-        "profile_family": profile_family,
-        "kappa_a": kappa_a,
-        "tc_ratio": tc_eff,
-        "is_transonic": m >= 0.70
-    }
 
 
 def calculate_aerodynamics(geom: dict, params: dict, m0: float = None):
@@ -176,11 +115,15 @@ def calculate_aerodynamics(geom: dict, params: dict, m0: float = None):
     mach_cruise = v_cr_ms / a_sound_cr
     compressibility_res = calculate_compressibility(
         mach=mach_cruise,
-        cz=cz_opt,
+        cz=(m0 * G0 / (.5 * rho_cr * v_cr_ms**2 * S) if m0 is not None else cz_opt),
         tc=tc_wing,
-        sweep_deg=sweep_deg,
+        sweep_deg=equivalent_half_chord_sweep(wing),
         airfoil_name=params.get("airfoil", "")
     )
+
+    compressibility_res.update(reference_mass_kg=m0, reference_altitude_m=h_cr,
+        reference_speed_kmh=v_cr_ms * 3.6,
+        reference_lift='MTOW przy zadanym TAS i wysokości' if m0 is not None else 'Cz największej doskonałości; brak masy')
 
     re_wing = round((rho_cr * v_cr_ms * mac) / mu_cr)
     cf_wing = round(p2["cx_min_2_corrected"], 5)

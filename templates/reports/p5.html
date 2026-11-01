@@ -2,6 +2,7 @@
 {% set perf=res.performance %}{% set glide=perf.glide %}
 <p>Wznoszenie i prędkości przeciągnięcia obliczono przy masie startowej {{ res.mass.m0|reportnum(1) }} kg w atmosferze ISA. Przelot korzysta z mas na początku i końcu danego odcinka misji, a podejście i lądowanie z masy do lądowania {{ perf.landing.mass_kg|reportnum(1) }} kg. Geometria i biegunowa pochodzą z poprzednich etapów [2, 4]. Prędkości lotu ślizgowego podano jako TAS.</p>
 <h3>Prędkości charakterystyczne</h3>
+{% include 'reports/compressibility.html' %}
 {{ c.section(sheet, 'p5.speeds') }}
 <table><caption>Prędkości charakterystyczne na poziomie morza</caption><thead><tr><th>Wielkość</th><th class="number">Prędkość [km/h]</th></tr></thead><tbody>{% for label,value in [('Przeciągnięcie — konfiguracja gładka',perf.speeds.vs_clean_kmh),('Przeciągnięcie — konfiguracja do lądowania',perf.speeds.vs_lnd_kmh),('Podejście do lądowania',perf.speeds.v_app_kmh)] %}<tr><td>{{ label }}</td><td class="number">{{ value|reportnum(1) }}</td></tr>{% endfor %}{% if doc.powered %}<tr><td>Prędkość maksymalna</td><td class="number">{{ perf.speeds.v_max_sl_kmh|reportnum(1) }}</td></tr>{% endif %}</tbody></table>
 {% if doc.powered %}

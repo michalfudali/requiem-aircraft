@@ -137,7 +137,7 @@ def run_bipol_project(params: dict):
     balance_res = calculate_balance_and_stability(mass_res, geom_res, aero_res, params)
     
     # Ocena zgodności z wymaganiami taktyczno-technicznymi
-    model_scope = assessment(params, mass_res)
+    model_scope = assessment(params, mass_res, aero_res)
     checks = check_topic_requirements(params, sizing_res) + model_scope['checks']
     if design_iteration["mode"] == "coupled":
         checks.append(dict(parameter="Zbieżność masy, geometrii i biegunowej misji",

@@ -1,0 +1,2 @@
+{% set cp=res.aerodynamics.compressibility %}
+<p class="table-note compressibility-assessment" data-wave-polar-required="{{ 'true' if cp.requires_wave_polar else 'false' }}"><strong>Ściśliwość w przelocie przy MTOW:</strong> M = {{ cp.mach|reportnum(3) }}, Cz = {{ cp.terms.cl|reportnum(4) }}, M_kr = {{ cp.m_crit|reportnum(3) }}, M_dd = {{ cp.m_dd|reportnum(3) }}. {{ cp.profile_family }}; κ_A = {{ cp.kappa_a|reportnum(2) }}. {{ cp.technology_source }} {{ cp.note }} <a href="{{ cp.source_url }}">{{ cp.source }}</a>.</p>

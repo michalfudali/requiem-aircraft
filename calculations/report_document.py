@@ -58,6 +58,7 @@ def report_document(results, sections, overrides=None, folder_cover=False):
         relevant = ('p1' in sections and 'stateczności' not in name)
         relevant |= ('p5' in sections and not name.startswith('[') and 'stateczności' not in name)
         relevant |= ('p3' in sections and 'stateczności' in name)
+        relevant |= (bool({'p4', 'p5'} & set(sections)) and name.startswith('[Ściśliwość]'))
         if relevant:
             checks.append(check)
     if 'p2' in sections:

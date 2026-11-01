@@ -1072,12 +1072,14 @@ def _p3(s, r):
     s.given('lambda_w', r'\lambda', w['eta'], '', 3, 'Zbieżność obrysu c_k/c_0', 'Założenia projektu')
     if planform == 'rectangular':
         s.calc('c_r', 'c', r'\frac{S}{b}', r'\frac{[[S]]}{[[b]]}', w['cr'], M, 3, 'Cięciwa płata prostokątnego', check=lambda v: v.S / v.b)
+        s.calc('c_t', 'c_k', 'c', r'[[c_r]]', w['ct'], M, 3, 'Cięciwa końcowa płata prostokątnego', check=lambda v: v.c_r)
         s.calc('mac', r'\bar c', 'c', r'[[c_r]]', w['mac'], M, 3, 'Średnia cięciwa aerodynamiczna', check=lambda v: v.c_r)
         s.calc('y_mac', r'y_{\bar c}', r'\frac{b}{4}', r'\frac{[[b]]}{4}', w['y_mac'], M, 2, 'Położenie ŚCA wzdłuż rozpiętości',
                check=lambda v: v.b / 4)
     elif planform == 'elliptical':
         s.calc('c_r', 'c_0', r'\frac{4S}{\pi b}', r'\frac{4\cdot[[S]]}{\pi\cdot[[b]]}', w['cr'], M, 3, 'Cięciwa przykadłubowa płata eliptycznego',
                check=lambda v: 4 * v.S / (math.pi * v.b))
+        s.given('c_t', 'c_k', w['ct'], M, 3, 'Zerowa cięciwa końcowa obrysu eliptycznego', 'Geometria elipsy')
         s.calc('mac', r'\bar c', r'\frac{8}{3\pi}c_0', r'\frac{8}{3\pi}\cdot[[c_r]]', w['mac'], M, 3, 'Średnia cięciwa aerodynamiczna',
                check=lambda v: 8 / (3 * math.pi) * v.c_r)
         s.calc('y_mac', r'y_{\bar c}', r'\frac{2b}{3\pi}', r'\frac{2\cdot[[b]]}{3\pi}', w['y_mac'], M, 2, 'Położenie ŚCA wzdłuż rozpiętości',
@@ -1501,6 +1503,46 @@ def _p4(s, r):
     _p4_highlift(s, r)
     _p4_cm(s, r)
     _p4_roll(s, r)
+    _p4_compressibility(s, r)
+
+
+def _p4_compressibility(s, r):
+    cp = r['aerodynamics']['compressibility']
+    t = cp['terms']
+    wing = r['geometry']['wing']
+    source = cp['source']
+    s.section('p4', 'compressibility', 'Diagnostyka ściśliwości w przelocie przy MTOW', source)
+    s.given('wave_chi25', r'\chi_{25}', wing['sweep_deg'], DEG, 2,
+            'Skos linii ćwiartek cięciw', 'Założenia geometrii')
+    s.calc('wave_chi50', r'\chi_{50}', r'\arctan\left(\tan\chi_{25}-\frac{c_r-c_t}{2b}\right)',
+           r'\arctan\left(\tan([[wave_chi25]]^\circ)-\frac{[[c_r]]-[[c_t]]}{2\cdot[[b]]}\right)',
+           t['sweep_half_chord_deg'], DEG, 3, 'Równoważny skos linii połówek cięciw',
+           'Geometria; dla obrysu krzywoliniowego lub łamanego sieczna od nasady do końcówki',
+           check=lambda v: math.degrees(math.atan(math.tan(math.radians(v.wave_chi25)) - (v.c_r-v.c_t)/(2*v.b))))
+    s.calc('wave_cos', r'\cos\chi_{50}', r'\cos\chi_{50}', r'\cos([[wave_chi50]]^\circ)',
+           t['cos_sweep'], '', 5, 'Cosinus skosu połówek cięciw',
+           check=lambda v: math.cos(math.radians(v.wave_chi50)))
+    s.calc('wave_cl', r'C_{z,cr}', r'\frac{2m_0g}{\rho_H V_{cr}^2 S}',
+           r'\frac{2\cdot[[m0]]\cdot[[g]]}{[[rho_cr]]\cdot[[V_cr]]^2\cdot[[S]]}',
+           t['cl'], '', 5, 'Współczynnik siły nośnej dla diagnostyki przelotu', 'Lot poziomy przy MTOW',
+           check=lambda v: 2*v.m0*v.g/(v.rho_cr*v.V_cr**2*v.S))
+    s.given('wave_kappa', r'\kappa_A', cp['kappa_a'], '', 2, 'Współczynnik technologiczny profilu', source,
+            note=cp['technology_source'])
+    s.calc('M_dd_korn', r'M_{dd}', r'\frac{\kappa_A}{\cos\chi_{50}}-\frac{t/c}{\cos^2\chi_{50}}-\frac{C_{z,cr}}{10\cos^3\chi_{50}}',
+           r'\frac{[[wave_kappa]]}{[[wave_cos]]}-\frac{[[tc]]}{[[wave_cos]]^2}-\frac{[[wave_cl]]}{10\cdot[[wave_cos]]^3}',
+           t['m_dd'], '', 5, 'Liczba Macha rozbieżności oporu wg Korna', source,
+           check=lambda v: v.wave_kappa/v.wave_cos-v.tc/v.wave_cos**2-v.wave_cl/(10*v.wave_cos**3))
+    s.calc('wave_offset', r'\Delta M', r'\sqrt[3]{0{,}1/80}', r'\sqrt[3]{0{,}1/80}',
+           t['lock_offset'], '', 6, 'Odstęp M_dd od M_kr z warunku dCx/dM = 0,1', source,
+           check=lambda v: (.1/80)**(1/3))
+    s.calc('M_crit_korn', r'M_{kr}', r'M_{dd}-\Delta M', r'[[M_dd_korn]]-[[wave_offset]]',
+           t['m_crit'], '', 5, 'Oszacowana liczba Macha krytyczna', source,
+           check=lambda v: v.M_dd_korn-v.wave_offset)
+    if cp['model_applicable']:
+        s.calc('wave_cx', r'\Delta C_{x,wave}', r'20\max(0;M-M_{kr})^4',
+               r'20\max(0;[[M_cr]]-[[M_crit_korn]])^4', t['delta_cx_wave'], '', 7,
+               'Diagnostyczny przyrost oporu falowego; poza biegunową osiągów', source, note=cp['note'],
+               check=lambda v: 20*max(0,v.M_cr-v.M_crit_korn)**4)
 
 
 def _p4_highlift(s, r):

@@ -2,6 +2,7 @@
 from copy import deepcopy
 
 import pytest
+import math
 
 from app import app
 from calculations import run_bipol_project
@@ -103,8 +104,10 @@ def test_thickness_reaches_wet_area_compressibility_and_stiffness(result):
     assert result['params']['tc_ratio'] == wing['tc_ratio'] == .15
     assert wing['S_wet'] == pytest.approx(2 * wing['S_exposed'] * (1 + .25 * .15), rel=1e-12)
     cp = result['aerodynamics']['compressibility']
-    # On this unswept conventional profile, Korn's estimate uses t/c = .15.
-    assert cp['m_dd'] == pytest.approx(round(.87 - .15 - result['aerodynamics']['cz_opt'] / 10, 3))
+    # The diagnostic uses the actual cruise lift at MTOW and half-chord sweep.
+    assert cp['terms']['cl'] != result['aerodynamics']['cz_opt']
+    cosine = math.cos(math.atan(math.tan(math.radians(wing['sweep_deg'])) - (wing['cr']-wing['ct'])/(2*wing['b'])))
+    assert cp['m_dd'] == round(.87/cosine - .15/cosine**2 - cp['terms']['cl']/(10*cosine**3), 3)
     thinner = deepcopy(result['geometry'])
     thinner['wing']['tc_ratio'] = .12
     thin_stiffness = estimate_aeroelastics(thinner, result['aerodynamics'], result['mass'],
@@ -152,7 +155,9 @@ def test_compressibility_does_not_silently_replace_a_valid_wing_thickness(name, 
     result = run_bipol_project(dict(AIRCRAFT_PRESETS['ga_trainer'], airfoil=name))
     comp = result['aerodynamics']['compressibility']
     assert comp['tc_ratio'] == result['geometry']['wing']['tc_ratio'] == tc
-    assert comp['m_dd'] == round(.87 - tc - result['aerodynamics']['cz_opt'] / 10, 3)
+    w = result['geometry']['wing']
+    cosine = math.cos(math.atan(math.tan(math.radians(w['sweep_deg'])) - (w['cr']-w['ct'])/(2*w['b'])))
+    assert comp['m_dd'] == round(.87/cosine - tc/cosine**2 - comp['terms']['cl']/(10*cosine**3), 3)
 
 
 def test_pasted_ordinates_that_overflow_at_drawing_scale_are_rejected():
