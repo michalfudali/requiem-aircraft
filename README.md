@@ -30,6 +30,12 @@ Testy narzędzi pracowni: `node --test tests/studio_core.test.mjs tests/aircraft
 (Node 20, bez zależności npm). Oba zestawy uruchamia GitHub Actions (`.github/workflows/tests.yml`).
 Raporty są dokumentami HTML, które można wydrukować do PDF w przeglądarce.
 
+**Mechanika Lotu I:** osobny zeszyt `/ml1` przyjmuje dane znanego samolotu,
+badania tunelowe i mapy napędu; obejmuje metody P1–P6 i suplement Prandtla.
+Obsługuje import CSV/JSON, oba rodzaje skoku śmigła, odrzutowce, szybowce oraz
+raporty offline. Numeracja ML1 różni się od BIPOL. Instrukcja, macierz metod
+i zakres modeli: [`docs/MECHANIKA_LOTU_I.md`](docs/MECHANIKA_LOTU_I.md).
+
 Raport zbiorczy i osobne sprawozdania P1–P6 mają wspólny skład A4: stronę
 tytułową, opis metody, wyniki, wnioski zależne od obliczeń oraz bibliografię.
 Tabele, rysunki i wzory są numerowane. Próba porównawcza trafia do załącznika.

@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="pl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Mechanika Lotu I — zeszyt P1–P6</title><link rel="stylesheet" href="/static/css/ml1.css?v=1">
+<script src="/static/js/ml1.js?v=1" defer></script></head>
+<body><a class="skip" href="#ml1Main">Przejdź do obliczeń</a>
+<header><div><a href="/">← BiPOL Requiem</a><h1>Mechanika Lotu I</h1><p>Dane samolotu → aerodynamika → napęd → osiągi</p></div>
+<span id="saveStatus" role="status">Ładowanie…</span></header>
+<nav aria-label="Tryb pracy"><button type="button" data-view="workbook" aria-pressed="true">Zeszyt P1–P6</button>
+<button type="button" data-view="methods" aria-pressed="false">Kalkulatory metod</button>
+<button type="button" data-view="sources" aria-pressed="false">Materiały źródłowe</button></nav>
+<main id="ml1Main"><section id="workbookView" aria-labelledby="workbookTitle">
+<h2 id="workbookTitle">Obliczenia znanego samolotu</h2>
+<p>Masy i geometria są danymi wejściowymi. Numeracja poniżej odpowiada ML1: P4 to lot szybowy, P5 — napęd, P6 — osiągi.</p>
+<div class="toolbar"><label>Przykład obliczeniowy <select id="exampleKind"><option value="propeller">Śmigło przestawialne</option><option value="fixed">Śmigło stałe</option><option value="jet">Odrzutowiec</option><option value="glider">Szybowiec</option></select></label>
+<button type="button" id="loadExample">Wczytaj przykład</button><button type="button" id="importWorkbook">Importuj zeszyt JSON</button>
+<input type="file" id="workbookFile" accept=".json,application/json" hidden><button type="button" id="exportWorkbook">Zapisz dane JSON</button></div>
+<p class="notice" id="exampleNotice">Przykłady zawierają dane syntetyczne do nauki metod. Własne obliczenia wymagają danych źródłowych samolotu, badań profilu i napędu.</p>
+<form id="workbookForm"><div id="workbookFields"></div>
+<button class="primary" type="submit">Oblicz P1–P6</button></form>
+</section>
+<section id="methodsView" aria-labelledby="methodsTitle" hidden><h2 id="methodsTitle">Metody obliczeniowe ML1</h2>
+<p>Każda metoda udostępnia wszystkie parametry obliczeń. Jednostki: m, m², kg, s, N, W; obroty śmigła zgodnie z opisem pola. Kąty wejściowe w stopniach.</p>
+<label>Projekt <select id="projectFilter"><option value="0">Wszystkie projekty</option>{% for p in range(1,7) %}<option value="{{p}}">P{{p}}</option>{% endfor %}</select></label>
+<label>Metoda <select id="methodSelect"></select></label><p id="methodSource"></p>
+<form id="methodForm"><div id="methodFields"></div><button class="primary" type="submit">Oblicz metodę</button></form></section>
+<section id="sourcesView" aria-labelledby="sourcesTitle" hidden><h2 id="sourcesTitle">Źródła i konwencje</h2>
+<p>Metody opracowano według sześciu projektów ML1, suplementu P6 oraz załączników: charakterystyk profili, oporów podzespołów, silników i śmigieł. Odczyty wykresów wprowadza się jako tabele. Interpolacja nie wykracza poza zakres danych; uzupełnienie oporu przy kątach krytycznych wymaga jawnego wyboru.</p>
+<p>Dla śmigieł CN = P/(ρ n³ D⁵), J = V/(n D), n w obr/s. Jednostkowe zużycie paliwa: śmigłowe kg/(kW·h), odrzutowe kg/(daN·h). Korekta Prandtla obejmuje cały Cx i działa wyłącznie przy Ma &lt; 1.</p>
+<p>Raporty NACA 350, 640, 642, 643 i 650 dotyczą śmigieł. Profile pochodzą z osobnych zestawień. Dostęp do plików uczelni może wymagać zalogowania na jej stronie.</p>
+<ol id="sourceList"></ol></section>
+<div id="calculationMessage" role="status" aria-live="polite"></div>
+<section id="resultsSection" aria-labelledby="resultsTitle" hidden><div class="toolbar"><h2 id="resultsTitle">Wyniki ML1</h2>
+<button type="button" id="downloadResults">Zapisz wyniki JSON</button><button type="button" id="downloadReport">Pobierz raport HTML</button></div>
+<div id="results"></div></section>
+</main><footer>ML1 · modele dydaktyczne z podanym zakresem stosowalności. Dane i wyniki przechowujesz w tej przeglądarce lub eksportowanym pliku.</footer>
+</body></html>

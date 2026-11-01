@@ -34,6 +34,8 @@ from calculations.calc_sheet import build_sheet, worked_iteration
 from calculations.report_docx import build_docx
 
 app = Flask(__name__)
+from calculations.ml1.web import blueprint as ml1_blueprint
+app.register_blueprint(ml1_blueprint)
 app.config['JSON_SORT_KEYS'] = False
 app.jinja_env.globals['trend_chart'] = trend_chart
 app.jinja_env.globals['math_assets'] = math_assets

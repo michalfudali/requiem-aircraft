@@ -3,7 +3,10 @@ Moduł obliczeniowy według podręcznika:
 dr inż. Zbigniew Paturski — "Przewodnik po projektach z Mechaniki Lotu"
 (Wydział Mechaniczny Energetyki i Lotnictwa Politechniki Warszawskiej, Zakład Mechaniki, wyd. 4.1 / 5.2).
 
-Obejmuje kompletną metodykę 5 projektów obliczeniowych Mechaniki Lotu:
+Przybliżenia do projektowania wstępnego BIPOL inspirowane projektami ML1.
+Pełny zeszyt znanego samolotu, dane tunelowe, dobór z map śmigieł i suplement
+Prandtla są zaimplementowane osobno w calculations/ml1 i widoku /ml1.
+Ten moduł zachowuje zgodność wcześniejszych obliczeń BIPOL:
   - Projekt nr 1: Wybór samolotu (parametry wyjściowe do obliczeń)
   - Projekt nr 2: Charakterystyki aerodynamiczne płata (wzory 2.1 – 2.27, Tabela 2.0, 2.1, 2.2)
   - Projekt nr 3: Charakterystyki aerodynamiczne samolotu (wzory 3.1 – 3.11, Tabela 3.1 + Tabele A, B, C)
@@ -129,7 +132,7 @@ PATURSKI_TABELA_B = [
     {
         "lp": 4,
         "key": "cantilever_fixed_or_twin",
-        "class_desc": "Duże dwupłatowce, wielosilnikowe dwuosobowe samoloty myśliwskie, małe bombowce, jednopłaty z podwoziem stałym",
+        "class_desc": "Duże dwupłatowce, wielosilnikowe dwuosobowe samoloty myśliwskie, małe bombowce, jednopłaty pływakowe",
         "cx_szk_min": 0.018,
     },
     {
@@ -141,7 +144,7 @@ PATURSKI_TABELA_B = [
     {
         "lp": 6,
         "key": "single_seat_fighter",
-        "class_desc": "Jednoosobowe samoloty myśliwskie / akrobacyjne",
+        "class_desc": "Jednoosobowe samoloty myśliwskie",
         "cx_szk_min": 0.014,
     },
     {
@@ -1407,7 +1410,7 @@ def run_paturski_mechanika_lotu(
     perf_res: dict = None,
 ) -> dict:
     """
-    Wykonuje pełny cykl obliczeń według "Przewodnika po projektach z Mechaniki Lotu" Z. Paturskiego
+    Wykonuje przybliżony cykl BIPOL inspirowany projektami ML1 Z. Paturskiego.
     i zwraca ustrukturyzowany słownik z wynikami Projektów nr 2, 3, 4, 5 i 6.
     """
     m0 = float(mass_res["m0"])

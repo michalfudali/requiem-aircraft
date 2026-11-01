@@ -1,0 +1,21 @@
+{% macro tree(value,label,level=2) %}
+{% if value is mapping %}<section><h{{level}}>{{label}}</h{{level}}>
+<dl>{% for key,item in value.items() if item is not mapping and (item is string or item is number or item is none or item is boolean) %}<dt>{{key}}</dt><dd>{{item if item is not none else '—'}}</dd>{% endfor %}</dl>
+{% for key,item in value.items() if item is mapping or (item is sequence and item is not string) %}{{tree(item,key,3)}}{% endfor %}</section>
+{% elif value is sequence and value is not string %}<section><h3>{{label}} · {{value|length}}</h3>
+{% if value and value[0] is mapping and value[0].values()|select('mapping')|list|length==0 %}
+{% set columns=row_columns(value) %}<div class="table"><table><thead><tr>{% for key in columns %}<th>{{key}}</th>{% endfor %}</tr></thead><tbody>
+{% for row in value %}<tr>{% for key in columns %}<td>{{row.get(key,'—')}}</td>{% endfor %}</tr>{% endfor %}
+</tbody></table></div>{% else %}{% for item in value %}{{tree(item,loop.index,3)}}{% endfor %}{% endif %}</section>
+{% else %}<p><b>{{label}}</b>: {{value if value is not none else '—'}}</p>{% endif %}
+{% endmacro %}
+<!doctype html><html lang="pl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ML1 — raport {{method}}</title>
+<style>body{font:14px/1.45 system-ui,sans-serif;color:#172e41;max-width:1200px;margin:2rem auto;padding:0 1rem}h1{font-size:28px}h2{border-bottom:1px solid #9aabba;padding-bottom:.4rem}h3{font-size:16px}dl{display:grid;grid-template-columns:minmax(150px,1fr) 3fr;gap:.2rem 1rem}dt,dd{margin:0;overflow-wrap:anywhere}dt{font-weight:600}.table{overflow-x:auto}table{border-collapse:collapse;font-size:10px;width:100%}td,th{border:1px solid #aab7c2;padding:4px;text-align:right;overflow-wrap:anywhere}th{background:#eef3f7}pre{white-space:pre-wrap;overflow-wrap:anywhere}.notice{border-left:4px solid #b47a14;background:#fff5d6;padding:1rem}section{margin-bottom:1.5rem}svg{width:100%;max-height:450px}.legend{font-size:12px}@page{size:A4 landscape;margin:12mm}@media print{body{margin:0;max-width:none;padding:0;font-size:10px}h2,h3{break-after:avoid}thead{display:table-header-group}tr,svg{break-inside:avoid}.table{overflow:visible}td,th{font-size:7px}a{color:inherit}dl{grid-template-columns:1fr 3fr}}</style></head><body>
+<h1>Mechanika Lotu I — raport {{method}}</h1>
+<p>Numeracja ML1: P1 — dane samolotu, P2 — płat, P3 — cały samolot, P4 — lot szybowy, P5 — napęd, P6 — osiągi i zasięg.</p>
+{% if inputs.example_basis == 'synthetic_educational_data' %}<p class="notice">Dane syntetyczne do weryfikacji metod. Raport nie opisuje osiągów istniejącego typu samolotu.</p>{% endif %}
+<p>Jednostki obliczeń: SI. Zużycie jednostkowe paliwa śmigłowe: kg/(kW·h), odrzutowe: kg/(daN·h). Wyniki zawierają zakresy i założenia zastosowanych modeli.</p>
+{% for chart in charts %}{{chart|safe}}{% endfor %}
+{{tree(result,'Wyniki obliczeń')}}
+<h2>Dane wejściowe — zapis pozwalający odtworzyć obliczenia</h2><pre>{{inputs|tojson(indent=2)}}</pre>
+</body></html>
