@@ -64,6 +64,9 @@ surowe dane w `compressibility.terms`.
 - JavaScript: **36/36**.
 - Chrome: **9/9**, bez błędów JavaScript; raporty P4/P5 bez sieci,
   widok 390 px, korekta prędkości i import spoza zakresu formularza.
+- Po integracji zmiany Schrenka z `bbf3d9f`: **197 testów** zaliczonych
+  w 27,89 s, ponownie **9/9** Chrome oraz test panelu Schrenka.
+  Zwiększono wersję `app.js` do 38.
 
 Test niezależnego przykładu daje M_dd = 0,71 i M_kr = 0,6022782654984058
 przy Cz = 0,4, t/c = 0,12 i zerowym skosie. Różniczkowanie numeryczne
