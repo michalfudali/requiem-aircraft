@@ -996,7 +996,7 @@ async function performCalculation() {
   if (reportBtn) reportBtn.setAttribute('data-results-stale', 'true');
   try {
     validateNumericFields(document.getElementById('designForm'));
-    for (const id of ['trendControls', 'p2CostControls']) {
+    for (const id of ['trendControls', 'p2CostControls', 'p3SchrenkControls']) {
       const analysisControls = document.getElementById(id);
       if (analysisControls) validateNumericFields(analysisControls);
     }
@@ -1944,6 +1944,7 @@ function loadProjectIntoForm(project) {
   const params = { runway_surface: 'paved', cs22_gust_model: 'amendment3', airfoil: '', airfoil_coordinates: '',
     profile_thickness_mode: 'auto', tc_ratio: 0.12,
     cost_n_production: 250, cost_n_prototypes: 4, cost_year: 2026, cost_profit_pct: 12, usd_pln: 4.05, cost_qc_factor: 0.13,
+    airfoil_cz_max: 0,
     ...project.params };
   // Bez zapisanej wartości N_am równa się serii, jak w calculations/costs.py.
   if (params.cost_n_amortization == null) params.cost_n_amortization = params.cost_n_production;
@@ -3668,7 +3669,19 @@ function hydrateSemesterProjectsData(res) {
     setTxt('p3_xn_paturski', iwa.xn_mac_m);
     setTxt('p3_cm0_wing', iwa.cm_0_wing);
     setTxt('p3_cx0_wing', iwa.cx_0_wing);
-    setTxt('p3_czmax_wing', p3.schrenk_summary?.cz_max_wing_est);
+    const sch = p3.schrenk_summary || {};
+    const fmt = v => Number(v).toLocaleString('pl-PL', { maximumFractionDigits: 3 });
+    setTxt('p3_czmax_wing', sch.cz_max_wing_est != null ? fmt(sch.cz_max_wing_est) : 'podaj c_z,max profilu (karta 3.4)');
+    const schrenkNote = document.getElementById('p3_czmax_schrenk');
+    if (schrenkNote && sch.max_cz1 != null) {
+      const ratio = `(c_z/C_z)_max = ${fmt(sch.max_cz1)} przy η = ${fmt(sch.stall_eta_span)}`;
+      schrenkNote.textContent = sch.cz_max_wing_est != null
+        ? `C_z,max płata = ${fmt(sch.airfoil_cz_max)} / ${fmt(sch.max_cz1)} = ${fmt(sch.cz_max_wing_est)} (${ratio}). `
+          + (sch.cz_max_consistent ? 'Nie mniej niż założone C_z,max — założenie jest osiągalne.'
+                                   : `Mniej niż założone C_z,max — profil musiałby mieć c_z,max ≥ ${fmt(sch.airfoil_cz_max_required)}.`)
+        : `Aby płat osiągnął założone C_z,max, profil musi mieć c_z,max ≥ ${fmt(sch.airfoil_cz_max_required)} (${ratio}). `
+          + 'Wpisz c_z,max wybranego profilu z katalogu dla Re przy przeciągnięciu.';
+    }
   }
 
   // --- PROJEKT 4: CHARAKTERYSTYKI AERODYNAMICZNE ---

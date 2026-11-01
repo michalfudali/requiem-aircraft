@@ -1470,6 +1470,11 @@
                   <div style="height:260px; width:100%; position:relative;">
                     <canvas id="chartSchrenkP3"></canvas>
                   </div>
+                  <div class="cost-controls" id="p3SchrenkControls">
+                    <label class="studio-field cost-qc" for="airfoil_cz_max">c<sub>z,max</sub> profilu z katalogu przy Re<sub>1</sub> (0 = nie podano)<input id="airfoil_cz_max" data-analysis-param type="number" min="0" max="4" step="0.01" value="0"></label>
+                    <button type="button" class="btn btn-outline-sm" onclick="performCalculation()">Przelicz</button>
+                  </div>
+                  <p id="p3_czmax_schrenk" class="cost-hint">Płat przeciąga się, gdy najbardziej obciążony przekrój osiąga c<sub>z,max</sub> profilu: C<sub>z,max,p</sub> = c<sub>z,max,prof</sub> / (c<sub>z</sub>/C<sub>z</sub>)<sub>max</sub>.</p>
                 </div>
               </div>
             </div>
