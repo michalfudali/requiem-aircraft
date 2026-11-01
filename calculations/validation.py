@@ -55,6 +55,7 @@ NUMERIC_LIMITS = {
     "cost_year": (1970, 2100), "cost_n_production": (1, 100000), "cost_n_amortization": (1, 100000),
     "cost_n_prototypes": (1, 50), "cost_profit_pct": (0, 100), "cost_qc_factor": (0.05, 0.2),
     "usd_pln": (0.5, 50), "bypass_ratio": (0, 20),
+    "engine_price_usd": (0, 1e8), "avionics_price_usd": (0, 1e8),  # 0 = szacunek
     "airfoil_cz_max": (0, 4),  # 0 = nie podano (P3: Cz_max płata ze Schrenka)
 }
 COUNT_KEYS = ("cost_year", "cost_n_production", "cost_n_amortization", "cost_n_prototypes")

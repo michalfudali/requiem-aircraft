@@ -158,7 +158,9 @@ def test_costs_reproduce_1986_coefficients_and_extrapolate_linearly():
     assert c2002['rates_usd_h']['E'] == pytest.approx(2 * 59.1 - 16.0)
     assert c2002['rdte']['hours']['E'] == pytest.approx(2 * c1986['rdte']['hours']['E'] - c1970['rdte']['hours']['E'], abs=2)
     # Formula 5.10 with C_P = 0
-    expected = c2002['production']['total_usd'] / 250 + c2002['rdte']['total_usd'] / 250
+    # Galiński (2016), rozdz. 2.7: samolot lekki amortyzuje rozwój na ok. 150 egzemplarzach.
+    assert c2002['amortization_count'] == 150
+    expected = c2002['production']['total_usd'] / 250 + c2002['rdte']['total_usd'] / 150
     assert c2002['unit_cost_usd'] == pytest.approx(expected, abs=1)
 
 
@@ -251,3 +253,17 @@ def test_wing_cz_max_follows_from_schrenk_and_the_profile_maximum():
     assert summary['cz_max_wing_est'] == pytest.approx(1.6 / summary['max_cz1'], abs=1e-3)
     with pytest.raises(ValueError, match='airfoil_cz_max'):
         validate_parameters({'airfoil_cz_max': 5})
+
+
+def test_amortization_default_and_offer_prices_follow_galinski_2016():
+    from calculations.costs import default_amortization_count
+    assert default_amortization_count({'category': 'cs23_level2'}) == 150
+    assert default_amortization_count({'category': 'cs23_commuter'}) == 250
+    assert default_amortization_count({'category': 'cs25_transport'}) == 250
+    base = {'aircraft_type': 'piston_ga', 'engine_type': 'prop', 'n_engines': 1, 'category': 'cs23_level2'}
+    assert calculate_costs({**base, 'cost_n_production': 100}, 800, 250, power_kw=120)['amortization_count'] == 100
+    estimate = calculate_costs({**base, 'engine_price_usd': 0, 'avionics_price_usd': 0}, 800, 250, power_kw=120)
+    offer = calculate_costs({**base, 'engine_price_usd': 31000, 'avionics_price_usd': 12000}, 800, 250, power_kw=120)
+    assert estimate['engine_basis'].startswith('założenie spoza wzoru (15)') and estimate['avionics_price_usd'] == 28000
+    assert offer['engine_price_usd'] == 31000 and 'oferty' in offer['engine_basis'] and offer['avionics_price_usd'] == 12000
+    assert offer['production']['items_usd']['C_EN'] == 250 * (31000 + 12000)
