@@ -1,0 +1,892 @@
+/* ==========================================================================
+   BiPOL Requiem - Modern UI & Dark Mode Aerospace Design System
+   Wydział MEiL PW - Zakład Samolotów i Śmigłowców
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   1. DESIGN TOKENS (LIGHT & DARK THEMES)
+   -------------------------------------------------------------------------- */
+:root {
+  /* Light Mode (default) */
+  --theme-name: "light";
+  --bg-app: #f4f7f8;
+  --bg-canvas: #f8fafc;
+  --bg-surface: #ffffff;
+  --bg-surface-elevated: #ffffff;
+  --bg-surface-subtle: #f1f5f9;
+  --bg-surface-hover: #e2e8f0;
+  
+  --text-primary: #0f172a;
+  --text-secondary: #334155;
+  --text-muted: #64748b;
+  --text-inverse: #ffffff;
+
+  --border-subtle: #e2e8f0;
+  --border-default: #cbd5e1;
+  --border-strong: #94a3b8;
+
+  --accent-teal: #0d9488;
+  --accent-teal-hover: #0f766e;
+  --accent-teal-subtle: #ccfbf1;
+  --accent-cyan: #0284c7;
+  --accent-cyan-subtle: #e0f2fe;
+  --accent-amber: #d97706;
+  --accent-amber-subtle: #fef3c7;
+  --accent-emerald: #10b981;
+  --accent-emerald-subtle: #d1fae5;
+  --accent-rose: #ef4444;
+  --accent-rose-subtle: #fee2e2;
+
+  --navbar-bg: rgba(255, 255, 255, 0.96);
+  --navbar-border: #e2e8f0;
+  --navbar-text: #0f172a;
+
+  --sidebar-bg: #102d39;
+  --sidebar-border: rgba(255, 255, 255, 0.08);
+  --sidebar-text: #b9cbd0;
+  --sidebar-text-active: #d6fff4;
+  --sidebar-item-active: #1b504e;
+  --sidebar-item-hover: #1b3b46;
+
+  --card-bg: #ffffff;
+  --card-border: #e2e8f0;
+  --card-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05), 0 1px 2px -1px rgba(0, 0, 0, 0.03);
+  --card-shadow-hover: 0 4px 12px -2px rgba(0, 0, 0, 0.08);
+
+  --input-bg: #ffffff;
+  --input-border: #cbd5e1;
+  --input-text: #0f172a;
+  --input-focus-border: #0ea5e9;
+  --input-focus-ring: rgba(14, 165, 233, 0.2);
+
+  --table-border: #e2e8f0;
+  --table-stripe: #f8fafc;
+  --table-hover: #f1f5f9;
+
+  --cad-bg: #f8fafc;
+  --cad-grid: #e2e8f0;
+  --cad-line: #0284c7;
+
+  --code-bg: #0f172a;
+  --code-text: #e2e8f0;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --transition-theme: background-color 0.2s ease, border-color 0.2s ease, color 0.15s ease, box-shadow 0.2s ease;
+}
+
+/* Dark Mode Tokens */
+[data-theme="dark"] {
+  --theme-name: "dark";
+  --bg-app: #080d16;
+  --bg-canvas: #0b111e;
+  --bg-surface: #0f172a;
+  --bg-surface-elevated: #162032;
+  --bg-surface-subtle: #131b2a;
+  --bg-surface-hover: #1c2b42;
+
+  --text-primary: #f1f5f9;
+  --text-secondary: #cbd5e1;
+  --text-muted: #8295ab;
+  --text-inverse: #0b111e;
+
+  --border-subtle: rgba(255, 255, 255, 0.07);
+  --border-default: rgba(255, 255, 255, 0.12);
+  --border-strong: rgba(255, 255, 255, 0.22);
+
+  --accent-teal: #14b8a6;
+  --accent-teal-hover: #2dd4bf;
+  --accent-teal-subtle: rgba(20, 184, 166, 0.15);
+  --accent-cyan: #38bdf8;
+  --accent-cyan-subtle: rgba(56, 189, 248, 0.15);
+  --accent-amber: #fbbf24;
+  --accent-amber-subtle: rgba(251, 191, 36, 0.15);
+  --accent-emerald: #34d399;
+  --accent-emerald-subtle: rgba(52, 211, 153, 0.15);
+  --accent-rose: #f87171;
+  --accent-rose-subtle: rgba(248, 113, 113, 0.15);
+
+  --navbar-bg: rgba(11, 17, 30, 0.88);
+  --navbar-border: rgba(255, 255, 255, 0.08);
+  --navbar-text: #f1f5f9;
+
+  --sidebar-bg: #060a12;
+  --sidebar-border: rgba(255, 255, 255, 0.07);
+  --sidebar-text: #94a3b8;
+  --sidebar-text-active: #38bdf8;
+  --sidebar-item-active: #0c2338;
+  --sidebar-item-hover: #111e30;
+
+  --card-bg: #0f172a;
+  --card-border: rgba(255, 255, 255, 0.08);
+  --card-shadow: 0 4px 16px -2px rgba(0, 0, 0, 0.5);
+  --card-shadow-hover: 0 8px 24px -4px rgba(0, 0, 0, 0.7);
+
+  --input-bg: #070d18;
+  --input-border: rgba(255, 255, 255, 0.15);
+  --input-text: #f8fafc;
+  --input-focus-border: #38bdf8;
+  --input-focus-ring: rgba(56, 189, 248, 0.25);
+
+  --table-border: rgba(255, 255, 255, 0.08);
+  --table-stripe: #0c1424;
+  --table-hover: #16243b;
+
+  --cad-bg: #070c16;
+  --cad-grid: rgba(56, 189, 248, 0.12);
+  --cad-line: #38bdf8;
+
+  --code-bg: #060a12;
+  --code-text: #e2e8f0;
+}
+
+/* --------------------------------------------------------------------------
+   2. GLOBAL THEME APPLICATION
+   -------------------------------------------------------------------------- */
+body.studio-layout {
+  background-color: var(--bg-app);
+  color: var(--text-primary);
+  transition: var(--transition-theme);
+}
+
+/* Modern Top Navbar */
+.studio-layout .bipol-navbar {
+  background: var(--navbar-bg);
+  border-bottom: 1px solid var(--navbar-border);
+  color: var(--navbar-text);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  padding: 10px 24px;
+  transition: var(--transition-theme);
+}
+
+.studio-layout .navbar-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  max-width: 1720px;
+  margin: 0 auto;
+}
+
+.studio-topbar-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.studio-breadcrumb {
+  color: var(--text-muted);
+  font-size: 11px;
+}
+
+.studio-breadcrumb b {
+  color: var(--text-primary);
+  font-size: 13px;
+  font-weight: 650;
+  letter-spacing: -0.01em;
+}
+
+.studio-save-line {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 11px;
+}
+
+/* Recalculate & Sync Indicator Pill */
+.nav-recalc-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 13px;
+  border-radius: 9999px;
+  font-size: 11px;
+  font-weight: 600;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: all 0.18s ease;
+}
+
+.nav-recalc-pill.synced {
+  background: var(--accent-emerald-subtle);
+  color: var(--accent-emerald);
+  border-color: rgba(52, 211, 153, 0.25);
+}
+
+.nav-recalc-pill.dirty {
+  background: var(--accent-amber-subtle);
+  color: var(--accent-amber);
+  border-color: rgba(251, 191, 36, 0.35);
+  animation: pulseAmber 2.2s infinite;
+}
+
+.nav-recalc-pill:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+}
+
+.nav-recalc-pill kbd {
+  background: rgba(0, 0, 0, 0.12);
+  color: inherit;
+  font-size: 9px;
+  padding: 2px 5px;
+  border-radius: 4px;
+  font-family: var(--font-mono);
+}
+[data-theme="dark"] .nav-recalc-pill kbd {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+@keyframes pulseAmber {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(251, 191, 36, 0.35); }
+  50% { box-shadow: 0 0 0 6px rgba(251, 191, 36, 0); }
+}
+
+/* Quick Search Button in Navbar (Ctrl+K) */
+.nav-search-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--bg-surface-subtle);
+  color: var(--text-secondary);
+  border: 1px solid var(--border-default);
+  padding: 6px 12px;
+  border-radius: var(--radius-sm);
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.nav-search-trigger:hover {
+  background: var(--bg-surface-hover);
+  border-color: var(--border-focus);
+  color: var(--text-primary);
+}
+
+.nav-search-trigger kbd {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  padding: 1px 5px;
+  border-radius: 4px;
+  color: var(--text-muted);
+}
+
+/* Theme Toggle Button */
+.theme-toggle-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-sm);
+  background: var(--bg-surface-subtle);
+  border: 1px solid var(--border-default);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.theme-toggle-btn:hover {
+  background: var(--bg-surface-hover);
+  color: var(--accent-cyan);
+  border-color: var(--border-focus);
+  transform: rotate(15deg);
+}
+
+.theme-toggle-btn:focus-visible {
+  outline: 2px solid var(--accent-cyan);
+  outline-offset: 2px;
+}
+
+/* --------------------------------------------------------------------------
+   3. MODERN SIDEBAR
+   -------------------------------------------------------------------------- */
+.studio-sidebar {
+  background: var(--sidebar-bg) !important;
+  border-right: 1px solid var(--sidebar-border);
+  color: var(--sidebar-text) !important;
+  transition: var(--transition-theme);
+}
+
+.studio-brand b {
+  color: var(--accent-teal);
+}
+
+.studio-nav-item {
+  color: var(--sidebar-text) !important;
+  border-radius: var(--radius-sm) !important;
+  transition: all 0.15s ease;
+}
+
+.studio-nav-item:hover {
+  background: var(--sidebar-item-hover) !important;
+  color: #ffffff !important;
+  transform: translateX(2px);
+}
+
+.studio-nav-item.active {
+  background: var(--sidebar-item-active) !important;
+  color: var(--sidebar-text-active) !important;
+  font-weight: 600;
+  box-shadow: inset 3px 0 0 var(--accent-teal);
+}
+
+.quiet-nav-group summary {
+  color: var(--sidebar-text);
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 8px 10px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.quiet-nav-group summary:hover {
+  color: #ffffff;
+}
+
+/* --------------------------------------------------------------------------
+   4. MODERN CARDS & SURFACES
+   -------------------------------------------------------------------------- */
+.studio-card,
+.b-card,
+.subpoint-card,
+.project-bar-container,
+.calc-tree-card {
+  background: var(--card-bg) !important;
+  border: 1px solid var(--card-border) !important;
+  border-radius: var(--radius-md) !important;
+  box-shadow: var(--card-shadow) !important;
+  color: var(--text-primary);
+  transition: var(--transition-theme);
+}
+
+.studio-card:hover,
+.b-card:hover {
+  box-shadow: var(--card-shadow-hover) !important;
+}
+
+.studio-card h2,
+.b-card-header h3,
+.subpoint-header h4 {
+  color: var(--text-primary) !important;
+}
+
+.studio-card p,
+.b-card p,
+.subpoint-body p {
+  color: var(--text-secondary);
+}
+
+/* KPI Cards */
+.studio-layout .kpi-card {
+  background: var(--card-bg) !important;
+  border: 1px solid var(--card-border) !important;
+  border-radius: var(--radius-md) !important;
+  box-shadow: var(--card-shadow) !important;
+  transition: all 0.2s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.studio-layout .kpi-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--card-shadow-hover) !important;
+  border-color: var(--border-default) !important;
+}
+
+.studio-layout .kpi-label {
+  color: var(--text-muted) !important;
+  font-size: 11px;
+}
+
+.studio-layout .kpi-value {
+  color: var(--text-primary) !important;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+}
+
+.studio-layout .kpi-sub {
+  color: var(--text-muted) !important;
+  font-size: 11px;
+}
+
+/* --------------------------------------------------------------------------
+   5. MODERN FORM CONTROLS & INPUTS
+   -------------------------------------------------------------------------- */
+input[type="text"],
+input[type="number"],
+input[type="email"],
+input[type="password"],
+input[type="search"],
+select,
+textarea,
+.form-control {
+  background-color: var(--input-bg) !important;
+  border: 1px solid var(--input-border) !important;
+  color: var(--input-text) !important;
+  border-radius: var(--radius-sm) !important;
+  padding: 8px 12px;
+  font-size: 13px;
+  line-height: 1.5;
+  transition: all 0.15s ease;
+}
+
+input:focus,
+select:focus,
+textarea:focus,
+.form-control:focus {
+  outline: none !important;
+  border-color: var(--input-focus-border) !important;
+  box-shadow: 0 0 0 3px var(--input-focus-ring) !important;
+}
+
+/* Range sliders */
+input[type="range"] {
+  accent-color: var(--accent-teal);
+  background: var(--bg-surface-subtle);
+}
+
+/* Modern Buttons */
+.btn {
+  border-radius: var(--radius-sm);
+  font-weight: 600;
+  transition: all 0.18s ease;
+}
+
+.btn-primary {
+  background-color: var(--accent-teal) !important;
+  border-color: var(--accent-teal) !important;
+  color: #ffffff !important;
+}
+
+.btn-primary:hover {
+  background-color: var(--accent-teal-hover) !important;
+  border-color: var(--accent-teal-hover) !important;
+  transform: translateY(-1px);
+}
+
+.btn-outline,
+.btn-outline-sm {
+  background: var(--bg-surface) !important;
+  color: var(--text-secondary) !important;
+  border: 1px solid var(--border-default) !important;
+}
+
+.btn-outline:hover,
+.btn-outline-sm:hover {
+  background: var(--bg-surface-hover) !important;
+  color: var(--text-primary) !important;
+  border-color: var(--border-strong) !important;
+}
+
+/* --------------------------------------------------------------------------
+   6. TABLES & DATA SHEETS
+   -------------------------------------------------------------------------- */
+table,
+.table,
+.bipol-table {
+  color: var(--text-primary);
+  border-color: var(--table-border) !important;
+  background-color: var(--bg-surface);
+}
+
+table th,
+.table th {
+  background-color: var(--bg-surface-subtle) !important;
+  color: var(--text-muted) !important;
+  font-size: 11px;
+  font-weight: 650;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-bottom: 2px solid var(--table-border) !important;
+}
+
+table td,
+.table td {
+  border-color: var(--table-border) !important;
+  color: var(--text-primary) !important;
+  font-variant-numeric: tabular-nums;
+}
+
+table tr:nth-child(even),
+.table tr:nth-child(even) {
+  background-color: var(--table-stripe);
+}
+
+table tr:hover,
+.table tr:hover {
+  background-color: var(--table-hover) !important;
+}
+
+/* --------------------------------------------------------------------------
+   7. MATH & FORMULA BOXES
+   -------------------------------------------------------------------------- */
+.formula-box {
+  background-color: var(--bg-surface-subtle) !important;
+  border: 1px solid var(--border-subtle) !important;
+  border-radius: var(--radius-sm) !important;
+  color: var(--text-primary) !important;
+}
+
+.formula-math {
+  color: var(--text-primary) !important;
+}
+
+.formula-legend {
+  color: var(--text-secondary) !important;
+}
+
+.katex {
+  color: var(--text-primary) !important;
+}
+
+/* --------------------------------------------------------------------------
+   8. AIRCRAFT 2D / 3D PREVIEW & CAD IN DARK MODE
+   -------------------------------------------------------------------------- */
+.studio-aircraft {
+  background: var(--cad-bg) !important;
+  border: 1px solid var(--border-default) !important;
+  border-radius: var(--radius-md) !important;
+  transition: var(--transition-theme);
+}
+
+[data-theme="dark"] .studio-aircraft svg {
+  filter: drop-shadow(0 0 1px rgba(56, 189, 248, 0.4));
+}
+
+[data-theme="dark"] .studio-aircraft line,
+[data-theme="dark"] .studio-aircraft path {
+  vector-effect: non-scaling-stroke;
+}
+
+.studio-aircraft-legend span {
+  color: var(--text-muted);
+}
+
+.blueprint-box {
+  background: var(--cad-bg) !important;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+}
+
+/* --------------------------------------------------------------------------
+   9. COMMAND PALETTE MODAL (Ctrl+K)
+   -------------------------------------------------------------------------- */
+.bipol-palette-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.65);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  z-index: 9999;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 12vh 20px 20px;
+  animation: fadeIn 0.15s ease-out;
+}
+
+.bipol-palette-card {
+  width: 100%;
+  max-width: 640px;
+  background: var(--bg-surface-elevated);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.5);
+  overflow: hidden;
+  animation: scaleIn 0.15s ease-out;
+}
+
+.bipol-palette-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--border-subtle);
+  background: var(--bg-surface);
+}
+
+.bipol-palette-icon {
+  font-size: 18px;
+  color: var(--accent-cyan);
+}
+
+.bipol-palette-input {
+  flex: 1;
+  background: transparent !important;
+  border: none !important;
+  outline: none !important;
+  box-shadow: none !important;
+  font-size: 15px;
+  color: var(--text-primary) !important;
+  padding: 0 !important;
+}
+
+.bipol-palette-input::placeholder {
+  color: var(--text-muted);
+}
+
+.bipol-palette-badge {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--text-muted);
+  border: 1px solid var(--border-subtle);
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.bipol-palette-results {
+  max-height: 380px;
+  overflow-y: auto;
+  padding: 8px;
+}
+
+.bipol-palette-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  color: var(--text-secondary);
+  transition: all 0.12s ease;
+}
+
+.bipol-palette-item:hover,
+.bipol-palette-item.is-selected {
+  background: var(--bg-surface-hover);
+  color: var(--text-primary);
+}
+
+.bipol-palette-item-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.bipol-palette-item-icon {
+  font-size: 14px;
+  opacity: 0.85;
+}
+
+.bipol-palette-item-title {
+  font-size: 13px;
+  font-weight: 550;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.bipol-palette-item-tag {
+  font-size: 10px;
+  color: var(--text-muted);
+  background: var(--bg-surface-subtle);
+  padding: 2px 7px;
+  border-radius: 4px;
+}
+
+.bipol-palette-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 18px;
+  border-top: 1px solid var(--border-subtle);
+  background: var(--bg-surface);
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.bipol-palette-footer kbd {
+  font-family: var(--font-mono);
+  background: var(--bg-surface-subtle);
+  border: 1px solid var(--border-subtle);
+  padding: 1px 4px;
+  border-radius: 3px;
+}
+
+/* --------------------------------------------------------------------------
+   10. KEYBOARD SHORTCUTS MODAL (?)
+   -------------------------------------------------------------------------- */
+.bipol-shortcuts-card {
+  max-width: 520px;
+}
+
+.bipol-shortcuts-grid {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 12px 16px;
+  padding: 16px 20px;
+  font-size: 13px;
+}
+
+.bipol-shortcuts-grid span {
+  color: var(--text-secondary);
+}
+
+.bipol-shortcuts-grid kbd {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  background: var(--bg-surface-subtle);
+  border: 1px solid var(--border-default);
+  padding: 2px 7px;
+  border-radius: 4px;
+  color: var(--text-primary);
+}
+
+/* --------------------------------------------------------------------------
+   11. HIGHLIGHT PULSE ANIMATION (FOR JUMP-TO)
+   -------------------------------------------------------------------------- */
+@keyframes highlightPulse {
+  0% { outline: 3px solid var(--accent-cyan); box-shadow: 0 0 16px var(--accent-cyan); }
+  50% { outline: 3px solid var(--accent-cyan); box-shadow: 0 0 24px var(--accent-cyan); }
+  100% { outline: 0px solid transparent; box-shadow: none; }
+}
+
+.highlight-target {
+  animation: highlightPulse 2.4s ease-out forwards;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes scaleIn {
+  from { opacity: 0; transform: scale(0.96) translateY(-8px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+/* --------------------------------------------------------------------------
+   12. CALCULATION GRAPH & MODALS IN DARK MODE
+   -------------------------------------------------------------------------- */
+[data-theme="dark"] .calc-graph-container {
+  background: #080d16 !important;
+}
+
+[data-theme="dark"] .calc-node {
+  background: #0f172a !important;
+  border-color: rgba(255, 255, 255, 0.12) !important;
+  color: #f1f5f9 !important;
+}
+
+[data-theme="dark"] .calc-graph-workspace {
+  background: #090e18 !important;
+  border-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+[data-theme="dark"] .calc-graph-canvas {
+  background: #070c16 !important;
+}
+
+[data-theme="dark"] .calc-graph-viewport {
+  background-image: radial-gradient(rgba(56, 189, 248, 0.15) 0.8px, transparent 0.8px) !important;
+}
+
+[data-theme="dark"] .calc-graph-node {
+  background: #0f172a !important;
+  border-color: rgba(255, 255, 255, 0.14) !important;
+  color: #f1f5f9 !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4) !important;
+}
+
+[data-theme="dark"] .calc-graph-node.is-data {
+  background: #0b1424 !important;
+  border-color: rgba(56, 189, 248, 0.25) !important;
+}
+
+[data-theme="dark"] .calc-graph-node.is-cycle {
+  background: #1c160c !important;
+  border-color: #f59e0b !important;
+}
+
+[data-theme="dark"] .calc-graph-node-title {
+  color: #f1f5f9 !important;
+}
+
+[data-theme="dark"] .calc-graph-node-value {
+  color: #38bdf8 !important;
+}
+
+[data-theme="dark"] .calc-graph-inspector {
+  background: #0d1524 !important;
+  border-left-color: rgba(255, 255, 255, 0.1) !important;
+  color: #cbd5e1 !important;
+}
+
+[data-theme="dark"] .calc-graph-detail-heading {
+  background: rgba(13, 21, 36, 0.95) !important;
+  border-bottom-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+[data-theme="dark"] .calc-graph-equation {
+  background: #080d18 !important;
+  color: #e2e8f0 !important;
+}
+
+[data-theme="dark"] .calc-graph-controls,
+[data-theme="dark"] .calc-graph-minimap {
+  background: rgba(15, 23, 42, 0.9) !important;
+  border-color: rgba(255, 255, 255, 0.12) !important;
+  color: #f1f5f9 !important;
+}
+
+[data-theme="dark"] .calc-graph-controls button {
+  color: #94a3b8 !important;
+}
+
+[data-theme="dark"] .calc-graph-controls button:hover {
+  background: #1e293b !important;
+  color: #38bdf8 !important;
+}
+
+/* Modal and Dialogs Dark Mode */
+[data-theme="dark"] .modal-content,
+[data-theme="dark"] .wizard-container,
+[data-theme="dark"] .didactic-popover {
+  background: #0f172a !important;
+  border-color: rgba(255, 255, 255, 0.12) !important;
+  color: #f1f5f9 !important;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6) !important;
+}
+
+[data-theme="dark"] .didactic-popover-title {
+  color: #f1f5f9 !important;
+}
+
+[data-theme="dark"] .didactic-popover-close {
+  color: #94a3b8 !important;
+}
+
+/* --------------------------------------------------------------------------
+   13. PRINT CLEANLINESS
+   -------------------------------------------------------------------------- */
+@media print {
+  body.studio-layout {
+    background: #ffffff !important;
+    color: #000000 !important;
+    padding-left: 0 !important;
+  }
+  .bipol-navbar,
+  .studio-sidebar,
+  .theme-toggle-btn,
+  .nav-search-trigger,
+  .nav-recalc-pill,
+  .bipol-palette-backdrop {
+    display: none !important;
+  }
+  .studio-card,
+  .b-card {
+    border: 1px solid #cccccc !important;
+    box-shadow: none !important;
+    background: #ffffff !important;
+  }
+}
