@@ -26,7 +26,9 @@ with sync_playwright() as p:
     errors=[];page.on('pageerror',lambda e:errors.append(str(e)))
     page.goto(BASE+'/ml1');page.locator('#ml1-aircraft-flight_mass_kg').wait_for()
     page.wait_for_function("document.querySelector('#methodSelect').options.length>=40")
-    for kind in ['glider','propeller','fixed','jet']:
+    legends=page.locator('#workbookFields > fieldset > legend').all_text_contents()
+    assert [text[:2] for text in legends[:4]]==['P1','P2','P2','P3']
+    for kind in (['glider','jet'] if '--quick' in sys.argv else ['glider','propeller','fixed','jet']):
         page.locator('#exampleKind').select_option(kind);page.locator('#loadExample').click()
         page.wait_for_function("document.querySelector('#calculationMessage').textContent.includes('Wczytano przykład')")
         page.locator('#workbookForm > button[type=submit]').click();completed(page)
@@ -36,6 +38,7 @@ with sync_playwright() as p:
         exported=json.loads(target.read_text(encoding='utf-8'))
         assert exported['method']=='workbook'
         assert exported['result']['p1']['mass_basis']=='known_aircraft_fixed_measurements'
+        page.locator('#resultsSection').scroll_into_view_if_needed()
         page.screenshot(path=str(OUT/(kind+'.png')),full_page=False)
         print(kind,'workbook, charts and export OK',flush=True)
     # Edit after calculation: old results/exports are immediately unavailable.
@@ -64,6 +67,9 @@ with sync_playwright() as p:
     # Method calculator: scalar valid/invalid PG and disabled exports on edit.
     page.locator('[data-view=methods]').click();page.locator('#projectFilter').select_option('6')
     page.locator('#methodSelect').select_option('prandtl')
+    assert '/23997/' in page.locator('#methodSource a').get_attribute('href')
+    page.locator('#methodNotes').locator('xpath=..').locator('summary').click()
+    assert 'Suplement' in page.locator('#methodNotes').inner_text()
     page.locator('#ml1-mach').fill('.6');page.locator('#methodForm > button[type=submit]').click();completed(page)
     page.locator('#ml1-mach').fill('1');page.locator('#methodForm > button[type=submit]').click()
     page.wait_for_function("document.querySelector('#calculationMessage').className==='error'")

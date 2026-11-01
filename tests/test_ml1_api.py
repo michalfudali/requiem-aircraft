@@ -56,6 +56,8 @@ def test_workbook_report_contains_offline_charts_and_reproducible_inputs(client,
     assert '<script>alert' not in html
     assert 'Dane syntetyczne' in html
     assert 'mass_basis' in html
+    assert 'Metody i równania' in html
+    assert '(2.1–2.5)' in html
     assert '<script src=' not in html and '<link rel="stylesheet"' not in html
 
 

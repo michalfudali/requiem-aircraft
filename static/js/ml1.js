@@ -146,7 +146,7 @@
     return [...groups].map(([value,values])=>({[key]:value,rows:values}));
   }
   function field(parent,key,value,path,depth=0) {
-    const title=labels[key]||key.replaceAll('_',' ');
+    const title=key==='height_m'&&path.startsWith('aircraft.')?'Wysokość samolotu [m]':labels[key]||key.replaceAll('_',' ');
     if(value&&typeof value==='object'&&!Array.isArray(value)&&Object.keys(value).length&&depth<3&&!['engine','propulsion_config'].includes(key)) {
       const fs=node('fieldset');fs.append(node('legend',title));const grid=node('div',undefined,'field-grid');
       for(const [k,v] of Object.entries(value))field(grid,k,v,path?`${path}.${k}`:k,depth+1);
@@ -161,7 +161,7 @@
     input.dataset.path=path;input.dataset.label=title;
     input.id='ml1-'+path.replaceAll('.','-');label.htmlFor=input.id;label.append(input);parent.append(label);
     if(input.dataset.kind==='json') {
-      label.append(node('small','JSON; null pozostawia opcję domyślną.','hint'));
+      label.append(node('small','JSON. W polach opcjonalnych null wybiera wartość domyślną.','hint'));
       if(key==='engine') {
         const tools=node('div',undefined,'field-tools');const select=node('select');select.setAttribute('aria-label','Przykładowa struktura charakterystyki silnika');
         Object.keys(engineTemplates).forEach(name=>select.append(new Option(name,name)));
@@ -179,7 +179,9 @@
     }
   }
   function workbookFields(draft) {
-    $('workbookFields').replaceChildren();for(const [key,value] of Object.entries(state.workbook))field($('workbookFields'),key,value,key);
+    const order=['example_basis','aircraft','geometry','profile','aircraft_aerodynamics','glide_cases','glide_maximum_level_speed_ms','propulsion','propeller_design','performance','cruise'];
+    const keys=[...order.filter(k=>Object.hasOwn(state.workbook,k)),...Object.keys(state.workbook).filter(k=>!order.includes(k))];
+    $('workbookFields').replaceChildren();for(const key of keys)field($('workbookFields'),key,state.workbook[key],key);
     restoreDraft($('workbookFields'),draft);
     $('exampleNotice').hidden=state.workbook.example_basis!=='synthetic_educational_data';
   }
@@ -190,6 +192,7 @@
     for(const [key,value] of Object.entries(method.inputs))field(grid,key,value,key);
     $('methodFields').append(grid);restoreDraft($('methodFields'),state.drafts[state.method]);
     const link=node('a',`P${method.project} · Materiał źródłowy`);link.href=method.source_url;link.target='_blank';link.rel='noopener';$('methodSource').replaceChildren(link);
+    $('methodNotes').replaceChildren(...(method.notes||[]).map(text=>node('p',text)));
   }
   function filterMethods() {
     const project=Number($('projectFilter').value);$('methodSelect').replaceChildren();

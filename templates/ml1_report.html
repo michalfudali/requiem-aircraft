@@ -15,7 +15,8 @@
 <p>Numeracja ML1: P1 — dane samolotu, P2 — płat, P3 — cały samolot, P4 — lot szybowy, P5 — napęd, P6 — osiągi i zasięg.</p>
 {% if inputs.example_basis == 'synthetic_educational_data' %}<p class="notice">Dane syntetyczne do weryfikacji metod. Raport nie opisuje osiągów istniejącego typu samolotu.</p>{% endif %}
 <p>Jednostki obliczeń: SI. Zużycie jednostkowe paliwa śmigłowe: kg/(kW·h), odrzutowe: kg/(daN·h). Wyniki zawierają zakresy i założenia zastosowanych modeli.</p>
+<h2>Metody i równania</h2>{% for note in method_notes %}<p>{{note}}</p>{% endfor %}
 {% for chart in charts %}{{chart|safe}}{% endfor %}
 {{tree(result,'Wyniki obliczeń')}}
-<h2>Dane wejściowe — zapis pozwalający odtworzyć obliczenia</h2><pre>{{inputs|tojson(indent=2)}}</pre>
+<details><summary>Dane wejściowe — zapis pozwalający odtworzyć obliczenia (rozwiń, aby dołączyć do wydruku)</summary><pre>{{inputs|tojson(indent=2)}}</pre></details>
 </body></html>

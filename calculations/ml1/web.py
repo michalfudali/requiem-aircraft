@@ -5,9 +5,11 @@ from pathlib import Path
 
 from flask import Blueprint,request,jsonify,render_template,Response
 
-from .catalog import catalog,calculate
+from .catalog import catalog,calculate,SPECS
 from .examples import example_workbook
 from .charts import result_charts
+from .method_info import method_notes
+from .report_view import report_projection
 
 blueprint=Blueprint('ml1',__name__)
 SOURCE_PATH=Path(__file__).resolve().parents[2]/'data'/'ml1_sources.json'
@@ -70,6 +72,9 @@ def calculation():
 def report():
     payload=_payload()
     result=_run(payload)
-    return render_template('ml1_report.html',method=payload.get('method'),inputs=payload.get('inputs'),result=result,
+    return render_template('ml1_report.html',method=payload.get('method'),inputs=payload.get('inputs'),
+                           result=report_projection(result,payload.get('method')),
                            charts=result_charts(result,payload.get('method')),
+                           method_notes=[note for project in (range(1,7) if payload.get('method')=='workbook' else
+                                         [SPECS[payload.get('method')][0]]) for note in method_notes(project)],
                            row_columns=lambda rows:list(dict.fromkeys(key for row in rows for key in row)))

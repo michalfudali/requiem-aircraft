@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="pl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Mechanika Lotu I — zeszyt P1–P6</title><link rel="stylesheet" href="/static/css/ml1.css?v=1">
-<script src="/static/js/ml1.js?v=1" defer></script></head>
+<script src="/static/js/ml1.js?v=2" defer></script></head>
 <body><a class="skip" href="#ml1Main">Przejdź do obliczeń</a>
 <header><div><a href="/">← BiPOL Requiem</a><h1>Mechanika Lotu I</h1><p>Dane samolotu → aerodynamika → napęd → osiągi</p></div>
 <span id="saveStatus" role="status">Ładowanie…</span></header>
@@ -20,8 +20,9 @@
 </section>
 <section id="methodsView" aria-labelledby="methodsTitle" hidden><h2 id="methodsTitle">Metody obliczeniowe ML1</h2>
 <p>Każda metoda udostępnia wszystkie parametry obliczeń. Jednostki: m, m², kg, s, N, W; obroty śmigła zgodnie z opisem pola. Kąty wejściowe w stopniach.</p>
+<p class="notice">Wartości początkowe są syntetycznymi przykładami. Własne obliczenia wymagają zastąpienia ich danymi źródłowymi.</p>
 <label>Projekt <select id="projectFilter"><option value="0">Wszystkie projekty</option>{% for p in range(1,7) %}<option value="{{p}}">P{{p}}</option>{% endfor %}</select></label>
-<label>Metoda <select id="methodSelect"></select></label><p id="methodSource"></p>
+<label>Metoda <select id="methodSelect"></select></label><p id="methodSource"></p><details><summary>Równania i założenia projektu</summary><div id="methodNotes"></div></details>
 <form id="methodForm"><div id="methodFields"></div><button class="primary" type="submit">Oblicz metodę</button></form></section>
 <section id="sourcesView" aria-labelledby="sourcesTitle" hidden><h2 id="sourcesTitle">Źródła i konwencje</h2>
 <p>Metody opracowano według sześciu projektów ML1, suplementu P6 oraz załączników: charakterystyk profili, oporów podzespołów, silników i śmigieł. Odczyty wykresów wprowadza się jako tabele. Interpolacja nie wykracza poza zakres danych; uzupełnienie oporu przy kątach krytycznych wymaga jawnego wyboru.</p>

@@ -26,6 +26,9 @@ Repozytorium nie zawiera pobranych materiałów ani danych logowania.
    obejmują przecięcia prędkości maksymalnej, wynik pozostaje niedostępny.
 5. Oblicz zeszyt. Zapisz dane/wyniki JSON lub samodzielny raport HTML z wykresami
    SVG. Raport działa bez serwera i internetu; można wydrukować go do PDF.
+   Załącznik danych wejściowych można rozwinąć przed wydrukiem. Tabele dokładnej
+   równowagi pokazują najlepszą gałąź i liczbę rozwiązań; pełna diagnostyka jest
+   zachowana w eksporcie JSON.
 
 Każdą metodę można też uruchomić oddzielnie z „Kalkulatorów metod”. Katalog
 API `/api/ml1/catalog` podaje wszystkie parametry i przykłady wywołań;
@@ -148,3 +151,16 @@ wymaga zajmowania portu innego agenta.
 Test przeglądarkowy wykonuje wszystkie cztery zeszyty, sprawdza wykresy,
 eksport JSON, edycję i przeładowanie, import trzech Re przez CSV, błąd zakresu
 Prandtla, źródła, raport otwierany lokalnie oraz obliczenia na ekranie 390 px.
+
+Weryfikacja po integracji z `master` z 2026-11-01:
+
+- 1585 testów Python przeszło (351,94 s), w tym 126 testów ML1;
+- 36 testów JavaScript przeszło; składnia nowego skryptu ML1 sprawdzona w Node;
+- Chrome: cztery gałęzie zeszytu, wykresy, dane, eksport, zakresy i mobile;
+- po zmianach składu: dodatkowo 3 próby API/raportu oraz ponowna ścieżka Chrome
+  dla szybowca, odrzutowca, CSV, równań, źródeł, przeładowania i mobile;
+- wydruk samodzielnego raportu odrzutowca w Chrome: 63 strony A4 poziomo,
+  bez tekstu wykraczającego poza stronę; pliki PDF i zrzuty są artefaktami lokalnymi.
+
+Katalog zawiera 43 odrębne kalkulatory; gałęzie modeli silnika, oba programy
+lotu i alternatywne formaty pomiarów są parametrami odpowiednich metod.

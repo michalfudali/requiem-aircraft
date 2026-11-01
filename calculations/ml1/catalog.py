@@ -6,6 +6,7 @@ from . import range as flight_range
 from .examples import example_workbook
 from .workbook import run_workbook
 from .exact_climb import exact_force_equilibrium
+from .method_info import method_notes
 
 
 def performance_calculation(mass_kg,area_m2,altitude_m,propulsion_config,**options):
@@ -132,7 +133,8 @@ def catalog():
             values.pop('cl',None);values.pop('velocity_ms',None);values.pop('schedule',None)
         if identifier in ('performance','offer_chart'):values.pop('propulsion',None)
         methods.append(dict(project=project,id=identifier,title=title,inputs=values,
-                            description=inspect.getdoc(function) or '',
-                            source_url={1:reference.SOURCE_URL,2:geometry.SOURCE_URL,3:aircraft.SOURCE_URL,
-                                        4:glide.SOURCE_URL,5:propulsion.SOURCE_URL,6:performance.SOURCE_URL}[project]))
+                            description=inspect.getdoc(function) or '',notes=method_notes(project),
+                            source_url=(prandtl.SOURCE_URL if identifier in ('prandtl','altitude_polars') else
+                                {1:reference.SOURCE_URL,2:geometry.SOURCE_URL,3:aircraft.SOURCE_URL,
+                                 4:glide.SOURCE_URL,5:propulsion.SOURCE_URL,6:performance.SOURCE_URL}[project])))
     return methods
