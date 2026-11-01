@@ -1,15 +1,40 @@
 <section id="tab-calculation-tree" class="tab-content studio-panel">
   <div class="studio-heading calc-tree-heading">
-    <div><p class="studio-eyebrow">ŚCIEŻKA OBLICZEŃ / P1–P6</p><h1>Drzewo obliczeń</h1>
-      <p>Zacznij od danych niezależnych. Kolejne poziomy pokazują wyniki możliwe do wyznaczenia z wcześniejszych parametrów.</p></div>
+    <div><p class="studio-eyebrow">OD DANYCH DO WYNIKU / P1–P6</p><h1>Drzewo obliczeń</h1>
+      <p>Przesuwaj graf myszką i przybliżaj kółkiem. Wybierz etap lub wielkość, aby zobaczyć wzór, podstawienie liczb i cały tok obliczeń.</p></div>
     <button type="button" class="btn btn-outline" data-studio-target="tab-inputs">Zmień założenia</button>
   </div>
-  <div class="calc-tree-toolbar" role="group" aria-label="Przechodzenie przez drzewo obliczeń">
-    <button type="button" class="btn btn-primary" data-tree-action="next">Pokaż następny krok</button>
-    <button type="button" class="btn btn-outline" data-tree-action="all">Pokaż całe drzewo</button>
-    <button type="button" class="btn btn-outline" data-tree-action="reset">Wróć do początku</button>
-    <span id="calculationTreeStatus" role="status" aria-live="polite">Oczekiwanie na obliczenia.</span>
+  <div class="calc-graph-toolbar">
+    <div class="calc-graph-search"><label for="calculationGraphSearch">Znajdź wielkość</label>
+      <input id="calculationGraphSearch" type="search" placeholder="np. masa startowa, S, V_D…" autocomplete="off" aria-controls="calculationGraphMatches" aria-expanded="false">
+      <div id="calculationGraphMatches" class="calc-graph-matches" hidden></div>
+    </div>
+    <label class="calc-graph-scope">Widok<select id="calculationGraphScope">
+      <option value="overview">Etapy P1–P6</option><option value="path" disabled>Ścieżka wybranego wyniku</option>
+      <option value="p1">P1 · Projekt koncepcyjny</option><option value="p2">P2 · Studium wykonalności</option>
+      <option value="p3">P3 · Geometria i masy</option><option value="p4">P4 · Aerodynamika</option>
+      <option value="p5">P5 · Osiągi</option><option value="p6">P6 · Obwiednia</option>
+      <option value="const">Stałe i ISA</option><option value="all">Wszystkie wielkości</option>
+    </select></label>
+    <button type="button" class="btn btn-outline" data-graph-action="latex" disabled>Pobierz obliczenia .tex</button>
   </div>
-  <div id="calculationTreeRoot" class="calc-tree-root" aria-label="Zależności parametrów projektu"></div>
-  <p class="calc-tree-footnote">Liczba parametrów oznacza niezależne wejścia pokazane na danej ścieżce. Karty pokazują główne zależności, a wartości pochodzą z bieżących obliczeń projektu. Szczegółowe modele są dostępne w analizach P1–P6.</p>
+  <div class="calc-graph-statusbar"><span id="calculationTreeStatus" role="status" aria-live="polite">Oczekiwanie na obliczenia.</span>
+    <span class="calc-graph-legend"><i class="is-data"></i>Dane / model <i class="is-calc"></i>Obliczenie <i class="is-cycle"></i>Sprzężenie</span></div>
+  <div id="calculationGraphWorkspace" class="calc-graph-workspace">
+    <div class="calc-graph-canvas">
+      <div class="calc-graph-controls" role="group" aria-label="Skala i położenie grafu">
+        <button type="button" data-graph-action="out" aria-label="Oddal graf">−</button><output id="calculationGraphZoom" aria-label="Powiększenie">100%</output>
+        <button type="button" data-graph-action="in" aria-label="Przybliż graf">+</button><button type="button" data-graph-action="fit">Dopasuj</button><button type="button" data-graph-action="actual">1:1</button>
+      </div>
+      <span id="calculationGraphStale" class="calc-graph-stale" hidden>Wyniki wymagają przeliczenia</span>
+      <div id="calculationTreeRoot" class="calc-graph-viewport" tabindex="0" role="group" aria-label="Graf zależności obliczeń" aria-describedby="calculationGraphHelp"><div class="calc-graph-empty">Oblicz projekt, aby zobaczyć zależności parametrów.</div></div>
+      <button type="button" id="calculationGraphMinimap" class="calc-graph-minimap" aria-label="Minimapa: kliknij miejsce, do którego chcesz przejść" hidden></button>
+      <p id="calculationGraphHelp" class="calc-graph-help">Przeciągnij, aby przesunąć · kółko: skala · strzałki: przesuwanie · Home: dopasowanie</p>
+    </div>
+    <aside id="calculationGraphInspector" class="calc-graph-inspector" aria-labelledby="calculationGraphDetailTitle" hidden>
+      <div class="calc-graph-detail-heading"><p id="calculationGraphDetailKicker"></p><button type="button" data-graph-action="close" aria-label="Zamknij szczegóły wielkości">×</button><h2 id="calculationGraphDetailTitle"></h2></div>
+      <div id="calculationGraphDetail" class="calc-graph-detail"></div>
+    </aside>
+  </div>
+  <p class="calc-graph-footnote">Strzałka prowadzi od użytej wielkości do wyniku. Sprzężenia pozostają połączone w grupy; ich szczegóły zawierają wszystkie zależności. Wzory i liczby pochodzą z tego samego arkusza co raport projektu.</p>
 </section>

@@ -212,6 +212,8 @@ ORIGIN = {
     'x_LEc': ('calc', 'położenie skrzydła dobrane tak, aby środek masy w locie mieścił się w zakresie 25–35% ŚCA'),
     'xcg_fwd': ('calc', 'z zestawienia stanów załadowania {tab:loading-states}'),
     'xcg_aft': ('calc', 'z zestawienia stanów załadowania {tab:loading-states}'),
+    'pilot_light': ('ass', 'lekka osoba załogi z wyposażeniem — skrajny przypadek wyważenia {lit:grabowski_am}'),
+    'pilot_heavy': ('ass', 'ciężka osoba załogi z wyposażeniem — skrajny przypadek wyważenia {lit:grabowski_am}'),
     'dx_n': ('ass', 'przesunięcie punktu neutralnego od śmigła i gondol, wg położenia napędu'),
     'eta_H': ('ass', 'hamowanie strug i interferencja na usterzeniu poziomym'),
     # --- Projekt 3: płat ---

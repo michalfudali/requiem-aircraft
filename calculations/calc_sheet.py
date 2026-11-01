@@ -1316,6 +1316,8 @@ def _p3_balance(s, r):
     s.calc('Kn_fwd', r'K_{n,p}', r'\bar x_N-\bar x_{SM,p}', r'[[x_N]]-[[xcg_fwd]]', bal['stability']['static_margin_forward_pct'], PCT, 1,
            'Zapas stateczności przy przednim położeniu ŚM', check=lambda v: v.x_N - v.xcg_fwd, tolerance=.051)
 
+    _p3_pilot_loading(s, r)
+
     inertia = r['bipol_projects']['p3']['inertia_moments']
     rows = r['bipol_projects']['p3']['table_3_1_components']
     s.section('p3', 'inertia', 'Momenty bezwładności (masy skupione zespołów)', SOURCES['B3'] + ', wzory (2.3)–(2.4)')
@@ -1334,6 +1336,74 @@ def _p3_balance(s, r):
             ('J_xz', 'J_{xz}', r'\sum_i m_i\,(x_i-x_{SM})(z_i-z_{SM})', inertia['jxz_cg_kgm2'], 'Moment dewiacji')):
         s.calc(key, sym, formula, '', value, KGM2, 1, label + '', deps=['z_cg', 'x_cg'],
                check=lambda v, val=sums[key.lower().replace('_', '')]: val, tolerance=.06)
+
+
+def _p3_pilot_loading(s, r):
+    study = r['balance'].get('pilot_loading', {})
+    if not study.get('available'):
+        return
+    s.section('p3', 'pilot_loading', 'Wpływ masy załogi — stały płatowiec', 'FAA-H-8083-1B, rozdz. 2; kryteria modelu BIPOL_3')
+    s.given('pilot_light', 'm_{os,L}', 55., KG, 1, 'Masa lekkiej osoby załogi z wyposażeniem', 'Przypadek analizy P3')
+    s.given('pilot_heavy', 'm_{os,H}', 110., KG, 1, 'Masa ciężkiej osoby załogi z wyposażeniem', 'Przypadek analizy P3')
+    deps = []
+    states = {v['key']: v for v in r['balance']['loading_states']}
+    for case in study['cases']:
+        prefix = 'pilot_' + case['key']
+        state = states[case['key']]
+        mb, qb = prefix+'_mb', prefix+'_qb'
+        s.calc(mb, 'm_b', r'm_{stan}-m_{zał}', tex_value(state['mass_kg'], 6)+r'-[[m_zal]]',
+               case['base_mass_kg'], KG, 3, case['name']+' — masa bez załogi',
+               deps=['cg_states'], check=lambda v, a=state['mass_kg']: a-v.m_zal)
+        s.calc(qb, 'M_b', r'M_{stan}-m_{zał}x_{zał}', tex_value(state['moment_kg_m'], 6)+r'-[[m_zal]]\cdot[[x_zal]]',
+               case['base_moment_kg_m'], r'\mathrm{kg\,m}', 3, case['name']+' — moment bez załogi',
+               deps=['cg_states'], check=lambda v, a=state['moment_kg_m']: a-v.m_zal*v.x_zal)
+        for kind in ('light', 'heavy'):
+            person = 'pilot_' + kind
+            row = case[kind]
+            stem = prefix+'_'+kind
+            tm, qm, xx, xp = (stem+v for v in ('_m', '_q', '_x', '_pct'))
+            label = case['name']+f' / {row["person_kg"]:g} kg na osobę'
+            s.calc(tm, 'm', r'm_b+n_{zał}m_{os}', rf'[[{mb}]]+[[n_zal]]\cdot[[{person}]]',
+                   row['mass_kg'], KG, 3, label+' — masa',
+                   check=lambda v, b=mb, p=person: getattr(v,b)+v.n_zal*getattr(v,p))
+            s.calc(qm, 'M', r'M_b+n_{zał}m_{os}x_{zał}', rf'[[{qb}]]+[[n_zal]]\cdot[[{person}]]\cdot[[x_zal]]',
+                   row['moment_kg_m'], r'\mathrm{kg\,m}', 3, label+' — moment',
+                   check=lambda v, b=qb, p=person: getattr(v,b)+v.n_zal*getattr(v,p)*v.x_zal)
+            s.calc(xx, 'x_{SM}', r'\frac{M}{m}', rf'\frac{{[[{qm}]]}}{{[[{tm}]]}}', row['xcg_m'], M, 4, label+' — położenie środka masy względem nosa',
+                   check=lambda v, q=qm, m=tm: getattr(v,q)/getattr(v,m))
+            s.calc(xp, r'\bar x_{SM}', r'100\frac{x_{SM}-x_{N,\bar c}}{\bar c}',
+                   rf'100\frac{{[[{xx}]]-[[x_LEc]]}}{{[[mac]]}}', row['xcg_mac_pct'], PCT, 3, label+' — położenie środka masy w ŚCA',
+                   check=lambda v, x=xx: 100*(getattr(v,x)-v.x_LEc)/v.mac)
+            s.calc(stem+'_kn', 'K_n', r'\bar x_N-\bar x_{SM}', f'[[x_N]]-[[{xp}]]', row['static_margin_pct'], PCT, 3, label+' — zapas stateczności',
+                   check=lambda v, x=xp: v.x_N-getattr(v,x))
+            deps.extend([tm, xp, stem+'_kn'])
+        nominal = case['nominal']['person_kg']
+        s.calc(prefix+'_sensitivity', r'\frac{\mathrm d\bar x_{SM}}{\mathrm d m_{os}}',
+               r'\frac{100n_{zał}(x_{zał}m_b-M_b)}{\bar c(m_b+n_{zał}m_{os})^2}',
+               rf'\frac{{100\cdot[[n_zal]]\left([[x_zal]]\cdot[[{mb}]]-[[{qb}]]\right)}}{{[[mac]]\left([[{mb}]]+[[n_zal]]\cdot{tex_value(nominal,3)}\right)^2}}',
+               case['nominal']['sensitivity_pct_per_kg'], r'\mathrm{\%/kg}', 5, case['name']+' — czułość ŚC na masę osoby (nominalnie)',
+               check=lambda v, b=mb, q=qb, p=nominal: 100*v.n_zal*(v.x_zal*getattr(v,b)-getattr(v,q))/(v.mac*(getattr(v,b)+v.n_zal*p)**2))
+    s.table('pilot_interval', 'Wspólny przedział masy osoby załogi',
+            r'a_i m_{os}+b_i\geq0,\quad m\leq m_0,\quad K_n\geq5\%,\quad \bar x_{SM}\in I_{P3}',
+            note='Przecięcie nierówności wszystkich stanów załadowania w badanym zakresie masy osoby.', deps=deps)
+    interval = study['common_interval']
+    if interval:
+        constraints = [v for c in study['cases'] for v in c['constraints']]
+        for end, sign, op in [('min', 1, 'max'), ('max', -1, 'min')]:
+            domain = study['domain_kg'][0 if end == 'min' else 1]
+            relevant = [c for c in constraints if c['a']*sign > 0]
+            candidates = [domain]+[-c['b']/c['a'] for c in relevant]
+            roots = [tex_value(domain, 6)]
+            limiting = (max if end == 'min' else min)(relevant, key=lambda c: -c['b']/c['a']) if relevant else None
+            if limiting:
+                roots.append(rf'\frac{{-({tex_value(limiting["b"],6)})}}{{{tex_value(limiting["a"],6)}}}')
+            note = ('Najbardziej ograniczająca nierówność: '+limiting['state_name']+' — '+limiting['label'].replace(' (P3)', '')+'. ' if limiting else '')
+            s.calc('pilot_allowed_'+end, 'm_{os,'+end+'}',
+                   rf'\{op}\left(m_{{dz,{end}}};\;\left\{{-b_i/a_i:\;a_i{">" if sign>0 else "<"}0\right\}}\right)',
+                   rf'\{op}\left('+r';\;'.join(roots)+r'\right)', interval[end+'_kg'], KG, 3,
+                   'Wspólny przedział masy osoby — '+('dolna' if end=='min' else 'górna')+' granica',
+                   note=note+'Pozostałe nierówności są słabsze; współczynniki aᵢ i bᵢ wszystkich stanów podano w tabeli. Geometria jest stała.',
+                   deps=['pilot_interval'], check=lambda v, nums=candidates, fn=max if end=='min' else min: fn(nums))
 
 
 def _p3_schrenk(s, r):
@@ -1414,7 +1484,7 @@ def _p3_wing_aero(s, r):
            check=lambda v: v.a_inf / (1 + v.a_inf / (math.pi * v.AR) * (1 + v.tau_G)))
     s.calc('a_w_deg', 'a', r'a\,\frac{\pi}{180}', r'[[a_w]]\cdot\frac{\pi}{180}', p2['a_wing_paturski_deg'], r'\mathrm{1/^{\circ}}', 4,
            'Gradient siły nośnej płata na stopień', check=lambda v: v.a_w * math.pi / 180, tolerance=6e-5)
-    s.table('wing_rows', 'Charakterystyki płata', r'\alpha=\alpha_\infty+\frac{C_z}{\pi\Lambda}(1+\tau),\quad'
+    s.table('wing_rows', 'Charakterystyki płata', r'\alpha=\alpha_\infty+\frac{C_z}{\pi\Lambda}(1+\tau),\quad '
             r"C_x=C'_{x\infty}+\Delta C_{x,tech}+\frac{C_z^2}{\pi\Lambda}(1+\delta),\quad C_m=C_{m,SA}-\bar x_{SA}C_z",
             note='Wartości dla kolejnych Cz — tabela charakterystyk płata.', source=SOURCES['ML'] + ', tab. 2.2',
             deps=['tau_G', 'delta_G', 'dCx_tech', 'AR'])

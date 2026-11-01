@@ -34,6 +34,7 @@ from calculations.report_docx import build_docx
 from calculations.report_origin import (number_references, xref, cite, origin, origin_ref, render_tokens, subscripts,
                                          component_source)
 from calculations import report_charts
+from calculations.calculation_graph import build_calculation_graph
 
 app = Flask(__name__)
 from calculations.ml1.web import blueprint as ml1_blueprint
@@ -328,7 +329,9 @@ def download_scraped(folder, filename):
 @app.route('/api/calculate', methods=['POST'])
 def calculate():
     data = request.get_json(force=True)
-    return jsonify(run_bipol_project(data))
+    result = run_bipol_project(data)
+    result['calculation_graph'] = build_calculation_graph(result)
+    return jsonify(result)
 
 
 @app.route('/api/airfoil/200mm', methods=['GET', 'POST'])
@@ -364,6 +367,7 @@ def coursework_grade():
 def coursework_iterate_polar():
     """Refined sizing P2←P4 to convergence; no project or catalogue is modified here."""
     baseline, result, steps = refine_bipol_project(request.get_json(force=True))
+    result['calculation_graph'] = build_calculation_graph(result)
     return jsonify(result=result, before=baseline['submission_review']['polar'],
                    after=result['submission_review']['polar'], iterations=steps,
                    mtow_before=baseline['mass']['m0'], mtow_after=result['mass']['m0'])

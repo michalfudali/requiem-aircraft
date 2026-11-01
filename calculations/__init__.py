@@ -12,6 +12,7 @@ from calculations.aerodynamics import calculate_aerodynamics
 from calculations.performance import calculate_performance
 from calculations.envelope import calculate_vn_envelope
 from calculations.balance import calculate_balance_and_stability, MAX_TAIL_VOLUME
+from calculations.pilot_loading import calculate_pilot_loading
 from calculations.bipol_projects import calculate_all_bipol_projects
 from calculations.polish_law import normalize_occupants, check_compliance
 from calculations.validation import validate_parameters
@@ -135,6 +136,7 @@ def run_bipol_project(params: dict):
     
     # Etap P6: Wyważenie i stateczność statyczna
     balance_res = calculate_balance_and_stability(mass_res, geom_res, aero_res, params)
+    balance_res['pilot_loading'] = calculate_pilot_loading(mass_res, geom_res, balance_res)
     
     # Ocena zgodności z wymaganiami taktyczno-technicznymi
     model_scope = assessment(params, mass_res, aero_res)
