@@ -282,3 +282,75 @@ def figure_ids(sheet, keys):
                     if fid not in seen:
                         seen.append(fid)
     return seen
+
+
+def preliminary_polar_chart(cx0, k, cz_max):
+    """Szacunkowa biegunowa analityczna C_x = C_x0 + k·C_z²: oś C_x (OX) u góry, oś C_z skierowana w dół.
+
+    Zaznaczono opór zerowy (C_z = 0) i punkt największej doskonałości — styczną z początku układu.
+    """
+    width, height, left, right, top, bottom = 680, 380, 70, 40, 44, 34
+    cz_end = max(float(cz_max or 0), 1.2)
+    cz_opt = math.sqrt(cx0 / k)
+    cx_opt, kmax = 2 * cx0, cz_opt / (2 * cx0)
+    cx_end = cx0 + k * cz_end ** 2
+    _, x_step = _ticks(0, cx_end)
+    _, y_step = _ticks(0, cz_end)
+    x_max = math.ceil(cx_end / x_step - 1e-9) * x_step
+    y_max = math.ceil(cz_end / y_step - 1e-9) * y_step
+    plot_w, plot_h = width - left - right, height - top - bottom
+
+    def px(cx):
+        return left + cx / x_max * plot_w
+
+    def py(cz):
+        return top + cz / y_max * plot_h  # C_z rośnie w dół, poniżej osi OX
+
+    svg = [f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {width} {height}" role="img" class="report-chart" '
+           'aria-label="Szacunkowa biegunowa analityczna"><title>Szacunkowa biegunowa analityczna</title>',
+           f'<rect width="{width}" height="{height}" fill="#fff"/>']
+    x = 0.0
+    while x <= x_max + 1e-12:
+        svg.append(f'<path d="M{px(x):.1f} {top}V{top + plot_h}" stroke="#e3e3df"/>'
+                   f'<text x="{px(x):.1f}" y="{top - 8}" text-anchor="middle" font-size="11" fill="{MUTED}" {FONT}>{_n(x, _decimals(x_step))}</text>')
+        x += x_step
+    y = 0.0
+    while y <= y_max + 1e-12:
+        svg.append(f'<path d="M{left} {py(y):.1f}H{left + plot_w}" stroke="#e3e3df"/>'
+                   f'<text x="{left - 8}" y="{py(y) + 4:.1f}" text-anchor="end" font-size="11" fill="{MUTED}" {FONT}>{_n(y, _decimals(y_step))}</text>')
+        y += y_step
+    # Osie: OX (C_x) u góry, OY (C_z) w dół, ze strzałkami.
+    svg.append(f'<path d="M{left} {top}H{left + plot_w + 18}M{left + plot_w + 18} {top}l-7 -4v8z" stroke="{INK}" fill="{INK}" stroke-width="1.3"/>'
+               f'<path d="M{left} {top}V{top + plot_h + 18}M{left} {top + plot_h + 18}l-4 -7h8z" stroke="{INK}" fill="{INK}" stroke-width="1.3"/>'
+               f'<text x="{left + plot_w + 22}" y="{top + 4}" font-size="13" font-style="italic" fill="{INK}" {FONT}>C<tspan baseline-shift="sub" font-size="9">x</tspan></text>'
+               f'<text x="{left + 8}" y="{top + plot_h + 16}" font-size="13" font-style="italic" fill="{INK}" {FONT}>C<tspan baseline-shift="sub" font-size="9">z</tspan></text>')
+    points = [(cx0 + k * (cz_end * i / 60) ** 2, cz_end * i / 60) for i in range(61)]
+    svg.append('<path d="' + ''.join(f'{"M" if i == 0 else "L"}{px(a):.1f} {py(b):.1f}' for i, (a, b) in enumerate(points))
+               + '" fill="none" stroke="#2a78d6" stroke-width="2.2"/>')
+    # Styczna z początku układu wyznacza największą doskonałość.
+    t = min(1.35, x_max / cx_opt, y_max / cz_opt)
+    svg.append(f'<path d="M{px(0):.1f} {py(0):.1f}L{px(cx_opt * t):.1f} {py(cz_opt * t):.1f}" stroke="{INK}" stroke-width="1" stroke-dasharray="5 4"/>')
+    for (a, b, text, dy) in ((cx0, 0.0, f'C_x0 = {_n(cx0, 4)}', 18),
+                             (cx_opt, cz_opt, f'K_max = {_n(kmax, 1)}  (C_z = {_n(cz_opt, 2)}; C_x = {_n(cx_opt, 4)})', -8)):
+        svg.append(f'<circle cx="{px(a):.1f}" cy="{py(b):.1f}" r="5" fill="{INK}" stroke="#fff" stroke-width="2"/>'
+                   f'<text x="{px(a) + 10:.1f}" y="{py(b) + dy:.1f}" font-size="11.5" font-weight="bold" fill="{INK}" {HALO}{FONT}>{_svg_sub(text)}</text>')
+    svg.append('</svg>')
+    return Markup(''.join(svg))
+
+
+def _decimals(step):
+    digits = 0
+    while digits < 6 and abs(step * 10 ** digits - round(step * 10 ** digits)) > 1e-9:
+        digits += 1
+    return digits
+
+
+def _svg_sub(text):
+    """Indeksy dolne w tekście SVG: C_x0 → C<tspan>x0</tspan>."""
+    import re
+    return re.sub(r'([A-Za-z])_([A-Za-z0-9]+)', r'\1<tspan baseline-shift="sub" font-size="8.5">\2</tspan>', html.escape(text))
+
+
+def _ticks(low, high, count=6):
+    from calculations.report_figures import _nice_ticks
+    return _nice_ticks(low, high, count)
