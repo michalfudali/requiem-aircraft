@@ -12,7 +12,7 @@
   <link rel="stylesheet" href="/static/css/aircraft-editor.css?v=1">
   <link rel="stylesheet" href="/static/css/workspace.css?v=2">
   <link rel="stylesheet" href="/static/css/calculation-graph.css?v=1">
-  <link rel="stylesheet" href="/static/css/pilot-loading.css?v=1">
+  <link rel="stylesheet" href="/static/css/pilot-loading.css?v=2">
   <link rel="stylesheet" href="/static/css/experience.css?v=3">
   <link rel="stylesheet" href="/static/css/coursework.css?v=8">
   <link rel="stylesheet" href="/static/css/modern-ui.css?v=1">
@@ -422,6 +422,11 @@
                 </table>
               </div>
             </div>
+          </div>
+
+          <div class="subpoint-card" id="pilotLoadingCard">
+            <div class="subpoint-header"><h4>Wyważenie przy zmiennej masie załogi i dobór balastu</h4></div>
+            <div class="subpoint-body">{% include 'pilot_loading.html' %}</div>
           </div>
 
           <!-- Podpunkt 3.2: Średnia Cięciwa Aerodynamiczna (ŚDA / MAC) -->
@@ -1490,7 +1495,6 @@
                       <tbody id="p3_loading_tbody"></tbody>
                     </table>
                   </div>
-                  {% include 'pilot_loading.html' %}
                   <div style="margin-top:0.75rem; background:#eff6ff; padding:0.75rem; border-radius:6px; font-size:0.84rem; color:#1e3a8a;">
                     <strong>Momenty bezwładności i twierdzenie Steinera (do 1/4 ŚDA):</strong><br>
                     Momenty w ŚM: <code>Jx = <span id="p3_jx">---</span> kg&bull;m²</code> &bull; <code>Jy = <span id="p3_jy">---</span> kg&bull;m²</code> &bull; <code>Jz = <span id="p3_jz">---</span> kg&bull;m²</code>.<br>
@@ -2534,7 +2538,9 @@
   <script src="/static/js/workspace.js?v=6"></script>
   <script src="/static/js/calculation-graph.js?v=1"></script>
   <script src="/static/js/calculation-tree.js?v=3"></script>
-  <script src="/static/js/pilot-loading.js?v=1"></script>
+  <script src="/static/js/ballast.js?v=1"></script>
+  <script src="/static/js/pilot-loading.js?v=2"></script>
+  <script src="/static/js/ballast-ui.js?v=1"></script>
   <script src="/static/js/coursework.js?v=5"></script>
   <script src="/static/js/modern-ui.js?v=1"></script>
   <script src="/static/js/manual-control.js?v=1"></script>

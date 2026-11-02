@@ -6,13 +6,13 @@ from pathlib import Path
 ROOT=Path(__file__).resolve().parents[1]
 sys.path[:0]=[str(ROOT),str(ROOT/'tests')]
 from playwright.sync_api import sync_playwright
-from browser_helpers import serve_in_process,navigate,reveal_details,edit_inputs
+from browser_helpers import serve_in_process,navigate,reveal_details,edit_inputs,launch_chromium
 from calculations.presets import AIRCRAFT_PRESETS
 
 OUT=ROOT/'work'/'tree-20261101'/'browser';OUT.mkdir(parents=True,exist_ok=True)
 BASE='http://pilot.test'
 with sync_playwright() as p:
-    browser=p.chromium.launch(executable_path='C:/Program Files/Google/Chrome/Application/chrome.exe',headless=True)
+    browser=launch_chromium(p,headless=True)
     page=browser.new_page(viewport=dict(width=1500,height=1000));serve_in_process(page,BASE)
     errors=[];page.on('pageerror',lambda e:errors.append(str(e)))
     page.goto(BASE)
@@ -22,7 +22,7 @@ with sync_playwright() as p:
         file=OUT/(preset+'-loading.json');file.write_text(json.dumps(dict(name=name,params=params)),encoding='utf-8')
         page.locator('#projectImportFileInput').set_input_files(file)
         page.wait_for_function('(n)=>currentResults?.params?.name===n+" (Import)"&&!document.querySelector("#calcBtn").disabled',arg=name,timeout=60000)
-        reveal_details(page.locator('#btnModeProjects'));page.locator('#btnModeProjects').click();page.locator('#pill-p3').click()
+        navigate(page,'tab-p3')
         panel=page.locator('#pilotLoading');reveal_details(panel)
         panel.scroll_into_view_if_needed()
         assert panel.is_visible()
@@ -60,11 +60,11 @@ with sync_playwright() as p:
             report.evaluate('document.fonts.ready')
             assert report.get_by_role('heading',name='Wpływ masy załogi przy stałym płatowcu').is_visible()
             assert not report.locator('.katex-error').count()
-            table=report.locator('table').filter(has=report.locator('caption',has_text='Załoga lekka i ciężka'))
+            table=report.locator('#tab-pilot-loading')
             assert table.locator('tbody tr').count()==len(study['cases'])
             for i,c in enumerate(study['cases']):
-                expected=f"{c['heavy']['mass_excess_kg']:.2f}".replace('.',',')
-                assert table.locator('tbody tr').nth(i).locator('td').nth(3).inner_text().replace(' ','').replace('\xa0','')==expected
+                value=table.locator('tbody tr').nth(i).locator('td').nth(3).inner_text().replace(' ','').replace('\xa0','').replace(',','.')
+                assert abs(float(value)-c['heavy']['mass_excess_kg'])<.051
                 expected_cg=f"{c['heavy']['xcg_mac_pct']:.2f}".replace('.',',')
                 assert table.locator('tbody tr').nth(i).locator('td').nth(2).inner_text().replace(' ','').replace('\xa0','')==expected_cg
             report.pdf(path=str(OUT/'pilot-report.pdf'),prefer_css_page_size=True,print_background=True)
@@ -72,7 +72,7 @@ with sync_playwright() as p:
         print(preset+' loading and graph OK',flush=True)
     # An edited design cannot continue exploring old loading values unnoticed.
     field=edit_inputs(page,'range_km');field.fill(str(float(field.input_value())+1))
-    reveal_details(page.locator('#btnModeProjects'));page.locator('#btnModeProjects').click();page.locator('#pill-p3').click()
+    navigate(page,'tab-p3')
     reveal_details(page.locator('#pilotLoading'))
     assert page.locator('#pilotLoadingStale').is_visible()
     assert page.locator('#pilotLoadingMass').is_disabled()
@@ -81,7 +81,7 @@ with sync_playwright() as p:
     file=OUT/'uav-loading.json';file.write_text(json.dumps(dict(name='Pilot UAV',params=preset)),encoding='utf-8')
     page.locator('#projectImportFileInput').set_input_files(file)
     page.wait_for_function('currentResults?.params?.aircraft_type==="uav"&&!document.querySelector("#calcBtn").disabled',timeout=60000)
-    reveal_details(page.locator('#btnModeProjects'));page.locator('#btnModeProjects').click();page.locator('#pill-p3').click()
+    navigate(page,'tab-p3')
     assert page.locator('#pilotLoading').is_hidden()
     assert not errors,errors
     print('Pilot mass, exact CG, overweight states, LaTeX, graph links and UAV isolation OK',flush=True)

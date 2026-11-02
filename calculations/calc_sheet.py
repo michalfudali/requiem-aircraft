@@ -1322,6 +1322,7 @@ def _p3_balance(s, r):
            'Zapas stateczności przy przednim położeniu ŚM', check=lambda v: v.x_N - v.xcg_fwd, tolerance=.051)
 
     _p3_pilot_loading(s, r)
+    _p3_ballast(s, r)
 
     inertia = r['bipol_projects']['p3']['inertia_moments']
     rows = r['bipol_projects']['p3']['table_3_1_components']
@@ -1409,6 +1410,51 @@ def _p3_pilot_loading(s, r):
                    'Wspólny przedział masy osoby — '+('dolna' if end=='min' else 'górna')+' granica',
                    note=note+'Pozostałe nierówności są słabsze; współczynniki aᵢ i bᵢ wszystkich stanów podano w tabeli. Geometria jest stała.',
                    deps=['pilot_interval'], check=lambda v, nums=candidates, fn=max if end=='min' else min: fn(nums))
+
+
+def _p3_ballast(s, r):
+    study = r['balance'].get('pilot_loading', {})
+    if not study.get('available'):
+        return
+    model = study['ballast']['model']
+    s.section('p3', 'ballast', 'Dobór balastu korekcyjnego', 'FAA-H-8083-1B, rozdz. 7; wyprowadzenie z bilansu momentów')
+    s.given('ballast_x_min', 'x_{B,min}', model['station_domain_m'][0], M, 3, 'Początek badanego zakresu położenia balastu',
+            'Nos kadłuba, geometria projektu')
+    s.calc('ballast_x_max', 'x_{B,max}', 'l_k', '[[l_k]]', model['station_domain_m'][1], M, 3,
+           'Koniec badanego zakresu położenia balastu', check=lambda v: v.l_k)
+    for kind, ref in zip(('light','heavy'),study['ballast']['references']):
+        prefix='ballast_'+kind
+        base_deps=[f'pilot_{c["key"]}_{kind}_{suffix}' for c in model['cases'] for suffix in ('m','q','pct','kn')]
+        s.table(prefix+'_problem', 'Balast / '+f'{ref["person_kg"]:g} kg na osobę — warunki wspólnej korekty',
+                r'Z=wx_B,\quad A_iw+B_iZ+C_i\geq0,\quad w\geq0,\quad x_{B,min}w\leq Z\leq x_{B,max}w',
+                note=ref['message']+' '+model['note'], deps=base_deps+['m0','ballast_x_min','ballast_x_max'])
+        if not ref['feasible']:
+            continue
+        wkey=prefix+'_mass'
+        s.solve(wkey, 'w_B', r'\min w:\quad A_iw+B_iZ+C_i\geq0,\quad x_{B,min}w\leq Z\leq x_{B,max}w,\quad w\geq0',
+                ref['mass_kg'], KG, 4, f'Najmniejszy wspólny balast / {ref["person_kg"]:g} kg na osobę',
+                deps=[prefix+'_problem'], note='Minimum wielokąta warunków masy, ŚC i zapasu stateczności. '+ref['message'])
+        if not ref['mass_kg']:
+            continue
+        xkey,zkey=prefix+'_station',prefix+'_moment'
+        s.solve(xkey, 'x_B', r'Z=wx_B,\quad (w,Z)\in\mathcal F,\quad w=w_B',
+                ref['station_m'], M, 4, 'Położenie minimalnego balastu / '+f'{ref["person_kg"]:g} kg na osobę', deps=[wkey])
+        s.calc(zkey, 'Z_B', r'w_Bx_B', f'[[{wkey}]]\\cdot[[{xkey}]]', ref['moment_kg_m'], r'\mathrm{kg\,m}',4,
+               'Moment balastu względem nosa', check=lambda v,w=wkey,x=xkey:getattr(v,w)*getattr(v,x))
+        for row in ref['after']:
+            before=f'pilot_{row["key"]}_{kind}'
+            key=prefix+'_'+row['key']
+            s.calc(key+'_m', 'm_{nowy}', r'm+w_B', f'[[{before}_m]]+[[{wkey}]]', row['mass_kg'], KG, 3,
+                   row['name']+' — masa z balastem', check=lambda v,b=before,w=wkey:getattr(v,b+'_m')+getattr(v,w))
+            s.calc(key+'_x', 'x_{SM,nowy}', r'\frac{M+Z_B}{m+w_B}',
+                   rf'\frac{{[[{before}_q]]+[[{zkey}]]}}{{[[{before}_m]]+[[{wkey}]]}}', row['xcg_m'], M, 4,
+                   row['name']+' — ŚC z balastem',
+                   check=lambda v,b=before,w=wkey,z=zkey:(getattr(v,b+'_q')+getattr(v,z))/(getattr(v,b+'_m')+getattr(v,w)))
+            s.calc(key+'_pct', r'\bar x_{SM,nowy}', r'100\frac{x_{SM,nowy}-x_{N,\bar c}}{\bar c}',
+                   rf'100\frac{{[[{key}_x]]-[[x_LEc]]}}{{[[mac]]}}',row['xcg_mac_pct'],PCT,3,
+                   row['name']+' — ŚC z balastem w ŚDA',check=lambda v,k=key:100*(getattr(v,k+'_x')-v.x_LEc)/v.mac)
+            s.calc(key+'_kn', 'K_{n,nowy}', r'\bar x_N-\bar x_{SM,nowy}',f'[[x_N]]-[[{key}_pct]]',row['static_margin_pct'],PCT,3,
+                   row['name']+' — zapas stateczności z balastem',check=lambda v,k=key:v.x_N-getattr(v,k+'_pct'))
 
 
 def _p3_schrenk(s, r):

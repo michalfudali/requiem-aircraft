@@ -5,6 +5,7 @@ criterion and 5% margin are the existing BIPOL model's design criteria,
 not certified operating limits. All crew stations vary together, as in P3.
 """
 from math import isclose
+from calculations.ballast import ballast_model, solve_ballast
 
 FAA_SOURCE = 'https://www.faa.gov/sites/faa.gov/files/2023-09/Weight_Balance_Handbook.pdf'
 CS22_SOURCE = 'https://www.easa.europa.eu/sites/default/files/dfu/CS-22%20Amendment%203.pdf'
@@ -82,7 +83,7 @@ def calculate_pilot_loading(mass, geometry, balance):
                           samples=[point(p) for p in sample_masses],
                           light=point(55.), heavy=point(110.), nominal=point(nominal)))
         all_constraints.extend(constraints)
-    return dict(available=True, n_crew=n, nominal_person_kg=nominal, crew_arm_m=arm,
+    result = dict(available=True, n_crew=n, nominal_person_kg=nominal, crew_arm_m=arm,
                 domain_kg=domain, limits=limits, cases=cases,
                 common_interval=intersect_limits(all_constraints, domain),
                 source_url=FAA_SOURCE, regulation_url=CS22_SOURCE,
@@ -93,3 +94,6 @@ def calculate_pilot_loading(mass, geometry, balance):
                 cs22_note='CS 22.23(b): 70–110 kg na osobę ze spadochronem bez balastu; '
                           'CS 22.25(b): przypadek 55 kg, z dopuszczonym balastem. '
                           'Zakres 55–110 kg w P3 jest analizą projektową, a nie deklaracją zgodności CS-22.')
+    model = ballast_model(result, geometry, balance)
+    result['ballast'] = dict(model=model, references=[solve_ballast(model,p) for p in (55.,110.)])
+    return result
