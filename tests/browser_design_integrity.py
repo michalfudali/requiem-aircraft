@@ -1,6 +1,6 @@
 """Isolated application regression: 13 official aircraft workflows in Chrome.
 
-Run from this worktree with its Flask server on port 5087. Browser actions use
+Run with --serve for an isolated server on a free port. Browser actions use
 visible controls; JavaScript evaluation only reads application results and DOM.
 """
 from __future__ import annotations
@@ -12,8 +12,8 @@ import time
 import traceback
 import argparse
 import os
-import threading
 import shutil
+from contextlib import ExitStack
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -21,11 +21,12 @@ sys.path.insert(0, str(ROOT))
 sys.path.insert(0, str(ROOT / "tests"))
 
 from playwright.sync_api import sync_playwright
-from browser_helpers import navigate, reveal_details, serve_in_process
+from browser_helpers import navigate, reveal_details, serve_in_process, launch_chromium
+from browser_live_server import live_server
 from calculations.atmosphere import G0, RHO0
 from calculations.official_topics import ALL_TOPICS
 
-OUT = ROOT / "work" / "design-integrity-20261030"
+OUT = ROOT / "work" / "headless-design-integrity"
 BASE = "http://127.0.0.1:5087"
 CHOSEN = [7, 17, 20, 28, 32, 42, 43, 63, 68, 82, 94, 95, 101]
 IN_PROCESS = False
@@ -203,7 +204,7 @@ def run_case(browser, topic):
 
 
 def main():
-    global IN_PROCESS
+    global IN_PROCESS, BASE
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--topics", nargs="+", type=int, default=CHOSEN)
     parser.add_argument("--serve", action="store_true", help="Run this worktree's isolated server in a thread")
@@ -211,19 +212,17 @@ def main():
     args = parser.parse_args()
     IN_PROCESS = args.in_process
     OUT.mkdir(exist_ok=True, parents=True)
-    server = None
-    if args.serve or IN_PROCESS:
+    stack = ExitStack()
+    if IN_PROCESS:
         database = OUT / ('browser-in-process-catalogue.sqlite3' if IN_PROCESS else 'browser-catalogue.sqlite3')
         os.environ["BIPOL_AIRCRAFT_DB"] = str(database)
         shutil.copyfile(ROOT / "data" / "aircraft" / "aircraft.sqlite3",database)
         from app import app
     if args.serve and not IN_PROCESS:
-        from werkzeug.serving import make_server
-        server = make_server("127.0.0.1", 5087, app, threaded=True)
-        threading.Thread(target=server.serve_forever, daemon=True).start()
+        BASE = stack.enter_context(live_server(OUT))
     records = []
     with sync_playwright() as p:
-        browser = p.chromium.launch(executable_path="C:/Program Files/Google/Chrome/Application/chrome.exe", headless=True)
+        browser = launch_chromium(p, headless=True)
         for number in args.topics:
             topic = next(t for t in ALL_TOPICS if t["num"] == number)
             record = run_case(browser, topic)
@@ -233,8 +232,7 @@ def main():
                                   failure=record.get("failure"), physics_error=record.get("physics_error"),
                                   seconds=record["seconds"]), ensure_ascii=True), flush=True)
         browser.close()
-    if server:
-        server.shutdown()
+    stack.close()
     return 0 if all(r["passed"] for r in records) else 1
 
 

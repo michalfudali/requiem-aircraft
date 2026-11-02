@@ -45,7 +45,8 @@
     function stale(value=true){if(!study?.available)return;$('pilotLoadingStale').hidden=!value;for(const control of $('pilotLoading').querySelectorAll('input,select,button'))control.disabled=value;}
     document.addEventListener('bipol:project',()=>{study=null;$('pilotLoading').hidden=true;});
     document.addEventListener('bipol:calculating',()=>stale());
-    $('designForm')?.addEventListener('input',()=>stale(),true);$('designForm')?.addEventListener('change',()=>stale(),true);
+    const changed=event=>{if(!window.isDuplicateCalculatedChange?.(event))stale();};
+    $('designForm')?.addEventListener('input',changed,true);$('designForm')?.addEventListener('change',changed,true);
     new ResizeObserver(()=>{if($('pilotLoadingChart').clientWidth)draw();}).observe($('pilotLoadingChart'));
     $('pilotLoadingCase').addEventListener('change',draw);$('pilotLoadingMass').addEventListener('input',draw);
     $('pilotLoadingGraph').addEventListener('click',()=>{document.querySelector('[data-studio-nav="tab-calculation-tree"]')?.click();window.BipolCalculationTree?.selectEntry('pilot_'+$('pilotLoadingCase').value+'_heavy_pct',true);});

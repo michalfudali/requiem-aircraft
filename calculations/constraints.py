@@ -169,6 +169,11 @@ def resolve_and_lock_parameters(params: dict, locked_keys: list = None) -> tuple
         if p['engine_type'] != 'prop' or float(p.get('engine_power_kw', 0)) <= 0:
             raise ValueError('Stała moc silnika wymaga napędu śmigłowego i dodatniej mocy w kW.')
         state('engine_power_kw', float(p['engine_power_kw']))
+    elif p['engine_type'] == 'prop':
+        # A saved project also contains the last automatically sized rating.
+        # It is an output, not an installed-engine assumption for the next mass
+        # breakdown. A known rating is used only in explicit fixed-power mode.
+        state('engine_power_kw', 0.0, 'Automatyczny dobór mocy po bilansie masy', ('power_input_mode',))
 
     planform = p.get('wing_planform', 'trapezoidal')
     state('wing_planform', planform)

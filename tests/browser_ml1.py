@@ -6,9 +6,10 @@ from pathlib import Path
 ROOT=Path(__file__).resolve().parents[1]
 sys.path[:0]=[str(ROOT),str(ROOT/'tests')]
 from playwright.sync_api import sync_playwright
-from browser_helpers import serve_in_process
+from browser_helpers import launch_chromium
+from browser_live_server import live_server
 
-OUT=ROOT/'work'/'ml1-20261101'/'browser'
+OUT=ROOT/'work'/'headless-ml1'
 OUT.mkdir(parents=True,exist_ok=True)
 BASE='http://ml1.test'
 
@@ -19,10 +20,10 @@ def completed(page):
     assert page.locator('#downloadResults').is_enabled()
 
 
-with sync_playwright() as p:
-    browser=p.chromium.launch(executable_path='C:/Program Files/Google/Chrome/Application/chrome.exe',headless=True)
+with live_server(OUT) as BASE, sync_playwright() as p:
+    browser=launch_chromium(p,headless=True)
     context=browser.new_context(viewport=dict(width=1440,height=1000),accept_downloads=True)
-    page=context.new_page();serve_in_process(page,BASE)
+    page=context.new_page()
     errors=[];page.on('pageerror',lambda e:errors.append(str(e)))
     page.goto(BASE+'/ml1');page.locator('#ml1-aircraft-flight_mass_kg').wait_for()
     page.wait_for_function("document.querySelector('#methodSelect').options.length>=40")
@@ -80,7 +81,7 @@ with sync_playwright() as p:
     print('CSV, scalar methods, domain errors and sources OK',flush=True)
     # Mobile user path and overflow, including a real calculation.
     mobile=browser.new_context(viewport=dict(width=390,height=844))
-    m=mobile.new_page();serve_in_process(m,BASE);m.goto(BASE+'/ml1')
+    m=mobile.new_page();m.goto(BASE+'/ml1')
     m.locator('#ml1-aircraft-name').wait_for();m.locator('#exampleKind').select_option('glider');m.locator('#loadExample').click()
     m.wait_for_function("document.querySelector('#calculationMessage').textContent.includes('Wczytano przykład')")
     m.locator('#workbookForm > button[type=submit]').click();completed(m)

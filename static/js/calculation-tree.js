@@ -207,7 +207,7 @@
       const x=Math.max(0,Math.min(b.width,(event.clientX-r.left-ox)/s)),y=Math.max(0,Math.min(b.height,(event.clientY-r.top-oy)/s));const d=dims();state.camera.x=d.width/2-x*state.camera.scale;state.camera.y=d.height/2-y*state.camera.scale;camera();
     });
     new ResizeObserver(()=>{if(!state.view||!active())return;const old=state.dimensions,d=dims();if(!d.width||!d.height)return;if(state.needsFit){fit();return;}state.camera.x+=(d.width-old.width)/2;state.camera.y+=(d.height-old.height)/2;camera();}).observe(vp);
-    function stale(){if(!state.model)return;state.stale=true;updateStatus();if(state.selected&&!$('calculationGraphInspector').hidden)selectEntry(state.selected);}
+    function stale(event){if(window.isDuplicateCalculatedChange?.(event)||!state.model)return;state.stale=true;updateStatus();if(state.selected&&!$('calculationGraphInspector').hidden)selectEntry(state.selected);}
     function results(result){
       try{const wasOpen=!$('calculationGraphInspector').hidden;state.model=G.build(result.calculation_graph);state.stale=false;state.view=null;state.needsFit=true;if(state.selected&&!state.model.byId.has(state.selected))state.selected=null;draw();if(active()&&wasOpen){if(state.selected)selectEntry(state.selected);else if(state.selectedGroup&&state.view?.byId.has(state.selectedGroup))selectGroup(state.view.byId.get(state.selectedGroup));}updateStatus();}
       catch(error){state.model=null;state.view=null;vp.replaceChildren(element('div',error.message,'calc-graph-empty'));status(error.message);panel.querySelector('[data-graph-action=latex]').disabled=true;}

@@ -12,10 +12,11 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
 from playwright.sync_api import sync_playwright
-from browser_helpers import edit_inputs, navigate, reveal_details, serve_in_process
+from browser_helpers import edit_inputs, navigate, reveal_details, launch_chromium
+from browser_live_server import live_server
 from calculations.presets import AIRCRAFT_PRESETS
 
-OUT = ROOT / 'work' / 'envelope-20261031'
+OUT = ROOT / 'work' / 'headless-envelope'
 OUT.mkdir(parents=True, exist_ok=True)
 
 OBSERVE_CANVAS = """(() => {
@@ -79,13 +80,8 @@ def inspect_envelope(page, name, model):
     gust = next(g for g in env['gust_factors']['gusts'] if g['speed'] == 'VD')
     assert abs(upper['n'] - max(env['limits']['n_at_vd_pos'], gust['n_positive'])) <= .006
     assert abs(lower['n'] - min(env['limits']['n_at_vd_neg'], gust['n_negative'])) <= .006
-    button = page.locator('#btnModeProjects')
-    reveal_details(button)
-    button.click()
-    page.locator('#pill-p6').click()
-    marker = page.locator('#p6_n_flap_val')
-    reveal_details(marker)
-    assert marker.inner_text() == '4.0'
+    assert env['flap']['n_flap'] == 4.
+    assert gust['u_ms'] == 7.5
     return {'case': name, 'model': model, 'k_g': env['gust_factors']['k_g'],
             'vd_positive': upper['n'], 'vd_negative': lower['n'], 'passed': True}
 
@@ -117,14 +113,13 @@ def export_report(page, browser, name, model):
 
 def main():
     errors, records = [], []
-    with sync_playwright() as pw:
-        browser = pw.chromium.launch(executable_path='C:/Program Files/Google/Chrome/Application/chrome.exe', headless=True)
+    with live_server(OUT) as base, sync_playwright() as pw:
+        browser = launch_chromium(pw, headless=True)
         page = browser.new_page(viewport={'width': 1440, 'height': 1000}, accept_downloads=True)
         page.add_init_script(OBSERVE_CANVAS)
-        serve_in_process(page, 'http://bipol-envelope.local')
         page.on('pageerror', lambda error: errors.append(str(error)))
         page.on('dialog', lambda dialog: dialog.accept())
-        page.goto('http://bipol-envelope.local')
+        page.goto(base)
         page.wait_for_function('currentResults !== null', timeout=60000)
         import_project(page, 'glider-amendment3', AIRCRAFT_PRESETS['glider_pw5'])
         records.append(inspect_envelope(page, 'glider-amendment3', 'amendment3'))

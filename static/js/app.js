@@ -17,6 +17,24 @@ const projectStore = BipolStudio.createStore(browserStorage, () => {
   document.dispatchEvent(new CustomEvent('bipol:storage'));
 });
 let activeProjectMemory = null;
+const calculatedControlValues = new WeakMap();
+let calculatedControlProject = null;
+const designControlValue = control => ['checkbox', 'radio'].includes(control.type) ? control.checked : control.value;
+
+function isDuplicateCalculatedChange(event) {
+  // Number/text fields emit change only on blur. Ctrl+Enter may have already
+  // calculated that exact value while the field still had focus.
+  return event?.type === 'change' && calculatedControlProject === getActiveProjectId()
+    && calculatedControlValues.has(event.target)
+    && calculatedControlValues.get(event.target) === designControlValue(event.target);
+}
+
+document.addEventListener('bipol:results', () => queueMicrotask(() => {
+  // Result consumers restore normalized/derived fields synchronously first.
+  calculatedControlProject = getActiveProjectId();
+  document.querySelectorAll('#designForm input, #designForm select, #designForm textarea, [data-analysis-param], [data-bipol1]')
+    .forEach(control => calculatedControlValues.set(control, designControlValue(control)));
+}));
 function safeLocalItem(key) {
   try { return browserStorage?.getItem(key) ?? null; } catch (_) { return null; }
 }
@@ -1193,20 +1211,18 @@ function populateCadTables(res) {
   const bomTbody = document.getElementById('cadBomTableBody');
   if (bomTbody) {
     const bd = res.mass?.breakdown || {};
-    const propDesc = isJet
-      ? '<b>Zespół napędowy</b> (silniki turboodrzutowe, gondole i pylony)'
-      : '<b>Zespół napędowy</b> (silnik ze śmigłem i osprzętem)';
-    const propMount = isJet
-      ? 'Zabudowa w gondolach kadłubowych / podskrzydłowych'
-      : 'Zabudowa w nosie kadłuba / gondoli skrzydłowej';
-    bomTbody.innerHTML = `
-      <tr><td>6</td><td class="num">1 kpl</td><td>${propDesc}</td><td>PW-ZPK-06</td><td>Inconel / Tytan / Dural</td><td class="num">${(bd.m_propulsion || 0).toFixed(1)}</td><td>${propMount}</td></tr>
-      <tr><td>5</td><td class="num">1 kpl</td><td><b>Podwozie trójpodporowe</b> (przednie + główne)</td><td>PW-ZPK-05</td><td>Stal 30HGSA / Dural PA6</td><td class="num">${(bd.m_gear || 0).toFixed(1)}</td><td>Golenie teleskopowe z amortyzatorami</td></tr>
-      <tr><td>4</td><td class="num">1 kpl</td><td><b>Usterzenie poziome</b> (statecznik + ster wys.)</td><td>PW-ZPK-04</td><td>Stop duralowy PA7 / Kompozyt</td><td class="num">${((bd.m_tail || 0) * 0.6).toFixed(1)}</td><td>Profil symetryczny NACA 0009 / 0012</td></tr>
-      <tr><td>3</td><td class="num">1 kpl</td><td><b>Usterzenie pionowe</b> (statecznik + ster kier.)</td><td>PW-ZPK-03</td><td>Stop duralowy PA7 / Kompozyt</td><td class="num">${((bd.m_tail || 0) * 0.4).toFixed(1)}</td><td>Płetwa grzbietowa i wyważenie rogowe</td></tr>
-      <tr><td>2</td><td class="num">1 kpl</td><td><b>Skrzydło nośne</b> (keson, dźwigar, lotki, klapy)</td><td>PW-ZPK-02</td><td>Dural PA7 (2024-T3) / PA9</td><td class="num">${(bd.m_wing || 0).toFixed(1)}</td><td>Dźwigar belkowy z kesonem noskowym</td></tr>
-      <tr><td>1</td><td class="num">1 szt</td><td><b>Kadłub półskorupowy</b> (wręgi, podłużnice, poszycie)</td><td>PW-ZPK-01</td><td>Dural PA7 / Kratownica 30HGSA</td><td class="num">${(bd.m_fuselage || 0).toFixed(1)}</td><td>Konstrukcja półskorupowa, kabina załogi</td></tr>
-    `;
+    const powered = res.params?.engine_type !== 'none';
+    const rows = [
+      ['systems', 'Wyposażenie i instalacje', bd.m_systems, '1 kpl', 'Sterowanie, instalacje i wyposażenie z bilansu'],
+      ['landing_gear', 'Podwozie', bd.m_gear, '1 kpl', 'Wstępny model; układ i amortyzację należy dobrać'],
+      ['propulsion', 'Zespół napędowy', bd.m_propulsion, powered ? '1 kpl' : '—', powered ? (isJet ? 'Silniki odrzutowe z zabudową' : 'Silnik ze śmigłem i osprzętem') : 'Nie dotyczy — lot bez napędu'],
+      ['tail', 'Usterzenie poziome i pionowe ze sterami', bd.m_tail, '1 kpl', 'Suma obu usterzeń z bilansu P2/P3'],
+      ['fuselage', 'Kadłub', bd.m_fuselage, '1 szt', 'Masa z bilansu P2/P3'],
+      ['wing', 'Skrzydło nośne z mechanizacją', bd.m_wing, '1 kpl', 'Masa z bilansu P2/P3']
+    ];
+    bomTbody.innerHTML = rows.map(([key, name, mass, quantity, note], i) =>
+      `<tr data-cad-component="${key}"><td>${rows.length-i}</td><td class="num">${quantity}</td><td><b>${name}</b></td><td>BIPOL-I-01.0${rows.length-i}</td><td>Do doboru</td><td class="num" data-cad-component-mass>${Number.isFinite(mass) ? mass.toFixed(1) : '—'}</td><td>${note}</td></tr>`
+    ).join('');
   }
 
   const dimsTbody = document.getElementById('cadDimsTableBody');
@@ -1216,15 +1232,15 @@ function populateCadTables(res) {
     const v = res.geometry?.vertical_tail || {};
     const g = res.geometry?.gear || {};
     const hv = v.h_v != null ? v.h_v : 1.2;
-    const totalHeight = (hv + 0.9).toFixed(2);
+    const totalHeight = (1.35 * (f.diameter ?? 0) + 0.90 * hv).toFixed(2);
     const sweepVal = Number(w.sweep_deg ?? w.sweep_25_deg ?? 0);
-    const lenNote = isJet
+    const lenNote = isJet || res.params?.engine_type === 'none'
       ? 'Od nosa kadłuba do krawędzi spływu usterzenia kierunku'
       : 'Od kołpaka śmigła/dziobu do krawędzi spływu steru kierunku';
     dimsTbody.innerHTML = `
       <tr><td><b>b</b></td><td>Rozpiętość całkowita skrzydła</td><td class="num"><b>${(w.b ?? 0).toFixed(2)}</b></td><td>m</td><td>Wymiar skrajny do hangarowania i obrysu rzutów</td></tr>
       <tr><td><b>L</b></td><td>Długość całkowita samolotu</td><td class="num"><b>${(f.length ?? 0).toFixed(2)}</b></td><td>m</td><td>${lenNote}</td></tr>
-      <tr><td><b>H</b></td><td>Wysokość całkowita na postoju</td><td class="num"><b>${totalHeight}</b></td><td>m</td><td>Od płaszczyzny ziemi do wierzchołka usterzenia pionowego</td></tr>
+      <tr><td><b>H</b></td><td>Wysokość na postoju — szacunek</td><td class="num"><b>${totalHeight}</b></td><td>m</td><td>Proporcja rysunku: 1,35 D kadłuba + 0,90 h_v; wymaga sprawdzenia zabudowy</td></tr>
       <tr><td><b>B_p</b></td><td>Rozstaw kół podwozia głównego</td><td class="num"><b>${(g.track ?? 0).toFixed(2)}</b></td><td>m</td><td>Zapewnia stabilność przeciwwywrotną przy lądowaniu z wiatrem bocznym</td></tr>
       <tr><td><b>L_p</b></td><td>Baza podwozia trójpodporowego</td><td class="num"><b>${(g.wheelbase ?? 0).toFixed(2)}</b></td><td>m</td><td>Odległość między osią koła przedniego a osią kół głównych</td></tr>
       <tr><td><b>&Gamma;</b></td><td>Kąt wzniosu skrzydła</td><td class="num"><b>${(w.dihedral_deg ?? 0).toFixed(1)}</b></td><td>&deg;</td><td>Stateczność poprzeczna i samoczynne tłumienie przechyłu</td></tr>
@@ -1856,6 +1872,11 @@ function setupTabs() {
 
   // Responsywne przerysowanie wykresów po zmianie rozmiaru okna przeglądarki
   let resizeTimer = null;
+  window.addEventListener('bipol:themechange', () => {
+    const activeTab = document.querySelector('.tab-content.active');
+    if (activeTab && currentResults) renderTabVisuals(activeTab.id);
+    if (currentPortalMode === 'projects' && currentResults) renderSemesterProjectCharts(currentSemesterProject, currentResults);
+  });
   window.addEventListener('resize', () => {
     clearTimeout(resizeTimer);
     resizeTimer = setTimeout(() => {
@@ -4462,7 +4483,8 @@ window.syncStudentDesignerFields = syncStudentDesignerFields;
 
 document.addEventListener('DOMContentLoaded', () => {
   const form = document.getElementById('designForm');
-  const markChanged = () => {
+  const markChanged = event => {
+    if (isDuplicateCalculatedChange(event)) return;
     showCalculationStatus('Parametry zostały zmienione. Oblicz projekt, aby zapisać je i odświeżyć wyniki.');
     document.getElementById('openReportBtn')?.setAttribute('data-results-stale', 'true');
     const status = document.getElementById('projectAutoSaveStatus');

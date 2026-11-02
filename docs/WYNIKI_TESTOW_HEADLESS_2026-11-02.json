@@ -1,0 +1,1481 @@
+{
+  "date": "2026-11-02",
+  "browser": "Playwright Chromium headless; real HTTP; isolated catalogue database",
+  "categories": [
+    {
+      "topic": 7,
+      "category": "motoszybowce",
+      "passed": true,
+      "steps": [
+        "new_project_topic_selected",
+        "wizard_step_1",
+        "wizard_step_2",
+        "wizard_step_3",
+        "wizard_step_4",
+        "wizard_step_5",
+        "calculated_saved",
+        "tab-overview",
+        "tab-trends",
+        "tab-p1-p2",
+        "tab-p3",
+        "tab-p4",
+        "tab-p5",
+        "tab-p6",
+        "tab-compliance",
+        "edit_recalculate_reload",
+        "download-report",
+        "export-json",
+        "export-csv",
+        "download-report-docx",
+        "offline_report_pdf",
+        "mobile_320_390"
+      ],
+      "physics_checks": 16,
+      "edited_physics_checks": 16,
+      "report": {
+        "sections": 6,
+        "formulas": 875,
+        "formula_errors": 0,
+        "figures": 41,
+        "contains_name": true
+      },
+      "javascript_errors": [],
+      "http_errors": [],
+      "mobile_overflow": []
+    },
+    {
+      "topic": 17,
+      "category": "ultralight",
+      "passed": true,
+      "steps": [
+        "new_project_topic_selected",
+        "wizard_step_1",
+        "wizard_step_2",
+        "wizard_step_3",
+        "wizard_step_4",
+        "wizard_step_5",
+        "calculated_saved",
+        "tab-overview",
+        "tab-trends",
+        "tab-p1-p2",
+        "tab-p3",
+        "tab-p4",
+        "tab-p5",
+        "tab-p6",
+        "tab-compliance",
+        "edit_recalculate_reload",
+        "download-report",
+        "export-json",
+        "export-csv",
+        "download-report-docx",
+        "offline_report_pdf",
+        "mobile_320_390"
+      ],
+      "physics_checks": 16,
+      "edited_physics_checks": 16,
+      "report": {
+        "sections": 6,
+        "formulas": 897,
+        "formula_errors": 0,
+        "figures": 41,
+        "contains_name": true
+      },
+      "javascript_errors": [],
+      "http_errors": [],
+      "mobile_overflow": []
+    },
+    {
+      "topic": 20,
+      "category": "odrzutowe_rekreacyjne",
+      "passed": true,
+      "steps": [
+        "new_project_topic_selected",
+        "wizard_step_1",
+        "wizard_step_2",
+        "wizard_step_3",
+        "wizard_step_4",
+        "wizard_step_5",
+        "calculated_saved",
+        "tab-overview",
+        "tab-trends",
+        "tab-p1-p2",
+        "tab-p3",
+        "tab-p4",
+        "tab-p5",
+        "tab-p6",
+        "tab-compliance",
+        "edit_recalculate_reload",
+        "download-report",
+        "export-json",
+        "export-csv",
+        "download-report-docx",
+        "offline_report_pdf",
+        "mobile_320_390"
+      ],
+      "physics_checks": 16,
+      "edited_physics_checks": 16,
+      "report": {
+        "sections": 6,
+        "formulas": 869,
+        "formula_errors": 0,
+        "figures": 38,
+        "contains_name": true
+      },
+      "javascript_errors": [],
+      "http_errors": [],
+      "mobile_overflow": []
+    },
+    {
+      "topic": 28,
+      "category": "wyscigowe_akro",
+      "passed": true,
+      "steps": [
+        "new_project_topic_selected",
+        "wizard_step_1",
+        "wizard_step_2",
+        "wizard_step_3",
+        "wizard_step_4",
+        "wizard_step_5",
+        "calculated_saved",
+        "tab-overview",
+        "tab-trends",
+        "tab-p1-p2",
+        "tab-p3",
+        "tab-p4",
+        "tab-p5",
+        "tab-p6",
+        "tab-compliance",
+        "edit_recalculate_reload",
+        "download-report",
+        "export-json",
+        "export-csv",
+        "download-report-docx",
+        "offline_report_pdf",
+        "mobile_320_390"
+      ],
+      "physics_checks": 16,
+      "edited_physics_checks": 16,
+      "report": {
+        "sections": 6,
+        "formulas": 871,
+        "formula_errors": 0,
+        "figures": 41,
+        "contains_name": true
+      },
+      "javascript_errors": [],
+      "http_errors": [],
+      "mobile_overflow": []
+    },
+    {
+      "topic": 32,
+      "category": "szkolne",
+      "passed": true,
+      "steps": [
+        "new_project_topic_selected",
+        "wizard_step_1",
+        "wizard_step_2",
+        "wizard_step_3",
+        "wizard_step_4",
+        "wizard_step_5",
+        "calculated_saved",
+        "tab-overview",
+        "tab-trends",
+        "tab-p1-p2",
+        "tab-p3",
+        "tab-p4",
+        "tab-p5",
+        "tab-p6",
+        "tab-compliance",
+        "edit_recalculate_reload",
+        "download-report",
+        "export-json",
+        "export-csv",
+        "download-report-docx",
+        "offline_report_pdf",
+        "mobile_320_390"
+      ],
+      "physics_checks": 16,
+      "edited_physics_checks": 16,
+      "report": {
+        "sections": 6,
+        "formulas": 898,
+        "formula_errors": 0,
+        "figures": 41,
+        "contains_name": true
+      },
+      "javascript_errors": [],
+      "http_errors": [],
+      "mobile_overflow": []
+    },
+    {
+      "topic": 42,
+      "category": "turystyczne",
+      "passed": true,
+      "steps": [
+        "new_project_topic_selected",
+        "wizard_step_1",
+        "wizard_step_2",
+        "wizard_step_3",
+        "wizard_step_4",
+        "wizard_step_5",
+        "calculated_saved",
+        "tab-overview",
+        "tab-trends",
+        "tab-p1-p2",
+        "tab-p3",
+        "tab-p4",
+        "tab-p5",
+        "tab-p6",
+        "tab-compliance",
+        "edit_recalculate_reload",
+        "download-report",
+        "export-json",
+        "export-csv",
+        "download-report-docx",
+        "offline_report_pdf",
+        "mobile_320_390"
+      ],
+      "physics_checks": 16,
+      "edited_physics_checks": 16,
+      "report": {
+        "sections": 6,
+        "formulas": 904,
+        "formula_errors": 0,
+        "figures": 41,
+        "contains_name": true
+      },
+      "javascript_errors": [],
+      "http_errors": [],
+      "mobile_overflow": []
+    },
+    {
+      "topic": 43,
+      "category": "medyczne",
+      "passed": true,
+      "steps": [
+        "new_project_topic_selected",
+        "wizard_step_1",
+        "wizard_step_2",
+        "wizard_step_3",
+        "wizard_step_4",
+        "wizard_step_5",
+        "calculated_saved",
+        "tab-overview",
+        "tab-trends",
+        "tab-p1-p2",
+        "tab-p3",
+        "tab-p4",
+        "tab-p5",
+        "tab-p6",
+        "tab-compliance",
+        "edit_recalculate_reload",
+        "download-report",
+        "export-json",
+        "export-csv",
+        "download-report-docx",
+        "offline_report_pdf",
+        "mobile_320_390"
+      ],
+      "physics_checks": 16,
+      "edited_physics_checks": 16,
+      "report": {
+        "sections": 6,
+        "formulas": 904,
+        "formula_errors": 0,
+        "figures": 41,
+        "contains_name": true
+      },
+      "javascript_errors": [],
+      "http_errors": [],
+      "mobile_overflow": []
+    },
+    {
+      "topic": 63,
+      "category": "dyspozycyjne",
+      "passed": true,
+      "steps": [
+        "new_project_topic_selected",
+        "wizard_step_1",
+        "wizard_step_2",
+        "wizard_step_3",
+        "wizard_step_4",
+        "wizard_step_5",
+        "calculated_saved",
+        "tab-overview",
+        "tab-trends",
+        "tab-p1-p2",
+        "tab-p3",
+        "tab-p4",
+        "tab-p5",
+        "tab-p6",
+        "tab-compliance",
+        "edit_recalculate_reload",
+        "download-report",
+        "export-json",
+        "export-csv",
+        "download-report-docx",
+        "offline_report_pdf",
+        "mobile_320_390"
+      ],
+      "physics_checks": 16,
+      "edited_physics_checks": 16,
+      "report": {
+        "sections": 6,
+        "formulas": 911,
+        "formula_errors": 0,
+        "figures": 41,
+        "contains_name": true
+      },
+      "javascript_errors": [],
+      "http_errors": [],
+      "mobile_overflow": []
+    },
+    {
+      "topic": 68,
+      "category": "transportowe",
+      "passed": true,
+      "steps": [
+        "new_project_topic_selected",
+        "wizard_step_1",
+        "wizard_step_2",
+        "wizard_step_3",
+        "wizard_step_4",
+        "wizard_step_5",
+        "calculated_saved",
+        "tab-overview",
+        "tab-trends",
+        "tab-p1-p2",
+        "tab-p3",
+        "tab-p4",
+        "tab-p5",
+        "tab-p6",
+        "tab-compliance",
+        "edit_recalculate_reload",
+        "download-report",
+        "export-json",
+        "export-csv",
+        "download-report-docx",
+        "offline_report_pdf",
+        "mobile_320_390"
+      ],
+      "physics_checks": 16,
+      "edited_physics_checks": 16,
+      "report": {
+        "sections": 6,
+        "formulas": 916,
+        "formula_errors": 0,
+        "figures": 41,
+        "contains_name": true
+      },
+      "javascript_errors": [],
+      "http_errors": [],
+      "mobile_overflow": []
+    },
+    {
+      "topic": 82,
+      "category": "pasazerskie",
+      "passed": true,
+      "steps": [
+        "new_project_topic_selected",
+        "wizard_step_1",
+        "wizard_step_2",
+        "wizard_step_3",
+        "wizard_step_4",
+        "wizard_step_5",
+        "calculated_saved",
+        "tab-overview",
+        "tab-trends",
+        "tab-p1-p2",
+        "tab-p3",
+        "tab-p4",
+        "tab-p5",
+        "tab-p6",
+        "tab-compliance",
+        "edit_recalculate_reload",
+        "download-report",
+        "export-json",
+        "export-csv",
+        "download-report-docx",
+        "offline_report_pdf",
+        "mobile_320_390"
+      ],
+      "physics_checks": 16,
+      "edited_physics_checks": 16,
+      "report": {
+        "sections": 6,
+        "formulas": 908,
+        "formula_errors": 0,
+        "figures": 41,
+        "contains_name": true
+      },
+      "javascript_errors": [],
+      "http_errors": [],
+      "mobile_overflow": []
+    },
+    {
+      "topic": 94,
+      "category": "rolnicze_pozarnicze",
+      "passed": true,
+      "steps": [
+        "new_project_topic_selected",
+        "wizard_step_1",
+        "wizard_step_2",
+        "wizard_step_3",
+        "wizard_step_4",
+        "wizard_step_5",
+        "calculated_saved",
+        "tab-overview",
+        "tab-trends",
+        "tab-p1-p2",
+        "tab-p3",
+        "tab-p4",
+        "tab-p5",
+        "tab-p6",
+        "tab-compliance",
+        "edit_recalculate_reload",
+        "download-report",
+        "export-json",
+        "export-csv",
+        "download-report-docx",
+        "offline_report_pdf",
+        "mobile_320_390"
+      ],
+      "physics_checks": 16,
+      "edited_physics_checks": 16,
+      "report": {
+        "sections": 6,
+        "formulas": 850,
+        "formula_errors": 0,
+        "figures": 41,
+        "contains_name": true
+      },
+      "javascript_errors": [],
+      "http_errors": [],
+      "mobile_overflow": []
+    },
+    {
+      "topic": 95,
+      "category": "lodzie_latajace",
+      "passed": true,
+      "steps": [
+        "new_project_topic_selected",
+        "wizard_step_1",
+        "wizard_step_2",
+        "wizard_step_3",
+        "wizard_step_4",
+        "wizard_step_5",
+        "calculated_saved",
+        "tab-overview",
+        "tab-trends",
+        "tab-p1-p2",
+        "tab-p3",
+        "tab-p4",
+        "tab-p5",
+        "tab-p6",
+        "tab-compliance",
+        "edit_recalculate_reload",
+        "download-report",
+        "export-json",
+        "export-csv",
+        "download-report-docx",
+        "offline_report_pdf",
+        "mobile_320_390"
+      ],
+      "physics_checks": 16,
+      "edited_physics_checks": 16,
+      "report": {
+        "sections": 6,
+        "formulas": 844,
+        "formula_errors": 0,
+        "figures": 41,
+        "contains_name": true
+      },
+      "javascript_errors": [],
+      "http_errors": [],
+      "mobile_overflow": []
+    },
+    {
+      "topic": 101,
+      "category": "szturmowe",
+      "passed": true,
+      "steps": [
+        "new_project_topic_selected",
+        "wizard_step_1",
+        "wizard_step_2",
+        "wizard_step_3",
+        "wizard_step_4",
+        "wizard_step_5",
+        "calculated_saved",
+        "tab-overview",
+        "tab-trends",
+        "tab-p1-p2",
+        "tab-p3",
+        "tab-p4",
+        "tab-p5",
+        "tab-p6",
+        "tab-compliance",
+        "edit_recalculate_reload",
+        "download-report",
+        "export-json",
+        "export-csv",
+        "download-report-docx",
+        "offline_report_pdf",
+        "mobile_320_390"
+      ],
+      "physics_checks": 16,
+      "edited_physics_checks": 16,
+      "report": {
+        "sections": 6,
+        "formulas": 902,
+        "formula_errors": 0,
+        "figures": 41,
+        "contains_name": true
+      },
+      "javascript_errors": [],
+      "http_errors": [],
+      "mobile_overflow": []
+    }
+  ],
+  "aircraft_types": {
+    "cases": [
+      {
+        "case": "ga_trainer",
+        "aircraft_type": "piston_ga",
+        "physics": [
+          {
+            "name": "mass_balance_kg",
+            "actual": 1592.1809251795637,
+            "expected": 1592.180975583919,
+            "tolerance": 1.0,
+            "passed": true
+          },
+          {
+            "name": "aspect_ratio",
+            "actual": 7.8,
+            "expected": 7.799999999999999,
+            "tolerance": 0.04,
+            "passed": true
+          },
+          {
+            "name": "stall_clean_kmh",
+            "actual": 105.9,
+            "expected": 105.89416658610574,
+            "tolerance": 0.06,
+            "passed": true
+          },
+          {
+            "name": "stall_to_kmh",
+            "actual": 97.8,
+            "expected": 97.79105755043923,
+            "tolerance": 0.06,
+            "passed": true
+          },
+          {
+            "name": "stall_lnd_kmh",
+            "actual": 90.6,
+            "expected": 90.57894597864643,
+            "tolerance": 0.06,
+            "passed": true
+          },
+          {
+            "name": "excess_power_climb_ms",
+            "actual": 1.5636884567558753,
+            "expected": 1.5636884567558753,
+            "tolerance": 1e-06,
+            "passed": true
+          },
+          {
+            "name": "component_moment_cg_m",
+            "actual": 3.280435105540048,
+            "expected": 3.280435105540048,
+            "tolerance": 0.006,
+            "passed": true
+          },
+          {
+            "name": "phase_continuity_takeoff",
+            "actual": 1592.1809251795637,
+            "expected": 1592.1809251795637,
+            "tolerance": 0.2,
+            "passed": true
+          },
+          {
+            "name": "phase_continuity_climb",
+            "actual": 1552.3764020500746,
+            "expected": 1552.3764020500746,
+            "tolerance": 0.2,
+            "passed": true
+          },
+          {
+            "name": "phase_continuity_cruise",
+            "actual": 1552.1808845923376,
+            "expected": 1552.1808845923376,
+            "tolerance": 0.2,
+            "passed": true
+          },
+          {
+            "name": "phase_continuity_descent",
+            "actual": 1444.1197905050117,
+            "expected": 1444.1197905050117,
+            "tolerance": 0.2,
+            "passed": true
+          },
+          {
+            "name": "phase_continuity_loiter",
+            "actual": 1444.1197905050117,
+            "expected": 1444.1197905050117,
+            "tolerance": 0.2,
+            "passed": true
+          },
+          {
+            "name": "phase_continuity_landing",
+            "actual": 1423.9814411448026,
+            "expected": 1423.9814411448026,
+            "tolerance": 0.2,
+            "passed": true
+          },
+          {
+            "name": "mission_mass_nonincreasing",
+            "passed": true
+          },
+          {
+            "name": "landing_distance_includes_ground_roll",
+            "passed": true
+          },
+          {
+            "name": "takeoff_distance_components_m",
+            "actual": 366.9,
+            "expected": 366.9,
+            "tolerance": 0.2,
+            "passed": true
+          }
+        ],
+        "metrics": {
+          "m0": 1592.1809251795637,
+          "fuel": 216.02696126718413,
+          "area": 20.318887467907196,
+          "aspect_ratio": 7.8,
+          "ld": 15.57795842203852,
+          "sink": 2.7885634964041404,
+          "power": 149.4,
+          "failed": [
+            "[CS23-L2] Poziom osiągów CS 23.2005(c)"
+          ]
+        }
+      },
+      {
+        "case": "twin_turboprop",
+        "aircraft_type": "turboprop_regional",
+        "physics": [
+          {
+            "name": "mass_balance_kg",
+            "actual": 12970.772714301538,
+            "expected": 12970.772677866904,
+            "tolerance": 1.0,
+            "passed": true
+          },
+          {
+            "name": "aspect_ratio",
+            "actual": 9.5,
+            "expected": 9.5,
+            "tolerance": 0.04,
+            "passed": true
+          },
+          {
+            "name": "stall_clean_kmh",
+            "actual": 161.8,
+            "expected": 161.82822288303188,
+            "tolerance": 0.06,
+            "passed": true
+          },
+          {
+            "name": "stall_to_kmh",
+            "actual": 149.3,
+            "expected": 149.3434569680117,
+            "tolerance": 0.06,
+            "passed": true
+          },
+          {
+            "name": "stall_lnd_kmh",
+            "actual": 138.3,
+            "expected": 138.25207543616347,
+            "tolerance": 0.06,
+            "passed": true
+          },
+          {
+            "name": "excess_power_climb_ms",
+            "actual": 1.2130617264903802,
+            "expected": 1.2130617264903802,
+            "tolerance": 1e-06,
+            "passed": true
+          },
+          {
+            "name": "component_moment_cg_m",
+            "actual": 4.752494112396097,
+            "expected": 4.752494112396097,
+            "tolerance": 0.006,
+            "passed": true
+          },
+          {
+            "name": "phase_continuity_takeoff",
+            "actual": 12970.772714301538,
+            "expected": 12970.772714301538,
+            "tolerance": 0.2,
+            "passed": true
+          },
+          {
+            "name": "phase_continuity_climb",
+            "actual": 12646.503396443999,
+            "expected": 12646.503396443999,
+            "tolerance": 0.2,
+            "passed": true
+          },
+          {
+            "name": "phase_continuity_cruise",
+            "actual": 12621.849131655197,
+            "expected": 12621.849131655197,
+            "tolerance": 0.2,
+            "passed": true
+          },
+          {
+            "name": "phase_continuity_descent",
+            "actual": 9703.520959530766,
+            "expected": 9703.520959530766,
+            "tolerance": 0.2,
+            "passed": true
+          },
+          {
+            "name": "phase_continuity_loiter",
+            "actual": 9703.520959530766,
+            "expected": 9703.520959530766,
+            "tolerance": 0.2,
+            "passed": true
+          },
+          {
+            "name": "phase_continuity_landing",
+            "actual": 9440.383697345229,
+            "expected": 9440.383697345229,
+            "tolerance": 0.2,
+            "passed": true
+          },
+          {
+            "name": "mission_mass_nonincreasing",
+            "passed": true
+          },
+          {
+            "name": "landing_distance_includes_ground_roll",
+            "passed": true
+          },
+          {
+            "name": "takeoff_distance_components_m",
+            "actual": 392.6,
+            "expected": 392.5,
+            "tolerance": 0.2,
+            "passed": true
+          }
+        ],
+        "metrics": {
+          "m0": 12970.772714301538,
+          "fuel": 3992.3825259533364,
+          "area": 68.51499721621234,
+          "aspect_ratio": 9.5,
+          "ld": 14.88587658854331,
+          "sink": 5.168339204144806,
+          "power": 4493.502928967305,
+          "failed": [
+            "[Zakres] Gabaryty ładowni",
+            "[CS23-L3] Maksymalna masa startowa MTOM",
+            "[CS23-L3] Poziom osiągów CS 23.2005(c)"
+          ]
+        }
+      },
+      {
+        "case": "vlj_jet",
+        "aircraft_type": "jet_business",
+        "physics": [
+          {
+            "name": "mass_balance_kg",
+            "actual": 8539.15735451529,
+            "expected": 8539.1574375836,
+            "tolerance": 1.0,
+            "passed": true
+          },
+          {
+            "name": "aspect_ratio",
+            "actual": 8.5,
+            "expected": 8.5,
+            "tolerance": 0.04,
+            "passed": true
+          },
+          {
+            "name": "stall_clean_kmh",
+            "actual": 157.8,
+            "expected": 157.76218746644335,
+            "tolerance": 0.06,
+            "passed": true
+          },
+          {
+            "name": "stall_to_kmh",
+            "actual": 144.8,
+            "expected": 144.81874786322916,
+            "tolerance": 0.06,
+            "passed": true
+          },
+          {
+            "name": "stall_lnd_kmh",
+            "actual": 133.5,
+            "expected": 133.48476248386928,
+            "tolerance": 0.06,
+            "passed": true
+          },
+          {
+            "name": "excess_power_climb_ms",
+            "actual": 1.3819204551815711,
+            "expected": 1.3819204551815711,
+            "tolerance": 1e-06,
+            "passed": true
+          },
+          {
+            "name": "component_moment_cg_m",
+            "actual": 5.481860452704336,
+            "expected": 5.481860452704335,
+            "tolerance": 0.006,
+            "passed": true
+          },
+          {
+            "name": "phase_continuity_takeoff",
+            "actual": 8539.15735451529,
+            "expected": 8539.15735451529,
+            "tolerance": 0.2,
+            "passed": true
+          },
+          {
+            "name": "phase_continuity_climb",
+            "actual": 8325.678420652408,
+            "expected": 8325.678420652408,
+            "tolerance": 0.2,
+            "passed": true
+          },
+          {
+            "name": "phase_continuity_cruise",
+            "actual": 8293.3138601751,
+            "expected": 8293.3138601751,
+            "tolerance": 0.2,
+            "passed": true
+          },
+          {
+            "name": "phase_continuity_descent",
+            "actual": 6393.833803607861,
+            "expected": 6393.833803607861,
+            "tolerance": 0.2,
+            "passed": true
+          },
+          {
+            "name": "phase_continuity_loiter",
+            "actual": 6393.833803607861,
+            "expected": 6393.833803607861,
+            "tolerance": 0.2,
+            "passed": true
+          },
+          {
+            "name": "phase_continuity_landing",
+            "actual": 6170.4050971682655,
+            "expected": 6170.4050971682655,
+            "tolerance": 0.2,
+            "passed": true
+          },
+          {
+            "name": "mission_mass_nonincreasing",
+            "passed": true
+          },
+          {
+            "name": "landing_distance_includes_ground_roll",
+            "passed": true
+          },
+          {
+            "name": "takeoff_distance_components_m",
+            "actual": 453.9,
+            "expected": 453.8,
+            "tolerance": 0.2,
+            "passed": true
+          }
+        ],
+        "metrics": {
+          "m0": 8539.15735451529,
+          "fuel": 2674.393127862805,
+          "area": 50.8511438198057,
+          "aspect_ratio": 8.5,
+          "ld": 14.142743694677344,
+          "sink": 6.688101195759841,
+          "power": null,
+          "failed": [
+            "[Zakres] Gabaryty ładowni",
+            "[Ściśliwość] Zakres biegunowej P4 i osiągów P5 w przelocie",
+            "[CS23-L2] Poziom osiągów CS 23.2005(c)"
+          ]
+        }
+      },
+      {
+        "case": "motoglider_aos",
+        "aircraft_type": "motoglider",
+        "physics": [
+          {
+            "name": "mass_balance_kg",
+            "actual": 808.0373858124192,
+            "expected": 808.0373607047828,
+            "tolerance": 1.0,
+            "passed": true
+          },
+          {
+            "name": "aspect_ratio",
+            "actual": 16.5,
+            "expected": 16.5,
+            "tolerance": 0.04,
+            "passed": true
+          },
+          {
+            "name": "stall_clean_kmh",
+            "actual": 76.4,
+            "expected": 76.40833777269013,
+            "tolerance": 0.06,
+            "passed": true
+          },
+          {
+            "name": "stall_to_kmh",
+            "actual": 70.3,
+            "expected": 70.25063548632862,
+            "tolerance": 0.06,
+            "passed": true
+          },
+          {
+            "name": "stall_lnd_kmh",
+            "actual": 64.8,
+            "expected": 64.83545606858304,
+            "tolerance": 0.06,
+            "passed": true
+          },
+          {
+            "name": "excess_power_climb_ms",
+            "actual": 1.6922513672090915,
+            "expected": 1.6922513672090915,
+            "tolerance": 1e-06,
+            "passed": true
+          },
+          {
+            "name": "component_moment_cg_m",
+            "actual": 2.854424957084053,
+            "expected": 2.8544249570840527,
+            "tolerance": 0.006,
+            "passed": true
+          },
+          {
+            "name": "phase_continuity_takeoff",
+            "actual": 808.0373858124192,
+            "expected": 808.0373858124192,
+            "tolerance": 0.2,
+            "passed": true
+          },
+          {
+            "name": "phase_continuity_climb",
+            "actual": 787.8364511671086,
+            "expected": 787.8364511671086,
+            "tolerance": 0.2,
+            "passed": true
+          },
+          {
+            "name": "phase_continuity_cruise",
+            "actual": 787.7576532432754,
+            "expected": 787.7576532432754,
+            "tolerance": 0.2,
+            "passed": true
+          },
+          {
+            "name": "phase_continuity_descent",
+            "actual": 757.0306221725345,
+            "expected": 757.0306221725345,
+            "tolerance": 0.2,
+            "passed": true
+          },
+          {
+            "name": "phase_continuity_loiter",
+            "actual": 757.0306221725345,
+            "expected": 757.0306221725345,
+            "tolerance": 0.2,
+            "passed": true
+          },
+          {
+            "name": "phase_continuity_landing",
+            "actual": 752.2416492554398,
+            "expected": 752.2416492554398,
+            "tolerance": 0.2,
+            "passed": true
+          },
+          {
+            "name": "mission_mass_nonincreasing",
+            "passed": true
+          },
+          {
+            "name": "landing_distance_includes_ground_roll",
+            "passed": true
+          },
+          {
+            "name": "takeoff_distance_components_m",
+            "actual": 247.3,
+            "expected": 247.3,
+            "tolerance": 0.2,
+            "passed": true
+          }
+        ],
+        "metrics": {
+          "m0": 808.0373858124192,
+          "fuel": 79.07788445566723,
+          "area": 19.806217000069214,
+          "aspect_ratio": 16.5,
+          "ld": 23.53737864792844,
+          "sink": 1.1593107414676054,
+          "power": 48.58326458688447,
+          "failed": []
+        }
+      },
+      {
+        "case": "glider_pw5",
+        "aircraft_type": "glider",
+        "physics": [
+          {
+            "name": "mass_balance_kg",
+            "actual": 268.7915091341108,
+            "expected": 268.7915583157413,
+            "tolerance": 1.0,
+            "passed": true
+          },
+          {
+            "name": "aspect_ratio",
+            "actual": 18,
+            "expected": 18.0,
+            "tolerance": 0.04,
+            "passed": true
+          },
+          {
+            "name": "stall_clean_kmh",
+            "actual": 69.5,
+            "expected": 69.45588940266435,
+            "tolerance": 0.06,
+            "passed": true
+          },
+          {
+            "name": "stall_to_kmh",
+            "actual": 64,
+            "expected": 63.96520654079594,
+            "tolerance": 0.06,
+            "passed": true
+          },
+          {
+            "name": "stall_lnd_kmh",
+            "actual": 59.1,
+            "expected": 59.11468053996219,
+            "tolerance": 0.06,
+            "passed": true
+          },
+          {
+            "name": "excess_power_climb_ms",
+            "actual": -1.2639418373732139,
+            "expected": -1.2639418373732139,
+            "tolerance": 1e-06,
+            "passed": true
+          },
+          {
+            "name": "component_moment_cg_m",
+            "actual": 2.537359942769546,
+            "expected": 2.5373599427695455,
+            "tolerance": 0.006,
+            "passed": true
+          },
+          {
+            "name": "phase_continuity_takeoff",
+            "actual": 268.7915091341108,
+            "expected": 268.7915091341108,
+            "tolerance": 0.2,
+            "passed": true
+          },
+          {
+            "name": "phase_continuity_climb",
+            "actual": 268.7915091341108,
+            "expected": 268.7915091341108,
+            "tolerance": 0.2,
+            "passed": true
+          },
+          {
+            "name": "phase_continuity_cruise",
+            "actual": 268.7915091341108,
+            "expected": 268.7915091341108,
+            "tolerance": 0.2,
+            "passed": true
+          },
+          {
+            "name": "phase_continuity_descent",
+            "actual": 268.7915091341108,
+            "expected": 268.7915091341108,
+            "tolerance": 0.2,
+            "passed": true
+          },
+          {
+            "name": "phase_continuity_loiter",
+            "actual": 268.7915091341108,
+            "expected": 268.7915091341108,
+            "tolerance": 0.2,
+            "passed": true
+          },
+          {
+            "name": "phase_continuity_landing",
+            "actual": 268.7915091341108,
+            "expected": 268.7915091341108,
+            "tolerance": 0.2,
+            "passed": true
+          },
+          {
+            "name": "mission_mass_nonincreasing",
+            "passed": true
+          },
+          {
+            "name": "landing_distance_includes_ground_roll",
+            "passed": true
+          },
+          {
+            "name": "takeoff_distance_components_m",
+            "actual": 0,
+            "expected": 0,
+            "tolerance": 0.2,
+            "passed": true
+          }
+        ],
+        "metrics": {
+          "m0": 268.7915091341108,
+          "fuel": 0,
+          "area": 7.707716223452555,
+          "aspect_ratio": 18,
+          "ld": 25.920620715462288,
+          "sink": 0.9644151175338191,
+          "power": null,
+          "failed": [
+            "[Zakres] Gabaryty ładowni"
+          ]
+        }
+      },
+      {
+        "case": "uav_tactical",
+        "aircraft_type": "uav",
+        "physics": [
+          {
+            "name": "mass_balance_kg",
+            "actual": 126.81119356347554,
+            "expected": 126.81121173435363,
+            "tolerance": 1.0,
+            "passed": true
+          },
+          {
+            "name": "aspect_ratio",
+            "actual": 12,
+            "expected": 12.000000000000002,
+            "tolerance": 0.04,
+            "passed": true
+          },
+          {
+            "name": "stall_clean_kmh",
+            "actual": 67.5,
+            "expected": 67.4546211931954,
+            "tolerance": 0.06,
+            "passed": true
+          },
+          {
+            "name": "stall_to_kmh",
+            "actual": 62,
+            "expected": 62.00045496560855,
+            "tolerance": 0.06,
+            "passed": true
+          },
+          {
+            "name": "stall_lnd_kmh",
+            "actual": 57.2,
+            "expected": 57.207755362488484,
+            "tolerance": 0.06,
+            "passed": true
+          },
+          {
+            "name": "excess_power_climb_ms",
+            "actual": 1.8096505652527106,
+            "expected": 1.8096505652527106,
+            "tolerance": 1e-06,
+            "passed": true
+          },
+          {
+            "name": "component_moment_cg_m",
+            "actual": 2.201638396305842,
+            "expected": 2.201638396305841,
+            "tolerance": 0.006,
+            "passed": true
+          },
+          {
+            "name": "phase_continuity_takeoff",
+            "actual": 126.81119356347554,
+            "expected": 126.81119356347554,
+            "tolerance": 0.2,
+            "passed": true
+          },
+          {
+            "name": "phase_continuity_climb",
+            "actual": 123.64091372438865,
+            "expected": 123.64091372438865,
+            "tolerance": 0.2,
+            "passed": true
+          },
+          {
+            "name": "phase_continuity_cruise",
+            "actual": 122.15722275969598,
+            "expected": 122.15722275969598,
+            "tolerance": 0.2,
+            "passed": true
+          },
+          {
+            "name": "phase_continuity_descent",
+            "actual": 117.58534715268696,
+            "expected": 117.58534715268696,
+            "tolerance": 0.2,
+            "passed": true
+          },
+          {
+            "name": "phase_continuity_loiter",
+            "actual": 117.58534715268696,
+            "expected": 117.58534715268696,
+            "tolerance": 0.2,
+            "passed": true
+          },
+          {
+            "name": "phase_continuity_landing",
+            "actual": 115.94001087012529,
+            "expected": 115.94001087012529,
+            "tolerance": 0.2,
+            "passed": true
+          },
+          {
+            "name": "mission_mass_nonincreasing",
+            "passed": true
+          },
+          {
+            "name": "landing_distance_includes_ground_roll",
+            "passed": true
+          },
+          {
+            "name": "takeoff_distance_components_m",
+            "actual": 204.7,
+            "expected": 204.7,
+            "tolerance": 0.2,
+            "passed": true
+          }
+        ],
+        "metrics": {
+          "m0": 126.81119356347554,
+          "fuel": 14.5958639430096,
+          "area": 4.130719673636407,
+          "aspect_ratio": 12,
+          "ld": 15.862410794203642,
+          "sink": 1.4845864240713602,
+          "power": 7.799555724009278,
+          "failed": [
+            "[Zakres] Gabaryty ładowni",
+            "[UAS-Spec] Kategoria operacji UAS wymaga odrębnej oceny ryzyka"
+          ]
+        }
+      },
+      {
+        "case": "jet_transport",
+        "aircraft_type": "jet_transport",
+        "physics": [
+          {
+            "name": "mass_balance_kg",
+            "actual": 36494.14222973246,
+            "expected": 36494.142209118,
+            "tolerance": 1.0,
+            "passed": true
+          },
+          {
+            "name": "aspect_ratio",
+            "actual": 8.5,
+            "expected": 8.499999999999998,
+            "tolerance": 0.04,
+            "passed": true
+          },
+          {
+            "name": "stall_clean_kmh",
+            "actual": 232.3,
+            "expected": 232.30455143863824,
+            "tolerance": 0.06,
+            "passed": true
+          },
+          {
+            "name": "stall_to_kmh",
+            "actual": 199.5,
+            "expected": 199.5179496333296,
+            "tolerance": 0.06,
+            "passed": true
+          },
+          {
+            "name": "stall_lnd_kmh",
+            "actual": 176.4,
+            "expected": 176.39057900951036,
+            "tolerance": 0.06,
+            "passed": true
+          },
+          {
+            "name": "excess_power_climb_ms",
+            "actual": 1.7264541695198372,
+            "expected": 1.7264541695198372,
+            "tolerance": 1e-06,
+            "passed": true
+          },
+          {
+            "name": "component_moment_cg_m",
+            "actual": 12.196165199801298,
+            "expected": 12.196165199801296,
+            "tolerance": 0.006,
+            "passed": true
+          },
+          {
+            "name": "phase_continuity_takeoff",
+            "actual": 36494.14222973246,
+            "expected": 36494.14222973246,
+            "tolerance": 0.2,
+            "passed": true
+          },
+          {
+            "name": "phase_continuity_climb",
+            "actual": 35581.78867398915,
+            "expected": 35581.78867398915,
+            "tolerance": 0.2,
+            "passed": true
+          },
+          {
+            "name": "phase_continuity_cruise",
+            "actual": 35399.58872606803,
+            "expected": 35399.58872606803,
+            "tolerance": 0.2,
+            "passed": true
+          },
+          {
+            "name": "phase_continuity_descent",
+            "actual": 31251.277269118513,
+            "expected": 31251.277269118513,
+            "tolerance": 0.2,
+            "passed": true
+          },
+          {
+            "name": "phase_continuity_loiter",
+            "actual": 31251.277269118513,
+            "expected": 31251.277269118513,
+            "tolerance": 0.2,
+            "passed": true
+          },
+          {
+            "name": "phase_continuity_landing",
+            "actual": 30159.220035650185,
+            "expected": 30159.220035650185,
+            "tolerance": 0.2,
+            "passed": true
+          },
+          {
+            "name": "mission_mass_nonincreasing",
+            "passed": true
+          },
+          {
+            "name": "landing_distance_includes_ground_roll",
+            "passed": true
+          },
+          {
+            "name": "takeoff_distance_components_m",
+            "actual": 950.2,
+            "expected": 950.2,
+            "tolerance": 0.2,
+            "passed": true
+          }
+        ],
+        "metrics": {
+          "m0": 36494.14222973246,
+          "fuel": 7514.236856671945,
+          "area": 100.23035557718943,
+          "aspect_ratio": 8.5,
+          "ld": 17.125170280852263,
+          "sink": 8.440577740512,
+          "power": null,
+          "failed": [
+            "[Ściśliwość] Zakres biegunowej P4 i osiągów P5 w przelocie",
+            "Zakres modelu aerodynamicznego przy dużej prędkości"
+          ]
+        }
+      }
+    ],
+    "page_errors": []
+  },
+  "motoglider_13_5m": {
+    "baseline": {
+      "m0": 370.41964584517393,
+      "fuel": 31.119732416525565,
+      "area": 10.125,
+      "aspect_ratio": 18,
+      "ld": 23.352150609415503,
+      "sink": 1.0758008392883487,
+      "power": 19.05702244862963,
+      "failed": []
+    },
+    "alternative": {
+      "m0": 378.1163657345205,
+      "fuel": 31.142187383802828,
+      "area": 9.204545454545455,
+      "aspect_ratio": 19.8,
+      "ld": 23.77581562649667,
+      "sink": 1.096017284352204,
+      "power": 19.561274509787292,
+      "failed": []
+    }
+  },
+  "envelope": {
+    "cases": [
+      {
+        "case": "glider-amendment3",
+        "model": "amendment3",
+        "k_g": 0.6575658193619068,
+        "vd_positive": 4.18,
+        "vd_negative": -2.18,
+        "passed": true
+      },
+      {
+        "case": "glider-pratt",
+        "model": "pratt",
+        "k_g": 0.6574521946671791,
+        "vd_positive": 4.18,
+        "vd_negative": -2.18,
+        "passed": true
+      },
+      {
+        "case": "motoglider-legacy",
+        "model": "amendment3",
+        "k_g": 0.5950108927416055,
+        "vd_positive": 4,
+        "vd_negative": -1.85,
+        "passed": true
+      },
+      {
+        "case": "glider-high-gust",
+        "model": "amendment3",
+        "k_g": 0.37815985172893324,
+        "vd_positive": 4.65,
+        "vd_negative": -2.65,
+        "passed": true
+      },
+      {
+        "case": "underpowered",
+        "wy_max_ms": -2.47,
+        "negative_ticks": true,
+        "passed": true
+      }
+    ],
+    "page_errors": []
+  }
+}

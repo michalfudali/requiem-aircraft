@@ -50,7 +50,7 @@
   window.Bipol1={collect};
   document.addEventListener('DOMContentLoaded',()=>{
     sync();
-    $('bipol1Panel').addEventListener('change',()=>{visibility();$('bipol1Results').textContent='Założenia zmienione — przelicz projekt.';});
+    $('bipol1Panel').addEventListener('change',event=>{if(window.isDuplicateCalculatedChange?.(event))return;visibility();$('bipol1Results').textContent='Założenia zmienione — przelicz projekt.';});
     $('bipol1Calculate').addEventListener('click',()=>performCalculation());
     $('engine_type')?.addEventListener('change',visibility);
   });

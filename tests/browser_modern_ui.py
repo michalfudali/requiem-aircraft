@@ -1,146 +1,175 @@
-"""
-Kompleksowy test przeglądarkowy dla Modern UI i Dark Mode:
-- Przełączanie motywu (jasny / ciemny) za pomocą przycisku w navbarze i skrótu Alt+T,
-- Paleta poleceń i szybkie wyszukiwanie parametrów (Ctrl+K),
-- Monitor stanu synchronizacji projektu i szybkie przeliczanie (Ctrl+Enter),
-- Nakładka skrótów klawiszowych (?),
-- Sprawdzenie braku błędów JS w konsoli przeglądarki.
-"""
-import argparse
+"""Real HTTP/Chromium: command targets, calculation failures and current report."""
+import json
+from pathlib import Path
+
 from playwright.sync_api import sync_playwright
-from browser_helpers import serve_in_process
+from browser_helpers import launch_chromium, navigate, edit_inputs, reveal_details
+from browser_live_server import live_server
 
-parser = argparse.ArgumentParser()
-parser.add_argument('--base-url', default='http://127.0.0.1:5088')
-parser.add_argument('--browser-path', default='C:/Program Files/Google/Chrome/Application/chrome.exe')
-parser.add_argument('--in-process', action='store_true', default=True)
-args = parser.parse_args()
+OUT = Path(__file__).resolve().parents[1] / 'work/headless-modern-ui'
 
-with sync_playwright() as p:
-    browser = p.chromium.launch(executable_path=args.browser_path, headless=True)
-    page = browser.new_page(viewport={'width': 1440, 'height': 1000})
-    if args.in_process:
-        serve_in_process(page, args.base_url)
-    page.add_init_script("sessionStorage.setItem('bipol_session_initialized','true')")
 
-    errors = []
-    page.on('pageerror', lambda err: errors.append(str(err)))
-
-    print(f"Nawigacja do {args.base_url}...")
-    page.goto(args.base_url)
-    page.wait_for_function('currentResults?.submission_review?.signature', timeout=45000)
-    print("Aplikacja załadowana pomyślnie.")
-
-    # 1. Sprawdzenie obecności kontrolek Modern UI w pasku nawigacyjnym
-    print("1. Sprawdzanie elementów paska nawigacyjnego...")
-    search_btn = page.locator('#btnNavSearch')
-    recalc_pill = page.locator('#navRecalcPill')
-    theme_btn = page.locator('#themeToggleBtn')
-    shortcuts_btn = page.locator('#btnShortcutsNav')
-
-    assert search_btn.count() == 1, "Brak przycisku wyszukiwania #btnNavSearch"
-    assert recalc_pill.count() == 1, "Brak wskaźnika synchronizacji #navRecalcPill"
-    assert theme_btn.count() == 1, "Brak przełącznika motywu #themeToggleBtn"
-    assert shortcuts_btn.count() == 1, "Brak przycisku skrótów #btnShortcutsNav"
-    print("-> Wszystkie kontrolki nawigacji są obecne.")
-
-    # 2. Test przełączania trybu ciemnego (Dark Mode)
-    print("2. Test przełączania motywu ciemnego...")
-    initial_theme = page.evaluate("document.documentElement.getAttribute('data-theme') || 'light'")
-    print(f"-> Początkowy motyw: {initial_theme}")
-
-    # Kliknięcie w przycisk motywu
-    theme_btn.click()
-    page.wait_for_timeout(200)
-    new_theme = page.evaluate("document.documentElement.getAttribute('data-theme')")
-    expected_theme = 'dark' if initial_theme != 'dark' else 'light'
-    assert new_theme == expected_theme, f"Oczekiwano motywu {expected_theme}, otrzymano: {new_theme}"
-    saved_theme = page.evaluate("localStorage.getItem('bipol_theme')")
-    assert saved_theme == expected_theme, f"Brak poprawnego zapisu w localStorage: {saved_theme}"
-    print(f"-> Pomyślnie przełączono na motyw: {new_theme}")
-
-    # Skrót klawiszowy Alt+T
-    page.keyboard.press('Alt+t')
-    page.wait_for_timeout(200)
-    toggled_back = page.evaluate("document.documentElement.getAttribute('data-theme')")
-    assert toggled_back == initial_theme, f"Skrót Alt+T nie przywrócił motywu {initial_theme}"
-    print("-> Skrót Alt+T działa prawidłowo.")
-
-    # Przełącz na dark mode do dalszych testów wizualnych
-    if toggled_back != 'dark':
-        page.keyboard.press('Alt+t')
-        page.wait_for_timeout(100)
-
-    # 3. Test Command Palette (Ctrl+K)
-    print("3. Test Palety Poleceń (Ctrl+K)...")
-    palette = page.locator('.bipol-palette-backdrop')
-    assert not palette.is_visible(), "Paleta nie powinna być widoczna przed otwarciem"
-
+def command(page, text):
     page.keyboard.press('Control+k')
-    page.wait_for_timeout(200)
-    assert palette.is_visible(), "Paleta poleceń nie otworzyła się po naciśnięciu Ctrl+K"
-
-    # Wyszukiwanie parametru
-    palette_input = page.locator('.bipol-palette-input')
-    palette_input.fill('rozpiętość')
-    page.wait_for_timeout(200)
-
-    items = page.locator('.bipol-palette-item')
-    assert items.count() > 0, "Brak wyników wyszukiwania dla hasła 'rozpiętość'"
-    first_title = items.first.locator('.bipol-palette-item-title').inner_text()
-    assert 'Rozpiętość' in first_title or 'rozpiętość' in first_title.lower(), f"Nieoczekiwany wynik: {first_title}"
-    print(f"-> Wynik wyszukiwania: {first_title}")
-
-    # Wybór parametru przez Enter
+    page.locator('.bipol-palette-input').fill(text)
+    assert page.locator('.bipol-palette-item').count(), text
     page.keyboard.press('Enter')
-    page.wait_for_timeout(400)
-    assert not palette.is_visible(), "Paleta poleceń powinna się zamknąć po wybraniu pozycji"
 
-    # Sprawdzenie, czy aktywna zakładka to tab-inputs
-    active_tab = page.evaluate("document.querySelector('.tab-content.active')?.id")
-    assert active_tab == 'tab-inputs', f"Oczekiwano aktywnej zakładki tab-inputs, otrzymano: {active_tab}"
-    print("-> Paleta poleceń pomyślnie przekierowała do parametru.")
 
-    # 4. Test monitora zmian parametrów i szybkiego przeliczania (Ctrl+Enter)
-    print("4. Test wskaźnika synchronizacji i przeliczania...")
-    assert 'synced' in (recalc_pill.get_attribute('class') or ''), "Początkowy stan powinien być synced"
+def synced(page):
+    page.wait_for_function("document.querySelector('#navRecalcPill').classList.contains('synced') && !document.querySelector('#calcBtn').disabled")
+    assert page.locator('#openReportBtn').get_attribute('data-results-stale') == 'false'
+    assert 'is-error' not in (page.locator('#calculationStatus').get_attribute('class') or '')
+    assert not page.evaluate('BipolCalculationTree.state.stale')
+    assert 'attention' not in (page.locator('#studioResultStatus').get_attribute('class') or '')
+    assert page.locator('#pilotLoadingMass').is_enabled()
 
-    # Wprowadzenie zmiany w polu rozpiętości
-    span_input = page.locator('#in_wing_span')
-    if span_input.count() > 0 and span_input.first.is_visible():
-        current_span = float(span_input.first.input_value() or '10')
-        span_input.first.fill(str(current_span + 0.5))
-        span_input.first.dispatch_event('input')
-        page.wait_for_timeout(200)
-        assert 'dirty' in (recalc_pill.get_attribute('class') or ''), "Po edycji wskaźnik powinien zmienić się na dirty"
-        print("-> Wykryto zmianę parametru (stan dirty).")
 
-        # Naciśnięcie Ctrl+Enter do przeliczenia
+def main():
+    with live_server(OUT) as base, sync_playwright() as p:
+        browser = launch_chromium(p, headless=True)
+        page = browser.new_page(viewport=dict(width=1440, height=1000), accept_downloads=True)
+        page.add_init_script("sessionStorage.setItem('bipol_session_initialized','true')")
+        page.add_init_script("""window.chartFrames = {};
+            const nativeClear = CanvasRenderingContext2D.prototype.clearRect;
+            CanvasRenderingContext2D.prototype.clearRect = function(...args) {
+                window.chartFrames[this.canvas.id] = (window.chartFrames[this.canvas.id] || 0) + 1;
+                return nativeClear.apply(this, args);
+            };""")
+        errors = []
+        page.on('pageerror', lambda error: errors.append(str(error)))
+        page.goto(base)
+        page.wait_for_function('currentResults && !document.querySelector("#calcBtn").disabled', timeout=90000)
+        synced(page)
+        theme = page.locator('html').get_attribute('data-theme')
+        page.locator('#themeToggleBtn').click()
+        assert page.locator('html').get_attribute('data-theme') != theme
+        page.keyboard.press('Alt+t')
+        assert page.locator('html').get_attribute('data-theme') == theme
+        page.locator('#btnShortcutsNav').click()
+        assert page.locator('.bipol-shortcuts-card').is_visible()
+        assert page.locator('html').get_attribute('data-theme') == theme
+        assert page.locator('#btnShortcutsNav').get_attribute('aria-label') == 'Skróty klawiszowe (?)'
+        page.keyboard.press('Escape')
+
+        navigate(page, 'tab-p6')
+        reveal_details(page.locator('#chartVn'))
+        page.wait_for_function('chartFrames.chartVn > 0')
+        frame = page.evaluate('chartFrames.chartVn')
+        page.locator('#themeToggleBtn').click()
+        page.wait_for_function('(previous) => chartFrames.chartVn > previous', arg=frame)
+        synced(page)
+
+        # Focus the real field through collapsed modules and the basic mode.
+        for text, field in [('rozpiętość', 'wingspan_m'), ('współczynnik oporu', 'cx0'),
+                            ('liczba pasażerów', 'n_pax'), ('liczba członków', 'n_crew'),
+                            ('profil aerodynamiczny', 'airfoil')]:
+            command(page, text)
+            page.wait_for_function('(id) => document.activeElement.id === id', arg=field)
+            assert page.locator('#' + field).is_visible()
+        synced(page)
+
+        # A resolved calculation promise must not mark validation failures clean.
+        field = edit_inputs(page, 'aspect_ratio')
+        original = field.input_value()
+        field.fill('0')
         page.keyboard.press('Control+Enter')
-        page.wait_for_timeout(600)
-        page.wait_for_function("document.getElementById('navRecalcPill')?.classList.contains('synced')", timeout=15000)
-        print("-> Projekt przeliczony pomyślnie za pomocą Ctrl+Enter (stan synced).")
+        page.wait_for_function("document.querySelector('#calculationStatus').classList.contains('is-error')")
+        assert 'synced' not in page.locator('#navRecalcPill').get_attribute('class')
+        assert page.locator('#openReportBtn').get_attribute('data-results-stale') == 'true'
+        page.screenshot(path=str(OUT / 'validation-error.png'))
+        field.fill(original)
+        page.locator('#calcBtn').click()
+        synced(page)
 
-    # 5. Test okna pomocy i skrótów (?)
-    print("5. Test okna skrótów klawiszowych (?)..")
-    # Upewnij się, że fokus nie jest w polu tekstowym
-    page.locator('body').click(position={'x': 10, 'y': 10})
-    page.keyboard.press('?')
-    page.wait_for_timeout(200)
-    shortcuts_modal = page.locator('.bipol-shortcuts-card')
-    assert shortcuts_modal.is_visible(), "Okno skrótów (?) nie otworzyło się"
+        # A server failure must retain old results and mark them stale.
+        previous = page.evaluate('currentResults.submission_review.signature')
+        page.route('**/api/calculate', lambda route: route.fulfill(
+            status=503, content_type='application/json', body=json.dumps({'message': 'Test niedostępnego serwera'})))
+        page.keyboard.press('Control+Enter')
+        page.wait_for_function("document.querySelector('#calculationStatus').classList.contains('is-error')")
+        assert 'synced' not in page.locator('#navRecalcPill').get_attribute('class')
+        assert page.evaluate('currentResults.submission_review.signature') == previous
+        page.unroute('**/api/calculate')
+        page.keyboard.press('Control+Enter')
+        synced(page)
 
-    # Zamknięcie przez Esc
-    page.keyboard.press('Escape')
-    page.wait_for_timeout(200)
-    assert not shortcuts_modal.is_visible(), "Okno skrótów nie zamknęło się po naciśnięciu Esc"
-    print("-> Okno skrótów (?) działa prawidłowo.")
+        # An answer for the previous inputs cannot validate a newer edit.
+        pending = []
+        page.route('**/api/calculate', lambda route: pending.append(route))
+        page.keyboard.press('Control+Enter')
+        page.wait_for_function('document.querySelector("#calcBtn").disabled')
+        assert 'calculating' in page.locator('#navRecalcPill').get_attribute('class')
+        page.wait_for_timeout(100)
+        assert len(pending) == 1
+        response = pending[0].fetch()
+        field = edit_inputs(page, 'range_km')
+        changed_range = float(field.input_value()) + 5
+        field.fill(str(changed_range))
+        pending[0].fulfill(response=response)
+        page.wait_for_function('!document.querySelector("#calcBtn").disabled')
+        assert 'synced' not in page.locator('#navRecalcPill').get_attribute('class')
+        assert page.evaluate('currentResults.params.range_km') != changed_range
+        page.unroute('**/api/calculate')
+        page.keyboard.press('Control+Enter')
+        synced(page)
+        assert page.evaluate('currentResults.params.range_km') == changed_range
 
-    # 6. Sprawdzenie błędów JS w konsoli
-    print(f"-> Liczba błędów strony: {len(errors)}")
-    if errors:
-        for err in errors:
-            print("  BŁĄD JS:", err)
-    assert len(errors) == 0, f"Wystąpiły błędy JS na stronie: {errors}"
+        # Analysis parameters outside designForm have the same delayed blur
+        # semantics. Recomputing while focused must keep all consumers fresh.
+        command(page, 'rok oszacowania')
+        cost = page.locator('#cost_year')
+        page.wait_for_function('document.activeElement.id === "cost_year"')
+        cost.fill('2027')
+        page.keyboard.press('Control+Enter')
+        synced(page)
 
-    print("\n[PASS] Wszystkie testy Modern UI & Dark Mode zakonczone z sukcesem!")
+        # Exploration changes the view, not the calculation basis.
+        navigate(page, 'tab-calculation-tree')
+        page.locator('#calculationGraphSearch').fill('masa')
+        synced(page)
+        navigate(page, 'tab-overview')
+        page.locator('#studioAircraft_yaw').fill('60')
+        synced(page)
+        navigate(page, 'tab-p3')
+        slider = page.locator('#pilotLoadingMass')
+        reveal_details(slider)
+        slider.fill('55')
+        synced(page)
+
+        # The command opens the current project's report workflow. The download
+        # must contain a distinct name, not the default aircraft from GET /report.
+        page.locator('.quiet-project-menu > summary').click()
+        page.locator('#btnEditProjectWizard').click()
+        page.locator('#wiz_name').fill('Motoszybowiec — test bieżącego raportu')
+        page.locator('.wizard-step-tab[data-step="5"]').click()
+        page.locator('#wizFinishBtn').click()
+        page.wait_for_function('currentResults?.params.name === "Motoszybowiec — test bieżącego raportu"', timeout=90000)
+        synced(page)
+        command(page, 'raport bieżącego')
+        assert page.locator('#tab-reports').is_visible()
+        button = page.locator('[data-studio-action="download-report"]')
+        reveal_details(button)
+        with page.expect_download(timeout=120000) as download:
+            button.click()
+        report_path = OUT / 'current-report.html'
+        download.value.save_as(report_path)
+        offline = browser.new_context(offline=True)
+        report = offline.new_page()
+        report.goto(report_path.as_uri())
+        assert 'Motoszybowiec — test bieżącego raportu' in report.locator('body').inner_text()
+        assert not report.locator('.katex-error').count()
+        offline.close()
+
+        page.locator('body').click(position=dict(x=10, y=10))
+        page.keyboard.press('?')
+        assert page.locator('.bipol-shortcuts-card').is_visible()
+        page.keyboard.press('Escape')
+        assert not page.locator('.bipol-shortcuts-card').is_visible()
+        assert not errors, errors
+        browser.close()
+        print('PASS: real parameter focus; validation/HTTP failure/recovery; stale response rejection; shortcut/blur freshness in form and analysis; graph/pilot/report freshness; current offline report; theme and shortcuts')
+
+
+if __name__ == '__main__':
+    main()

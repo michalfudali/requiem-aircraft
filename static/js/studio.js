@@ -400,6 +400,7 @@
   document.addEventListener('DOMContentLoaded', () => {
     document.body.classList.add('studio-layout');
     setupAircraftRotation();
+    window.addEventListener('bipol:themechange', renderAircraft);
     const guidanceObserver = new MutationObserver(renderProjectGuidance);
     guidanceObserver.observe($('calculationStatus'), {attributes:true,childList:true,subtree:true});
     guidanceObserver.observe($('calcBtn'), {attributes:true,attributeFilter:['disabled']});
@@ -473,7 +474,7 @@
       $('studioStorageStatus').textContent = projectStore.persistent ? 'Zapis w przeglądarce' : 'Tylko pamięć karty — pobierz JSON';
       $('studioStorageStatus').classList.toggle('attention', !projectStore.persistent);
     });
-    const markStale = () => { fresh = false; $('studioResultStatus').textContent = 'Wyniki wymagają przeliczenia'; $('studioResultStatus').classList.add('attention'); renderProjectGuidance(); };
+    const markStale = event => { if (window.isDuplicateCalculatedChange?.(event)) return; fresh = false; $('studioResultStatus').textContent = 'Wyniki wymagają przeliczenia'; $('studioResultStatus').classList.add('attention'); renderProjectGuidance(); };
     document.addEventListener('bipol:calculating', markStale);
     $('designForm').addEventListener('input', markStale, true);
     $('designForm').addEventListener('change', markStale, true);

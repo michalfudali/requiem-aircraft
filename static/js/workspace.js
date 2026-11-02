@@ -196,7 +196,19 @@
         const grp = control.closest('.input-group'); grp?.scrollIntoView({block:'center',behavior:'instant'}); if (grp) { grp.classList.add('is-quickfix-target'); setTimeout(() => grp.classList.remove('is-quickfix-target'), 2200); }
       });
     }
-    window.focusDesignParameter = paramId => { const control = $(paramId); if (!control) return; if (typeof setPortalMode === 'function') setPortalMode('holistic'); document.querySelector('.bipol-tab[data-target="tab-inputs"]')?.click(); reveal(control); };
+    window.focusDesignParameter = paramId => {
+      const control = $(paramId); if (!control) return;
+      const worksheet = control.closest('.project-workstation');
+      if (worksheet) {
+        setPortalMode('projects');
+        selectSemesterProject(worksheet.id.replace('panel_', '').replace('panel-', ''));
+      } else {
+        setPortalMode('holistic');
+        const tab = control.closest('.tab-content')?.id || 'tab-inputs';
+        document.querySelector(`.bipol-tab[data-target="${tab}"]`)?.click();
+      }
+      reveal(control);
+    };
     function update() {
       const query = normalize(search.value.trim());
       list.replaceChildren(); list.hidden = !query;

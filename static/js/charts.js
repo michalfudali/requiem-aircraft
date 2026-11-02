@@ -1077,7 +1077,7 @@ function render3ViewBlueprint(containerId, geom, fullResults = null) {
   const mac = Number(geom.wing.mac);
   const yMac = Number(geom.wing.y_mac);
   const sweepDeg = Number(geom.wing.sweep_quarter_deg || geom.wing.sweep_deg || 0);
-  const dihedralDeg = Number(geom.wing.dihedral_deg || 3);
+  const dihedralDeg = Number(geom.wing.dihedral_deg ?? 3);
 
   const wingConfig = (fullResults && fullResults.params && fullResults.params.wing_config) || geom.wing.wing_config || 'low';
   const engineLoc = (fullResults && fullResults.params && fullResults.params.engine_location) || 'nose';
@@ -1285,11 +1285,11 @@ function render3ViewBlueprint(containerId, geom, fullResults = null) {
   const projTitle = (fullResults && fullResults.params && fullResults.params.name) ? fullResults.params.name : "Samolot projektowy BIPOL I";
   const m0_val = (fullResults && fullResults.mass && fullResults.mass.m0) ? fullResults.mass.m0 : 0;
   const m0_str = m0_val > 0 ? `${m0_val.toFixed(1)} kg` : "--- kg";
-  const brk = (fullResults && fullResults.mass && fullResults.mass.breakdown) ? fullResults.mass.breakdown : {
-    m_wing: 120, m_fuselage: 110, m_tail: 25, m_propulsion: 140, m_gear: 45, m_systems: 60
-  };
+  const brk = fullResults?.mass?.breakdown || {};
+  const massLabel = key => Number.isFinite(brk[key]) ? `${brk[key].toFixed(1)} kg` : '—';
   const todayStr = new Date().toISOString().slice(0, 10);
-  const studentName = (fullResults && fullResults.params && fullResults.params.student_name) ? fullResults.params.student_name : "Inż. Projektant BIPOL";
+  const studentName = fullResults?.params?.student_name || '—';
+  const drawingText = text => String(text).replace(/[&<>"']/g, char => ({'&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&apos;'}[char]));
 
   // Wymiary tabliczki ZPK MEiL PW A3Z (180 mm szerokości = 540 px, 62 mm tabliczka główna = 186 px, 49 mm wykaz części = 147 px)
   const tbW = 540;
@@ -1701,7 +1701,7 @@ function render3ViewBlueprint(containerId, geom, fullResults = null) {
         <text x="251.25" y="15" text-anchor="middle">BIPOL-I-01.06</text>
         <text x="313.5" y="15" text-anchor="middle">1 kpl.</text>
         <text x="390" y="15" text-anchor="middle">Dural / Wiązki / Awionika</text>
-        <text x="494" y="15" text-anchor="middle">${(brk.m_systems || 40).toFixed(1)} kg</text>
+        <text x="494" y="15" text-anchor="middle" data-cad-mass="m_systems">${massLabel('m_systems')}</text>
 
         <!-- Poz. 5 (y: 21..42) -->
         <text x="14.25" y="36" text-anchor="middle">5</text>
@@ -1710,16 +1710,16 @@ function render3ViewBlueprint(containerId, geom, fullResults = null) {
         <text x="251.25" y="36" text-anchor="middle">BIPOL-I-01.05</text>
         <text x="313.5" y="36" text-anchor="middle">1 kpl.</text>
         <text x="390" y="36" text-anchor="middle">Stal 30HGSA / Guma</text>
-        <text x="494" y="36" text-anchor="middle">${(brk.m_gear || 45).toFixed(1)} kg</text>
+        <text x="494" y="36" text-anchor="middle" data-cad-mass="m_gear">${massLabel('m_gear')}</text>
 
         <!-- Poz. 4 (y: 42..63) -->
         <text x="14.25" y="57" text-anchor="middle">4</text>
-        <text x="34" y="57">Zespół napędowy z łożem</text>
+        <text x="34" y="57">${engineType === 'none' ? 'Bez zespołu napędowego' : 'Zespół napędowy z łożem'}</text>
         <text x="192.75" y="57" text-anchor="middle">-</text>
         <text x="251.25" y="57" text-anchor="middle">BIPOL-I-01.04</text>
-        <text x="313.5" y="57" text-anchor="middle">1 kpl.</text>
-        <text x="390" y="57" text-anchor="middle">Stop Al / Stal 30HGSA</text>
-        <text x="494" y="57" text-anchor="middle">${(brk.m_propulsion || 100).toFixed(1)} kg</text>
+        <text x="313.5" y="57" text-anchor="middle">${engineType === 'none' ? '—' : '1 kpl.'}</text>
+        <text x="390" y="57" text-anchor="middle">${engineType === 'none' ? '—' : 'Stop Al / Stal 30HGSA'}</text>
+        <text x="494" y="57" text-anchor="middle" data-cad-mass="m_propulsion">${massLabel('m_propulsion')}</text>
 
         <!-- Poz. 3 (y: 63..84) -->
         <text x="14.25" y="78" text-anchor="middle">3</text>
@@ -1728,7 +1728,7 @@ function render3ViewBlueprint(containerId, geom, fullResults = null) {
         <text x="251.25" y="78" text-anchor="middle">BIPOL-I-01.03</text>
         <text x="313.5" y="78" text-anchor="middle">1 kpl.</text>
         <text x="390" y="78" text-anchor="middle">Dural PA7 (EN AW-2024)</text>
-        <text x="494" y="78" text-anchor="middle">${(brk.m_tail || 25).toFixed(1)} kg</text>
+        <text x="494" y="78" text-anchor="middle" data-cad-mass="m_tail">${massLabel('m_tail')}</text>
 
         <!-- Poz. 2 (y: 84..105) -->
         <text x="14.25" y="99" text-anchor="middle">2</text>
@@ -1737,7 +1737,7 @@ function render3ViewBlueprint(containerId, geom, fullResults = null) {
         <text x="251.25" y="99" text-anchor="middle">BIPOL-I-01.02</text>
         <text x="313.5" y="99" text-anchor="middle">1 kpl.</text>
         <text x="390" y="99" text-anchor="middle">Dural PA7 / Kompozyt</text>
-        <text x="494" y="99" text-anchor="middle">${(brk.m_fuselage || 95).toFixed(1)} kg</text>
+        <text x="494" y="99" text-anchor="middle" data-cad-mass="m_fuselage">${massLabel('m_fuselage')}</text>
 
         <!-- Poz. 1 (y: 105..126) -->
         <text x="14.25" y="120" text-anchor="middle">1</text>
@@ -1746,7 +1746,7 @@ function render3ViewBlueprint(containerId, geom, fullResults = null) {
         <text x="251.25" y="120" text-anchor="middle">BIPOL-I-01.01</text>
         <text x="313.5" y="120" text-anchor="middle">1 kpl.</text>
         <text x="390" y="120" text-anchor="middle">Dural PA7 (2024-T3) / CFRP</text>
-        <text x="494" y="120" text-anchor="middle">${(brk.m_wing || 115).toFixed(1)} kg</text>
+        <text x="494" y="120" text-anchor="middle" data-cad-mass="m_wing">${massLabel('m_wing')}</text>
       </g>
 
       <!-- ======================================================================= -->
@@ -1796,11 +1796,11 @@ function render3ViewBlueprint(containerId, geom, fullResults = null) {
         <!-- Wpisy personelu projektowego -->
         <g font-size="8.5" fill="#000">
           <text x="84" y="60">${todayStr}</text>
-          <text x="136" y="60">${studentName.slice(0, 24)}</text>
+          <text x="136" y="60" data-cad-author>${drawingText(studentName.slice(0, 24))}</text>
           <text x="84" y="75">${todayStr}</text>
           <text x="136" y="75">BiPOL Requiem CAD</text>
-          <text x="136" y="90">dr inż. / Zakład Samolotów MEiL</text>
-          <text x="136" y="105">prof. dr hab. inż. / MEiL PW</text>
+          <text x="136" y="90" data-cad-checked>—</text>
+          <text x="136" y="105" data-cad-approved>—</text>
         </g>
 
         <!-- Nazwa uczelni i instytutu (zgodnie z A3Z_formatka.pdf) -->
@@ -1828,20 +1828,20 @@ function render3ViewBlueprint(containerId, geom, fullResults = null) {
         <!-- Materiał / Masa / Tolerancja / Format -->
         <g font-size="7.0" font-style="italic" fill="#000">
           <text x="337" y="58" text-anchor="middle">Materiał/Material</text>
-          <text x="406" y="58" text-anchor="middle">Masa/Mass</text>
+          <text x="406" y="58" text-anchor="middle">MTOW</text>
           <text x="406" y="80" text-anchor="middle">Tol. ogólna/Tolerance</text>
           <text x="474" y="58" text-anchor="middle">Format/Size</text>
           <text x="522" y="58" text-anchor="middle">Podz./Scale</text>
         </g>
-        <text x="337" y="78" text-anchor="middle" font-size="8.5" font-weight="bold" fill="#000">Dural PA7</text>
+        <text x="337" y="78" text-anchor="middle" font-size="8.5" font-weight="bold" fill="#000">Do doboru</text>
         <text x="406" y="71" text-anchor="middle" font-size="9.5" font-weight="bold" fill="#000">${m0_str}</text>
-        <text x="406" y="97" text-anchor="middle" font-size="8.2" fill="#000">ISO 2768-m</text>
+        <text x="406" y="97" text-anchor="middle" font-size="8.2" fill="#000">—</text>
         <text x="474" y="80" text-anchor="middle" font-size="11" font-weight="bold" fill="#000">A3</text>
         <text x="522" y="80" text-anchor="middle" font-size="12" font-weight="bold" fill="#000">${scaleLabel}</text>
 
         <!-- Nazwa części / Title -->
         <text x="312" y="117" font-size="7.2" font-style="italic" fill="#000">Nazwa części/Title</text>
-        <text x="423" y="131" text-anchor="middle" font-size="10.5" font-weight="bold" fill="#000">${projTitle.slice(0, 36)}</text>
+        <text x="423" y="131" text-anchor="middle" font-size="10.5" font-weight="bold" fill="#000">${drawingText(projTitle.slice(0, 36))}</text>
         <text x="423" y="142" text-anchor="middle" font-size="8.2" fill="#000">Samolot - Rysunek Zestawieniowy (3 Rzuty)</text>
 
         <!-- Numer rysunku i Arkusz -->

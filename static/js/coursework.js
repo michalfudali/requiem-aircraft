@@ -278,7 +278,7 @@
       if (open) { const root = $(`courseworkItem_${open.dataset.courseworkOpen}`); root.open = true; root.scrollIntoView({behavior:'smooth', block:'center'}); root.querySelector('textarea').focus({preventScroll:true}); }
     });
     $('courseworkIterate').addEventListener('click', iterate);
-    const stale = () => { fresh = false; freshness(); };
+    const stale = event => { if (window.isDuplicateCalculatedChange?.(event)) return; fresh = false; freshness(); };
     $('designForm').addEventListener('input', stale);
     $('designForm').addEventListener('change', stale);
     document.querySelectorAll('[data-analysis-param], [data-bipol1]').forEach(el => {

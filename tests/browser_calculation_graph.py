@@ -6,10 +6,11 @@ from pathlib import Path
 ROOT=Path(__file__).resolve().parents[1]
 sys.path[:0]=[str(ROOT),str(ROOT/'tests')]
 from playwright.sync_api import sync_playwright
-from browser_helpers import serve_in_process,navigate,edit_inputs,launch_chromium
+from browser_helpers import navigate,edit_inputs,launch_chromium
+from browser_live_server import live_server
 from calculations.presets import AIRCRAFT_PRESETS
 
-OUT=ROOT/'work'/'tree-20261101'/'browser';OUT.mkdir(parents=True,exist_ok=True)
+OUT=ROOT/'work'/'headless-calculation-graph';OUT.mkdir(parents=True,exist_ok=True)
 BASE='http://graph.test'
 
 
@@ -23,10 +24,10 @@ def search(page,key):
     page.wait_for_function('(key)=>BipolCalculationTree.state.selected===key',arg=key)
 
 
-with sync_playwright() as p:
+with live_server(OUT) as BASE, sync_playwright() as p:
     browser=launch_chromium(p,headless=True)
     context=browser.new_context(viewport=dict(width=1600,height=1100),accept_downloads=True)
-    page=context.new_page();serve_in_process(page,BASE);errors=[];page.on('pageerror',lambda e:errors.append(str(e)))
+    page=context.new_page();errors=[];page.on('pageerror',lambda e:errors.append(str(e)))
     page.goto(BASE);ready(page);navigate(page,'tab-calculation-tree')
     page.locator('.calc-graph-node.is-project').first.wait_for()
     math_errors=page.evaluate('''()=>currentResults.calculation_graph.nodes.flatMap(n=>[n.formula,n.substitution_tex,n.tex].filter(Boolean).map(t=>{try{katex.renderToString(t,{throwOnError:true});return null}catch(e){return n.id+': '+e.message}})).filter(Boolean)''')
@@ -109,7 +110,7 @@ with sync_playwright() as p:
     context.close()
     # Real touch events and a narrow viewport.
     mobile=browser.new_context(viewport=dict(width=390,height=844),is_mobile=True,has_touch=True)
-    m=mobile.new_page();serve_in_process(m,BASE);m.on('pageerror',lambda e:errors.append(str(e)))
+    m=mobile.new_page();m.on('pageerror',lambda e:errors.append(str(e)))
     m.goto(BASE);ready(m);navigate(m,'tab-calculation-tree');m.locator('.calc-graph-node.is-project').first.wait_for()
     m.locator('#calculationGraphWorkspace').scroll_into_view_if_needed();rect=m.locator('#calculationTreeRoot').bounding_box()
     cdp=mobile.new_cdp_session(m);before=m.evaluate('({...BipolCalculationTree.state.camera})')

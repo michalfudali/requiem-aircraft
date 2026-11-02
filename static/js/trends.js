@@ -269,7 +269,8 @@
 
   document.addEventListener('DOMContentLoaded',()=>{
     syncControls();if(currentResults)render(currentResults);
-    document.querySelectorAll('[data-analysis-param]').forEach(input=>input.addEventListener('change',()=>{
+    document.querySelectorAll('[data-analysis-param]').forEach(input=>input.addEventListener('change',event=>{
+      if(window.isDuplicateCalculatedChange?.(event))return;
       if(input.id.startsWith('trend_'))delete formBaseParams.trend_aircraft_ids;
       document.dispatchEvent(new CustomEvent('bipol:calculating'));status('Założenia zmienione — użyj „Przelicz analizę”.');
     }));

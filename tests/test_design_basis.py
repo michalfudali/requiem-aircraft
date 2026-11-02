@@ -81,6 +81,25 @@ def test_known_engine_power_is_used_for_performance_instead_of_automatic_sizing(
     assert low['constraints']['parameter_states']['engine_power_kw']['state']=='locked'
 
 
+@pytest.mark.parametrize('topic_num', [1, 7, 32])
+def test_coupled_project_replay_does_not_turn_sized_power_into_an_engine_assumption(topic_num):
+    topic = next(t for t in ALL_TOPICS if t['num'] == topic_num)
+    original = run_bipol_project(topic['parameters'])
+    assert original['params']['power_input_mode'] == 'sized'
+    assert original['params']['engine_power_kw'] > 0
+    assert original['design_iteration']['converged']
+    # Same serialization as the JSON backup / saved variant / report request.
+    params = json.loads(json.dumps(original['params']))
+    replay = run_bipol_project(params)
+    assert params['engine_power_kw'] == original['params']['engine_power_kw']
+    for key in ('m0', 'm_empty', 'm_fuel'):
+        assert replay['mass'][key] == original['mass'][key]
+    assert replay['mass']['breakdown'] == original['mass']['breakdown']
+    assert replay['geometry'] == original['geometry']
+    assert replay['aerodynamics']['cx0_clean'] == original['aerodynamics']['cx0_clean']
+    assert replay['balance']['cg_range'] == original['balance']['cg_range']
+
+
 @pytest.mark.parametrize('planform,expected',[('rectangular',1),('elliptical',0)])
 def test_taper_is_an_output_for_fixed_planform_shapes(planform,expected):
     r=run_bipol_project({**AIRCRAFT_PRESETS['pzl_kos'],'wing_planform':planform,'taper_ratio':.6})

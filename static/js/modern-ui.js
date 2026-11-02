@@ -35,7 +35,7 @@
     }
 
     // Update toggle buttons
-    document.querySelectorAll('.theme-toggle-btn').forEach(btn => {
+    document.querySelectorAll('#themeToggleBtn, [data-theme-toggle]').forEach(btn => {
       btn.innerHTML = isDark ? '☀️' : '🌙';
       btn.setAttribute('aria-label', isDark ? 'Przełącz na tryb jasny (Alt+T)' : 'Przełącz na tryb ciemny (Alt+T)');
       btn.setAttribute('title', isDark ? 'Przełącz na tryb jasny (Alt+T)' : 'Przełącz na tryb ciemny (Alt+T)');
@@ -85,27 +85,30 @@
     { type: 'tab', target: 'tab-reports', icon: '📄', title: 'Raport i generowanie dokumentacji DOCX / PDF', tag: 'Dokumentacja' },
 
     // Design Inputs & Core Parameters
-    { type: 'input', tab: 'tab-inputs', elemId: 'in_m0', icon: '⚖️', title: 'Masa startowa m₀ [kg]', tag: 'Parametr wejściowy' },
-    { type: 'input', tab: 'tab-inputs', elemId: 'in_passengers', icon: '👥', title: 'Liczba pasażerów i załogi n_p', tag: 'Parametr wejściowy' },
-    { type: 'input', tab: 'tab-inputs', elemId: 'in_vh', icon: '💨', title: 'Prędkość przelotowa V_H / TAS [km/h]', tag: 'Osiągi' },
-    { type: 'input', tab: 'tab-inputs', elemId: 'in_range', icon: '🗺️', title: 'Zasięg obliczeniowy R [km]', tag: 'Misja' },
-    { type: 'input', tab: 'tab-inputs', elemId: 'in_wing_span', icon: '📏', title: 'Rozpiętość skrzydła b [m]', tag: 'Geometria' },
-    { type: 'input', tab: 'tab-inputs', elemId: 'in_wing_area', icon: '📐', title: 'Powierzchnia skrzydła S [m²]', tag: 'Geometria' },
-    { type: 'input', tab: 'tab-inputs', elemId: 'in_wing_aspect_ratio', icon: '📐', title: 'Wydłużenie skrzydła λ (aspect ratio)', tag: 'Geometria' },
-    { type: 'input', tab: 'tab-inputs', elemId: 'in_taper_ratio', icon: '📐', title: 'Zbieżność skrzydła η (taper ratio)', tag: 'Geometria' },
-    { type: 'input', tab: 'tab-inputs', elemId: 'in_sweep_angle', icon: '📐', title: 'Kąt skosu skrzydła χ [°]', tag: 'Geometria' },
-    { type: 'input', tab: 'tab-inputs', elemId: 'in_airfoil_select', icon: '🪶', title: 'Profil aerodynamiczny skrzydła', tag: 'Profil' },
-    { type: 'input', tab: 'tab-inputs', elemId: 'in_engine_type', icon: '⚙️', title: 'Typ napędu (tłokowy, turbośmigłowy, odrzutowy, szybowiec)', tag: 'Napęd' },
-    { type: 'input', tab: 'tab-inputs', elemId: 'in_engine_power', icon: '⚡', title: 'Moc silnika P_max [kW / KM]', tag: 'Napęd' },
-    { type: 'input', tab: 'tab-inputs', elemId: 'in_altitude_cruise', icon: '⛰️', title: 'Wysokość przelotowa H_przelot [m]', tag: 'Atmosfera' },
-    { type: 'input', tab: 'tab-inputs', elemId: 'in_cl_max_clean', icon: '🦅', title: 'Współczynnik siły nośnej cz_max gładki', tag: 'Aerodynamika' },
-    { type: 'input', tab: 'tab-inputs', elemId: 'in_cx0', icon: '💨', title: 'Współczynnik oporu szkodliwego cx0', tag: 'Aerodynamika' },
-    { type: 'input', tab: 'tab-inputs', elemId: 'in_landing_gear_type', icon: '🛞', title: 'Układ podwozia (trójkołowe przednie, klasyczne z kółkiem ogonowym)', tag: 'Podwozie' },
+    { type: 'tab', target: 'tab-p1-p2', icon: '⚖️', title: 'Masa startowa m₀ [kg] — wynik bilansu', tag: 'Wynik obliczeń' },
+    { type: 'input', tab: 'tab-inputs', elemId: 'n_pax', icon: '👥', title: 'Liczba pasażerów n_pax (bez załogi)', tag: 'Parametr wejściowy' },
+    { type: 'input', tab: 'tab-inputs', elemId: 'cruise_speed_kmh', icon: '💨', title: 'Prędkość przelotowa TAS [km/h]', tag: 'Osiągi' },
+    { type: 'input', tab: 'tab-inputs', elemId: 'range_km', icon: '🗺️', title: 'Zasięg obliczeniowy R [km]', tag: 'Misja' },
+    { type: 'input', tab: 'tab-inputs', elemId: 'wingspan_m', icon: '📏', title: 'Rozpiętość skrzydła b [m]', tag: 'Geometria' },
+    { type: 'input', tab: 'tab-inputs', elemId: 'wing_area_m2', icon: '📐', title: 'Powierzchnia skrzydła S [m²]', tag: 'Geometria' },
+    { type: 'input', tab: 'tab-inputs', elemId: 'aspect_ratio', icon: '📐', title: 'Wydłużenie skrzydła Λ (aspect ratio)', tag: 'Geometria' },
+    { type: 'input', tab: 'tab-inputs', elemId: 'taper_ratio', icon: '📐', title: 'Zbieżność skrzydła η (taper ratio)', tag: 'Geometria' },
+    { type: 'input', tab: 'tab-inputs', elemId: 'sweep_quarter_deg', icon: '📐', title: 'Kąt skosu skrzydła χ [°]', tag: 'Geometria' },
+    { type: 'input', tab: 'tab-inputs', elemId: 'airfoil', icon: '🪶', title: 'Profil aerodynamiczny skrzydła', tag: 'Profil' },
+    { type: 'input', tab: 'tab-inputs', elemId: 'engine_type', icon: '⚙️', title: 'Typ napędu (śmigłowy, odrzutowy, bez napędu)', tag: 'Napęd' },
+    { type: 'input', tab: 'tab-inputs', elemId: 'engine_power_kw', icon: '⚡', title: 'Moc silnika P_max [kW]', tag: 'Napęd' },
+    { type: 'input', tab: 'tab-inputs', elemId: 'cruise_altitude_m', icon: '⛰️', title: 'Wysokość przelotowa H_przelot [m]', tag: 'Atmosfera' },
+    { type: 'input', tab: 'tab-inputs', elemId: 'cz_max_clean', icon: '🦅', title: 'Współczynnik siły nośnej cz_max gładki', tag: 'Aerodynamika' },
+    { type: 'input', tab: 'tab-inputs', elemId: 'cx0', icon: '💨', title: 'Współczynnik oporu szkodliwego cx0', tag: 'Aerodynamika' },
+    { type: 'input', tab: 'tab-inputs', elemId: 'gear_attachment', icon: '🛞', title: 'Mocowanie podwozia (kadłub, skrzydło)', tag: 'Podwozie' },
+
+    { type: 'input', tab: 'tab-inputs', elemId: 'n_crew', icon: '👤', title: 'Liczba członków załogi n_crew', tag: 'Parametr wejściowy' },
+    { type: 'input', elemId: 'cost_year', icon: '📅', title: 'Rok oszacowania kosztów produkcji', tag: 'P2 — koszty' },
 
     // Actions
     { type: 'action', action: 'recalculate', icon: '⚡', title: 'Przelicz projekt (Ctrl+Enter)', tag: 'Polecenie' },
     { type: 'action', action: 'toggle-theme', icon: '🌗', title: 'Przełącz motyw jasny / ciemny (Alt+T)', tag: 'Widok' },
-    { type: 'action', action: 'open-report', icon: '📄', title: 'Otwórz pełne sprawozdanie techniczne', tag: 'Raport' },
+    { type: 'action', action: 'open-report', icon: '📄', title: 'Otwórz raport bieżącego projektu', tag: 'Raport' },
     { type: 'action', action: 'new-project', icon: '＋', title: 'Utwórz nowy projekt w kreatorze', tag: 'Projekt' },
     { type: 'action', action: 'shortcuts', icon: '⌨️', title: 'Pokaż skróty klawiszowe (?)', tag: 'Pomoc' }
   ];
@@ -243,22 +246,14 @@
     if (item.type === 'tab') {
       navigateToTab(item.target);
     } else if (item.type === 'input') {
-      navigateToTab(item.tab);
-      setTimeout(() => {
-        const elem = document.getElementById(item.elemId);
-        if (elem) {
-          elem.focus();
-          elem.scrollIntoView({ behavior: 'smooth', block: 'center' });
-          highlightElement(elem);
-        }
-      }, 150);
+      window.focusDesignParameter?.(item.elemId);
     } else if (item.type === 'action') {
       if (item.action === 'recalculate') {
         triggerRecalculate();
       } else if (item.action === 'toggle-theme') {
         toggleTheme();
       } else if (item.action === 'open-report') {
-        window.open('/report', '_blank');
+        navigateToTab('tab-reports');
       } else if (item.action === 'new-project') {
         if (typeof window.openWizard === 'function') window.openWizard('new');
       } else if (item.action === 'shortcuts') {
@@ -275,14 +270,6 @@
       const tabBtn = document.querySelector(`.bipol-tab[data-target="${tabId}"]`);
       if (tabBtn) tabBtn.click();
     }
-  }
-
-  function highlightElement(el) {
-    if (!el) return;
-    el.classList.add('highlight-target');
-    setTimeout(() => {
-      el.classList.remove('highlight-target');
-    }, 2500);
   }
 
   function escapeHtml(text) {
@@ -340,17 +327,13 @@
   /* ------------------------------------------------------------------------
      4. RECALCULATE & DIRTY STATE TRACKER
      ------------------------------------------------------------------------ */
-  function markDirty() {
+  function markDirty(event) {
+    if (window.isDuplicateCalculatedChange?.(event)) return;
     const pill = document.getElementById('navRecalcPill');
     if (pill) {
       pill.className = 'nav-recalc-pill dirty';
       pill.innerHTML = `<span>⚠️ Przelicz</span> <kbd>Ctrl+Enter</kbd>`;
       pill.setAttribute('title', 'Parametry uległy zmianie. Kliknij lub naciśnij Ctrl+Enter aby zaktualizować aerodynamikę i osiągi.');
-    }
-    const resultStatus = document.getElementById('studioResultStatus');
-    if (resultStatus) {
-      resultStatus.textContent = 'Wymaga przeliczenia';
-      resultStatus.classList.add('attention');
     }
   }
 
@@ -361,33 +344,31 @@
       pill.innerHTML = `<span>✓ Gotowe</span> <kbd>Ctrl+Enter</kbd>`;
       pill.setAttribute('title', 'Projekt jest zsynchronizowany i aktualny. Naciśnij Ctrl+Enter aby wymusić ponowne przeliczenie.');
     }
-    const resultStatus = document.getElementById('studioResultStatus');
-    if (resultStatus) {
-      resultStatus.textContent = 'Obliczenia aktualne';
-      resultStatus.classList.remove('attention');
+  }
+
+  function syncCalculationState() {
+    const pill = document.getElementById('navRecalcPill');
+    if (!pill) return;
+    if (document.getElementById('calcBtn')?.disabled) {
+      pill.className = 'nav-recalc-pill calculating';
+      pill.innerHTML = '<span>⏳ Obliczanie...</span>';
+      pill.title = 'Trwają obliczenia projektu.';
+    } else if (document.getElementById('calculationStatus')?.classList.contains('is-error')) {
+      markDirty();
+      pill.innerHTML = '<span>❌ Błąd obliczeń</span> <kbd>Ctrl+Enter</kbd>';
+      pill.title = document.getElementById('calculationStatus').textContent;
+    } else if (document.getElementById('openReportBtn')?.dataset.resultsStale === 'false') {
+      markClean();
+    } else {
+      markDirty();
     }
   }
 
-  async function triggerRecalculate() {
-    const pill = document.getElementById('navRecalcPill');
-    if (pill) {
-      pill.innerHTML = `<span>⏳ Obliczanie...</span>`;
-    }
-    try {
-      if (typeof window.performCalculation === 'function') {
-        await window.performCalculation();
-      } else {
-        const calcBtn = document.getElementById('btnCalculate') || document.getElementById('btnRecalculate');
-        if (calcBtn) calcBtn.click();
-      }
-      markClean();
-    } catch (err) {
-      console.error('Błąd przeliczania:', err);
-      if (pill) {
-        pill.className = 'nav-recalc-pill dirty';
-        pill.innerHTML = `<span>❌ Błąd</span>`;
-      }
-    }
+  function triggerRecalculate() {
+    // The calculation function handles validation, rejected/stale responses and
+    // failures internally. Resolving its promise does not prove fresh results.
+    if (typeof window.performCalculation === 'function') return window.performCalculation();
+    document.getElementById('calcBtn')?.click();
   }
 
   /* ------------------------------------------------------------------------
@@ -430,21 +411,28 @@
     }
   });
 
-  // Track inputs dirty state (only for aircraft design parameters, not search boxes)
-  document.addEventListener('input', e => {
-    if (e.target.closest('.bipol-palette-backdrop, .nav-search-trigger, .report-toolbar')) return;
-    if (['INPUT', 'SELECT', 'TEXTAREA'].includes(e.target.tagName)) {
-      if (e.target.closest('#holisticWorkspace, #inputs_panel, .b-card, .studio-card, .project-bar-container')) {
-        markDirty();
-      }
-    }
-  });
-
   /* ------------------------------------------------------------------------
      6. INITIALIZATION & EXPORTS
      ------------------------------------------------------------------------ */
   document.addEventListener('DOMContentLoaded', () => {
     applyTheme(getSavedTheme(), false);
+
+    // Observe the same freshness flag and error state used by the report and
+    // calculation workflow. Search, graph and exploratory sliders do not edit
+    // the aircraft. Only actual model inputs invalidate its results.
+    const observer = new MutationObserver(syncCalculationState);
+    for (const id of ['openReportBtn', 'calcBtn', 'calculationStatus']) {
+      const control = document.getElementById(id);
+      if (control) observer.observe(control, {attributes: true, attributeFilter: ['data-results-stale', 'disabled', 'class'], childList: true});
+    }
+    for (const event of ['bipol:calculating', 'bipol:project']) {
+      document.addEventListener(event, markDirty);
+    }
+    document.querySelectorAll('#designForm, [data-analysis-param]').forEach(control => {
+      control.addEventListener('input', markDirty);
+      control.addEventListener('change', markDirty);
+    });
+    syncCalculationState();
 
     // Wire search trigger in navbar if present
     document.querySelectorAll('.nav-search-trigger').forEach(btn => {
@@ -452,7 +440,7 @@
     });
 
     // Wire theme toggle buttons
-    document.querySelectorAll('.theme-toggle-btn').forEach(btn => {
+    document.querySelectorAll('#themeToggleBtn, [data-theme-toggle]').forEach(btn => {
       btn.addEventListener('click', toggleTheme);
     });
 
@@ -466,17 +454,6 @@
     const shortcutsBtn = document.getElementById('btnShortcutsNav');
     if (shortcutsBtn) {
       shortcutsBtn.addEventListener('click', openShortcutsModal);
-    }
-  });
-
-  // Re-draw canvas charts & aircraft on theme change
-  window.addEventListener('bipol:themechange', () => {
-    if (typeof window.renderAllCharts === 'function') {
-      try { window.renderAllCharts(); } catch (_) {}
-    }
-    const stage = document.getElementById('studioAircraft');
-    if (stage && typeof window.renderAircraft === 'function') {
-      try { window.renderAircraft(); } catch (_) {}
     }
   });
 
