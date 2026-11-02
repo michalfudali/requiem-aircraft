@@ -2,6 +2,10 @@
 {% set a=res.aerodynamics %}{% set cs=res.geometry.control_surfaces %}{% set p3a=a.paturski_p3 %}
 {% set prop=p_data.paturski_propulsion %}{% set gp=p_data.glide_polar %}
 <p>Charakterystyki aerodynamiczne samolotu wyznaczono dla geometrii z projektu 3: biegunową złożono z charakterystyk płata, oporu zespołów nienośnych i oporu wyważenia usterzeniem poziomym, a następnie przybliżono biegunową analityczną {{ cite('paturski') }}. Wyznaczono też biegunowe prędkości lotu ślizgowego dla skrajnych położeń środka masy, charakterystyki samolotu z wychyloną mechanizacją oraz charakterystyki zespołu napędowego.</p>
+<h3>Powierzchnia omywana</h3>
+<p>Powierzchnię omywaną zespołów oszacowano z wymiarów płatowca z projektu 3 {{ cite('raymer') }}. Otrzymany stosunek \(S_{wet}/S\) porównano z wartościami typowymi dla różnych układów samolotów{{ xref('fig-swet') }}.</p>
+{{ c.section(sheet, 'p4.wetted') }}
+<figure id="fig-swet">{{ charts.swet_scale_chart(res.geometry.wetted_area.swet_over_s) }}<figcaption>Stosunek powierzchni omywanej do powierzchni nośnej projektowanego samolotu na tle wartości typowych dla różnych układów (wg Raymera {{ cite('raymer') }}).</figcaption></figure>
 <h3>Opór szkodliwy zespołów nienośnych</h3>
 {% include 'reports/compressibility.html' %}
 {{ c.section(sheet, 'p4.compressibility') }}
@@ -29,6 +33,7 @@
 {% for row in charts.flap_increments() %}<tr{% if row.key == params.get('flap_type') %} class="highlight"{% endif %}><td>{{ row.label }}{% if row.key == params.get('flap_type') %} — przyjęta{% endif %}</td><td class="number">{{ row.dcz_to|reportnum(2) }}</td><td class="number">{{ row.dcz_l|reportnum(2) }}</td><td class="number">{{ row.dcx_to|reportnum(3) }}</td><td class="number">{{ row.dcx_l|reportnum(3) }}</td><td class="number">{{ row.e_to|reportnum(2) }}</td><td class="number">{{ row.e_l|reportnum(2) }}</td></tr>{% endfor %}
 </tbody></table>
 {{ c.section(sheet, 'p4.highlift') }}
+{% set czto2 = sheet.entries.get('Cz_TO_2') %}{% set czl2 = sheet.entries.get('Cz_L_2') %}{% if czl2 %}<p>Wartości \(C_{z\,max}\) obliczone dla geometrii klap z projektu 3 porównano z założeniami studium wykonalności: {% if czto2 %}do startu {{ p_data.high_lift.takeoff.cz_max|reportnum(2) }} wobec przyjętych {{ czto2.value|reportnum(2) }}, {% endif %}do lądowania {{ p_data.high_lift.landing.cz_max|reportnum(2) }} wobec przyjętych {{ czl2.value|reportnum(2) }}. {% if (p_data.high_lift.landing.cz_max - czl2.value)|abs < 0.005 %}Założenia potwierdzono, więc wykres doboru nie wymaga korekty.{% else %}Różnica wymaga powtórzenia wykresu doboru z obliczonymi wartościami.{% endif %}</p>{% endif %}
 <table id="tab-polar-coefficients"><caption>Współczynniki biegunowych samolotu w konfiguracjach gładkiej, startowej i do lądowania</caption><thead><tr><th>Konfiguracja</th><th class="number">C<sub>x0</sub></th><th class="number">k</th><th class="number">C<sub>z,max</sub></th><th class="number">V<sub>S</sub> [km/h]</th></tr></thead><tbody>{% for key,label,k in [('clean','Gładka',a.k_clean),('takeoff','Startowa',a.k_to),('landing','Do lądowania',a.k_lnd)] %}{% set h=p_data.high_lift[key] %}<tr><td>{{ label }} ({{ h.flap_deflection_deg|reportnum(0) }}°)</td><td class="number">{{ h.cx0|reportnum(4) }}</td><td class="number">{{ k|reportnum(5) }}</td><td class="number">{{ h.cz_max|reportnum(2) }}</td><td class="number">{{ h.vs_kmh|reportnum(1) }}</td></tr>{% endfor %}</tbody></table>
 <figure id="fig-polars"><div id="repPolar"></div><figcaption>Biegunowe samolotu w konfiguracjach gładkiej, startowej i do lądowania.</figcaption></figure>
 {% set vs_check=p_data.high_lift.stall_requirement %}
@@ -72,15 +77,3 @@
 {% else %}
 <p>Szybowiec nie ma zespołu napędowego; charakterystyk napędu nie wyznaczano.</p>
 {% endif %}
-<h3>Powierzchnie sterowe i skuteczność lotek</h3>
-<p>Przyjęta mechanizacja: {{ cs.flaps.name|lower }}; lotki: {{ cs.ailerons.name|lower }}. Skuteczność lotek oceniono wskaźnikiem \(pb/(2V)\) z pochodnych momentu przechylającego, całkując po obrysie skrzydła {{ cite('raymer') }}.</p>
-{{ c.section(sheet, 'p4.roll') }}
-<table><caption>Proporcje powierzchni sterowych</caption><thead><tr><th>Parametr</th><th class="number">Wartość</th></tr></thead><tbody>
-<tr><td>Względna rozpiętość klap</td><td class="number">{{ cs.flaps.bf_over_b|reportnum(3) }}</td></tr>
-<tr><td>Względna cięciwa klap</td><td class="number">{{ cs.flaps.cf_over_c|reportnum(3) }}</td></tr>
-<tr><td>Względna rozpiętość lotek</td><td class="number">{{ cs.ailerons.ba_over_b|reportnum(3) }}</td></tr>
-<tr><td>Względna cięciwa lotek</td><td class="number">{{ cs.ailerons.ca_over_c|reportnum(3) }}</td></tr>
-<tr><td>Cięciwa steru wysokości / cięciwa usterzenia</td><td class="number">{{ cs.elevator.ce_over_ch|reportnum(3) }}</td></tr>
-<tr><td>Cięciwa steru kierunku / cięciwa usterzenia</td><td class="number">{{ cs.rudder.cr_over_cv|reportnum(3) }}</td></tr>
-</tbody></table>
-<p>Wskaźnik \(pb/(2V)\) wynosi {{ cs.ailerons.roll_helix_pb_2v|reportnum(3) }} przy wymaganym co najmniej {{ cs.ailerons.min_pb_2v_req|reportnum(3) }}: kryterium {% if cs.ailerons.roll_authority_ok %}jest spełnione{% else %}nie jest spełnione{% endif %}.</p>

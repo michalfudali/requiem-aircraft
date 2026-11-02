@@ -10,6 +10,8 @@ Implementuje:
 """
 import math
 from calculations.atmosphere import G0
+from calculations.landing_gear import calculate_fuselage_and_gear
+from calculations.empennage import calculate_empennage_sizing, calculate_propulsion_clearance
 
 def calculate_geometry(m0: float, ws: float, params: dict):
     """

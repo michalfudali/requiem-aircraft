@@ -43,9 +43,6 @@
 {% if res.params.category in ['cs22_glider','cs22_motoglider'] %}<p>Przepisy CS-22 {{ cite('cs22') }} wymagają rozpatrzenia osób o masie 70–110 kg ze spadochronem bez balastu (§ 22.23(b)) oraz przypadku 55 kg z dopuszczonym balastem (§ 22.25(b)). Powyższa analiza zakresu 55–110 kg jest oceną projektową, a nie wykazaniem zgodności z przepisami.</p>{% endif %}
 {% include 'reports/ballast.html' %}
 {% endif %}
-<h3>Momenty bezwładności</h3>
-<p>Momenty bezwładności oszacowano z mas skupionych zespołów{{ xref('tab-mass-components') }}, bez własnych momentów bezwładności zespołów.</p>
-{{ c.section(sheet, 'p3.inertia') }}
 <h3>Rozkład obciążenia płata wg Schrenka</h3>
 <p>Rozkład Schrenka wyznaczono dla \(C_z=1\) jako średnią rozkładu wynikającego z obrysu i rozkładu eliptycznego {{ cite('danilecki') }}{{ xref('fig-schrenk') }}. Przekrój o największym lokalnym współczynniku \(c_z/C_z\) jest miejscem, w którym przeciągnięcie zaczyna się najwcześniej; z tej wartości oszacowano maksymalny współczynnik siły nośnej płata.</p>
 {{ c.section(sheet, 'p3.schrenk') }}

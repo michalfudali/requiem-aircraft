@@ -100,6 +100,26 @@ def calculate_matching_chart(params: dict, m0: float = None, mass: dict = None):
     sigma_cr = isa_cr["sigma"]
     k_ind = 1.0 / (math.pi * AR * e)
 
+    # Warunki na lotnisku (hot-and-high)
+    h_airfield = float(params.get("airfield_elevation_m", 0.0) or 0.0)
+    delta_t_airfield = float(params.get("airfield_delta_t_k", 0.0) or params.get("airfield_temperature_delta_c", 0.0) or 0.0)
+    if h_airfield > 0 or delta_t_airfield != 0.0:
+        isa_af = isa_atmosphere(h_airfield)
+        if delta_t_airfield != 0.0:
+            t_act = isa_af["T"] + delta_t_airfield
+            rho_af = isa_af["p"] / (287.05287 * t_act)
+            sigma_airfield = rho_af / RHO0
+        else:
+            sigma_airfield = isa_af["sigma"]
+    else:
+        sigma_airfield = SIGMA_AIRFIELD
+
+    # Pułap praktyczny (Service Ceiling)
+    h_ceil = float(params.get("service_ceiling_m") or 0.0)
+    w_ceil = float(params.get("ceiling_climb_rate_ms", 0.5 if engine_type == "prop" else 2.54))
+    isa_ceil = isa_atmosphere(h_ceil) if h_ceil > 0 else None
+    rho_ceil = isa_ceil["rho"] if isa_ceil else None
+
     # Ciężary z projektu 1: lądowanie (z rezerwą paliwa) i połowa przelotu (BIPOL_2, uwagi do (3) i (11)–(12))
     m_landing = m_mid_cruise = m0
     if m0 is not None and mass:
@@ -121,7 +141,7 @@ def calculate_matching_chart(params: dict, m0: float = None, mass: dict = None):
     if s_l:
         if s_l <= 122.0:
             raise ValueError("Długość lądowania z 15 m musi przekraczać 122 m (wzór 3, BIPOL_2).")
-        ws_landing_l = landing_ws(cz_max_lnd, s_l)
+        ws_landing_l = landing_ws(cz_max_lnd, s_l, sigma=sigma_airfield)
         ws_landing = to_takeoff(ws_landing_l, m_landing)
 
     ws_limit, limit_by = ws_min_speed, "prędkość minimalna"
@@ -178,29 +198,40 @@ def calculate_matching_chart(params: dict, m0: float = None, mass: dict = None):
         return vmax, tow
 
     def requirements(ws):
-        """T/W (jet) or P/W [W/N] (prop) for take-off, climb and cruise at one W/S."""
+        """T/W (jet) or P/W [W/N] (prop) for take-off, climb, cruise and ceiling at one W/S."""
         if water:
             tw_to = 0.0  # excluded constraint, not a prediction of water take-off
         elif s_to:
-            tw_to = takeoff_tw(ws, cz_max_to, s_to)
+            tw_to = takeoff_tw(ws, cz_max_to, s_to, sigma=sigma_airfield)
         else:  # zastępczo: rozbieg, gdy nie podano długości startu na 15 m
-            tw_to = (1.21 * ws) / (G0 * RHO0 * cz_max_to * max(30.0, s_run)) + MU_GROUND
+            tw_to = (1.21 * ws) / (G0 * RHO0 * sigma_airfield * cz_max_to * max(30.0, s_run)) + MU_GROUND
         tw_cl = climb_tw(ws, q_climb, cx0, k_ind, gradient)
         tw_cr_alt = climb_tw(ws, q_cr, cx0, k_ind, 0.0)  # wzór (61) BIPOL_1_wzory: T = D przy Vprzel
+        tw_ceil = None
+        if h_ceil > 0 and engine_type != "none":
+            v_md_ceil = math.sqrt(2.0 * ws / (rho_ceil * math.sqrt(cx0 / k_ind)))
+            q_ceil = 0.5 * rho_ceil * v_md_ceil ** 2
+            tw_ceil_alt = climb_tw(ws, q_ceil, cx0, k_ind, w_ceil / v_md_ceil)
+            lapse_ceil = max(1e-6, propulsion_lapse(params, h_ceil, v_md_ceil))
+            tw_ceil = tw_ceil_alt / lapse_ceil
         if engine_type == "jet":
-            return tw_to, tw_cl, tw_cr_alt / max(1e-6, propulsion_lapse(params, h_cr, v_cr_ms))
-        return (None if tw_to is None else tw_to * takeoff_mean_speed(ws, cz_max_to) / eta_to,
-                tw_cl * v_climb_ms / eta_p,
-                tw_cr_alt * v_cr_ms / (eta_p * max(1e-6, propulsion_lapse(params, h_cr, v_cr_ms))))
+            return (tw_to, tw_cl, tw_cr_alt / max(1e-6, propulsion_lapse(params, h_cr, v_cr_ms)), tw_ceil)
+        pw_to = None if tw_to is None else tw_to * takeoff_mean_speed(ws, cz_max_to) / eta_to
+        pw_cl = tw_cl * v_climb_ms / eta_p
+        pw_cr = tw_cr_alt * v_cr_ms / (eta_p * max(1e-6, propulsion_lapse(params, h_cr, v_cr_ms)))
+        pw_ceil = None if tw_ceil is None else tw_ceil * v_md_ceil / eta_p
+        return (pw_to, pw_cl, pw_cr, pw_ceil)
 
-    curve_takeoff, curve_climb, curve_cruise, curve_vmax, curve_tow = [], [], [], [], []
+    curve_takeoff, curve_climb, curve_cruise, curve_ceiling, curve_vmax, curve_tow = [], [], [], [], [], []
     for ws in ws_values:
         if engine_type == "none":
-            values = (0.0, 0.0, 0.0, None, None)
+            values = (0.0, 0.0, 0.0, None, None, None)
         else:
-            values = requirements(ws) + extra_requirements(ws)
+            req_vals = requirements(ws)
+            extra_vals = extra_requirements(ws)
+            values = (req_vals[0], req_vals[1], req_vals[2], req_vals[3], extra_vals[0], extra_vals[1])
         digits = 4 if engine_type == "jet" else 2
-        for curve, value in zip((curve_takeoff, curve_climb, curve_cruise, curve_vmax, curve_tow), values):
+        for curve, value in zip((curve_takeoff, curve_climb, curve_cruise, curve_ceiling, curve_vmax, curve_tow), values):
             curve.append(None if value is None else round(value, digits))
 
     climb_min = None
@@ -209,7 +240,10 @@ def calculate_matching_chart(params: dict, m0: float = None, mass: dict = None):
     at_design = {}
     if engine_type != "none":
         climb_min = tw_climb_min if engine_type == "jet" else tw_climb_min * v_climb_ms / eta_p
-        at_design = dict(zip(("start", "wznoszenie", "przelot"), requirements(ws_design)))
+        req_design = requirements(ws_design)
+        at_design = dict(zip(("start", "wznoszenie", "przelot"), req_design[:3]))
+        if h_ceil > 0 and req_design[3] is not None:
+            at_design["pułap praktyczny"] = req_design[3]
         vmax_at_design, tow_at_design = extra_requirements(ws_design)
         if vmax_at_design is not None:
             at_design["prędkość maksymalna"] = vmax_at_design
@@ -246,6 +280,7 @@ def calculate_matching_chart(params: dict, m0: float = None, mass: dict = None):
         "curve_takeoff": curve_takeoff,
         "curve_climb": curve_climb,
         "curve_cruise": curve_cruise,
+        "curve_ceiling": curve_ceiling if (h_ceil > 0 and engine_type != "none") else None,
         "curve_vmax": curve_vmax if v_max_req_ms and engine_type != "none" else None,
         "curve_tow": curve_tow if tow_ratio else None,
         "climb_min": round(climb_min, 4) if climb_min is not None else None,
@@ -266,10 +301,13 @@ def calculate_matching_chart(params: dict, m0: float = None, mass: dict = None):
             "v_max_required_ms": v_max_req_ms or None, "tow_glider_mass_kg": m_glider or None,
             "tow_speed_ms": v_tow_ms if m_glider else None, "tow_climb_rate_ms": w_tow if m_glider else None,
             "tow_glider_ld": ld_glider if m_glider else None,
+            "h_airfield": h_airfield, "sigma_airfield": sigma_airfield, "h_ceil": h_ceil,
         },
         "assumptions": {
             "source": "BIPOL_2.pdf (C. Galiński, Studium wykonalności), wzory (1)–(12)",
-            "sigma": SIGMA_AIRFIELD,
+            "sigma": sigma_airfield,
+            "airfield_elevation_m": h_airfield or None,
+            "service_ceiling_m": h_ceil or None,
             "cz_safety": CZ_SAFETY,
             "takeoff_distance_m": s_to or None,
             "takeoff_run_m": None if s_to else s_run,
@@ -295,6 +333,51 @@ def calculate_matching_chart(params: dict, m0: float = None, mass: dict = None):
             "required_power_kw": required_power_kw,
             "power_hp": power_hp,
             "thrust_kn": thrust_kn,
-            "tw_min_climb_bipol18": round(tw_climb_min, 4)
+            "tw_min_climb_bipol18": round(tw_climb_min, 4),
+            "point_a": {
+                "ws": ws_design,
+                "tw": tw_design,
+                "pw": pw_design,
+                "power_kw": power_kw,
+                "description": "Punkt A: minimalna moc / najmniejsza powierzchnia skrzydła (kompromis masy)"
+            },
+            "point_b": {
+                "ws": ws_max_range,
+                "feasible": (ws_max_range <= ws_limit) if ws_max_range else False,
+                "description": "Punkt B: aerodynamiczne optimum zasięgu w przelocie (maksymalna doskonałość)"
+            }
         }
     }
+
+
+def calculate_constraint_curves(params: dict, m0: float = None, mass: dict = None) -> dict:
+    """Interface contract function M1 <-> M2: matching chart constraint curves.
+
+    Returns:
+        dict with keys:
+          - 'takeoff': list of values or None
+          - 'landing': float (W/S limit for landing)
+          - 'climb': list of values
+          - 'stall': float (W/S limit for stall)
+          - 'cruise': list of values
+          - 'ceiling': list of values or None
+          - 'design_point': {'W_S': float, 'T_W': float, 'P_W': float}
+          plus full matching chart result fields.
+    """
+    chart = calculate_matching_chart(params, m0=m0, mass=mass)
+    out = dict(chart)
+    dp = dict(chart.get("design_point", {}))
+    dp["W_S"] = dp.get("ws")
+    dp["T_W"] = dp.get("tw")
+    dp["P_W"] = dp.get("pw")
+    out.update({
+        "takeoff": chart.get("curve_takeoff"),
+        "landing": chart.get("ws_landing"),
+        "climb": chart.get("curve_climb"),
+        "stall": chart.get("ws_stall_max"),
+        "cruise": chart.get("curve_cruise"),
+        "ceiling": chart.get("curve_ceiling"),
+        "design_point": dp,
+    })
+    return out
+

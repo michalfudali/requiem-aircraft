@@ -28,6 +28,27 @@ CX0_RANGES = {
     'agricultural': (.060,.080), 'motoglider': (.014,.020),
 }
 
+EMPTY_MASS_COEFFICIENTS = {
+    'glider': (0.82, -0.05),
+    'motoglider': (0.86, -0.05),
+    'piston_ga': (0.92, -0.06),
+    'turboprop_regional': (0.96, -0.05),
+    'jet_business': (1.02, -0.06),
+    'jet_transport': (0.95, -0.05),
+    'uav': (0.82, -0.04),
+}
+
+
+def two_point_power_law(x1: float, y1: float, x2: float, y2: float) -> tuple[float, float]:
+    """Wyznacza współczynniki A i C zależności m_e/m_0 = A * m_0^C z dwóch punktów (x1, y1) i (x2, y2)."""
+    if x1 <= 0 or x2 <= 0 or y1 <= 0 or y2 <= 0:
+        raise ValueError("Współrzędne punktów korelacji potęgowej muszą być dodatnie.")
+    if x1 == x2:
+        raise ValueError("Dwa punkty korelacji muszą mieć różne masy startowe.")
+    c = math.log(y1 / y2) / math.log(x1 / x2)
+    a = y1 / (x1 ** c)
+    return a, c
+
 
 def validate_bipol1(p):
     options = {
@@ -137,10 +158,7 @@ def empty_mass_law(p):
                     valid_range=[fit['x_min'], fit['x_max']], definitions=sorted({r.get('empty_mass_definition') or 'nieokreślona' for r in rows}))
     elif mode == 'two_point':
         x1, x2, y1, y2 = (p[k] for k in ('mass_point_x1','mass_point_x2','mass_point_y1','mass_point_y2'))
-        if x1 == x2:
-            raise ValueError('Dwa punkty korelacji muszą mieć różne masy startowe.')
-        c = math.log(y1/y2)/math.log(x1/x2)
-        a = y1/x1**c
+        a, c = two_point_power_law(x1, y1, x2, y2)
         meta['valid_range'] = sorted([x1,x2])
     elif mode == 'coefficients':
         a, c = p['empty_mass_a'], p['empty_mass_c']
@@ -148,9 +166,7 @@ def empty_mass_law(p):
         a, c, kvs = p['empty_mass_fraction'], 0., 1.
     else:
         # Retained for existing projects; explicitly marked provisional in review.
-        a, c = {'glider':(.82,-.05),'motoglider':(.86,-.05),'piston_ga':(.92,-.06),
-                'turboprop_regional':(.96,-.05),'jet_business':(1.02,-.06),
-                'jet_transport':(.95,-.05),'uav':(.82,-.04)}[p.get('aircraft_type','piston_ga')]
+        a, c = EMPTY_MASS_COEFFICIENTS.get(p.get('aircraft_type','piston_ga'), (0.92, -0.06))
         from calculations.polish_law import resolve_category, SUBCATEGORIES
         basis = SUBCATEGORIES[resolve_category(p.get('category','normal'))]['load_basis']
         mod = (.972 if p.get('wing_config') == 'braced_high' else 1)
@@ -263,9 +279,14 @@ def mission_model(p, kmax):
     if powered and task_time:
         max_sfc = p['max_power_sfc']
         task_fuel = (max_sfc/G0*1000*p['max_thrust_kn'] if engine == 'jet' else max_sfc/1000*p['max_power_kw'])*task_time
-    factors = {'warmup':1.,'takeoff':p.get('takeoff_mass_fraction',.975) if powered else 1.,
-               'climb':climb,'cruise':cruise(distance),'descent':1.,'loiter':loiter,
-               'landing':p.get('landing_mass_fraction',.975) if powered else 1.}
+    warmup_frac = p.get('warmup_mass_fraction', 1.) if powered else 1.
+    takeoff_frac = p.get('takeoff_mass_fraction', .975) if powered else 1.
+    taxi_frac = p.get('taxi_mass_fraction')
+    factors = {'warmup': warmup_frac, 'takeoff': takeoff_frac,
+               'climb': climb, 'cruise': cruise(distance), 'descent': 1., 'loiter': loiter,
+               'landing': p.get('landing_mass_fraction', .975) if powered else 1.}
+    if taxi_frac is not None and powered:
+        factors['taxi'] = float(taxi_frac)
     factors['total_mff'] = math.prod(factors.values())
 
     def simulate(m0):
@@ -281,8 +302,10 @@ def mission_model(p, kmax):
                                fuel_burn_kg=fuel,payload_drop_kg=release,
                                fraction=current/start if start > 0 else 0.,
                                fuel_fraction=1-fuel/start if start > 0 else 0.))
-        phase('warmup','Rozruch (uwzględniony w starcie)')
-        phase('takeoff','Start i kołowanie',factors['takeoff'])
+        phase('warmup', 'Rozruch (uwzględniony w starcie)' if factors['warmup'] == 1. else 'Rozruch silnika', factors['warmup'])
+        if 'taxi' in factors:
+            phase('taxi', 'Kołowanie', factors['taxi'])
+        phase('takeoff', 'Start i kołowanie' if 'taxi' not in factors else 'Start (oderwanie i wzniesienie)', factors['takeoff'])
         phase('climb','Wznoszenie i rozpędzanie',climb)
         phase('cruise','Lot do celu' if back or drop else 'Przelot',cruise(distance-back,current,m0))
         if task_time:
@@ -296,7 +319,10 @@ def mission_model(p, kmax):
         phase('landing','Lądowanie i kołowanie',factors['landing'])
         if coupled:
             factors['cruise'] = math.prod(s['fuel_fraction'] for s in phases if s['key'] in ('cruise', 'return'))
-            factors['total_mff'] = math.prod(factors[key] for key in ('warmup','takeoff','climb','cruise','descent','loiter','landing'))
+            keys = ['warmup', 'takeoff', 'climb', 'cruise', 'descent', 'loiter', 'landing']
+            if 'taxi' in factors:
+                keys.insert(1, 'taxi')
+            factors['total_mff'] = math.prod(factors[key] for key in keys if key in factors)
         return dict(phases=phases,landing_mass=current,burn=fuel_burn,
                     fuel=reserve*fuel_burn,reserve=(reserve-1)*fuel_burn)
     return simulate, dict(method=method,corke=corke,factors=factors,range_scale=scale,
@@ -445,3 +471,29 @@ def review_bipol1(result):
     return dict(checks=checks,passed=sum(c['passed'] for c in checks),total=len(checks),
                 complete=all(c['passed'] for c in checks),
                 basis='BIPOL_1.pdf + późniejsze notatki: przelot 0,94 Kmax; krążenie 0,8 Kmax; minimum 8 rodzin, cel PDF 20 konstrukcji.')
+
+
+def run_mission_mass_sizing(params: dict) -> dict:
+    """M1 <-> M2 interface contract: mission profiling and mass sizing.
+
+    Returns:
+        dict with keys:
+          - 'm0': float
+          - 'm_empty': float
+          - 'm_fuel': float
+          - 'fuel_fractions': list of phase dicts
+          - 'iterations': int
+          plus full calculation fields.
+    """
+    from calculations.mass import calculate_mass_sizing
+    res = calculate_mass_sizing(params)
+    out = dict(res)
+    out.update({
+        'm0': float(res['m0']),
+        'm_empty': float(res['m_empty']),
+        'm_fuel': float(res['m_fuel']),
+        'fuel_fractions': res.get('mission_phases', []),
+        'iterations': len(res.get('iterations', [])),
+    })
+    return out
+

@@ -39,7 +39,56 @@
     </div>
   </div>
   <details class="quiet-disclosure"><summary>Misja i kontrola założeń</summary><div class="studio-two-col"><section class="studio-card"><h2>Profil misji</h2><div id="studioMission"></div><button class="studio-text-button" data-studio-target="tab-p1-p2">Edytuj założenia misji →</button></section><section class="studio-card"><h2>Kontrola założeń</h2><div id="studioChecks"></div><button class="studio-text-button" data-studio-target="tab-compliance">Wszystkie kryteria i uwagi →</button></section></div></details>
+
+  <!-- Interaktywny Układ Samolotu, Wyważenie i Stateczność Podwozia (Wykład 4, 6, 7) -->
+  <section class="studio-card layout-balance-card" id="layoutBalanceVisualizer" style="margin-top: 1.5rem;">
+    <div class="studio-card-heading">
+      <div>
+        <h2>Interaktywny Układ Samolotu i Wyważenie (Wykład 4, 6, 7)</h2>
+        <p>Rozkład mas wzdłuż kadłuba, warianty załadowania (Case 1–6), zapas stateczności podłużnej Kn oraz trójkąt wywrotu podwozia.</p>
+      </div>
+      <div class="balance-toolbar-actions" style="display:flex; gap:0.5rem; align-items:center;">
+        <button type="button" class="btn btn-outline-sm" id="btnToggleStabilityTriangle">Pokaż trójkąt wywrotu podwozia</button>
+      </div>
+    </div>
+
+    <!-- Loading Case Switcher Tabs -->
+    <div class="balance-case-tabs" role="tablist" style="display:flex; flex-wrap:wrap; gap:0.35rem; margin-bottom:0.75rem;">
+      <button type="button" class="btn btn-outline-sm case-btn active" data-case="case6_mtow">Case 6: MTOW (Masa startowa)</button>
+      <button type="button" class="btn btn-outline-sm case-btn" data-case="case5_zfw">Case 5: ZFW (Bez paliwa)</button>
+      <button type="button" class="btn btn-outline-sm case-btn" data-case="case4_full_bag_min_pax">Case 4: Pełny bagaż (Tylne ŚM)</button>
+      <button type="button" class="btn btn-outline-sm case-btn" data-case="case3_full_pax_min_bag">Case 3: Pełni pasażerowie</button>
+      <button type="button" class="btn btn-outline-sm case-btn" data-case="case2_pilot_heavy">Case 2b: Ciężki pilot (Przednie ŚM)</button>
+      <button type="button" class="btn btn-outline-sm case-btn" data-case="case2_pilot_light">Case 2a: Lekki pilot (55 kg)</button>
+      <button type="button" class="btn btn-outline-sm case-btn" data-case="case1_oew">Case 1: Pusty (OEW)</button>
+    </div>
+
+    <!-- 2D Canvas Visualizer -->
+    <div class="visualizer-canvas-container" style="position: relative; width: 100%; min-height: 280px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; overflow: hidden;">
+      <canvas id="layoutBalanceCanvas" style="width: 100%; height: 280px; display: block;"></canvas>
+    </div>
+
+    <!-- Interactive Readouts -->
+    <div class="studio-three-col balance-readouts" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 0.75rem; margin-top: 0.75rem;">
+      <div class="metric-card" style="padding:0.75rem; background:#fff; border:1px solid #e2e8f0; border-radius:6px;">
+        <span class="metric-label" style="font-size:0.75rem; color:#64748b; display:block;">Zakres ŚM w locie (% ŚDA)</span>
+        <span class="metric-value" id="valCgRange" style="font-size:1.15rem; font-weight:bold; color:#0f172a;">25.0% — 32.4%</span>
+        <small id="valCgSpan" style="font-size:0.72rem; color:#10b981; display:block;">Rozstęp w oknie 25–35% ŚDA</small>
+      </div>
+      <div class="metric-card" style="padding:0.75rem; background:#fff; border:1px solid #e2e8f0; border-radius:6px;">
+        <span class="metric-label" style="font-size:0.75rem; color:#64748b; display:block;">Punkt neutralny &amp; Zapas Kn</span>
+        <span class="metric-value" id="valStaticMargin" style="font-size:1.15rem; font-weight:bold; color:#0f172a;">Kn ≥ 5.0%</span>
+        <small id="valStaticMarginStatus" style="font-size:0.72rem; color:#10b981; display:block;">Zapas stateczności spełniony</small>
+      </div>
+      <div class="metric-card" style="padding:0.75rem; background:#fff; border:1px solid #e2e8f0; border-radius:6px;">
+        <span class="metric-label" style="font-size:0.75rem; color:#64748b; display:block;">Kąt wywrotu podwozia (Turnover)</span>
+        <span class="metric-value" id="valTurnoverAngle" style="font-size:1.15rem; font-weight:bold; color:#0f172a;">&lt; 60°</span>
+        <small id="valTurnoverStatus" style="font-size:0.72rem; color:#10b981; display:block;">Spełnia kryterium stateczności na ziemi</small>
+      </div>
+    </div>
+  </section>
 </section>
+
 
 <section id="tab-variants" class="tab-content studio-panel">
   <div class="studio-heading"><div><p class="studio-eyebrow">WARIANTY / PODEJMOWANIE DECYZJI</p><h1>Warianty projektu</h1><p>Zachowaj punkt odniesienia i porównaj kolejne koncepcje.</p></div></div>

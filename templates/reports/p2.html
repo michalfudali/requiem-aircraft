@@ -16,6 +16,9 @@
 <tr><td>Oczekiwanie</td><td>niska</td><td>{{ ma.get('loiter_speed_kmh')|reportnum(0) }} km/h</td><td>{{ params.get('loiter_time_min', 45)|reportnum(0) }} min</td></tr>{% endif %}
 <tr><td>Lądowanie</td><td>0 m</td><td>podejście</td><td>{% if params.get('landing_distance_m') %}≤ {{ params.landing_distance_m|reportnum(0) }} m znad 15 m{% else %}—{% endif %}</td></tr>
 </tbody></table>
+<h3>Warunki lotu na wysokości przelotu</h3>
+<p>Parametry powietrza na wysokości przelotu obliczono ze wzorów atmosfery wzorcowej {{ cite('isa') }}. Służą do wyznaczenia liczby Macha (wznoszenie), ciśnienia dynamicznego (wykres doboru) i liczby Reynoldsa (dobór profilu).</p>
+{{ c.section(sheet, 'p2.atm') }}
 <h3>Stosunki mas w fazach lotu</h3>
 <p>{% if doc.powered %}Dla każdej fazy lotu obliczono stosunek masy samolotu na końcu i na początku fazy. Dla startu i lądowania przyjęto wartości statystyczne, dla wznoszenia i rozpędzania — odczyt z wykresu Corke’a{{ xref('fig-corke') }}, dla przelotu — równanie Bregueta ze średnią doskonałością przelotową, a dla oczekiwania — doskonałość równą 0,8 \(K_{max}\) {{ cite('galinski_aw') }}.{% else %}Dla szybowca masa paliwa jest równa zeru, stosunki mas wszystkich faz są równe 1, a zasięgu nie wyznacza się z równania Bregueta.{% endif %}</p>
 {{ c.section(sheet, 'p2.mission') }}
@@ -34,7 +37,7 @@
 <h3>Wynik bilansu masy</h3>
 {{ c.section(sheet, 'p2.mass') }}
 <table id="tab-mass-balance"><caption>Zestawienie mas samolotu</caption><thead><tr><th>Składnik</th><th class="number">Masa [kg]</th><th class="number">Udział [%]</th></tr></thead><tbody>{% for label,value in [('Masa własna',m.m_empty),('Paliwo',m.m_fuel),('Załoga',m.m_crew),('Pasażerowie i ładunek',m.m_payload),('Masa startowa',m.m0)] %}<tr><td>{{ label }}</td><td class="number">{{ value|reportnum(1) }}</td><td class="number">{{ (100*value/m.m0)|reportnum(1) }}</td></tr>{% endfor %}</tbody></table>
-<p>Względna reszta równania bilansu masy wynosi {{ (100*ma.mass_residual_relative)|reportnum(5) }}%, przy kryterium 0,1%.{% if doc.powered %} Średnia doskonałość w przelocie jest założeniem bilansu paliwa; doskonałość rzeczywista zależy od prędkości i konfiguracji i została sprawdzona w projekcie 5.{% endif %}</p>
+<p>Względna reszta równania bilansu masy wynosi {{ (100*ma.mass_residual_relative)|reportnum(5) }}%, przy kryterium 0,1%.{% if doc.powered %} Średnia doskonałość w przelocie jest założeniem bilansu paliwa.{% endif %}</p>
 {% if m.payload_range %}<h4>Wymiana masy płatnej na paliwo</h4><p>Przy stałej masie startowej i masie własnej rezygnacja z jednego pasażera z bagażem zwalnia {{ (params.m_pax + params.get('m_bag',0))|reportnum(0) }} kg na dodatkowe paliwo. Zasięg ogranicza wtedy bilans masy; pojemność zbiorników wymaga osobnego sprawdzenia.</p><table><caption>Zasięg ograniczony masą przy zmianie liczby pasażerów</caption><thead><tr><th class="number">Pasażerowie</th><th class="number">Masa płatna [kg]</th><th class="number">Paliwo [kg]</th><th class="number">Zasięg [km]</th></tr></thead><tbody>{% for row in m.payload_range %}<tr><td class="number">{{ row.passengers }}</td><td class="number">{{ row.payload_kg|reportnum(1) }}</td><td class="number">{{ row.fuel_kg|reportnum(1) }}</td><td class="number">{{ row.range_km|reportnum(0) }}</td></tr>{% endfor %}</tbody></table>{% endif %}
 <h3>Wykres doboru — obciążenie powierzchni i powierzchnia nośna</h3>
 {% set sz = res.sizing %}{% set sa = sz.assumptions %}
@@ -42,7 +45,7 @@
 {{ c.section(sheet, 'p2.matching') }}
 {% if doc.powered %}
 <h3>Dobór {{ 'ciągu' if params.engine_type == 'jet' else 'mocy' }} zespołu napędowego</h3>
-<p>Wymagania napędu obliczono w punkcie projektowym dla startu, wznoszenia i przelotu{% if dp.governing %}; wymiarujące jest {{ dp.governing|replace(' (biegunowa P4)', '')|replace(' (model mechaniki lotu)', '') }}{% endif %}. {% if params.engine_type != 'jet' %}Ciąg przeliczono na moc zależnością \(T=\eta N/V\). {% endif %}Do wykresu doboru przyjęto szacunkową biegunową z projektu 1.</p>
+{% set at = res.sizing.terms.at_design %}{% set gov = (at|dictsort(by='value'))|last %}<p>Wymagania napędu obliczono w punkcie projektowym dla startu, wznoszenia i przelotu; wymiarujące jest {{ gov[0] }}. {% if params.engine_type != 'jet' %}Ciąg przeliczono na moc zależnością \(T=\eta N/V\). {% endif %}Do wykresu doboru przyjęto szacunkową biegunową z projektu 1.</p>
 {{ c.section(sheet, 'p2.drive') }}
 <table id="tab-matching"><caption>Ograniczenia wykresu doboru</caption><thead><tr><th>Wymaganie</th><th>Założenia</th><th class="number">Wynik</th></tr></thead><tbody>
 <tr><td>Prędkość minimalna</td><td>\(V_{min}={{ params.v_stall_kmh|texnum(1) }}\) km/h, \(C_z=C_{z\max}/1{,}1\)</td><td class="number">W/S ≤ {{ sz.ws_stall_max|reportnum(0) }} N/m²</td></tr>
@@ -51,7 +54,8 @@
 <tr><td>Wznoszenie</td><td>\(V={{ sa.v_climb_kmh|texnum(1) }}\) km/h, \(G={{ sa.climb_gradient|texnum(4) }}\)</td><td class="number">minimum {{ sz.climb_min|reportnum(3) }} {{ 'W/N' if params.engine_type != 'jet' else '' }}</td></tr>
 <tr><td>Największy zasięg</td><td>masa w połowie przelotu {{ sa.m_mid_cruise_kg|reportnum(0) }} kg</td><td class="number">W/S = {{ sz.ws_max_range|reportnum(0) }} N/m² (punkt B)</td></tr>
 </tbody></table>
-<p>Punkt projektowy leży na granicy dopuszczalnego obciążenia powierzchni, a linia największego zasięgu jest punktem odniesienia.{% if sz.takeoff_model_requirement is defined and dp.governing == 'start (model mechaniki lotu)' %} Dokładniejsze obliczenie drogi startu (projekt 5, z biegunową z wychylonymi klapami) wymaga więcej {{ 'ciągu' if params.engine_type == 'jet' else 'mocy' }} niż krzywa startu na wykresie, dlatego punkt projektowy podniesiono do tego wymagania.{% endif %}</p>
+<p>Punkt projektowy leży na granicy dopuszczalnego obciążenia powierzchni, a linia największego zasięgu jest punktem odniesienia.</p>
+{% set adopted = sheet.entries.get('P') or sheet.entries.get('TW') %}{% if adopted and adopted.kind == 'given' %}<p>Do dalszych projektów przyjęto {% if params.engine_type == 'jet' %}stosunek ciągu do ciężaru T/W = {{ adopted.value|reportnum(adopted.digits) }}{% else %}moc {{ adopted.value|reportnum(adopted.digits) }} kW{% endif %}{% if 'zapasem' in (adopted.source or '') %}, z zapasem względem wykresu doboru: krzywe wykresu oparto na szacunkowej biegunowej i uproszczonym wzorze na długość startu, a zespół napędowy dobiera się z typoszeregu silników{% else %} — moc wybranego silnika{% endif %}.</p>{% endif %}
 <figure id="fig-matching"><div id="repMatching"></div><figcaption>Wykres doboru obciążenia powierzchni i {{ 'ciągu' if params.engine_type == 'jet' else 'mocy' }} z zaznaczonym punktem projektowym.</figcaption></figure>
 {% endif %}
 <h3>Wstępny wybór profilu</h3>

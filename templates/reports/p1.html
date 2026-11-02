@@ -3,8 +3,8 @@
 <p>Zadaniem projektu koncepcyjnego jest wybór układu samolotu spełniającego wymagania tematu{{ xref('tab-requirements') }} oraz określenie parametrów wyjściowych do dalszego wymiarowania: wydłużenia skrzydła, szacunkowej biegunowej i zależności masy własnej od masy startowej. Parametry dobrano na podstawie analizy samolotów o podobnym przeznaczeniu {{ cite('galinski_aw') }}.</p>
 <h3>Koncepcja samolotu</h3>
 {% for paragraph in doc.concept %}<p>{{ paragraph }}</p>{% endfor %}
-<figure id="fig-sketch">{{ report_sketch(res) }}<figcaption>Szkic koncepcyjny samolotu w trzech rzutach. Wymiary w milimetrach.</figcaption></figure>
-<p>Układ samolotu, położenie skrzydła względem kadłuba, usterzenia, zespołu napędowego i podwozia przedstawiono na{{ xref('fig-sketch', ' ', '') }}. Rozmieszczenie załogi i ładunku wynika z obrysu kadłuba przyjętego w projekcie wstępnym.</p>
+<figure id="fig-sketch">{{ report_sketch(res, dimensions=False) }}<figcaption>Szkic koncepcyjny samolotu w trzech rzutach (proporcje orientacyjne; wymiary wyznacza się w kolejnych projektach).</figcaption></figure>
+<p>Układ samolotu — położenie skrzydła względem kadłuba, usterzenia, zespół napędowy i podwozie — przedstawiono na{{ xref('fig-sketch', ' ', '') }}.</p>
 {% if doc.predecessors %}
 <h4>Porównanie z samolotami podobnymi</h4>
 <p>Wybór najważniejszych parametrów miał zapewnić samolot o własnościach nie gorszych niż u poprzedników. W tabeli zestawiono przyjęte wartości z wartościami wynikającymi z analizy trendów{{ xref('tab-trend-suggestions') }}.</p>
@@ -15,9 +15,6 @@
 {% endif %}
 <h3>Masa załogi i masa płatna</h3>
 {{ c.section(sheet, 'p1.load') }}
-<h3>Atmosfera wzorcowa na wysokości przelotu</h3>
-<p>Parametry powietrza na wysokości przelotu obliczono ze wzorów atmosfery wzorcowej. Służą do wyznaczenia ciśnienia dynamicznego, liczby Macha i liczby Reynoldsa w kolejnych częściach projektu.</p>
-{{ c.section(sheet, 'p1.atm') }}
 {% include 'trend_report.html' %}
 {% if sheet.section_entries('p1.trend') %}
 <h3>Współczynniki zależności masy własnej od masy startowej</h3>
@@ -25,7 +22,7 @@
 {{ c.section(sheet, 'p1.trend') }}
 {% endif %}
 <h3>Szacunkowa biegunowa analityczna</h3>
-<p>Biegunową samolotu przyjęto w postaci parabolicznej \(C_x=C_{x0}+C_z^2/(\pi\Lambda e)\) {{ cite('galinski_aw') }}. {% if bp.mode == 'input' %}Opór zerowy przyjęto z przedziału typowego dla klasy samolotu{{ xref('tab-cx0-classes') }}, a maksymalną doskonałość obliczono z oporu zerowego.{% else %}Stosunek powierzchni omywanej do nośnej zmierzono na szkicu koncepcyjnym{{ xref('fig-sketch') }}, maksymalną doskonałość odczytano z wykresu w funkcji wydłużenia odniesionego do powierzchni omywanej{{ xref('fig-raymer') }} {{ cite('raymer') }}, a opór zerowy obliczono z maksymalnej doskonałości.{% endif %} Przyjęty opór zerowy {% if bp.cx0_in_range %}mieści się{% else %}nie mieści się{% endif %} w przedziale {{ bp.cx0_bounds[0]|reportnum(3) }}–{{ bp.cx0_bounds[1]|reportnum(3) }} typowym dla tej klasy samolotów{% if not bp.cx0_in_range %}, co wynika z cech konfiguracji opisanych wyżej{% endif %}. Biegunowa ta służy do bilansu masy w studium wykonalności; dokładną biegunową samolotu wyznaczono w projekcie 4.</p>
+<p>Biegunową samolotu przyjęto w postaci parabolicznej \(C_x=C_{x0}+C_z^2/(\pi\Lambda e)\) {{ cite('galinski_aw') }}. {% if bp.mode == 'input' %}Opór zerowy przyjęto z przedziału typowego dla klasy samolotu{{ xref('tab-cx0-classes') }}, a maksymalną doskonałość obliczono z oporu zerowego.{% else %}Stosunek powierzchni omywanej do nośnej zmierzono na szkicu koncepcyjnym{{ xref('fig-sketch') }}, maksymalną doskonałość odczytano z wykresu w funkcji wydłużenia odniesionego do powierzchni omywanej{{ xref('fig-raymer') }} {{ cite('raymer') }}, a opór zerowy obliczono z maksymalnej doskonałości.{% endif %} Przyjęty opór zerowy {% if bp.cx0_in_range %}mieści się{% else %}nie mieści się{% endif %} w przedziale {{ bp.cx0_bounds[0]|reportnum(3) }}–{{ bp.cx0_bounds[1]|reportnum(3) }} typowym dla tej klasy samolotów{% if not bp.cx0_in_range %}, co wynika z cech konfiguracji opisanych wyżej{% endif %}. Biegunowa ta jest podstawą bilansu masy i wykresu doboru w studium wykonalności.</p>
 <table class="compact-table" id="tab-cx0-classes"><caption>Typowe wartości współczynnika oporu zerowego {{ cite('galinski_aw') }}</caption><thead><tr><th>Rodzaj samolotu</th><th class="number">C<sub>x0</sub></th></tr></thead><tbody>
 {% for row in charts.cx0_classes() %}<tr{% if (row.low, row.high) == (bp.cx0_bounds[0], bp.cx0_bounds[1]) %} class="highlight"{% endif %}><td>{{ row.label }}{% if (row.low, row.high) == (bp.cx0_bounds[0], bp.cx0_bounds[1]) %} — klasa projektowanego samolotu{% endif %}</td><td class="number">{{ row.low|reportnum(3) }}–{{ row.high|reportnum(3) }}</td></tr>{% endfor %}
 </tbody></table>
@@ -33,12 +30,3 @@
 <figure id="fig-raymer">{{ charts.raymer_chart(params.raymer_family, bp.wetted_aspect_ratio, bp.kmax) }}<figcaption>Maksymalna doskonałość w funkcji wydłużenia odniesionego do powierzchni omywanej, krzywa dla grupy: {{ charts.RAYMER_LABELS.get(params.raymer_family, params.raymer_family) }} (wg Raymera {{ cite('raymer') }}). Zaznaczono odczyt dla \(\Lambda/(S_{wet}/S)={{ bp.wetted_aspect_ratio|texnum(2) }}\).</figcaption></figure>
 {% endif %}
 {{ c.section(sheet, 'p1.polar') }}
-<h3>Powierzchnia omywana</h3>
-<p>Powierzchnię omywaną oszacowano z wymiarów głównych zespołów {{ cite('raymer') }}. Otrzymany stosunek \(S_{wet}/S\) porównano z wartościami typowymi dla różnych układów samolotów{{ xref('fig-swet') }}.</p>
-{{ c.section(sheet, 'p1.wetted') }}
-<figure id="fig-swet">{{ charts.swet_scale_chart(res.geometry.wetted_area.swet_over_s) }}<figcaption>Stosunek powierzchni omywanej do powierzchni nośnej projektowanego samolotu na tle wartości typowych dla różnych układów (wg Raymera {{ cite('raymer') }}).</figcaption></figure>
-{% if doc.powered %}
-<h3>Wstępne zapotrzebowanie {{ 'ciągu' if params.engine_type == 'jet' else 'mocy' }} w przelocie</h3>
-<p>Dla prędkości i wysokości przelotowej obliczono opór samolotu przy masie startowej, korzystając z biegunowej wyznaczonej w projekcie 4. {{ 'Ciąg niezbędny jest równy oporowi.' if params.engine_type == 'jet' else 'Moc niezbędną na wale silnika obliczono z uwzględnieniem sprawności śmigła.' }} Wartość ta pozwala wstępnie ocenić wielkość zespołu napędowego.</p>
-{{ c.section(sheet, 'p1.power') }}
-{% endif %}

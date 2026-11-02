@@ -36,9 +36,10 @@ def test_conclusions_report_failed_criteria_and_governing_gusts(result):
     doc = report_document(changed, ['p3','p4','p5','p6'])
     assert 'nie jest spełnione' in ' '.join(doc['conclusions']['p3'])
     assert 'nie jest spełniony' in ' '.join(doc['conclusions']['p5'])
-    assert 'mniejsza od przyjętego kryterium' in ' '.join(doc['conclusions']['p4'])
+    # Skuteczność lotek nie należy do zakresu projektu 4 — nie ma jej we wnioskach ani w kryteriach.
+    assert 'lotek' not in ' '.join(doc['conclusions']['p4'])
     assert 'Wymiarujące są również obciążenia podmuchowe' in ' '.join(doc['conclusions']['p6'])
-    assert any('lotek' in c['parameter'] for c in doc['failed'])
+    assert not any('lotek' in c['parameter'] for c in doc['checks'])
 
 
 def test_glider_prose_does_not_claim_engine_climb_or_breguet_range():

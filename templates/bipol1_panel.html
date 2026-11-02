@@ -1,5 +1,27 @@
 <section class="studio-card" id="bipol1Panel">
-  <style>#bipol1Panel [hidden]{display:none!important}#bipol1Panel>label{display:block;margin:1rem 0}#bipol1Panel input[type=text]{width:100%}#bipol1Panel details{margin:1rem 0}#bipol1Results li{margin:.6rem 0}</style>
+  <style>
+    #bipol1Panel [hidden]{display:none!important}
+    #bipol1Panel>label{display:block;margin:1rem 0}
+    #bipol1Panel input[type=text]{width:100%}
+    #bipol1Panel details{margin:1rem 0}
+    #bipol1Results li{margin:.6rem 0}
+    .mass-waterfall-box{margin:1.2rem 0;background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:1rem}
+    .mass-waterfall-bar{display:flex;height:28px;border-radius:6px;overflow:hidden;margin:0.8rem 0;box-shadow:inset 0 1px 2px rgba(0,0,0,0.1)}
+    .mass-waterfall-seg{height:100%;transition:opacity 0.2s;position:relative;cursor:pointer}
+    .mass-waterfall-seg:hover{opacity:0.85}
+    .mass-waterfall-legend{display:flex;flex-wrap:wrap;gap:0.75rem;font-size:0.82rem;margin-top:0.5rem}
+    .mass-waterfall-legend-item{display:flex;align-items:center;gap:0.35rem}
+    .mass-waterfall-dot{width:10px;height:10px;border-radius:2px;display:inline-block}
+    .dual-method-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin:1.2rem 0}
+    @media(max-width:720px){.dual-method-grid{grid-template-columns:1fr}}
+    .method-card{background:#ffffff;border:1px solid #cbd5e1;border-radius:8px;padding:1rem;display:flex;flex-direction:column;justify-content:space-between}
+    .method-card.active{border-color:#0f766e;box-shadow:0 0 0 2px rgba(15,118,110,0.15)}
+    .method-badge{display:inline-block;padding:0.2rem 0.5rem;border-radius:4px;font-size:0.75rem;font-weight:600}
+    .method-badge.ok{background:#dcfce7;color:#15803d}
+    .method-badge.disabled{background:#fee2e2;color:#b91c1c}
+    .iteration-trace-box{margin:1rem 0}
+    .iteration-trace-box summary{cursor:pointer;font-weight:600;color:#0f766e;padding:0.4rem 0}
+  </style>
   <h2>Misja i masa samolotu — BIPOL 1</h2>
   <p>Wprowadź przebieg lotu, wybierz źródło masy pustej i sprawdź bilans misji. Zgodnie z czystą merytoryką bilans oparty jest na pełnym domknięciu projektu z biegunowej aerodynamicznej P4 przy zadanej prędkości TAS i wysokości.</p>
   <div class="trend-controls">
