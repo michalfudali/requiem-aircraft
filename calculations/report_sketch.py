@@ -4,7 +4,8 @@ import math
 from markupsafe import Markup
 
 
-def report_sketch(result, view='three'):
+def report_sketch(result, view='three', dimensions=True):
+    """dimensions=False: szkic układu bez wymiarów (projekt koncepcyjny, przed wymiarowaniem)."""
     g, p = result['geometry'], result['params']
     w, f = g['wing'], g['fuselage']
     ht, vt = g['horizontal_tail'], g['vertical_tail']
@@ -47,7 +48,7 @@ def report_sketch(result, view='three'):
         xprop = -.08 if p.get('engine_location', 'nose') == 'nose' else length * .85
         propd = result['bipol_projects']['p3']['blueprint_checks']['propeller_diameter_m']
         path([top(xprop, -propd / 2), top(xprop, propd / 2)], 'none', False)
-    label(330, 319, f'Rzut z góry · b = {round(span * 1000)} mm')
+    label(330, 319, f'Rzut z góry · b = {round(span * 1000)} mm' if dimensions else 'Rzut z góry')
     if view == 'top':
         return Markup(''.join(out) + '</svg>')
 
@@ -59,7 +60,7 @@ def report_sketch(result, view='three'):
     path([side(tailac-.25*vt['cr_v'], .1*diameter), side(tailac-.25*vt['ct_v'], vt['h_v']),
           side(tailac+.75*vt['ct_v'], vt['h_v']), side(tailac+.75*vt['cr_v'], 0)])
     path([side(xwing, 0), side(xwing + w['cr'], 0)], 'none', False)
-    label(167, 485, f'Rzut z boku · L = {round(length * 1000)} mm')
+    label(167, 485, f'Rzut z boku · L = {round(length * 1000)} mm' if dimensions else 'Rzut z boku')
 
     s = min(270 / span, 90 / (diameter + vt['h_v']))
     front = lambda y, z: (490 + y * s, 430 - z * s)

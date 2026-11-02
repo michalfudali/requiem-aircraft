@@ -63,8 +63,16 @@ function drawMatchingChart(canvasId, sizing) {
   const xMax = Math.max(...wsVals);
 
   const isJet = sizing.engine_type === 'jet';
+  if (!canvas._visibleCurves) {
+    canvas._visibleCurves = {
+      takeoff: true, climb: true, cruise: true, ceiling: true,
+      vmax: true, tow: true, stall: true, landing: true, max_range: true
+    };
+  }
+  const vis = canvas._visibleCurves;
+
   const allY = [...sizing.curve_takeoff, ...sizing.curve_climb, ...sizing.curve_cruise,
-    ...(sizing.curve_vmax || []), ...(sizing.curve_tow || [])];
+    ...(sizing.curve_ceiling || []), ...(sizing.curve_vmax || []), ...(sizing.curve_tow || [])];
   const yMin = 0;
   const yMax = Math.max(1, ...allY.filter(Number.isFinite)) * 1.15;
 
@@ -74,8 +82,8 @@ function drawMatchingChart(canvasId, sizing) {
   function fromY(py) { return yMin + ((pad.top + plotH - py) / plotH) * (yMax - yMin); }
 
   const wsLimit = Math.min(
-    Number.isFinite(sizing.ws_stall_max) ? sizing.ws_stall_max : xMax,
-    Number.isFinite(sizing.ws_landing) ? sizing.ws_landing : xMax
+    (vis.stall && Number.isFinite(sizing.ws_stall_max)) ? sizing.ws_stall_max : xMax,
+    (vis.landing && Number.isFinite(sizing.ws_landing)) ? sizing.ws_landing : xMax
   );
 
   function getRequiredYAtWs(ws) {
@@ -86,12 +94,13 @@ function drawMatchingChart(canvasId, sizing) {
         const factor = (ws - wsVals[i]) / (wsVals[i + 1] - wsVals[i]);
         const getV = (arr) => arr && Number.isFinite(arr[i]) && Number.isFinite(arr[i + 1]) ? arr[i] + factor * (arr[i + 1] - arr[i]) : null;
         const candidates = [
-          getV(sizing.curve_takeoff),
-          getV(sizing.curve_climb),
-          getV(sizing.curve_cruise),
-          getV(sizing.curve_vmax),
-          getV(sizing.curve_tow),
-          Number.isFinite(sizing.climb_min) ? sizing.climb_min : null
+          vis.takeoff ? getV(sizing.curve_takeoff) : null,
+          vis.climb ? getV(sizing.curve_climb) : null,
+          vis.cruise ? getV(sizing.curve_cruise) : null,
+          (vis.ceiling && sizing.curve_ceiling) ? getV(sizing.curve_ceiling) : null,
+          (vis.vmax && sizing.curve_vmax) ? getV(sizing.curve_vmax) : null,
+          (vis.tow && sizing.curve_tow) ? getV(sizing.curve_tow) : null,
+          (vis.climb && Number.isFinite(sizing.climb_min)) ? sizing.climb_min : null
         ].filter(Number.isFinite);
         return candidates.length ? Math.max(...candidates) : 0;
       }
@@ -151,12 +160,13 @@ function drawMatchingChart(canvasId, sizing) {
     wsVals.forEach((ws, idx) => {
       if (ws > wsLimit + 1e-3) return;
       const candidates = [
-        sizing.curve_takeoff[idx],
-        sizing.curve_climb[idx],
-        sizing.curve_cruise[idx],
-        sizing.curve_vmax ? sizing.curve_vmax[idx] : null,
-        sizing.curve_tow ? sizing.curve_tow[idx] : null,
-        Number.isFinite(sizing.climb_min) ? sizing.climb_min : null
+        vis.takeoff ? sizing.curve_takeoff[idx] : null,
+        vis.climb ? sizing.curve_climb[idx] : null,
+        vis.cruise ? sizing.curve_cruise[idx] : null,
+        (vis.ceiling && sizing.curve_ceiling) ? sizing.curve_ceiling[idx] : null,
+        (vis.vmax && sizing.curve_vmax) ? sizing.curve_vmax[idx] : null,
+        (vis.tow && sizing.curve_tow) ? sizing.curve_tow[idx] : null,
+        (vis.climb && Number.isFinite(sizing.climb_min)) ? sizing.climb_min : null
       ].filter(Number.isFinite);
       const reqY = candidates.length ? Math.max(...candidates) : 0;
       feasiblePoints.push({ x: toX(ws), y: toY(reqY), ws, reqY });
@@ -174,9 +184,9 @@ function drawMatchingChart(canvasId, sizing) {
       ctx.lineTo(feasiblePoints[0].x, pad.top);
       ctx.closePath();
 
-      ctx.fillStyle = 'rgba(22, 140, 131, 0.09)';
+      ctx.fillStyle = 'rgba(22, 140, 131, 0.10)';
       ctx.fill();
-      ctx.strokeStyle = 'rgba(22, 140, 131, 0.35)';
+      ctx.strokeStyle = 'rgba(22, 140, 131, 0.40)';
       ctx.lineWidth = 1;
       ctx.setLineDash([4, 4]);
       ctx.stroke();
@@ -209,14 +219,15 @@ function drawMatchingChart(canvasId, sizing) {
       ctx.stroke();
     }
 
-    const takeoffLabel = sizing.takeoff_basis === '15m' ? 'Start na 15 m' : 'Rozbieg (brak startu na 15 m)';
-    drawLine(sizing.curve_takeoff, '#dc2626', takeoffLabel);
-    drawLine(sizing.curve_climb, '#2563eb', 'Wznoszenie');
-    drawLine(sizing.curve_cruise, '#059669', 'Przelot');
-    if (sizing.curve_vmax) drawLine(sizing.curve_vmax, '#c2410c', 'Vmax');
-    if (sizing.curve_tow) drawLine(sizing.curve_tow, '#db2777', 'Holowanie');
+    const takeoffLabel = sizing.takeoff_basis === '15m' ? 'Start na 15 m' : 'Rozbieg (brak 15m)';
+    if (vis.takeoff) drawLine(sizing.curve_takeoff, '#dc2626', takeoffLabel);
+    if (vis.climb) drawLine(sizing.curve_climb, '#2563eb', 'Wznoszenie');
+    if (vis.cruise) drawLine(sizing.curve_cruise, '#059669', 'Przelot');
+    if (vis.ceiling && sizing.curve_ceiling) drawLine(sizing.curve_ceiling, '#475569', 'Pułap');
+    if (vis.vmax && sizing.curve_vmax) drawLine(sizing.curve_vmax, '#c2410c', 'Vmax');
+    if (vis.tow && sizing.curve_tow) drawLine(sizing.curve_tow, '#db2777', 'Holowanie');
 
-    if (Number.isFinite(sizing.climb_min)) {
+    if (vis.climb && Number.isFinite(sizing.climb_min)) {
       ctx.strokeStyle = '#2563eb';
       ctx.setLineDash([2, 4]);
       ctx.lineWidth = 1.5;
@@ -228,9 +239,9 @@ function drawMatchingChart(canvasId, sizing) {
     }
 
     const verticals = [
-      { ws: sizing.ws_stall_max, color: '#9333ea', dash: [4, 4] },
-      { ws: sizing.ws_landing, color: '#0f766e', dash: [8, 4] },
-      { ws: sizing.ws_max_range, color: '#64748b', dash: [2, 3] }
+      ...(vis.stall ? [{ ws: sizing.ws_stall_max, color: '#9333ea', dash: [4, 4] }] : []),
+      ...(vis.landing ? [{ ws: sizing.ws_landing, color: '#0f766e', dash: [8, 4] }] : []),
+      ...(vis.max_range ? [{ ws: sizing.ws_max_range, color: '#64748b', dash: [2, 3] }] : [])
     ];
     verticals.forEach(({ ws, color, dash }) => {
       if (!Number.isFinite(ws) || ws < xMin || ws > xMax) return;
@@ -244,12 +255,13 @@ function drawMatchingChart(canvasId, sizing) {
       ctx.setLineDash([]);
     });
 
-    // 3. Design Point
+    // 3. Design Points: Point A (Min Power) and Point B (Max Range)
     const dp = sizing.design_point;
     const dpX = toX(dp.ws);
     const dpY = toY(isJet ? dp.tw : dp.pw);
 
-    ctx.fillStyle = '#d97706';
+    // Point A (Gold Circle / Star)
+    ctx.fillStyle = '#f59e0b';
     ctx.beginPath();
     ctx.arc(dpX, dpY, 6, 0, Math.PI * 2);
     ctx.fill();
@@ -260,9 +272,32 @@ function drawMatchingChart(canvasId, sizing) {
     ctx.fillStyle = '#b45309';
     ctx.font = 'bold 11px sans-serif';
     ctx.textAlign = 'left';
-    BipolSymbols.fillText(ctx, `Punkt projektowy (${dp.ws} N/m²)`, dpX + 8, dpY - 6);
+    BipolSymbols.fillText(ctx, `⭐ Punkt A (${Math.round(dp.ws)} N/m²)`, dpX + 8, dpY - 6);
 
-    // 4. Cursor Hover / Crosshairs
+    // Point B (Cyan Diamond) - Maximum Range Point
+    if (vis.max_range && Number.isFinite(sizing.ws_max_range) && sizing.ws_max_range >= xMin && sizing.ws_max_range <= xMax) {
+      const bWs = sizing.ws_max_range;
+      const bReqY = getRequiredYAtWs(bWs) || (isJet ? dp.tw : dp.pw);
+      const bX = toX(bWs);
+      const bY = toY(bReqY);
+
+      ctx.save();
+      ctx.translate(bX, bY);
+      ctx.rotate(Math.PI / 4);
+      ctx.fillStyle = '#06b6d4';
+      ctx.fillRect(-5, -5, 10, 10);
+      ctx.strokeStyle = '#ffffff';
+      ctx.lineWidth = 1.5;
+      ctx.strokeRect(-5, -5, 10, 10);
+      ctx.restore();
+
+      ctx.fillStyle = '#0891b2';
+      ctx.font = 'bold 11px sans-serif';
+      ctx.textAlign = 'left';
+      BipolSymbols.fillText(ctx, `🔷 Punkt B (${Math.round(bWs)} N/m²)`, bX + 8, bY + 14);
+    }
+
+    // 4. Cursor Hover / Crosshairs with Margin Readouts
     if (cursor && cursor.inPlot) {
       const { cx, cy, ws, yVal } = cursor;
       const reqY = getRequiredYAtWs(ws);
@@ -290,20 +325,27 @@ function drawMatchingChart(canvasId, sizing) {
       ctx.lineWidth = 1.5;
       ctx.stroke();
 
-      // Tooltip box
-      const tipText1 = `W/S: ${Math.round(ws)} N/m²`;
-      const tipText2 = isJet ? `T/W: ${yVal.toFixed(3)}` : `P/W: ${yVal.toFixed(1)} W/N`;
+      // Tooltip box with margins
+      const dWs = wsLimit - ws;
+      const dY = yVal - reqY;
+      const dWsPct = (dWs / wsLimit) * 100;
+      const dYPct = reqY > 0 ? (dY / reqY) * 100 : 0;
+
+      const tipText1 = `W/S: ${Math.round(ws)} N/m² (Δ: ${dWs >= 0 ? '+' : ''}${Math.round(dWs)} N/m², ${dWsPct.toFixed(1)}%)`;
+      const tipText2 = isJet
+        ? `T/W: ${yVal.toFixed(3)} (Δ: ${dY >= 0 ? '+' : ''}${dY.toFixed(3)}, ${dYPct.toFixed(1)}%)`
+        : `P/W: ${yVal.toFixed(1)} W/N (Δ: ${dY >= 0 ? '+' : ''}${dY.toFixed(1)} W/N, ${dYPct.toFixed(1)}%)`;
       const tipStatus = isOk ? '✓ W obszarze dopuszczalnym' : (ws > wsLimit ? '❌ Przekroczone V_S / lądowanie' : '❌ Zbyt mała moc/ciąg');
 
       ctx.font = '10px sans-serif';
-      const tw = Math.max(ctx.measureText(tipText1).width, ctx.measureText(tipText2).width, ctx.measureText(tipStatus).width) + 16;
-      const th = 48;
+      const tw = Math.max(ctx.measureText(tipText1).width, ctx.measureText(tipText2).width, ctx.measureText(tipStatus).width) + 20;
+      const th = 50;
       let tx = cx + 12;
       let ty = cy - th - 8;
       if (tx + tw > width - 10) tx = cx - tw - 12;
       if (ty < pad.top) ty = cy + 12;
 
-      ctx.fillStyle = 'rgba(255, 255, 255, 0.94)';
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.95)';
       ctx.strokeStyle = isOk ? '#108c83' : '#dc2626';
       ctx.lineWidth = 1.5;
       ctx.beginPath();
@@ -313,39 +355,46 @@ function drawMatchingChart(canvasId, sizing) {
 
       ctx.fillStyle = '#1e293b';
       ctx.textAlign = 'left';
-      ctx.fillText(`${tipText1} | ${tipText2}`, tx + 8, ty + 16);
+      ctx.fillText(tipText1, tx + 8, ty + 15);
+      ctx.fillText(tipText2, tx + 8, ty + 30);
       ctx.fillStyle = isOk ? '#0f766e' : '#b91c1c';
       ctx.font = 'bold 10px sans-serif';
-      ctx.fillText(tipStatus, tx + 8, ty + 34);
+      ctx.fillText(tipStatus, tx + 8, ty + 44);
       ctx.restore();
     }
 
-    // 5. Legend
+    // 5. Interactive Legend with Toggle Areas
+    canvas._legendRegions = [];
     const leg = [
-      { label: takeoffLabel, color: '#dc2626' },
-      { label: 'Wznoszenie (w_y)', color: '#2563eb' },
-      { label: 'Przelot (Vcr)', color: '#059669' },
-      ...(sizing.curve_vmax ? [{ label: 'Vmax przy ziemi', color: '#c2410c' }] : []),
-      ...(sizing.curve_tow ? [{ label: 'Holowanie szybowca', color: '#db2777' }] : []),
-      { label: 'Vmin (Cz,max/1,1)', color: '#9333ea' },
-      ...(Number.isFinite(sizing.ws_landing) ? [{ label: 'Lądowanie', color: '#0f766e' }] : []),
-      ...(Number.isFinite(sizing.ws_max_range) ? [{ label: 'Max zasięg (B)', color: '#64748b' }] : [])
+      { key: 'takeoff', label: takeoffLabel, color: '#dc2626' },
+      { key: 'climb', label: 'Wznoszenie (w_y)', color: '#2563eb' },
+      { key: 'cruise', label: 'Przelot (Vcr)', color: '#059669' },
+      ...(sizing.curve_ceiling ? [{ key: 'ceiling', label: 'Pułap praktyczny', color: '#475569' }] : []),
+      ...(sizing.curve_vmax ? [{ key: 'vmax', label: 'Vmax przy ziemi', color: '#c2410c' }] : []),
+      ...(sizing.curve_tow ? [{ key: 'tow', label: 'Holowanie szybowca', color: '#db2777' }] : []),
+      { key: 'stall', label: 'Vmin (Cz,max/1,1)', color: '#9333ea' },
+      ...(Number.isFinite(sizing.ws_landing) ? [{ key: 'landing', label: 'Lądowanie', color: '#0f766e' }] : []),
+      ...(Number.isFinite(sizing.ws_max_range) ? [{ key: 'max_range', label: 'Max zasięg (B)', color: '#64748b' }] : [])
     ];
-    let legX = pad.left + 10;
+    let legX = pad.left + 6;
     leg.forEach((item) => {
-      ctx.fillStyle = item.color;
-      ctx.fillRect(legX, pad.top + 6, 12, 4);
-      ctx.fillStyle = '#475569';
-      ctx.font = '10px sans-serif';
+      const active = vis[item.key] !== false;
+      ctx.fillStyle = active ? item.color : '#cbd5e1';
+      ctx.fillRect(legX, pad.top + 6, 10, 4);
+      ctx.fillStyle = active ? '#334155' : '#94a3b8';
+      ctx.font = active ? '10px sans-serif' : 'italic 10px sans-serif';
       ctx.textAlign = 'left';
-      BipolSymbols.fillText(ctx, item.label, legX + 16, pad.top + 10);
-      legX += ctx.measureText(item.label).width + 28;
+      const text = (active ? '' : '[×] ') + item.label;
+      BipolSymbols.fillText(ctx, text, legX + 14, pad.top + 10);
+      const itemW = ctx.measureText(text).width + 20;
+      canvas._legendRegions.push({ key: item.key, x: legX, y: pad.top + 2, w: itemW, h: 14 });
+      legX += itemW + 8;
     });
   }
 
   render();
 
-  // Attach interactive mouse listeners once
+  // Attach interactive mouse and click listeners once
   if (!canvas._hasMatchingListeners) {
     canvas._hasMatchingListeners = true;
     canvas.addEventListener('mousemove', (e) => {
@@ -367,8 +416,23 @@ function drawMatchingChart(canvasId, sizing) {
     canvas.addEventListener('mouseleave', () => {
       render(null);
     });
+
+    canvas.addEventListener('click', (e) => {
+      const rect = canvas.getBoundingClientRect();
+      const cssX = e.clientX - rect.left;
+      const cssY = e.clientY - rect.top;
+      const regions = canvas._legendRegions || [];
+      for (const reg of regions) {
+        if (cssX >= reg.x && cssX <= reg.x + reg.w && cssY >= reg.y && cssY <= reg.y + reg.h) {
+          canvas._visibleCurves[reg.key] = !canvas._visibleCurves[reg.key];
+          render(null);
+          return;
+        }
+      }
+    });
   }
 }
+
 
 // 2. POLAR CHART Cz vs Cx
 function drawPolarChart(canvasId, aero) {
@@ -1061,6 +1125,14 @@ function drawBalanceDiagram(canvasId, balance) {
     ctx.textAlign = 'left';
     BipolSymbols.fillText(ctx, `${s.name} (${s.xcg_mac_pct.toFixed(1)}%)`, x + 7, y - 4);
   });
+
+  try {
+    if (document.getElementById('layoutBalanceCanvas')) {
+      renderLayoutAndBalance('layoutBalanceCanvas', balance);
+    }
+  } catch (err) {
+    console.warn('Layout & Balance visualizer auto-render notice:', err);
+  }
 }
 
 // 7. GENERATOR RYSUNKU TECHNICZNEGO 3-RZUTOWEGO WG POLSKICH NORM (PN-EN ISO 128, 129, 5456-2, 5457, 5455, EN ISO 6433) ORAZ FORMATKI A3Z ZPK MEiL PW
@@ -1890,4 +1962,303 @@ function openStandaloneCADWindow() {
   `);
   win.document.close();
 }
+
+// 8. INTERACTIVE AIRCRAFT LAYOUT & BALANCE VISUALIZER (Milestone 2 - Wykład 4, 6, 7)
+function renderLayoutAndBalance(canvasId, envelopeData, selectedCaseKey = 'case6_mtow', showStabilityTriangle = false) {
+  const c = initCanvas(canvasId);
+  if (!c) return;
+  const { canvas, ctx, width, height } = c;
+
+  if (!envelopeData) {
+    ctx.clearRect(0, 0, width, height);
+    ctx.fillStyle = '#64748b'; ctx.font = '13px sans-serif'; ctx.textAlign = 'center';
+    ctx.fillText('Brak danych wyważenia. Oblicz projekt, aby zobaczyć układ samolotu.', width / 2, height / 2);
+    return;
+  }
+
+  // Preserve state on canvas element
+  canvas._envelopeData = envelopeData;
+  canvas._selectedCaseKey = selectedCaseKey;
+  canvas._showStabilityTriangle = showStabilityTriangle;
+
+  ctx.clearRect(0, 0, width, height);
+  const theme = getChartTheme();
+
+  // Normalize data whether coming from calculate_balance_envelope or legacy balance_res
+  const cases = envelopeData.cg_positions || {};
+  let currCase = cases[selectedCaseKey];
+  if (!currCase && envelopeData.loading_states) {
+    // Adapter for legacy format
+    const legacyState = envelopeData.loading_states.find(s => s.key === selectedCaseKey) || envelopeData.loading_states[envelopeData.loading_states.length - 1];
+    if (legacyState) {
+      currCase = {
+        name: legacyState.name,
+        mass_kg: legacyState.mass_kg,
+        xcg_m: legacyState.xcg_m,
+        xcg_mac_pct: legacyState.xcg_mac_pct,
+        stations: envelopeData.component_stations || []
+      };
+    }
+  }
+  if (!currCase && Object.keys(cases).length > 0) {
+    currCase = Object.values(cases)[0];
+  }
+  if (!currCase) {
+    currCase = { name: 'Masa startowa (MTOW)', mass_kg: 1000, xcg_m: 2.8, xcg_mac_pct: 28.5, stations: [] };
+  }
+
+  const stations = currCase.stations || envelopeData.component_stations || [];
+
+  // Geometry bounds
+  const xVals = stations.length > 0 ? stations.map(s => s.x_m) : [0.0, 2.5, 4.0, 7.5];
+  const maxX = Math.max(8.0, ...xVals) * 1.12;
+
+  // Viewport padding
+  const pad = { top: 35, right: 30, bottom: 45, left: 45 };
+  const plotW = width - pad.left - pad.right;
+  const plotH = height - pad.top - pad.bottom;
+
+  function toScreenX(x) {
+    return pad.left + (x / maxX) * plotW;
+  }
+  const midY = pad.top + plotH * 0.52;
+
+  // 1. Draw Fuselage Silhouette Contour
+  const l_f = maxX / 1.12;
+  const d_f_px = 38;
+  ctx.save();
+  ctx.strokeStyle = theme.isDark ? '#475569' : '#94a3b8';
+  ctx.lineWidth = 2;
+  ctx.fillStyle = theme.isDark ? 'rgba(30, 41, 59, 0.65)' : 'rgba(241, 245, 249, 0.75)';
+
+  ctx.beginPath();
+  const xNose = toScreenX(0);
+  ctx.moveTo(xNose, midY);
+  ctx.quadraticCurveTo(toScreenX(0.12 * l_f), midY - d_f_px * 0.5, toScreenX(0.25 * l_f), midY - d_f_px * 0.5);
+  ctx.lineTo(toScreenX(0.70 * l_f), midY - d_f_px * 0.5);
+  ctx.lineTo(toScreenX(0.96 * l_f), midY - d_f_px * 0.2);
+  ctx.lineTo(toScreenX(0.96 * l_f), midY + d_f_px * 0.1);
+  ctx.lineTo(toScreenX(0.68 * l_f), midY + d_f_px * 0.5);
+  ctx.lineTo(toScreenX(0.25 * l_f), midY + d_f_px * 0.5);
+  ctx.quadraticCurveTo(toScreenX(0.10 * l_f), midY + d_f_px * 0.5, xNose, midY);
+  ctx.closePath();
+  ctx.fill();
+  ctx.stroke();
+
+  // 2. Draw Vertical Tail & Horizontal Tail
+  ctx.fillStyle = theme.isDark ? 'rgba(56, 189, 248, 0.25)' : 'rgba(14, 165, 233, 0.2)';
+  ctx.strokeStyle = '#0284c7';
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  ctx.moveTo(toScreenX(0.78 * l_f), midY - d_f_px * 0.45);
+  ctx.lineTo(toScreenX(0.90 * l_f), midY - d_f_px * 1.5);
+  ctx.lineTo(toScreenX(0.95 * l_f), midY - d_f_px * 1.5);
+  ctx.lineTo(toScreenX(0.95 * l_f), midY - d_f_px * 0.2);
+  ctx.closePath();
+  ctx.fill();
+  ctx.stroke();
+
+  // 3. Draw Wing Mean Aerodynamic Chord (MAC)
+  const xFwdM = envelopeData.cg_fwd_m || (envelopeData.arms && envelopeData.arms.wing ? envelopeData.arms.wing - 0.2 : 2.5);
+  const xAftM = envelopeData.cg_aft_m || (xFwdM + 0.35);
+  const optXlemac = envelopeData.optimal_x_lemac_m || envelopeData.x_lemac_m || (xFwdM - 0.35);
+  const xNpM = (envelopeData.neutral_point && envelopeData.neutral_point.x_n_m) || envelopeData.x_np || (xAftM + 0.30);
+  const npPct = (envelopeData.neutral_point && envelopeData.neutral_point.x_n_mac_pct) || envelopeData.x_np_mac_pct || 42.0;
+
+  const wingMacM = Math.max(0.8, (npPct ? ((xNpM - optXlemac) / (npPct / 100.0)) : 1.5));
+  const xWingLE = toScreenX(optXlemac);
+  const xWingTE = toScreenX(optXlemac + wingMacM);
+
+  // Wing chord bar
+  ctx.strokeStyle = '#0284c7';
+  ctx.lineWidth = 5;
+  ctx.beginPath();
+  ctx.moveTo(xWingLE, midY - 6);
+  ctx.lineTo(xWingTE, midY - 6);
+  ctx.stroke();
+
+  // Target flight CG green band (25% - 35% MAC)
+  const xTarget25 = toScreenX(optXlemac + 0.25 * wingMacM);
+  const xTarget35 = toScreenX(optXlemac + 0.35 * wingMacM);
+  ctx.fillStyle = 'rgba(16, 185, 129, 0.35)';
+  ctx.fillRect(xTarget25, midY - 14, xTarget35 - xTarget25, 16);
+  ctx.strokeStyle = '#10b981';
+  ctx.lineWidth = 1.5;
+  ctx.strokeRect(xTarget25, midY - 14, xTarget35 - xTarget25, 16);
+
+  ctx.fillStyle = '#059669';
+  ctx.font = 'bold 9px sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText('25–35% ŚDA', (xTarget25 + xTarget35) / 2, midY - 18);
+
+  // 4. Draw Landing Gear Wheels
+  const xNoseWheel = toScreenX(0.12 * l_f);
+  const xMainWheel = toScreenX(optXlemac + 0.45 * wingMacM);
+  const wheelY = midY + d_f_px * 0.5 + 24;
+
+  ctx.fillStyle = '#334155';
+  ctx.strokeStyle = '#64748b';
+  ctx.lineWidth = 2;
+  // Struts
+  ctx.beginPath();
+  ctx.moveTo(xNoseWheel, midY + d_f_px * 0.4); ctx.lineTo(xNoseWheel, wheelY);
+  ctx.moveTo(xMainWheel, midY + d_f_px * 0.4); ctx.lineTo(xMainWheel, wheelY);
+  ctx.stroke();
+  // Wheels
+  ctx.beginPath(); ctx.arc(xNoseWheel, wheelY, 6, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+  ctx.beginPath(); ctx.arc(xMainWheel, wheelY, 8, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+  // Ground line
+  ctx.strokeStyle = theme.isDark ? '#64748b' : '#cbd5e1';
+  ctx.setLineDash([4, 4]);
+  ctx.beginPath(); ctx.moveTo(toScreenX(0), wheelY + 8); ctx.lineTo(toScreenX(maxX), wheelY + 8); ctx.stroke();
+  ctx.setLineDash([]);
+
+  // 5. Draw Component Mass Stations (Bubbles)
+  stations.forEach(st => {
+    const sx = toScreenX(st.x_m);
+    const sz = midY - (st.z_m || 0.0) * 35;
+    const r = Math.max(3.5, Math.min(16, Math.sqrt(st.mass_kg || 50) * 0.55));
+    ctx.fillStyle = theme.isDark ? 'rgba(56, 189, 248, 0.65)' : 'rgba(2, 132, 199, 0.65)';
+    ctx.strokeStyle = theme.isDark ? '#bae6fd' : '#0369a1';
+    ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.arc(sx, sz, r, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+  });
+
+  // 6. Draw Current Case CG Marker
+  const currCgX = toScreenX(currCase.xcg_m);
+  ctx.strokeStyle = '#dc2626';
+  ctx.lineWidth = 2.5;
+  ctx.beginPath();
+  ctx.moveTo(currCgX, midY - 32);
+  ctx.lineTo(currCgX, midY + 32);
+  ctx.stroke();
+
+  // CG Icon / Symbol
+  ctx.fillStyle = '#dc2626';
+  ctx.beginPath(); ctx.arc(currCgX, midY, 6, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = '#ffffff';
+  ctx.font = 'bold 9px sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText('ŚM', currCgX, midY + 3.5);
+
+  // Label showing CG % MAC
+  ctx.fillStyle = '#b91c1c';
+  ctx.font = 'bold 10px sans-serif';
+  ctx.fillText(`${currCase.name}: ${Number(currCase.xcg_mac_pct).toFixed(1)}% ŚDA`, currCgX, midY + 44);
+
+  // 7. Draw Neutral Point Line
+  const npX = toScreenX(xNpM);
+  ctx.strokeStyle = '#8b5cf6';
+  ctx.setLineDash([5, 3]);
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(npX, pad.top);
+  ctx.lineTo(npX, midY + 28);
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  ctx.fillStyle = '#7c3aed';
+  ctx.font = 'bold 9px sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText(`PN (${Number(npPct).toFixed(1)}% ŚDA)`, npX, pad.top - 5);
+
+  // 8. Static Margin Bracket Kn
+  const aftCgX = toScreenX(xAftM);
+  if (npX > aftCgX) {
+    ctx.strokeStyle = '#6d28d9';
+    ctx.lineWidth = 1.5;
+    const bracketY = pad.top + 10;
+    ctx.beginPath();
+    ctx.moveTo(aftCgX, bracketY); ctx.lineTo(npX, bracketY);
+    ctx.moveTo(aftCgX, bracketY - 4); ctx.lineTo(aftCgX, bracketY + 4);
+    ctx.moveTo(npX, bracketY - 4); ctx.lineTo(npX, bracketY + 4);
+    ctx.stroke();
+    ctx.fillStyle = '#5b21b6';
+    ctx.font = '9px sans-serif';
+    const knVal = envelopeData.static_margin_aft_pct || (envelopeData.kn_min ? (envelopeData.kn_min * 100).toFixed(1) : '10.5');
+    ctx.fillText(`Kn = ${knVal}%`, (aftCgX + npX) / 2, bracketY - 4);
+  }
+
+  // 9. Turnover Stability Triangle Overlay (if toggled)
+  if (showStabilityTriangle) {
+    const stab = envelopeData.turnover_stability || {
+      turnover_angle_deg: 48.5,
+      dn_m: 1.15,
+      main_gear_cg_angle_deg: 14.2,
+      tailstrike_clearance_deg: 13.5
+    };
+    ctx.save();
+    ctx.fillStyle = 'rgba(245, 158, 11, 0.15)';
+    ctx.strokeStyle = '#d97706';
+    ctx.lineWidth = 1.5;
+    const boxW = 215, boxH = 92;
+    const boxX = width - pad.right - boxW;
+    const boxY = pad.top + 4;
+    ctx.fillRect(boxX, boxY, boxW, boxH);
+    ctx.strokeRect(boxX, boxY, boxW, boxH);
+
+    ctx.fillStyle = '#b45309';
+    ctx.font = 'bold 10px sans-serif';
+    ctx.textAlign = 'left';
+    ctx.fillText('📐 Trójkąt Wywrotu Podwozia (Wykład 4)', boxX + 8, boxY + 16);
+
+    ctx.fillStyle = theme.isDark ? '#cbd5e1' : '#334155';
+    ctx.font = '9.5px sans-serif';
+    ctx.fillText(`Kąt wywrotu: ${stab.turnover_angle_deg}° (< 60°)`, boxX + 8, boxY + 34);
+    ctx.fillText(`Ramię dn: ${stab.dn_m} m`, boxX + 8, boxY + 50);
+    ctx.fillText(`Kąt podwozia gł.: ${stab.main_gear_cg_angle_deg}° (13°–15°)`, boxX + 8, boxY + 66);
+    ctx.fillText(`Zapas ogona: ${stab.tailstrike_clearance_deg}° (≥ 10°)`, boxX + 8, boxY + 82);
+    ctx.restore();
+  }
+
+  // Update DOM readouts if present
+  const elRange = document.getElementById('valCgRange');
+  if (elRange) {
+    const fwdP = envelopeData.cg_fwd !== undefined ? envelopeData.cg_fwd : (envelopeData.cg_range ? envelopeData.cg_range.forward_pct : 25.0);
+    const aftP = envelopeData.cg_aft !== undefined ? envelopeData.cg_aft : (envelopeData.cg_range ? envelopeData.cg_range.aft_pct : 32.5);
+    elRange.textContent = `${Number(fwdP).toFixed(1)}% — ${Number(aftP).toFixed(1)}%`;
+  }
+  const elSm = document.getElementById('valStaticMargin');
+  if (elSm) {
+    const knVal = envelopeData.static_margin_aft_pct !== undefined ? envelopeData.static_margin_aft_pct : (envelopeData.stability ? envelopeData.stability.static_margin_aft_pct : 10.5);
+    elSm.textContent = `Kn = ${Number(knVal).toFixed(1)}% ŚDA`;
+  }
+  const elTurn = document.getElementById('valTurnoverAngle');
+  if (elTurn && envelopeData.turnover_stability) {
+    elTurn.textContent = `${envelopeData.turnover_stability.turnover_angle_deg}°`;
+  }
+
+  ctx.restore();
+}
+
+window.renderLayoutAndBalance = renderLayoutAndBalance;
+
+// Event listener for tab controls in studio_panels.html
+document.addEventListener('DOMContentLoaded', () => {
+  const container = document.getElementById('layoutBalanceVisualizer');
+  if (!container) return;
+
+  const canvas = document.getElementById('layoutBalanceCanvas');
+  const toggleBtn = document.getElementById('btnToggleStabilityTriangle');
+
+  container.addEventListener('click', e => {
+    const caseBtn = e.target.closest('.balance-case-tabs .case-btn');
+    if (caseBtn && canvas && canvas._envelopeData) {
+      container.querySelectorAll('.balance-case-tabs .case-btn').forEach(b => b.classList.remove('active'));
+      caseBtn.classList.add('active');
+      const caseKey = caseBtn.dataset.case;
+      renderLayoutAndBalance('layoutBalanceCanvas', canvas._envelopeData, caseKey, !!canvas._showStabilityTriangle);
+    }
+  });
+
+  if (toggleBtn) {
+    toggleBtn.addEventListener('click', () => {
+      if (canvas && canvas._envelopeData) {
+        canvas._showStabilityTriangle = !canvas._showStabilityTriangle;
+        toggleBtn.textContent = canvas._showStabilityTriangle ? 'Ukryj trójkąt wywrotu' : 'Pokaż trójkąt wywrotu podwozia';
+        renderLayoutAndBalance('layoutBalanceCanvas', canvas._envelopeData, canvas._selectedCaseKey || 'case6_mtow', canvas._showStabilityTriangle);
+      }
+    });
+  }
+});
 

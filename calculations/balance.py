@@ -313,3 +313,338 @@ def calculate_balance_and_stability(m_sizing: dict, geom: dict, aero: dict, para
             "evaluation": "Spełnione kryterium minimalnego zapasu stateczności 5% ŚDA" if is_stable else "Uwaga: mały zapas stateczności w tylnym położeniu ŚM!"
         }
     }
+
+
+def calculate_balance_envelope(params: dict) -> dict:
+    """
+    Calculates comprehensive longitudinal mass distribution, CG travel envelope across
+    6 discrete canonical loading cases, neutral point, static margin, and recommended wing shift.
+    Traceable strictly to MEiL PW BIPOL I Wykład 7 and okBIPOL_1_handout_7.pdf.
+
+    Parameters
+    ----------
+    params : dict
+        Airframe parameters, masses, geometry:
+        - m0 / mtow_kg: Gross takeoff weight [kg]
+        - m_empty: Operating empty weight [kg]
+        - m_fuel: Mission fuel mass [kg]
+        - m_payload: Payload mass [kg]
+        - m_crew: Crew mass [kg]
+        - n_crew: Crew member count (default 1)
+        - n_pax: Passenger count (default 0)
+        - m_bag: Baggage mass [kg]
+        - m_cargo: Dedicated cargo mass [kg]
+        - breakdown: dict of component masses (m_wing, m_fuselage, m_tail, m_gear, m_propulsion, m_systems)
+        - geometry / geom: dict of wing, fuselage, horizontal_tail, gear
+        - engine_location: 'nose', 'wing', 'rear'
+        - engine_type: 'prop', 'jet', 'none'
+        - aircraft_type: str
+        - wing_shift_user_m: float (manual override if specified)
+
+    Returns
+    -------
+    dict
+        Conformance to Milestone 2 interface contracts.
+    """
+    # 1. Parameter extraction & normalization
+    geom = params.get("geometry") or params.get("geom") or {}
+    fuselage = geom.get("fuselage") if isinstance(geom.get("fuselage"), dict) else {}
+    wing = geom.get("wing") if isinstance(geom.get("wing"), dict) else {}
+    htail = geom.get("horizontal_tail") if isinstance(geom.get("horizontal_tail"), dict) else {}
+    gear_geom = geom.get("gear") if isinstance(geom.get("gear"), dict) else {}
+
+    l_f = float(params.get("fuselage_length_m") or params.get("fuselage_len") or fuselage.get("length") or 8.0)
+    d_f = float(params.get("fuselage_diameter_m") or params.get("fuselage_diam") or fuselage.get("diameter") or (0.15 * l_f))
+    S = float(params.get("wing_area_m2") or params.get("S") or wing.get("S") or 15.0)
+    b = float(params.get("wingspan_m") or params.get("b") or wing.get("b") or 10.0)
+    AR = float(params.get("aspect_ratio") or params.get("AR") or wing.get("AR") or ((b ** 2) / max(0.1, S)))
+    mac = float(params.get("mac_m") or params.get("mac") or wing.get("mac") or (S / max(0.1, b)))
+
+    m_sizing = params.get("m_sizing") or params
+    m0 = float(params.get("m0") or params.get("mtow_kg") or m_sizing.get("m0") or 1100.0)
+    m_empty = float(params.get("m_empty") or m_sizing.get("m_empty") or (0.62 * m0))
+    m_fuel = float(params.get("m_fuel") or m_sizing.get("m_fuel") or (0.18 * m0))
+    m_payload = float(params.get("m_payload") or m_sizing.get("m_payload") or max(0.0, m0 - m_empty - m_fuel))
+    n_crew = int(params.get("n_crew") or m_sizing.get("n_crew") or 1)
+    crew_ref_mass = float(params.get("m_crew") or (0.085 * m0 if "m_crew" not in params and m0 > 2500.0 else n_crew * 85.0))
+    pilot_light = crew_ref_mass * (55.0 / 85.0)
+    pilot_heavy = crew_ref_mass * (110.0 / 85.0)
+
+    n_pax = int(params.get("n_pax", max(0, int(round((m_payload - 20.0) / 80.0))) if m_payload > 80.0 else 0))
+    m_bag_nom = float(params.get("m_bag", 18.14 * n_pax if n_pax else 0.20 * m_payload))
+    m_pax_nom = float(params.get("m_pax_total", n_pax * 80.0 if n_pax else 0.80 * m_payload))
+    m_cargo = float(params.get("m_cargo", 0.0))
+
+    # Component mass breakdown
+    raw_bd = params.get("breakdown") or m_sizing.get("breakdown")
+    if not raw_bd:
+        try:
+            from calculations.mass import estimate_component_masses
+            bd_res = estimate_component_masses(m0, params, geom=geom)
+            raw_bd = bd_res.get("breakdown")
+        except Exception:
+            raw_bd = None
+
+    if raw_bd:
+        m_w = float(raw_bd.get("m_wing") or raw_bd.get("wing") or (0.12 * m0))
+        m_f = float(raw_bd.get("m_fuselage") or raw_bd.get("fuselage") or (0.13 * m0))
+        m_ht = float(raw_bd.get("m_htail") or raw_bd.get("horizontal_tail") or 0.0)
+        m_vt = float(raw_bd.get("m_vtail") or raw_bd.get("vertical_tail") or 0.0)
+        m_t = float(raw_bd.get("m_tail") or raw_bd.get("tail") or (m_ht + m_vt) or (0.03 * m0))
+        m_g = float(raw_bd.get("m_gear") or raw_bd.get("landing_gear") or raw_bd.get("gear") or (0.045 * m0))
+        m_p = float(raw_bd.get("m_propulsion") or raw_bd.get("propulsion") or (0.17 * m0))
+        m_s = float(raw_bd.get("m_systems") or raw_bd.get("systems") or (0.08 * m0))
+        bd = {
+            "m_wing": m_w,
+            "m_fuselage": m_f,
+            "m_tail": m_t,
+            "m_gear": m_g,
+            "m_propulsion": m_p,
+            "m_systems": m_s,
+        }
+    else:
+        bd = {
+            "m_wing": 0.12 * m0,
+            "m_fuselage": 0.13 * m0,
+            "m_tail": 0.03 * m0,
+            "m_gear": 0.045 * m0,
+            "m_propulsion": 0.17 * m0,
+            "m_systems": 0.08 * m0,
+        }
+    # Ensure sum of empty structure equals m_empty exactly
+    empty_comp_sum = sum(bd.values())
+    if empty_comp_sum > 0:
+        f_norm = m_empty / empty_comp_sum
+        bd = {k: v * f_norm for k, v in bd.items()}
+
+    engine_loc = params.get("engine_location", "nose")
+    engine_type = params.get("engine_type", "prop")
+
+    # 2. Aerodynamic Neutral Point (Stick-fixed, Wyklad 7 & 10)
+    vh = float(htail.get("vh_coeff") or params.get("v_h", 0.70))
+    ar_h = float(htail.get("AR_h") or params.get("ar_h", 4.0))
+    a_w = (2.0 * math.pi * AR) / (AR + 2.0)
+    a_h = (2.0 * math.pi * ar_h) / (ar_h + 2.0)
+    de_da = min(0.55, (2.0 * a_w) / (math.pi * AR))
+    eta_h_eff = 0.72
+
+    delta_xac_fus = min(0.11, max(0.055, (0.35 * (d_f ** 2) * l_f) / max(0.1, S * mac * a_w)))
+    if engine_type == "none":
+        delta_xac_prop = 0.0
+    elif engine_type == "jet":
+        delta_xac_prop = 0.015 if engine_loc == "wing" else 0.008
+    else:
+        delta_xac_prop = 0.030 if engine_loc in ["nose", "wing"] else 0.010
+
+    x_ac_wbn_pct = (0.25 - delta_xac_fus - delta_xac_prop) * 100.0
+    delta_xn_tail_pct = (eta_h_eff * vh * (a_h / a_w) * (1.0 - de_da)) * 100.0
+    neutral_point_pct = x_ac_wbn_pct + delta_xn_tail_pct
+
+    # 3. Component Stations & Loading Cases Evaluation Subroutine
+    x_fus = 0.44 * l_f
+    x_tail = 0.91 * l_f
+    x_sys = 0.40 * l_f
+    x_prop = 0.10 * l_f if engine_loc == "nose" else (0.76 * l_f if engine_loc == "rear" else None)
+
+    def evaluate_layout_envelope(x_le):
+        # Component longitudinal arms
+        x_p = x_prop if x_prop is not None else (x_le - 0.15 * mac)
+        arms = {
+            "wing": x_le + 0.38 * mac,
+            "fuselage": x_fus,
+            "htail": x_tail,
+            "vtail": x_tail,
+            "gear_main": x_le + 0.45 * mac,
+            "gear_nose": 0.12 * l_f,
+            "propulsion": x_p,
+            "systems": x_sys,
+            "crew": x_le - 0.18 * mac,
+            "pax_front": x_le + 0.12 * mac,
+            "pax_rear": x_le + 0.48 * mac,
+            "baggage": x_le + 0.75 * mac,
+            "fuel": x_le + 0.32 * mac,
+        }
+        pax_centroid_arm = 0.45 * arms["pax_front"] + 0.55 * arms["pax_rear"]
+
+        # 11 component items for empty airframe
+        # 1: wing, 2: fuselage, 3: htail, 4: vtail, 5: gear_main, 6: gear_nose, 7: propulsion, 8: systems
+        comp_empty = [
+            ("1. Skrzydło (struktura płata)", bd["m_wing"], arms["wing"], 0.0, 0.15),
+            ("2. Kadłub (struktura kadłuba)", bd["m_fuselage"], arms["fuselage"], 0.0, 0.0),
+            ("3. Usterzenie poziome", bd["m_tail"] * 0.65, arms["htail"], 0.0, 0.35),
+            ("4. Usterzenie pionowe", bd["m_tail"] * 0.35, arms["vtail"], 0.0, 0.75),
+            ("5. Podwozie główne", bd["m_gear"] * 0.80, arms["gear_main"], 0.0, -0.85),
+            ("6. Podwozie przednie", bd["m_gear"] * 0.20, arms["gear_nose"], 0.0, -0.80),
+            ("7. Zespół napędowy", bd["m_propulsion"], arms["propulsion"], 0.0, 0.05),
+            ("8. Instalacje i awionika", bd["m_systems"], arms["systems"], 0.0, 0.0),
+        ]
+
+        def build_case_record(key, name, m_cr, m_px, m_bg, m_fl, in_fl=True):
+            items = list(comp_empty)
+            # Item 9: Pilot & crew
+            items.append(("9. Załoga (pilot)", m_cr, arms["crew"], 0.0, 0.10))
+            # Item 10: Passengers & baggage
+            # Split into pax and bag moments
+            pax_bag_mass = m_px + m_bg
+            pax_bag_arm = ((m_px * pax_centroid_arm + m_bg * arms["baggage"]) / max(1e-4, pax_bag_mass)) if pax_bag_mass > 0 else pax_centroid_arm
+            items.append(("10. Pasażerowie i ładunek", pax_bag_mass, pax_bag_arm, 0.0, 0.0))
+            # Item 11: Fuel
+            items.append(("11. Paliwo", m_fl, arms["fuel"], 0.0, 0.15))
+
+            # Machine-precision mass and moment summation
+            total_mass = sum(it[1] for it in items)
+            total_moment = sum(it[1] * it[2] for it in items)
+            x_cg = total_moment / max(1.0, total_mass)
+            cg_mac = ((x_cg - x_le) / mac) * 100.0
+
+            station_list = [
+                {
+                    "item": it[0],
+                    "mass_kg": round(it[1], 3),
+                    "x_m": round(it[2], 3),
+                    "y_m": round(it[3], 3),
+                    "z_m": round(it[4], 3),
+                    "moment_kg_m": round(it[1] * it[2], 3),
+                }
+                for it in items
+            ]
+
+            return {
+                "key": key,
+                "name": name,
+                "mass_kg": round(total_mass, 2),
+                "xcg_m": round(x_cg, 4),
+                "xcg_mac_pct": round(cg_mac, 2),
+                "moment_kg_m": round(total_moment, 2),
+                "in_flight": in_fl,
+                "_raw_cg": cg_mac,
+                "_raw_xcg": x_cg,
+                "stations": station_list,
+            }
+
+        cases = {}
+        # Case 1: Operating Empty Weight (OEW)
+        cases["case1_oew"] = build_case_record("case1_oew", "Case 1: Operating Empty Weight (OEW)",
+                                               0.0, 0.0, 0.0, 0.0, in_fl=False)
+
+        # Case 2a: OEW + Pilot Light (55 kg)
+        cases["case2_pilot_light"] = build_case_record("case2_pilot_light", "Case 2a: OEW + Pilot Light (55 kg)",
+                                                       pilot_light, 0.0, 0.0, 0.5 * m_fuel, in_fl=True)
+
+        # Case 2b: OEW + Pilot Heavy (110 kg) + Reserve Fuel -> yields critical forward CG limit (BIPOL_3)
+        cases["case2_pilot_heavy"] = build_case_record("case2_pilot_heavy", "Case 2b: OEW + Pilot Heavy (110 kg)",
+                                                       pilot_heavy, 0.0, 0.0, 0.20 * m_fuel, in_fl=True)
+
+        # Case 3: Full Passengers + Minimal Baggage
+        m_bag_min = min(m_bag_nom, 0.10 * m_payload) if m_payload > 0 else 5.0
+        m_pax_case3 = max(0.0, m_payload - m_bag_min)
+        cases["case3_full_pax_min_bag"] = build_case_record("case3_full_pax_min_bag", "Case 3: Full Pax + Min Bag",
+                                                            crew_ref_mass, m_pax_case3, m_bag_min, 0.8 * m_fuel, in_fl=True)
+
+        # Case 4: Full Baggage + Minimal Passengers (0 pax) -> yields critical aft CG limit (BIPOL_3)
+        cases["case4_full_bag_min_pax"] = build_case_record("case4_full_bag_min_pax", "Case 4: Full Bag + Min Pax",
+                                                            crew_ref_mass, 0.0, m_payload, 0.90 * m_fuel, in_fl=True)
+
+        # Case 5: Zero Fuel Weight (ZFW)
+        m_pax_zfw = min(m_pax_nom, max(0.0, m_payload - m_bag_nom))
+        m_bag_zfw = max(0.0, m_payload - m_pax_zfw)
+        cases["case5_zfw"] = build_case_record("case5_zfw", "Case 5: Zero Fuel Weight (ZFW)",
+                                               crew_ref_mass, m_pax_zfw, m_bag_zfw, 0.0, in_fl=True)
+
+        # Case 6: Maximum Takeoff Weight (MTOW)
+        cases["case6_mtow"] = build_case_record("case6_mtow", "Case 6: Maximum Takeoff Weight (MTOW)",
+                                                crew_ref_mass, m_pax_zfw, m_bag_zfw, m_fuel, in_fl=True)
+
+        flight_cgs = [v["_raw_cg"] for k, v in cases.items() if v["in_flight"]]
+        cg_fwd_val = min(flight_cgs)
+        cg_aft_val = max(flight_cgs)
+        return arms, cases, cg_fwd_val, cg_aft_val
+
+    # 4. Initial Wing Placement Guess & Bisection Optimization
+    target_oew_mac = 0.25
+    m_wing_group = bd["m_wing"] + bd["m_gear"] + (bd["m_propulsion"] if engine_loc == "wing" else 0.0)
+    denom = max(1.0, m_empty - m_wing_group)
+    mom_fixed = (bd["m_fuselage"] * x_fus + bd["m_tail"] * x_tail + bd["m_systems"] * x_sys +
+                 (bd["m_propulsion"] * x_prop if x_prop else 0.0))
+    mom_wing_off = (bd["m_wing"] * 0.38 + bd["m_gear"] * 0.45) * mac
+    x_lemac_init = max(0.20 * l_f, min(0.56 * l_f, (mom_fixed + mom_wing_off - target_oew_mac * mac * m_empty) / denom))
+
+    x_lemac = x_lemac_init
+    arms, cases, cg_fwd, cg_aft = evaluate_layout_envelope(x_lemac)
+    aft_target = min(35.0, neutral_point_pct - 5.0)
+
+    # Check criteria: fwd >= 25.0 (or span > 10.0), aft <= 35.0, static margin >= 5.0%
+    criterion_met = (cg_fwd >= 25.0 or (cg_aft - cg_fwd) > 10.0) and (cg_aft <= 35.0) and (neutral_point_pct - cg_aft >= 5.0)
+
+    if not criterion_met:
+        # Bisection over [0.20 * l_f, 0.56 * l_f] to center the CG
+        low, high = 0.20 * l_f, 0.56 * l_f
+        for _ in range(40):
+            mid = 0.5 * (low + high)
+            _, _, fwd_m, aft_m = evaluate_layout_envelope(mid)
+            err = (aft_m - aft_target) if (aft_m - fwd_m > 10.0) else (fwd_m - 25.0)
+            if err > 0:
+                low = mid
+            else:
+                high = mid
+        x_lemac = 0.5 * (low + high)
+        arms, cases, cg_fwd, cg_aft = evaluate_layout_envelope(x_lemac)
+
+    wing_shift_m = x_lemac - x_lemac_init
+    neutral_point_m = x_lemac + (neutral_point_pct / 100.0) * mac
+    kn_min = (neutral_point_pct - cg_aft) / 100.0
+    kn_max = (neutral_point_pct - cg_fwd) / 100.0
+
+    # 5. Landing Gear Turnover Stability Triangle
+    track_m = float(gear_geom.get("track") or params.get("track_m") or (0.24 * b))
+    wheelbase_m = float(gear_geom.get("wheelbase") or params.get("wheelbase_m") or max(0.8, arms["gear_main"] - arms["gear_nose"]))
+    zcg_mtow = 0.05
+    h_cg_m = max(0.40, zcg_mtow - (-0.85))
+    xcg_mtow_m = cases["case6_mtow"]["xcg_m"]
+    dn_m = ((xcg_mtow_m - arms["gear_nose"]) * (track_m / 2.0)) / math.sqrt(wheelbase_m ** 2 + (track_m / 2.0) ** 2)
+    turnover_angle_deg = round(math.degrees(math.atan2(h_cg_m, max(1e-4, dn_m))), 1)
+
+    dx_main_aft = arms["gear_main"] - cases["case4_full_bag_min_pax"]["xcg_m"]
+    main_gear_cg_angle_deg = round(math.degrees(math.atan2(dx_main_aft, h_cg_m)), 1)
+    tailstrike_deg = round(math.degrees(math.atan2(0.85, max(0.1, 0.91 * l_f - arms["gear_main"]))), 1)
+
+    cg_within_target = (cg_fwd >= 25.0 or (cg_aft - cg_fwd) > 10.0) and (cg_aft <= 35.0)
+
+    # Clean up internal temporary keys from case dicts
+    for c in cases.values():
+        c.pop("_raw_cg", None)
+        c.pop("_raw_xcg", None)
+
+    return {
+        "cg_positions": cases,
+        "cg_fwd": round(cg_fwd, 2),
+        "cg_aft": round(cg_aft, 2),
+        "cg_fwd_m": round(x_lemac + (cg_fwd / 100.0) * mac, 3),
+        "cg_aft_m": round(x_lemac + (cg_aft / 100.0) * mac, 3),
+        "cg_travel_span_pct": round(cg_aft - cg_fwd, 2),
+        "x_np": round(neutral_point_m, 3),
+        "x_np_mac_pct": round(neutral_point_pct, 2),
+        "kn_min": round(kn_min, 4),
+        "kn_max": round(kn_max, 4),
+        "static_margin_aft_pct": round(kn_min * 100.0, 2),
+        "static_margin_fwd_pct": round(kn_max * 100.0, 2),
+        "is_stable": kn_min >= 0.05,
+        "wing_shift_recommendation_m": round(wing_shift_m, 3),
+        "optimal_x_lemac_m": round(x_lemac, 3),
+        "target_cg_window": {"fwd_pct": 25.0, "aft_pct": 35.0},
+        "cg_within_target": cg_within_target,
+        "component_stations": cases["case6_mtow"]["stations"],
+        "turnover_stability": {
+            "track_m": round(track_m, 2),
+            "wheelbase_m": round(wheelbase_m, 2),
+            "dn_m": round(dn_m, 3),
+            "h_cg_m": round(h_cg_m, 2),
+            "turnover_angle_deg": turnover_angle_deg,
+            "turnover_compliant": turnover_angle_deg < 60.0,
+            "main_gear_cg_angle_deg": main_gear_cg_angle_deg,
+            "main_gear_compliant": 13.0 <= main_gear_cg_angle_deg <= 16.0,
+            "tailstrike_clearance_deg": tailstrike_deg,
+            "tailstrike_compliant": tailstrike_deg >= 10.0,
+        },
+    }
+

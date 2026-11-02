@@ -21,6 +21,28 @@ FORECAST_HORIZON_YEARS = 5
 BIPOL_1_SAMPLE = 20
 ENGINE_LABELS = {'prop': 'napęd śmigłowy', 'jet': 'napęd odrzutowy', 'none': 'bez napędu'}
 DEFAULT_ENGINE = {'glider': 'none', 'jet_business': 'jet', 'jet_transport': 'jet'}
+
+EMPTY_MASS_COEFFICIENTS = {
+    'glider': (0.82, -0.05),
+    'motoglider': (0.86, -0.05),
+    'piston_ga': (0.92, -0.06),
+    'turboprop_regional': (0.96, -0.05),
+    'jet_business': (1.02, -0.06),
+    'jet_transport': (0.95, -0.05),
+    'uav': (0.82, -0.04),
+}
+
+
+def two_point_power_law(x1: float, y1: float, x2: float, y2: float) -> tuple[float, float]:
+    """Wyznacza współczynniki A i C zależności m_e/m_0 = A * m_0^C z dwóch punktów (x1, y1) i (x2, y2)."""
+    if x1 <= 0 or x2 <= 0 or y1 <= 0 or y2 <= 0:
+        raise ValueError("Współrzędne punktów korelacji potęgowej muszą być dodatnie.")
+    if x1 == x2:
+        raise ValueError("Dwa punkty korelacji muszą mieć różne masy startowe.")
+    c = math.log(y1 / y2) / math.log(x1 / x2)
+    a = y1 / (x1 ** c)
+    return a, c
+
 # BIPOL_1, s. 1: the eight averages listed in the handout, in its order.
 BIPOL_1_AVERAGES = ('v_h', 'v_v', 'empty_fraction', 'aileron_span_fraction', 'aileron_chord_ratio',
                     'elevator_chord_ratio', 'rudder_chord_ratio', 'dihedral_deg')

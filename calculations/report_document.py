@@ -149,12 +149,8 @@ def _predecessors(results):
     dp = results['sizing']['design_point']
     suggestions = results['bipol_projects']['p1']['trend_analysis'].get('suggestions', {})
     jet, m0 = p['engine_type'] == 'jet', mass['m0']
-    rows = [('ws', 'Obciążenie powierzchni m₀/S', 'kg/m²', m0 / wing['S'], 1),
-            ('ar', 'Wydłużenie skrzydła Λ', '—', wing['AR'], 2),
-            ('me_m0', 'Udział masy pustej mₑ/m₀', '—', mass['m_empty'] / m0, 3)]
-    if p['engine_type'] != 'none':
-        rows.append(('tw', 'Stosunek ciągu do ciężaru T/W', '—', dp.get('tw'), 3) if jet else
-                    ('pw', 'Obciążenie mocy m₀/N', 'kg/kW', m0 / dp['power_kw'] if dp.get('power_kw') else None, 2))
+    # Projekt koncepcyjny porównuje tylko parametry wybrane na tym etapie (bez wyników bilansu i doboru).
+    rows = [('ar', 'Wydłużenie skrzydła Λ', '—', mass['preliminary_polar']['aspect_ratio'], 2)]
     out = []
     for key, label, unit, value, digits in rows:
         reference = (suggestions.get(key) or {}).get('suggested_value')
@@ -166,7 +162,7 @@ def _predecessors(results):
 
 
 def _conclusions(results):
-    p, mass, geom = results['params'], results['mass'], results['geometry']
+    p, mass = results['params'], results['mass']
     aero, perf, balance, env = results['aerodynamics'], results['performance'], results['balance'], results['envelope']
     trends = results['bipol_projects']['p1']['trend_analysis']
     number, powered, jet = report_number, p['engine_type'] != 'none', p['engine_type'] == 'jet'
@@ -213,12 +209,11 @@ def _conclusions(results):
                      f'gładkiej i {number(perf["speeds"]["vs_lnd_kmh"], 1)} km/h w konfiguracji do lądowania. '
                      f'Współczynniki oporu zerowego wynoszą odpowiednio {number(aero["cx0_clean"], 4)} '
                      f'i {number(aero["cx0_lnd"], 4)}, a maksymalna doskonałość {number(aero["k_max"], 1)}.')
-    if not geom['control_surfaces']['ailerons']['roll_authority_ok']:
-        out['p4'].append('Oszacowana skuteczność lotek jest mniejsza od przyjętego kryterium. Należy zwiększyć '
-                         'ich wymiary lub wychylenie i ponownie sprawdzić sterowność poprzeczną.')
-    else:
-        out['p4'].append('Skuteczność lotek spełnia przyjęte kryterium; ostateczne potwierdzenie wymaga '
-                         'uwzględnienia kinematyki układu sterowania.')
+    polars = results['bipol_projects']['p4']['cg_characteristics']['speed_polars']
+    out['p4'].append(f'Prędkość ekonomiczna lotu ślizgowego wynosi {number(polars["forward"]["v_ek_kmh"], 1)}–'
+                     f'{number(polars["aft"]["v_ek_kmh"], 1)} km/h, a optymalna {number(polars["forward"]["v_opt_kmh"], 1)}–'
+                     f'{number(polars["aft"]["v_opt_kmh"], 1)} km/h w zakresie położeń środka masy; przesunięcie środka masy '
+                     'do przodu zwiększa opór wyważenia.')
     if powered:
         climb = perf['climb']['wy_max_ms']
         out['p5'].append(f'Na poziomie morza uzyskano prędkość wznoszenia {number(climb)} m/s wobec wymaganych '
@@ -267,16 +262,13 @@ def _summaries(results):
                  _row('Wydłużenie skrzydła Λ', pp['aspect_ratio'], '—', 2),
                  _row('Współczynnik Oswalda e', pp['oswald_e'], '—', 2),
                  _row('Opór zerowy (oszacowanie) C_x0', pp['cx0'], '—', 4),
-                 _row('Maksymalna doskonałość (oszacowanie) K_max', pp['kmax'], '—', 1),
-                 _row('Stosunek powierzchni omywanej do nośnej S_wet/S', geom['wetted_area']['swet_over_s'], '—', 2)]
+                 _row('Maksymalna doskonałość (oszacowanie) K_max', pp['kmax'], '—', 1)]
+    if pp.get('swet_ratio'):
+        out['p1'].append(_row('Stosunek S_wet/S zmierzony na szkicu', pp['swet_ratio'], '—', 2))
     two = projects['p1']['trend_analysis'].get('two_point') or {}
     if two:
         out['p1'] += [_row('Zależność mₑ/m₀ = A·m₀^C — współczynnik A', two.get('A'), '—', 4),
                       _row('Zależność mₑ/m₀ = A·m₀^C — wykładnik C', two.get('C'), '—', 4)]
-    est = projects['p1'].get('t_req_est_kn' if jet else 'p_req_est_kw')
-    if powered and est is not None:
-        out['p1'].append(_row('Ciąg niezbędny w przelocie (oszacowanie)' if jet else 'Moc niezbędna w przelocie (oszacowanie)',
-                              est, 'kN' if jet else 'kW', 2 if jet else 1))
     out['p2'] = [_row('Masa startowa m₀', mass['m0'], 'kg', 1), _row('Masa własna mₑ', mass['m_empty'], 'kg', 1),
                  _row('Masa paliwa m_f', mass['m_fuel'], 'kg', 1), _row('Obciążenie powierzchni W/S', dp['ws'], 'N/m²', 0),
                  _row('Powierzchnia nośna S', wing['S'], 'm²', 2)]
@@ -339,6 +331,10 @@ def _summaries(results):
                      _row('Długość / czas startu do 15 m',
                           f'{number(perf["takeoff"]["distance_to_15m"], 0)} m / {number(perf["takeoff"].get("time_to_15m_s"), 1)} s', '', None),
                      _row('Długość lądowania znad 15 m', perf['landing']['distance_from_15m'], 'm', 0)]
+        est = projects['p1'].get('t_req_est_kn' if jet else 'p_req_est_kw')
+        if est is not None:
+            out['p5'].insert(1, _row('Ciąg niezbędny w przelocie' if jet else 'Moc niezbędna w przelocie (na wale)',
+                                     est, 'kN' if jet else 'kW', 2 if jet else 1))
     else:
         glide = perf['glide']
         out['p5'] = [_row('Prędkość przeciągnięcia', perf['speeds']['vs_clean_kmh'], 'km/h', 1),
@@ -416,10 +412,6 @@ def report_document(results, sections, overrides=None, folder_cover=False, sheet
         residual_pct = mass['mission_assumptions']['mass_residual_relative'] * 100
         checks.append({'parameter': 'Zbieżność bilansu masy', 'required': '≤ 0,1%',
                        'actual': f'{number(residual_pct, 5)}%', 'passed': residual_pct <= .1})
-    if 'p4' in sections:
-        aileron = geom['control_surfaces']['ailerons']
-        checks.append({'parameter': 'Skuteczność lotek pb/(2V)', 'required': f'≥ {number(aileron["min_pb_2v_req"], 3)}',
-                       'actual': number(aileron['roll_helix_pb_2v'], 3), 'passed': aileron['roll_authority_ok']})
     failed = [c for c in checks if not c['passed'] and c.get('severity') != 'warning']
     pending = [c for c in checks if not c['passed'] and c.get('severity') == 'warning']
     dp = results['sizing']['design_point']

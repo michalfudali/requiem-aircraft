@@ -210,3 +210,10 @@ def finalize_parameter_states(params, states, mass, sizing, geometry):
             states[key]['value'] = value
     params['locked_params'] = sorted(set(params['locked_params']) -
                                     {key for key, info in states.items() if info['state'] == 'derived'})
+
+
+def calculate_constraint_curves(params: dict, m0: float = None, mass: dict = None) -> dict:
+    """Interface contract function M1 <-> M2: matching chart constraint curves."""
+    from calculations.sizing import calculate_constraint_curves as _calc
+    return _calc(params, m0=m0, mass=mass)
+

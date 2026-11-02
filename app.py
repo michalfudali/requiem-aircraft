@@ -34,6 +34,7 @@ from calculations.report_docx import build_docx
 from calculations.report_origin import (number_references, xref, cite, origin, origin_ref, render_tokens, subscripts,
                                          component_source)
 from calculations import report_charts
+from calculations import manual_control
 from calculations.calculation_graph import build_calculation_graph
 
 app = Flask(__name__)
@@ -83,6 +84,10 @@ def course_context():
 
 
 def report_parameters():
+    return manual_control.apply(_report_parameters())
+
+
+def _report_parameters():
     if request.method == 'POST':
         return request.get_json(force=True)
     if request.args.get('params_json'):
@@ -328,10 +333,18 @@ def download_scraped(folder, filename):
 
 @app.route('/api/calculate', methods=['POST'])
 def calculate():
-    data = request.get_json(force=True)
+    data = manual_control.apply(request.get_json(force=True))
     result = run_bipol_project(data)
     result['calculation_graph'] = build_calculation_graph(result)
+    if manual_control.settings(data):
+        result['manual_control'] = manual_control.review(data, build_sheet(result))
     return jsonify(result)
+
+
+def manual_gate(context):
+    """Raport w trybie sterowania ręcznego dopiero po wpisaniu wszystkich danych domyślnych."""
+    message = manual_control.blocked_message(manual_control.review(context['params'], context['sheet']))
+    return (jsonify(status='error', message=message), 409) if message else None
 
 
 @app.route('/api/airfoil/200mm', methods=['GET', 'POST'])
@@ -381,7 +394,8 @@ def report():
         raise ValueError('Wybierz poprawny zakres raportu: P1–P6.')
     params = report_parameters()
     results = run_bipol_project(params)
-    return finished(render_template('report.html', **document_context(results, selected_sections)), results)
+    context = document_context(results, selected_sections)
+    return manual_gate(context) or finished(render_template('report.html', **context), results)
 
 
 def data_literature(results):
@@ -452,6 +466,9 @@ def parameter_report():
     results = run_bipol_project(report_parameters())
     context = document_context(results, [])
     sheet = context['sheet']
+    blocked = manual_gate(context)
+    if blocked:
+        return blocked
     unknown = [k for k in keys if (k[1:] not in sheet.blocks if k.startswith('@') else k not in sheet.entries)]
     if unknown:
         raise ValueError('Nieznane parametry raportu: ' + ', '.join(unknown[:5]) + '.')
@@ -504,8 +521,8 @@ def project_report(p_id):
         abort(404)
     results = run_bipol_project(report_parameters())
     sections = [] if p_id == 'folder_cover' else [p_id]
-    return finished(render_template('project_report.html',
-                                    **document_context(results, sections, p_id == 'folder_cover')), results)
+    context = document_context(results, sections, p_id == 'folder_cover')
+    return (manual_gate(context) if sections else None) or finished(render_template('project_report.html', **context), results)
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))

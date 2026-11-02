@@ -347,7 +347,15 @@ def _p1(s, r):
     s.calc('m_zal', r'm_{zał}', r'n_{zał}\,m_{os}', r'[[n_zal]]\cdot[[m_os]]', mass['m_crew'], KG, 1,
            'Masa załogi', check=lambda v: v.n_zal * v.m_os)
 
-    s.section('p1', 'atm', 'Atmosfera wzorcowa na wysokości przelotu', 'ISA')
+    _p1_polar(s, r)
+    _p1_trend(s, r)
+
+
+
+def _p2_atmosphere(s, r):
+    """Warunki lotu na wysokości przelotu — potrzebne od studium wykonalności."""
+    p = r['params']
+    s.section('p2', 'atm', 'Atmosfera wzorcowa na wysokości przelotu', 'ISA')
     h = float(p['cruise_altitude_m'])
     isa = isa_atmosphere(h)
     s.given('H_cr', 'H', h, M, 0, 'Wysokość przelotu', 'Wymagania tematu')
@@ -381,11 +389,15 @@ def _p1(s, r):
     _kmh(s, 'V_cr', r'V_{cr}', float(p['cruise_speed_kmh']), 'Prędkość przelotowa (TAS)', 'Wymagania tematu')
     s.calc('M_cr', r'M_{cr}', r'\frac{V_{cr}}{a_H}', r'\frac{[[V_cr]]}{[[a_cr]]}', float(p['cruise_speed_kmh']) / 3.6 / isa['a'],
            '', 3, 'Liczba Macha w przelocie', check=lambda v: v.V_cr / v.a_cr)
+    s.calc('q_cr', r'q_{cr}', r'\frac{\rho_H V_{cr}^2}{2}', r'\frac{[[rho_cr]]\cdot[[V_cr]]^2}{2}',
+           .5 * isa['rho'] * (float(p['cruise_speed_kmh']) / 3.6) ** 2, PA, 1, 'Ciśnienie dynamiczne w przelocie',
+           check=lambda v: .5 * v.rho_cr * v.V_cr ** 2)
 
-    _p1_polar(s, r)
-    _p1_trend(s, r)
 
-    s.section('p1', 'wetted', 'Powierzchnia omywana i stosunek Swet/S', SOURCES['R'] + ', rozdz. 12; ' + SOURCES['B1'] + ', rys. 1')
+def _p4_wetted(s, r):
+    """Powierzchnia omywana z wymiarów projektu wstępnego (P3) — dane do oporu zespołów."""
+    geom = r['geometry']
+    s.section('p4', 'wetted', 'Powierzchnia omywana', SOURCES['R'] + ', rozdz. 12')
     w, fus = geom['wing'], geom['fuselage']
     ht, vt = geom['horizontal_tail'], geom['vertical_tail']
     s.calc('S_exp', r'S_{exp}', r'\max\left(0{,}75\,S;\;S-c_r d_k\right)', r'\max\left(0{,}75\cdot[[S]];\;[[S]]-[[c_r]]\cdot[[d_k]]\right)',
@@ -412,19 +424,21 @@ def _p1(s, r):
     s.calc('Swet_S', r'S_{wet}/S', r'\frac{S_{wet}}{S}', r'\frac{[[Swet]]}{[[S]]}', geom['wetted_area']['swet_over_s'], '', 2,
            'Stosunek powierzchni omywanej do powierzchni nośnej', check=lambda v: v.Swet / v.S)
 
+
+def _p5_cruise_power(s, r):
+    """Opór i moc (ciąg) niezbędna w przelocie z biegunowej samolotu (P4)."""
+    p, geom = r['params'], r['geometry']
+    isa = isa_atmosphere(float(p['cruise_altitude_m']))
     if _powered(r):
         p1 = r['bipol_projects']['p1']
-        s.section('p1', 'power', 'Wstępne zapotrzebowanie mocy (ciągu) w przelocie', SOURCES['B1W'])
-        s.calc('q_cr', r'q_{cr}', r'\frac{\rho_H V_{cr}^2}{2}', r'\frac{[[rho_cr]]\cdot[[V_cr]]^2}{2}',
-               .5 * isa['rho'] * (float(p['cruise_speed_kmh']) / 3.6) ** 2, PA, 1, 'Ciśnienie dynamiczne w przelocie',
-               check=lambda v: .5 * v.rho_cr * v.V_cr ** 2)
+        s.section('p5', 'power', 'Moc (ciąg) niezbędna w przelocie', SOURCES['B1W'])
         s.calc('Cz_cr', r'C_{z,cr}', r'\frac{m_0 g}{q_{cr} S}', r'\frac{[[m0]]\cdot[[g]]}{[[q_cr]]\cdot[[S]]}',
                r['mass']['m0'] * G0 / (.5 * isa['rho'] * (float(p['cruise_speed_kmh']) / 3.6) ** 2 * geom['wing']['S']),
                '', 4, 'Współczynnik siły nośnej w przelocie', check=lambda v: v.m0 * v.g / (v.q_cr * v.S))
         aero = r['aerodynamics']
         cx = aero['cx0_clean'] + aero['k_clean'] * s.entries['Cz_cr']['value'] ** 2
         s.calc('Cx_cr', r'C_{x,cr}', r'C_{x0}+k\,C_{z,cr}^2', r'[[Cx0]]+[[k]]\cdot[[Cz_cr]]^2', cx, '', 5,
-               'Współczynnik oporu w przelocie', check=lambda v: v.Cx0 + v.k * v.Cz_cr ** 2)
+               'Współczynnik oporu w przelocie (biegunowa samolotu)', check=lambda v: v.Cx0 + v.k * v.Cz_cr ** 2)
         drag = s.entries['q_cr']['value'] * geom['wing']['S'] * cx
         s.calc('D_cr', r'D_{cr}', r'q_{cr}\,S\,C_{x,cr}', r'[[q_cr]]\cdot[[S]]\cdot[[Cx_cr]]', drag, N_, 0,
                'Opór w przelocie', check=lambda v: v.q_cr * v.S * v.Cx_cr)
@@ -525,6 +539,8 @@ def _p2(s, r):
                     'Schemat iteracji masy startowej — ' + ('metoda proporcji' if method == 'proportion'
                                                            else 'metoda iteracyjna') + '',
                     deps=['m_zal', 'm_lad', 'e_m0'], note='Metoda porównawcza; daje tę samą masę bez zrzutu ładunku.')
+
+    _p2_atmosphere(s, r)
 
     s.section('p2', 'mission', 'Profil misji i stosunki mas w fazach lotu', SOURCES['B1'] + ', s. 4–6')
     if powered:
@@ -757,18 +773,20 @@ def _p2_matching(s, r):
     dp, t, geom = sz['design_point'], sz['terms'], r['geometry']
     s.section('p2', 'matching', 'Obciążenie powierzchni i powierzchnia nośna', SOURCES['B2'] + ', wzory (1)–(5), (10)')
     _kmh(s, 'V_min', r'V_{min}', float(p['v_stall_kmh']), 'Wymagana prędkość minimalna', 'Wymagania tematu')
+    s.given('Cz_L_2', r'C_{z\,max,L}', t['cz_max_lnd'], '', 2, 'Maksymalny współczynnik siły nośnej w konfiguracji do lądowania',
+            'Założenie')
     s.calc('WS_Vmin', r'\left(\tfrac{W}{S}\right)_{V_{min}}', r'\frac{\rho_0 V_{min}^2}{2}\,\frac{C_{z\,max,L}}{1{,}1}',
-           r'\frac{[[rho0]]\cdot[[V_min]]^2}{2}\cdot\frac{[[Cz_L]]}{1{,}1}', t['ws_min_speed'], NM2, 1,
+           r'\frac{[[rho0]]\cdot[[V_min]]^2}{2}\cdot\frac{[[Cz_L_2]]}{1{,}1}', t['ws_min_speed'], NM2, 1,
            'Ograniczenie z prędkości minimalnej', SOURCES['B2'] + ', wzór (10)',
-           check=lambda v: .5 * v.rho0 * v.V_min ** 2 * v.Cz_L / 1.1)
+           check=lambda v: .5 * v.rho0 * v.V_min ** 2 * v.Cz_L_2 / 1.1)
     candidates = [r'[[WS_Vmin]]']
     if t['ws_landing'] is not None:
         s.given('s_L', 's_L', t['s_l'], M, 0, 'Długość lądowania znad przeszkody 15 m', 'Wymagania tematu')
         s.given('sigma_lot', r'\sigma', 1.0, '', 1, 'Gęstość względna na lotnisku', SOURCES['B2'])
         s.calc('WS_L_lnd', r'\left(\tfrac{W}{S}\right)_{L,ląd}', r'\frac{\sigma C_{z\,max,L}\,(s_L-122)}{0{,}75}',
-               r'\frac{[[sigma_lot]]\cdot[[Cz_L]]\cdot([[s_L]]-122)}{0{,}75}', t['ws_landing_l'], NM2, 1,
+               r'\frac{[[sigma_lot]]\cdot[[Cz_L_2]]\cdot([[s_L]]-122)}{0{,}75}', t['ws_landing_l'], NM2, 1,
                'Ograniczenie z długości lądowania (dla masy do lądowania)', SOURCES['B2'] + ', wzór (3)',
-               check=lambda v: v.sigma_lot * v.Cz_L * (v.s_L - 122) / .75)
+               check=lambda v: v.sigma_lot * v.Cz_L_2 * (v.s_L - 122) / .75)
         s.given('m_lnd', r'm_{ląd}', t['m_landing'], KG, 1, 'Masa na początku lądowania (bilans misji)', 'P2, tabela faz')
         s.calc('WS_L', r'\left(\tfrac{W}{S}\right)_{L}', r'\left(\tfrac{W}{S}\right)_{L,ląd}\frac{m_0}{m_{ląd}}',
                r'[[WS_L_lnd]]\cdot\frac{[[m0]]}{[[m_lnd]]}', t['ws_landing'], NM2, 1,
@@ -811,6 +829,8 @@ def _p2_matching(s, r):
         cx0_key = 'Cx0_2'
     cx0 = f'[[{cx0_key}]]'
     s.given('w_y_wym', r'w_{y,wym}', t['climb_rate_ms'], MS, 2, 'Wymagana prędkość wznoszenia przy ziemi', 'Wymagania tematu')
+    s.given('Cz_TO_2', r'C_{z\,max,TO}', t['cz_max_to'], '', 2, 'Maksymalny współczynnik siły nośnej w konfiguracji startowej',
+            'Założenie')
     s.calc('V_wzn', r'V_{wzn}', r'V_{min}+0{,}25\,(V_{max}-V_{min}),\;V_{max}=V_{cr}', r'[[V_min]]+0{,}25\cdot([[V_cr]]-[[V_min]])',
            t['v_climb_ms'], MS, 2, 'Prędkość wznoszenia (Vmax przyjęto równą prędkości przelotowej)', SOURCES['B2'] + ', s. 3',
            check=lambda v: v.V_min + .25 * max(0, v.V_cr - v.V_min))
@@ -829,8 +849,8 @@ def _p2_matching(s, r):
                 'Ograniczenie startu lądowego wyłączone; operacji wodnych nie wyznaczono', 'Zakres modelu')
     elif t['s_to']:
         s.given('s_TO', r's_{TO}', t['s_to'], M, 0, 'Długość startu do wysokości 15 m', 'Wymagania tematu')
-        s.calc('TOP', 'TOP', r'\frac{W/S}{C_{z\,max,TO}\,\sigma}', r'\frac{[[WS]]}{[[Cz_TO]]\cdot1}', dp['ws'] / t['cz_max_to'], NM2, 1,
-               'Parametr startu', SOURCES['B2'] + ', wzór (2)', check=lambda v: v.WS / v.Cz_TO)
+        s.calc('TOP', 'TOP', r'\frac{W/S}{C_{z\,max,TO}\,\sigma}', r'\frac{[[WS]]}{[[Cz_TO_2]]\cdot1}', dp['ws'] / t['cz_max_to'], NM2, 1,
+               'Parametr startu', SOURCES['B2'] + ', wzór (2)', check=lambda v: v.WS / v.Cz_TO_2)
         tw_to = 0.133 * s.entries['TOP']['value'] / (t['s_to'] - 3.834 * math.sqrt(s.entries['TOP']['value']))
         s.calc('TW_TO', r'\left(\tfrac{T}{W}\right)_{TO}', r'\frac{0{,}133\,TOP}{s_{TO}-3{,}834\sqrt{TOP}}',
                r'\frac{0{,}133\cdot[[TOP]]}{[[s_TO]]-3{,}834\sqrt{[[TOP]]}}', tw_to, '', 4,
@@ -840,9 +860,9 @@ def _p2_matching(s, r):
         s.given('s_roz', r's_{roz}', max(30.0, t['s_run']), M, 0, 'Długość rozbiegu', 'Wymagania tematu')
         tw_to = 1.21 * dp['ws'] / (G0 * RHO0 * t['cz_max_to'] * max(30.0, t['s_run'])) + .04
         s.calc('TW_TO', r'\left(\tfrac{T}{W}\right)_{TO}', r'\frac{1{,}21\,W/S}{g\rho_0C_{z\,max,TO}s_{roz}}+\mu',
-               r'\frac{1{,}21\cdot[[WS]]}{[[g]]\cdot[[rho0]]\cdot[[Cz_TO]]\cdot[[s_roz]]}+0{,}04', tw_to, '', 4,
+               r'\frac{1{,}21\cdot[[WS]]}{[[g]]\cdot[[rho0]]\cdot[[Cz_TO_2]]\cdot[[s_roz]]}+0{,}04', tw_to, '', 4,
                'Ciąg względny do rozbiegu (wzór zastępczy, μ = 0,04)',
-               check=lambda v: 1.21 * v.WS / (v.g * v.rho0 * v.Cz_TO * v.s_roz) + .04)
+               check=lambda v: 1.21 * v.WS / (v.g * v.rho0 * v.Cz_TO_2 * v.s_roz) + .04)
     tw_cl = t['q_climb'] * t['cx0'] / dp['ws'] + dp['ws'] * t['k_ind'] / t['q_climb'] + t['gradient']
     s.calc('TW_wzn', r'\left(\tfrac{T}{W}\right)_{wzn}', r'\frac{q_{wzn}C_{x0}}{W/S}+\frac{W/S}{q_{wzn}\pi\Lambda e}+G',
            rf'\frac{{[[q_wzn]]\cdot{cx0}}}{{[[WS]]}}+[[WS]]\cdot\frac{{[[k_1]]}}{{[[q_wzn]]}}+[[G_wzn]]', tw_cl, '', 4,
@@ -866,31 +886,19 @@ def _p2_matching(s, r):
                r'1{,}06\cdot\max\left\{[[TW_TO]];\;[[TW_wzn]];\;[[TW_cr_inst]];\;[[TW_extra]]\right\}', tw0, '', 3,
                'Stosunek ciągu do ciężaru z wykresu doboru (6% zapasu)', SOURCES['B2'],
                check=lambda v: round(1.06 * max(v.TW_TO, v.TW_wzn, v.TW_cr_inst, v.TW_extra), 3))
-        if sz.get('flight_model_requirement') is not None:
-            s.given('TW_P4', r'(T/W)_{P4}', sz['flight_model_requirement']['required_rating']/(mass['m0']*G0), '', 5,
-                    'Ciąg względny potrzebny w przelocie i wznoszeniu', 'Równowaga sił i mocy')
-            s.given('TW_TO_check', r'(T/W)_{TO,mod}', sz.get('takeoff_model_requirement', 0), '', 5,
-                    'Wymaganie startu do wysokości 15 m', 'P5')
-            s.calc('TW', r'T/W', r'\max\{(T/W)_{dob};1{,}06(T/W)_{P4};1{,}06(T/W)_{TO,mod}\}',
-                   r'\max\{[[TW_dob]];1{,}06[[TW_P4]];1{,}06[[TW_TO_check]]\}', dp['tw'], '', 5,
-                   'Przyjęty ciąg względny po sprawdzeniu przelotu, wznoszenia i startu',
-                   check=lambda v: max(v.TW_dob, 1.06*v.TW_P4, 1.06*v.TW_TO_check))
-        elif sz.get('takeoff_model_requirement') is not None:
-            s.given('TW_mod', r'\left(\tfrac{T}{W}\right)_{TO,mod}', sz['takeoff_model_requirement'], '', 4,
-                    'Ciąg względny z modelu startu P5 dla wymaganej drogi (rozwiązanie numeryczne)', SOURCES['ML'] + ', P6')
-            s.calc('TW', r'\frac{T}{W}', r'\max\left\{\left(\tfrac{T}{W}\right)_{dob};\;1{,}06\left(\tfrac{T}{W}\right)_{TO,mod}\right\}',
-                   r'\max\left\{[[TW_dob]];\;1{,}06\cdot[[TW_mod]]\right\}', dp['tw'], '', 4, 'Stosunek ciągu do ciężaru przyjęty',
-                   check=lambda v: max(v.TW_dob, 1.06 * v.TW_mod))
-        else:
+        if abs(dp['tw'] - tw0) <= 5e-4:
             s.calc('TW', r'\frac{T}{W}', r'\left(\tfrac{T}{W}\right)_{dob}', r'[[TW_dob]]', dp['tw'], '', 4,
-                   'Stosunek ciągu do ciężaru przyjęty', check=lambda v: v.TW_dob)
+                   'Stosunek ciągu do ciężaru przyjęty', check=lambda v: v.TW_dob, tolerance=6e-4)
+        else:
+            s.given('TW', r'\frac{T}{W}', dp['tw'], '', 4, 'Stosunek ciągu do ciężaru przyjęty',
+                    'Założenie: ciąg z zapasem względem wykresu doboru')
         s.calc('T_0', 'T', r'\frac{(T/W)\,m_0 g}{1000}', r'\frac{[[TW]]\cdot[[m0]]\cdot[[g]]}{1000}', dp['thrust_kn'], KN, 2,
                'Ciąg startowy zespołu napędowego', check=lambda v: v.TW * v.m0 * v.g / 1000)
     else:
         s.given('eta_TO', r'\eta_{TO}', t['eta_to'], '', 2, 'Sprawność śmigła na rozbiegu', 'Założenie')
         s.calc('V_sr', r'V_{śr}', r'\frac{1{,}12}{\sqrt2}\sqrt{\frac{2\,W/S}{\rho_0C_{z\,max,TO}}}',
-               r'\frac{1{,}12}{\sqrt2}\cdot\sqrt{\frac{2\cdot[[WS]]}{[[rho0]]\cdot[[Cz_TO]]}}', t['v_mean_to'], MS, 2,
-               'Średnia prędkość rozbiegu (VLOF/√2, VLOF = 1,12 VS,TO)', check=lambda v: 1.12 * math.sqrt(2 * v.WS / (v.rho0 * v.Cz_TO)) / math.sqrt(2))
+               r'\frac{1{,}12}{\sqrt2}\cdot\sqrt{\frac{2\cdot[[WS]]}{[[rho0]]\cdot[[Cz_TO_2]]}}', t['v_mean_to'], MS, 2,
+               'Średnia prędkość rozbiegu (VLOF/√2, VLOF = 1,12 VS,TO)', check=lambda v: 1.12 * math.sqrt(2 * v.WS / (v.rho0 * v.Cz_TO_2)) / math.sqrt(2))
         s.calc('PW_TO', r'\left(\tfrac{N}{W}\right)_{TO}', r'\left(\tfrac{T}{W}\right)_{TO}\frac{V_{śr}}{\eta_{TO}}', r'[[TW_TO]]\cdot\frac{[[V_sr]]}{[[eta_TO]]}',
                at.get('start'), r'\mathrm{W/N}', 3, 'Moc względna do startu', SOURCES['B2'] + ': T = ηN/V',
                check=lambda v: v.TW_TO * v.V_sr / v.eta_TO)
@@ -909,29 +917,14 @@ def _p2_matching(s, r):
         p_dob = round(pw0 * mass['m0'] * G0 / 1000, 1)
         s.calc('P_dob', r'N_{dob}', r'\frac{(N/W)_{dob}\,m_0 g}{1000}', r'\frac{[[PW_dob]]\cdot[[m0]]\cdot[[g]]}{1000}', p_dob, KW, 1,
                'Moc z wykresu doboru', check=lambda v: v.PW_dob * v.m0 * v.g / 1000)
-        required = dp['required_power_kw']
-        if sz.get('flight_model_requirement') is not None:
-            s.given('P_P4', r'N_{P4}', sz['flight_model_requirement']['required_rating']/1000, KW, 3,
-                    'Moc na wale potrzebna w przelocie i wznoszeniu', 'Równowaga sił i mocy')
-            s.given('PW_TO_check', r'(N/W)_{TO,mod}', sz.get('takeoff_model_requirement', 0), r'\mathrm{W/N}', 5,
-                    'Wymaganie startu do wysokości 15 m', 'P5')
-            s.calc('P_wym', r'N_{wym}', r'\max\{N_{dob};1{,}08N_{P4};1{,}08(N/W)_{TO,mod}m_0g/1000\}',
-                   r'\max\{[[P_dob]];1{,}08[[P_P4]];1{,}08[[PW_TO_check]][[m0]][[g]]/1000\}', required, KW, 2,
-                   'Moc wymagana po sprawdzeniu przelotu, wznoszenia i startu',
-                   check=lambda v: max(v.P_dob, 1.08*v.P_P4, 1.08*v.PW_TO_check*v.m0*v.g/1000))
-        elif sz.get('takeoff_model_requirement') is not None:
-            s.given('PW_mod', r'\left(\tfrac{N}{W}\right)_{TO,mod}', sz['takeoff_model_requirement'], r'\mathrm{W/N}', 3,
-                    'Moc względna z modelu startu P5 dla wymaganej drogi (rozwiązanie numeryczne)', SOURCES['ML'] + ', P6')
-            s.calc('P_wym', r'N_{wym}', r'\max\left\{N_{dob};\;\frac{1{,}08\,(N/W)_{TO,mod}\,m_0g}{1000}\right\}',
-                   r'\max\left\{[[P_dob]];\;\frac{1{,}08\cdot[[PW_mod]]\cdot[[m0]]\cdot[[g]]}{1000}\right\}', required, KW, 1,
-                   'Moc wymagana', check=lambda v: max(v.P_dob, 1.08 * v.PW_mod * v.m0 * v.g / 1000))
-        else:
-            s.calc('P_wym', r'N_{wym}', r'N_{dob}', r'[[P_dob]]', required, KW, 1, 'Moc wymagana', check=lambda v: v.P_dob)
         if p.get('power_input_mode') == 'fixed' or 'engine_power_kw' in p.get('locked_params', []):
-            s.given('P', 'N', dp['power_kw'], KW, 1, 'Moc dostępna zadana przez autora (silnik wybrany)', 'Założenia projektu')
+            s.given('P', 'N', dp['power_kw'], KW, 1, 'Moc wybranego silnika', 'Założenia projektu')
+        elif abs(dp['power_kw'] - p_dob) <= .05:
+            s.calc('P', 'N', r'N_{dob}', r'[[P_dob]]', dp['power_kw'], KW, 1, 'Moc startowa zespołu napędowego',
+                   check=lambda v: v.P_dob, tolerance=.06)
         else:
-            s.calc('P', 'N', r'N_{wym}', r'[[P_wym]]', dp['power_kw'], KW, 1, 'Moc startowa zespołu napędowego',
-                   check=lambda v: v.P_wym)
+            s.given('P', 'N', dp['power_kw'], KW, 1, 'Moc startowa przyjętego zespołu napędowego',
+                    'Założenie: moc z zapasem względem wykresu doboru')
         s.calc('PW', r'\frac{N}{W}', r'\frac{1000\,N}{m_0 g}', r'\frac{1000\cdot[[P]]}{[[m0]]\cdot[[g]]}', dp['pw'], r'\mathrm{W/N}', 3,
                'Moc względna przyjęta do obliczeń osiągów', check=lambda v: 1000 * v.P / (v.m0 * v.g))
     if t.get('ws_max_range_cruise') is not None:
@@ -980,9 +973,21 @@ def _lapse(s, r, key, where, value):
 def _p2_airfoil(s, r):
     af = r['bipol_projects']['p2']['airfoil_selection']
     s.section('p2', 'airfoil', 'Warunki pracy profilu w przelocie', SOURCES['B3'])
-    s.calc('Re_cr', r'Re', r'\frac{\rho_H V_{cr}\,\bar c}{\mu_H}', r'\frac{[[rho_cr]]\cdot[[V_cr]]\cdot[[mac]]}{[[mu_cr]]}',
+    # Średnia cięciwa z powierzchni (P2) i obrysu przyjętego w koncepcji; wymiary skrzydła liczy dopiero P3.
+    w, mac = r['geometry']['wing'], 'mac'
+    if w['wing_planform'] in ('trapezoidal', 'rectangular') and not w['span_fixed']:
+        ar = _ar_key(r)
+        s.given('lambda_2', r'\lambda', w['eta'], '', 3, 'Zbieżność obrysu skrzydła', 'Założenia projektu')
+        s.calc('b_2', 'b', r'\sqrt{S\Lambda}', r'\sqrt{[[S]]\cdot[[' + ar + ']]}', w['b'], M, 2, 'Rozpiętość skrzydła',
+               check=lambda v: math.sqrt(v.S * getattr(v, ar)))
+        s.calc('mac_2', r'\bar c', r'\frac{4S}{3b}\,\frac{1+\lambda+\lambda^2}{(1+\lambda)^2}',
+               r'\frac{4\cdot[[S]]}{3\cdot[[b_2]]}\cdot\frac{1+[[lambda_2]]+[[lambda_2]]^2}{(1+[[lambda_2]])^2}', w['mac'], M, 3,
+               'Średnia cięciwa aerodynamiczna obrysu trapezowego',
+               check=lambda v: 4 * v.S / (3 * v.b_2) * (1 + v.lambda_2 + v.lambda_2 ** 2) / (1 + v.lambda_2) ** 2)
+        mac = 'mac_2'
+    s.calc('Re_cr', r'Re', r'\frac{\rho_H V_{cr}\,\bar c}{\mu_H}', r'\frac{[[rho_cr]]\cdot[[V_cr]]\cdot[[' + mac + r']]}{[[mu_cr]]}',
            af['reynolds_cruise'], '', 0, 'Liczba Reynoldsa dla średniej cięciwy aerodynamicznej',
-           check=lambda v: v.rho_cr * v.V_cr * v.mac / v.mu_cr, tolerance=.002 * af['reynolds_cruise'] + 1)
+           check=lambda v: v.rho_cr * v.V_cr * getattr(v, mac) / v.mu_cr, tolerance=.002 * af['reynolds_cruise'] + 1)
     s.calc('Cz_proj', r'C_{z,proj}', r'\frac{2m_0 g}{\rho_H S V_{cr}^2}', r'\frac{2\cdot[[m0]]\cdot[[g]]}{[[rho_cr]]\cdot[[S]]\cdot[[V_cr]]^2}',
            af['cz_proj'], '', 3, 'Obliczeniowy współczynnik siły nośnej profilu', check=lambda v: 2 * v.m0 * v.g / (v.rho_cr * v.S * v.V_cr ** 2))
 
@@ -994,7 +999,7 @@ def _p2_cost(s, r):
     s.section('p2', 'cost', 'Koszt produkcji i cena samolotu', SOURCES['B2'] + ', wzory (13)–(21), tab. 5.9, wzór (5.10)')
     s.calc('W_lb', 'W_s', r'2{,}20462\,m_e', r'2{,}20462\cdot[[m_e]]', t['w_lb'], r'\mathrm{lb}', 1, 'Masa własna w funtach',
            check=lambda v: 2.20462 * v.m_e)
-    s.given('V_max_c', r'V_{max}', ca['vmax_knots'] / .539957, KMH, 1, 'Prędkość maksymalna do zależności kosztowych', 'P5 (szybowiec: 0,9 VD)')
+    s.given('V_max_c', r'V_{max}', ca['vmax_knots'] / .539957, KMH, 1, 'Prędkość maksymalna do zależności kosztowych', 'Wymagania tematu' if r['params']['engine_type'] != 'none' else 'Szybowiec: 0,9 VD')
     s.calc('V_kt', r'V_{max}', r'0{,}539957\,V_{max}\,[\mathrm{km/h}]', r'0{,}539957\cdot[[V_max_c]]', t['v_kt'], r'\mathrm{kt}', 1,
            'Prędkość maksymalna w węzłach', check=lambda v: .539957 * v.V_max_c)
     s.given('N_P', 'N_P', ca['series_count'], r'\text{szt.}', 0, 'Liczba egzemplarzy serii', 'Założenie')
@@ -1497,6 +1502,7 @@ def _p4(s, r):
     aero, geom = r['aerodynamics'], r['geometry']
     p3 = aero['paturski_p3']
     t = p3['fuselage']['terms']
+    _p4_wetted(s, r)
     s.section('p4', 'parasite', 'Opór szkodliwy zespołów nienośnych', SOURCES['ML'] + ', P3, wzory (3.1)–(3.6), tab. 3.1')
     s.calc('S_kc', 'S_k', r'\frac{\pi d_k^2}{4}', r'\frac{\pi\cdot[[d_k]]^2}{4}', t['s_k'], M2, 3, 'Pole przekroju czołowego kadłuba',
            check=lambda v: math.pi * v.d_k ** 2 / 4)
@@ -1774,6 +1780,8 @@ def _p5(s, r):
         _to_kmh(s, 'V_max_kmh', r'V_{max}', 'V_max', perf['speeds']['v_max_sl_kmh'], 'Prędkość maksymalna lotu poziomego przy ziemi')
 
     if powered:
+        _p5_cruise_power(s, r)
+        _p5_power_check(s, r)
         _p5_climb(s, r)
         _p5_takeoff(s, r)
     _p5_landing(s, r)
@@ -1782,6 +1790,42 @@ def _p5(s, r):
     _p5_glide(s, r)
     if powered:
         _p5_turn(s, r)
+
+
+def _p5_power_check(s, r):
+    """Sprawdzenie mocy (ciągu) przyjętej w studium wykonalności biegunową samolotu i obliczeniem startu."""
+    p, sz, mass = r['params'], r['sizing'], r['mass']
+    fm, to = sz.get('flight_model_requirement'), sz.get('takeoff_model_requirement')
+    if not _powered(r) or (fm is None and to is None):
+        return
+    s.section('p5', 'power_check', 'Sprawdzenie mocy (ciągu) przyjętej w studium wykonalności')
+    weight = mass['m0'] * G0
+    if p['engine_type'] == 'jet':
+        terms, values = [r'[[TW_dob]]'], [s.entries['TW_dob']['value']]
+        if fm is not None:
+            s.given('TW_P4', r'(T/W)_{lot}', fm['required_rating'] / weight, '', 5,
+                    'Ciąg względny potrzebny w przelocie i wznoszeniu (biegunowa samolotu)', 'Równowaga sił')
+            terms.append(r'1{,}06\,[[TW_P4]]'); values.append(1.06 * s.entries['TW_P4']['value'])
+        if to is not None:
+            s.given('TW_TO_check', r'(T/W)_{TO}', to, '', 5, 'Ciąg względny potrzebny do startu na 15 m', 'Obliczenie startu')
+            terms.append(r'1{,}06\,[[TW_TO_check]]'); values.append(1.06 * to)
+        s.calc('TW_wym', r'\left(\tfrac{T}{W}\right)_{wym}', r'\max\{(T/W)_{dob};\,1{,}06(T/W)_{lot};\,1{,}06(T/W)_{TO}\}',
+               r'\max\{' + ';\\,'.join(terms) + r'\}', max(values), '', 4, 'Ciąg względny wymagany po sprawdzeniu',
+               check=lambda v, n=len(terms): max([v.TW_dob] + ([1.06 * v.TW_P4] if 'TW_P4' in s.entries else [])
+                                              + ([1.06 * v.TW_TO_check] if 'TW_TO_check' in s.entries else [])))
+        return
+    terms, values = [r'[[P_dob]]'], [s.entries['P_dob']['value']]
+    if fm is not None:
+        s.given('P_P4', r'N_{lot}', fm['required_rating'] / 1000, KW, 3,
+                'Moc na wale potrzebna w przelocie i wznoszeniu (biegunowa samolotu)', 'Równowaga mocy')
+        terms.append(r'1{,}08\,[[P_P4]]'); values.append(1.08 * s.entries['P_P4']['value'])
+    if to is not None:
+        s.given('PW_TO_check', r'(N/W)_{TO}', to, r'\mathrm{W/N}', 5, 'Moc względna potrzebna do startu na 15 m', 'Obliczenie startu')
+        terms.append(r'1{,}08\,[[PW_TO_check]]\,[[m0]]\,[[g]]/1000'); values.append(1.08 * to * weight / 1000)
+    s.calc('P_wym', r'N_{wym}', r'\max\{N_{dob};\,1{,}08N_{lot};\,1{,}08(N/W)_{TO}m_0g/1000\}',
+           r'\max\{' + ';\\,'.join(terms) + r'\}', max(values), KW, 2, 'Moc wymagana po sprawdzeniu',
+           check=lambda v: max([v.P_dob] + ([1.08 * v.P_P4] if 'P_P4' in s.entries else [])
+                               + ([1.08 * v.PW_TO_check * v.m0 * v.g / 1000] if 'PW_TO_check' in s.entries else [])))
 
 
 def _p5_climb(s, r):

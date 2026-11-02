@@ -258,9 +258,12 @@ def calculate_all_bipol_projects(mass_res: dict, sizing_res: dict, geom_res: dic
             sensitivity_table.append(dict(var=label, delta=delta, d_mtow_kg=None, pct_change=None))
 
     # 2.5 Analiza kosztów B+R i produkcji (BIPOL_2.pdf wzory 13-21, Tab. 5.9, wzór 5.10)
+    # W studium wykonalności prędkość maksymalna nie jest jeszcze obliczona (P5): przyjmuje się
+    # wymaganą prędkość maksymalną, a bez takiego wymagania prędkość przelotową — jak na wykresie doboru.
     # Szybowiec nie ma Vmax lotu poziomego; przyjęto VNE = 0,9·VD (CS 22.1505).
     dp = sizing_res["design_point"]
-    v_max_cost = float(perf_res["speeds"]["v_max_sl_kmh"]) or 0.9 * float(env_res["speeds"]["v_d_kmh"])
+    v_max_cost = (float(params.get("v_max_required_kmh") or 0) or float(params["cruise_speed_kmh"])
+                  if engine_type != "none" else 0.9 * float(env_res["speeds"]["v_d_kmh"]))
     cost_analysis = calculate_costs(params, m_empty, v_max_cost,
                                     thrust_kn=dp.get("thrust_kn"), power_kw=dp.get("power_kw"), mach_max=m_max_mach)
 
