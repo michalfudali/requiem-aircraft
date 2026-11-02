@@ -1854,6 +1854,15 @@ async function loadScrapedFiles() {
 }
 
 function setupTabs() {
+  const tabBar = document.querySelector('.bipol-tabs');
+  for (const panel of document.querySelectorAll('.tab-content[id]')) {
+    if (!tabBar || tabBar.querySelector(`[data-target="${panel.id}"]`)) continue;
+    const button = document.createElement('button');
+    button.type = 'button'; button.className = 'bipol-tab'; button.dataset.target = panel.id;
+    button.textContent = document.querySelector(`[data-studio-nav="${panel.id}"]`)?.textContent.trim()
+      || panel.querySelector('h1,h2,h3')?.textContent || panel.id;
+    tabBar.append(button);
+  }
   const tabs = document.querySelectorAll('.bipol-tab');
   tabs.forEach(tab => {
     tab.addEventListener('click', () => {

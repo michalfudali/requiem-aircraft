@@ -79,8 +79,10 @@ def calculate_propulsion_clearance(params: dict) -> dict:
     dict
     """
     engine_type = params.get("engine_type", "prop")
-    if engine_type == "none":
+    if engine_type in ('none', 'jet'):
         return {
+            'applicable': False,
+            'note': 'Sprawdzenie śmigła nie dotyczy napędu odrzutowego ani lotu bez napędu.',
             "propeller_diameter_m": 0.0,
             "blade_count": 0,
             "disk_loading_kw_m2": 0.0,
@@ -99,6 +101,11 @@ def calculate_propulsion_clearance(params: dict) -> dict:
 
     power_kw = float(params.get("engine_power_kw") or params.get("power_kw") or 118.0)
     ac_type = params.get("aircraft_type", "piston_ga")
+    count = params.get('n_engines', 2 if ac_type == 'turboprop_regional' else 1)
+    if isinstance(count, bool) or not math.isfinite(float(count)) or float(count) < 1 or not float(count).is_integer():
+        raise ValueError('Liczba silników musi być dodatnią liczbą całkowitą.')
+    n_engines = int(count)
+    power_per_engine_kw = power_kw / n_engines
     default_blades = 4 if ac_type == "turboprop_regional" else 2
     blade_count = int(params.get("blade_count", default_blades))
     gear_type = params.get("gear_type", "tricycle")
@@ -120,8 +127,7 @@ def calculate_propulsion_clearance(params: dict) -> dict:
     if "propeller_diameter_m" in params and params["propeller_diameter_m"]:
         d_p = float(params["propeller_diameter_m"])
     else:
-        p_engine = power_kw / 2.0 if ac_type == "turboprop_regional" else power_kw
-        d_p = size_propeller_diameter(p_engine, blade_count)
+        d_p = size_propeller_diameter(power_per_engine_kw, blade_count)
         # Physical aerodynamic limit: M_tip <= 0.85 constrains maximum diameter
         v_max_rot_sq = (0.84 * a_sound) ** 2 - (v_cr_ms ** 2)
         if v_max_rot_sq > 0 and n_rps > 0:
@@ -130,7 +136,7 @@ def calculate_propulsion_clearance(params: dict) -> dict:
                 d_p = d_p_max
 
     disk_area = (math.pi / 4.0) * (d_p ** 2)
-    disk_loading = power_kw / max(0.01, disk_area)
+    disk_loading = power_per_engine_kw / max(0.01, disk_area)
 
     # 2. Helical Tip Speed & Tip Mach (Wyklad 5)
     v_tip_rot = math.pi * n_rps * d_p
@@ -173,9 +179,12 @@ def calculate_propulsion_clearance(params: dict) -> dict:
 
     # Static thrust estimation (Wyklad 5 actuator / momentum disc formula)
     rho0 = 1.225
-    static_thrust_n = ((2.0 * rho0 * disk_area) ** (1.0 / 3.0)) * ((efficiencies["eta_takeoff"] * power_kw * 1000.0) ** (2.0 / 3.0))
+    static_thrust_n = n_engines * ((2.0 * rho0 * disk_area) ** (1.0 / 3.0)) * ((efficiencies["eta_takeoff"] * power_per_engine_kw * 1000.0) ** (2.0 / 3.0))
 
     return {
+        'applicable': True,
+        'n_engines': n_engines,
+        'power_per_engine_kw': power_per_engine_kw,
         "propeller_diameter_m": round(d_p, 3),
         "blade_count": blade_count,
         "disk_loading_kw_m2": round(disk_loading, 2),

@@ -83,6 +83,8 @@
     { type: 'tab', target: 'tab-p6', icon: '🛡️', title: 'P6: Obwiednia obciążeń V-n (manewrowa i podmuchowa)', tag: 'Wytrzymałość' },
     { type: 'tab', target: 'tab-compliance', icon: '✅', title: 'Weryfikacja założeń, flatter i audyt inżynierski', tag: 'Zgodność' },
     { type: 'tab', target: 'tab-reports', icon: '📄', title: 'Raport i generowanie dokumentacji DOCX / PDF', tag: 'Dokumentacja' },
+    { type: 'tab', target: 'tab-faculty-docs', icon: '📚', title: 'Materiały BIPOL i Mechanika Lotu I', tag: 'Źródła' },
+    { type: 'action', action: 'open-ml1', icon: '✈️', title: 'Mechanika Lotu I — zeszyt ML1 i metody deceleron4', tag: 'P1–P6' },
 
     // Design Inputs & Core Parameters
     { type: 'tab', target: 'tab-p1-p2', icon: '⚖️', title: 'Masa startowa m₀ [kg] — wynik bilansu', tag: 'Wynik obliczeń' },
@@ -254,6 +256,8 @@
         toggleTheme();
       } else if (item.action === 'open-report') {
         navigateToTab('tab-reports');
+      } else if (item.action === 'open-ml1') {
+        window.location.assign('/ml1');
       } else if (item.action === 'new-project') {
         if (typeof window.openWizard === 'function') window.openWizard('new');
       } else if (item.action === 'shortcuts') {

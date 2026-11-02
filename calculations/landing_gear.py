@@ -314,29 +314,36 @@ def calculate_fuselage_and_gear(params: dict) -> dict:
 
     # 5. Landing Gear Geometry, Turnover & Ground Stability (Handout 4, 7)
     # Default geometry heuristics if not explicitly given
-    track_m = float(params.get("track_m") or (0.24 * b))
-    wheelbase_m = float(params.get("wheelbase_m") or (0.38 * fuselage_len))
+    track_m = float(params['track_m'] if params.get('track_m') is not None else 0.24 * b)
+    supplied_base = params.get('wheelbase_m')
+    wheelbase_m = float(supplied_base if supplied_base is not None else 0.38 * fuselage_len)
 
     # Center of gravity positions
     z_cg = float(params.get("z_cg_m", 1.20))
-    cg_aft = float(params.get("cg_aft_m") or (0.48 * fuselage_len))
-    cg_fwd = float(params.get("cg_fwd_m") or (0.42 * fuselage_len))
+    cg_aft = float(params['cg_aft_m'] if params.get('cg_aft_m') is not None else 0.48 * fuselage_len)
+    cg_fwd = float(params['cg_fwd_m'] if params.get('cg_fwd_m') is not None else 0.42 * fuselage_len)
 
     if gear_type == "tailwheel":
         # Main gear is 15 deg ahead of forward CG
-        x_main = cg_fwd - z_cg * math.tan(math.radians(15.0))
-        x_nose = 0.92 * fuselage_len  # Tailwheel station
+        x_main = float(params['x_main_m']) if params.get('x_main_m') is not None else cg_fwd - z_cg * math.tan(math.radians(15.0))
+        x_nose = float(params['x_nose_m']) if params.get('x_nose_m') is not None else x_main + wheelbase_m if supplied_base is not None else 0.92 * fuselage_len
+        if params.get('x_main_m') is None and params.get('x_nose_m') is not None and supplied_base is not None:
+            x_main = x_nose - wheelbase_m
+        wheelbase_m = abs(x_main - x_nose)
         nose_arm = abs(x_nose - cg_aft)
         main_arm = abs(cg_aft - x_main)
         nose_load_pct = (main_arm / max(0.1, main_arm + nose_arm)) * 100.0
         main_load_pct = 100.0 - nose_load_pct
-        main_gear_cg_angle_deg = 15.0
+        main_gear_cg_angle_deg = round(math.degrees(math.atan2(cg_fwd - x_main, z_cg)), 1)
     else:  # Tricycle gear
         # Main gear is placed 13 - 15 deg aft of critical aft CG
         main_gear_target_offset = z_cg * math.tan(math.radians(14.0))
-        x_main = float(params.get("x_main_m") or (cg_aft + main_gear_target_offset))
-        x_nose = float(params.get("x_nose_m") or (0.12 * fuselage_len))
+        x_main = float(params['x_main_m']) if params.get('x_main_m') is not None else cg_aft + main_gear_target_offset
+        x_nose = float(params['x_nose_m']) if params.get('x_nose_m') is not None else x_main - wheelbase_m if supplied_base is not None else 0.12 * fuselage_len
+        if params.get('x_main_m') is None and params.get('x_nose_m') is not None and supplied_base is not None:
+            x_main = x_nose + wheelbase_m
         wheelbase_actual = abs(x_main - x_nose)
+        wheelbase_m = wheelbase_actual
 
         # Main gear angle aft of CG
         dx_cg_main = x_main - cg_aft
@@ -353,11 +360,14 @@ def calculate_fuselage_and_gear(params: dict) -> dict:
 
     # 3D base triangle turnover angle (Handout 4 & Handout 7):
     # d_tip = y_m * l_n / sqrt(B^2 + y_m^2)
-    l_n = abs(cg_aft - x_nose)
-    d_tip = (half_track * l_n) / math.sqrt((wheelbase_m ** 2) + (half_track ** 2))
+    critical_cg = min((cg_fwd, cg_aft), key=lambda x: abs(x - x_nose))
+    l_n = abs(critical_cg - x_nose)
+    diagonal = math.hypot(wheelbase_m, half_track)
+    d_tip = (half_track * l_n) / diagonal if diagonal > 0 else 0.0
     tipover_angle_3d_deg = round(math.degrees(math.atan2(z_cg, d_tip)), 1)
 
-    tipover_compliant = tipover_angle_deg < 60.0
+    supported = min(x_nose, x_main) < min(cg_fwd, cg_aft) and max(cg_fwd, cg_aft) < max(x_nose, x_main)
+    tipover_compliant = track_m > 0 and wheelbase_m > 0 and supported and tipover_angle_3d_deg < 60.0
 
     # Main gear compliance check (13 to 15 deg aft, with standard 12.5 - 16.5 tolerance)
     main_gear_cg_compliant = (12.5 <= main_gear_cg_angle_deg <= 16.5)
@@ -388,6 +398,7 @@ def calculate_fuselage_and_gear(params: dict) -> dict:
     return {
         "tipover_angle_deg": tipover_angle_deg,
         "tipover_angle_3d_deg": tipover_angle_3d_deg,
+        "tipover_reference_cg_m": critical_cg,
         "ground_clearance_m": ground_clearance_m,
         "tail_clearance_deg": tail_clearance_deg,
         "tipover_compliant": tipover_compliant,
@@ -434,6 +445,8 @@ def calculate_fuselage_and_gear(params: dict) -> dict:
             "container_compatible": container_compatible,
         },
         "gear_dimensions": {
+            'x_main_m': x_main,
+            'x_nose_m': x_nose,
             "wheelbase_m": round(wheelbase_m, 2),
             "track_m": round(track_m, 2),
             "tire_diameter_m": tire_diam,

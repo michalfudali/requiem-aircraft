@@ -1,6 +1,12 @@
 {
   "date": "2026-11-02",
+  "integrated_origin_master": "45a8706",
   "browser": "Playwright Chromium headless; real HTTP; isolated catalogue database",
+  "unit_tests": {
+    "python_passed": 1970,
+    "python_xfailed": 0,
+    "javascript_passed": 50
+  },
   "categories": [
     {
       "topic": 7,
@@ -34,14 +40,20 @@
       "edited_physics_checks": 16,
       "report": {
         "sections": 6,
-        "formulas": 875,
+        "formulas": 820,
         "formula_errors": 0,
-        "figures": 41,
+        "figures": 40,
         "contains_name": true
       },
       "javascript_errors": [],
       "http_errors": [],
-      "mobile_overflow": []
+      "mobile_overflow": [],
+      "export_seconds": {
+        "download-report": 2.28,
+        "export-json": 0.39,
+        "export-csv": 0.48,
+        "download-report-docx": 10.03
+      }
     },
     {
       "topic": 17,
@@ -75,14 +87,15 @@
       "edited_physics_checks": 16,
       "report": {
         "sections": 6,
-        "formulas": 897,
+        "formulas": 847,
         "formula_errors": 0,
-        "figures": 41,
+        "figures": 40,
         "contains_name": true
       },
       "javascript_errors": [],
       "http_errors": [],
-      "mobile_overflow": []
+      "mobile_overflow": [],
+      "export_seconds": null
     },
     {
       "topic": 20,
@@ -116,14 +129,15 @@
       "edited_physics_checks": 16,
       "report": {
         "sections": 6,
-        "formulas": 869,
+        "formulas": 817,
         "formula_errors": 0,
-        "figures": 38,
+        "figures": 37,
         "contains_name": true
       },
       "javascript_errors": [],
       "http_errors": [],
-      "mobile_overflow": []
+      "mobile_overflow": [],
+      "export_seconds": null
     },
     {
       "topic": 28,
@@ -157,14 +171,15 @@
       "edited_physics_checks": 16,
       "report": {
         "sections": 6,
-        "formulas": 871,
+        "formulas": 820,
         "formula_errors": 0,
-        "figures": 41,
+        "figures": 40,
         "contains_name": true
       },
       "javascript_errors": [],
       "http_errors": [],
-      "mobile_overflow": []
+      "mobile_overflow": [],
+      "export_seconds": null
     },
     {
       "topic": 32,
@@ -198,14 +213,20 @@
       "edited_physics_checks": 16,
       "report": {
         "sections": 6,
-        "formulas": 898,
+        "formulas": 848,
         "formula_errors": 0,
-        "figures": 41,
+        "figures": 40,
         "contains_name": true
       },
       "javascript_errors": [],
       "http_errors": [],
-      "mobile_overflow": []
+      "mobile_overflow": [],
+      "export_seconds": {
+        "download-report": 2.12,
+        "export-json": 0.33,
+        "export-csv": 0.38,
+        "download-report-docx": 8.81
+      }
     },
     {
       "topic": 42,
@@ -239,14 +260,15 @@
       "edited_physics_checks": 16,
       "report": {
         "sections": 6,
-        "formulas": 904,
+        "formulas": 853,
         "formula_errors": 0,
-        "figures": 41,
+        "figures": 40,
         "contains_name": true
       },
       "javascript_errors": [],
       "http_errors": [],
-      "mobile_overflow": []
+      "mobile_overflow": [],
+      "export_seconds": null
     },
     {
       "topic": 43,
@@ -280,14 +302,15 @@
       "edited_physics_checks": 16,
       "report": {
         "sections": 6,
-        "formulas": 904,
+        "formulas": 853,
         "formula_errors": 0,
-        "figures": 41,
+        "figures": 40,
         "contains_name": true
       },
       "javascript_errors": [],
       "http_errors": [],
-      "mobile_overflow": []
+      "mobile_overflow": [],
+      "export_seconds": null
     },
     {
       "topic": 63,
@@ -321,14 +344,15 @@
       "edited_physics_checks": 16,
       "report": {
         "sections": 6,
-        "formulas": 911,
+        "formulas": 860,
         "formula_errors": 0,
-        "figures": 41,
+        "figures": 40,
         "contains_name": true
       },
       "javascript_errors": [],
       "http_errors": [],
-      "mobile_overflow": []
+      "mobile_overflow": [],
+      "export_seconds": null
     },
     {
       "topic": 68,
@@ -362,14 +386,15 @@
       "edited_physics_checks": 16,
       "report": {
         "sections": 6,
-        "formulas": 916,
+        "formulas": 865,
         "formula_errors": 0,
-        "figures": 41,
+        "figures": 40,
         "contains_name": true
       },
       "javascript_errors": [],
       "http_errors": [],
-      "mobile_overflow": []
+      "mobile_overflow": [],
+      "export_seconds": null
     },
     {
       "topic": 82,
@@ -403,14 +428,15 @@
       "edited_physics_checks": 16,
       "report": {
         "sections": 6,
-        "formulas": 908,
+        "formulas": 857,
         "formula_errors": 0,
-        "figures": 41,
+        "figures": 40,
         "contains_name": true
       },
       "javascript_errors": [],
       "http_errors": [],
-      "mobile_overflow": []
+      "mobile_overflow": [],
+      "export_seconds": null
     },
     {
       "topic": 94,
@@ -444,14 +470,15 @@
       "edited_physics_checks": 16,
       "report": {
         "sections": 6,
-        "formulas": 850,
+        "formulas": 797,
         "formula_errors": 0,
-        "figures": 41,
+        "figures": 40,
         "contains_name": true
       },
       "javascript_errors": [],
       "http_errors": [],
-      "mobile_overflow": []
+      "mobile_overflow": [],
+      "export_seconds": null
     },
     {
       "topic": 95,
@@ -485,14 +512,15 @@
       "edited_physics_checks": 16,
       "report": {
         "sections": 6,
-        "formulas": 844,
+        "formulas": 791,
         "formula_errors": 0,
-        "figures": 41,
+        "figures": 40,
         "contains_name": true
       },
       "javascript_errors": [],
       "http_errors": [],
-      "mobile_overflow": []
+      "mobile_overflow": [],
+      "export_seconds": null
     },
     {
       "topic": 101,
@@ -526,14 +554,15 @@
       "edited_physics_checks": 16,
       "report": {
         "sections": 6,
-        "formulas": 902,
+        "formulas": 851,
         "formula_errors": 0,
-        "figures": 41,
+        "figures": 40,
         "contains_name": true
       },
       "javascript_errors": [],
       "http_errors": [],
-      "mobile_overflow": []
+      "mobile_overflow": [],
+      "export_seconds": null
     }
   ],
   "aircraft_types": {
@@ -1477,5 +1506,34 @@
       }
     ],
     "page_errors": []
+  },
+  "manual_control": {
+    "passed": true,
+    "coverage": [
+      "P1-P6 user entry",
+      "actual report download",
+      "manual wizard empty-field validation",
+      "draft cancellation",
+      "mode off and active project preservation"
+    ]
+  },
+  "primary_materials": {
+    "counts": {
+      "BIPOL": 43,
+      "ML1": 7
+    },
+    "pdf": [
+      {
+        "url": "/download/scraped/mechanika_lotu/Literatura.pdf",
+        "status": 200,
+        "bytes": 45524
+      },
+      {
+        "url": "/download/scraped/bipol/182.PDF",
+        "status": 200,
+        "bytes": 58064
+      }
+    ],
+    "errors": []
   }
 }

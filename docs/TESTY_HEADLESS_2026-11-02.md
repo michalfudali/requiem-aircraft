@@ -1,16 +1,21 @@
 # Testy projektu w przeglądarce — 2 listopada 2026
 
-Pracę wykonano w osobnym worktree `bipol-headless-20261102`, na gałęzi `audit/headless-bipol-20261102`. Scenariusze korzystają z rzeczywistego serwera HTTP Flask na wolnym porcie, osobnej kopii bazy katalogowej i Chromium headless z Playwright. Dane wpisywano przez kontrolki aplikacji, kreator i import pliku. Odczyt JavaScript służył do porównania wyników i stanu interfejsu.
+Pracę wykonano w osobnym worktree `bipol-headless-20261102`, na gałęzi `audit/headless-bipol-20261102`. Scenariusze korzystają z rzeczywistego serwera HTTP Flask na wolnym porcie, osobnej kopii bazy katalogowej i Chromium headless z Playwright. Dane wpisywano przez kontrolki aplikacji, kreator i import pliku. Odczyt JavaScript służył do porównania wyników i stanu interfejsu. Dołączono opublikowane równolegle zmiany z `origin/master` (`45a8706`) dotyczące usterzenia, podwozia i sterowania ręcznego; scenariusze powtórzono na scalonej wersji.
 
 Naprawione błędy:
 
 - Paleta Ctrl+K wskazywała nieistniejące identyfikatory. Teraz odsłania właściwe pole, także w zwiniętej grupie, trybie rozszerzonym i arkuszu semestralnym. Rozdzielono pasażerów od załogi oraz poprawiono symbole i jednostki. Profil i koszty można otworzyć w ich właściwych arkuszach.
+- Widoki edukacyjne były ukryte, a część nie miała przycisków obsługiwanych przez wspólną nawigację. Grupa „Nauka i materiały” udostępnia źródła, metody i plan pracy, a ML1 ma bezpośredni odnośnik i polecenie Ctrl+K. Powrót z ML1 zachowuje projekt. Sprawdzono 43 lokalne pliki BIPOL, 7 ML1, pobranie PDF oraz widok 390/320 px; kopie źródeł pozostały poza Gitem.
 - Polecenie raportu otwierało `/report` bez parametrów projektu. Teraz prowadzi do raportu bieżącego projektu; pobrany dokument sprawdzono offline z odrębną nazwą samolotu.
 - Ctrl+Enter potwierdzał aktualność po błędzie walidacji lub awarii serwera. Status korzysta teraz z rzeczywistego stanu obliczeń. Odpowiedź dotycząca poprzednich danych pozostawia wyniki nieaktualne.
 - Zdarzenie `change` wysyłane dopiero przy opuszczeniu pola unieważniało wynik już przeliczony skrótem. Porównanie z wartościami kontrolek po obliczeniu zapobiega temu w pracowni, drzewie, analizie załadowania, trendach i zaliczeniu. Wyszukiwanie i obracanie modelu nie zmieniają podstawy obliczeń.
 - Przycisk pomocy przełączał motyw i otrzymywał ikonę księżyca. Oddzielono obsługę pomocy i motywu; zmiana motywu odświeża wykresy i podgląd samolotu.
 - W rysunku CAD zerowa masa napędu szybowca była zastępowana przez 100 kg. Zera są zachowane, brak danych jest jawny, a sześć grup mas w tabeli i SVG odpowiada bilansowi P2/P3, łącznie z instalacjami. Usunięto niezależny podział usterzenia 60/40 i automatycznie wpisywane zatwierdzenie. Wysokość oznaczono jako szacunek z proporcji rysunku, a MTOW jako MTOW. Wznios 0° pozostaje zerowy.
 - Po zapisaniu i odtworzeniu projektu automatycznie dobrana moc stawała się wejściem do podziału mas, zmieniając wyważenie i dalszą iterację. W trybie automatycznym jest wynikiem; podana moc wpływa jako założenie w trybie stałej mocy. Test ponownego obliczenia tematów 1, 7 i 32 wymaga identycznych mas, podziału mas, geometrii, oporu i zakresu ŚM.
+
+W scalonych modułach usunięto także cztery wcześniej oznaczone `xfail` defekty. Warunek wywrócenia podwozia korzysta z trójkąta podparcia w 3D oraz krytycznego położenia ŚM. Baza odpowiada rzeczywistym położeniom podpór; podana baza i jedna stacja wyznaczają drugą. Rozstaw 0 m pozostaje zerowy i nie zalicza kontroli stateczności. Dla wielu jednakowych silników średnica i obciążenie krążka korzystają z mocy na silnik, a ciąg statyczny jest sumą ciągów. Napęd odrzutowy i szybowiec nie otrzymują doboru śmigła. Dodatkowe kontrole obejmują oba układy podwozia, przednie ŚM, 1/2/4 silniki i błędne liczby silników. Podstawa: lokalny `okBIPOL_1_handout_4.pdf`, s. 5–6 (kąt wywrócenia < 60°), oraz [NTSB, Aircraft Performance Study](https://data.ntsb.gov/Docket/Document/docBLOB?FileExtension=.PDF&FileName=Aircraft+Performance+Study-Master.PDF&ID=40471327) — moc i ciąg pojedynczego silnika w układzie wielosilnikowym.
+
+Sterowanie ręczne przeszło wpisywanie widocznych sugestii przez wszystkie etapy P1–P6, eksport raportu po zatwierdzeniu danych, blokadę nieuzupełnionego kreatora, anulowanie szkicu i wyłączenie trybu bez zmiany aktywnego projektu.
 
 Pełna ścieżka kreator → P1/P2 → P3 → P4 → P5 → P6 → zgodność → edycja → zapis i ponowne otwarcie → HTML/DOCX/CSV/JSON → raport offline/PDF → widok 390 i 320 px przeszła dla 13 kategorii:
 
@@ -55,6 +60,8 @@ Wariant bazowy jest korzystniejszy pod względem masy, mocy i minimalnego opadan
 
 Zaliczenie scenariusza potwierdza działanie aplikacji i spójność obliczeń. Nie oznacza spełnienia wszystkich wymagań przez każdy zestaw przykładowych założeń. Ostrzeżenia o MTOM wybranej klasy, gabarytach ładowni, zakresie modelu dla dużych liczb Macha i ocenie operacji UAV pozostają widoczne.
 
+Końcowy zestaw Python: **1970 zaliczonych testów, bez `xfail`**. JavaScript: **50 zaliczonych testów**. Po scaleniu ponownie sprawdzono 13 kategorii, siedem typów płatowców, obwiednię, drzewo oraz sterowanie ręczne. Podczas równoległego uruchomienia zestawów jeden eksport DOCX przekroczył limit 90 s; pełny scenariusz tematu 32 powtórzono osobno z powodzeniem, a eksport DOCX trwał 8,81 s.
+
 Uruchomienie testów:
 
 ```powershell
@@ -66,6 +73,8 @@ python tests/browser_engineering_design.py
 python tests/browser_envelope_consistency.py
 python tests/browser_calculation_graph.py
 python tests/browser_ml1.py
+python tests/browser_manual_control.py
+python tests/browser_materials.py --materials "../bipol/scraped_materials"
 ```
 
 Artefakty lokalne znajdują się w ignorowanych katalogach `work/headless-*`: wyniki JSON, zrzuty, rysunki SVG, raporty HTML/DOCX/PDF oraz plik `headless-engineering/motoglider-13_5m-baseline.bipol.json`. Skrócony zapis wyników zawiera [WYNIKI_TESTOW_HEADLESS_2026-11-02.json](WYNIKI_TESTOW_HEADLESS_2026-11-02.json).

@@ -166,9 +166,19 @@ def main():
         assert page.locator('.bipol-shortcuts-card').is_visible()
         page.keyboard.press('Escape')
         assert not page.locator('.bipol-shortcuts-card').is_visible()
+        command(page, 'Materiały BIPOL')
+        assert page.locator('#tab-faculty-docs').is_visible()
+        ml1_link = page.locator('#learningNavigation a[href="/ml1"]')
+        assert ml1_link.is_visible()
+        ml1_link.click()
+        page.wait_for_function('document.querySelector("#methodSelect")?.options.length >= 40')
+        page.go_back()
+        page.wait_for_function('currentResults?.params.name === "Motoszybowiec — test bieżącego raportu" && !document.querySelector("#calcBtn").disabled', timeout=90000)
+        command(page, 'zeszyt ML1')
+        page.wait_for_function('document.querySelector("#methodSelect")?.options.length >= 40')
         assert not errors, errors
         browser.close()
-        print('PASS: real parameter focus; validation/HTTP failure/recovery; stale response rejection; shortcut/blur freshness in form and analysis; graph/pilot/report freshness; current offline report; theme and shortcuts')
+        print('PASS: real parameter focus; validation/HTTP failure/recovery; stale response rejection; shortcut/blur freshness; graph/pilot/report freshness; current offline report; theme; materials and ML1 navigation/back/command')
 
 
 if __name__ == '__main__':

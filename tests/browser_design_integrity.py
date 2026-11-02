@@ -154,11 +154,13 @@ def run_case(browser, topic):
             checkbox.check()
         for action, filename in [("download-report", "report.html"), ("export-json", "project.json"),
                                  ("export-csv", "results.csv"), ("download-report-docx", "report.docx")]:
+            export_start = time.monotonic()
             control = page.locator('[data-studio-action="' + action + '"]')
             reveal_details(control)
             with page.expect_download(timeout=90000) as download:
                 control.click()
             download.value.save_as(case_dir / filename)
+            record.setdefault('export_seconds', {})[action] = round(time.monotonic() - export_start, 2)
             record["steps"].append(action)
         # Reopen the actual downloaded report with networking disabled.
         offline = browser.new_context(offline=True, viewport={"width": 1200, "height": 1000})
@@ -195,8 +197,11 @@ def run_case(browser, topic):
     except Exception:
         record["passed"] = False
         record["failure"] = traceback.format_exc()
+        record['report_status'] = page.locator('#studioReportStatus').text_content()
+        record['client_message'] = page.locator('#studioMessage').text_content()
         page.screenshot(path=str(case_dir / "failure.png"), full_page=True, animations="disabled")
     finally:
+        record['http_errors'] = responses
         record["seconds"] = round(time.monotonic() - started, 1)
         write_json(case_dir / "audit.json", record)
         context.close()

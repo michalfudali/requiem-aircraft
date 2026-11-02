@@ -206,7 +206,6 @@ def test_adversarial_3d_turnover_distance_and_angle_ordering():
         assert theta_3d > psi_2d, f"Ordering failed: theta_3d={theta_3d} <= psi_2d={psi_2d}"
 
 
-@pytest.mark.xfail(reason="Defect: calculate_fuselage_and_gear evaluates tipover_compliant on 2D angle only, ignoring 3D angle >= 60 deg", strict=False)
 def test_adversarial_3d_turnover_compliance_rejection_gap():
     """
     Defect reproduction test:
@@ -224,7 +223,6 @@ def test_adversarial_3d_turnover_compliance_rejection_gap():
     assert res["tipover_compliant"] is False, "3D turnover angle >= 60 deg must be rejected!"
 
 
-@pytest.mark.xfail(reason="Defect: calculate_fuselage_and_gear uses default wheelbase instead of actual distance when x_main_m and x_nose_m are given", strict=False)
 def test_adversarial_wheelbase_desynchronization_with_explicit_stations():
     """
     Defect reproduction test:
@@ -240,7 +238,6 @@ def test_adversarial_wheelbase_desynchronization_with_explicit_stations():
     assert res["gear_dimensions"]["wheelbase_m"] == 6.0
 
 
-@pytest.mark.xfail(reason="Defect: track_m=0.0 is treated as falsy and silently replaced with default track", strict=False)
 def test_adversarial_zero_track_rejection():
     """
     Boundary test: Zero track width must not silently fall back to default track fraction.
@@ -347,7 +344,6 @@ def test_adversarial_propeller_diameter_blade_count_monotonicity():
             )
 
 
-@pytest.mark.xfail(reason="Defect: calculate_propulsion_clearance ignores n_engines parameter and hardcodes turboprop_regional check", strict=False)
 def test_adversarial_multi_engine_power_partitioning():
     """
     Defect reproduction test:
@@ -359,6 +355,7 @@ def test_adversarial_multi_engine_power_partitioning():
         "n_engines": 2,
         "aircraft_type": "twin_piston",
         "blade_count": 2,
+        "prop_rpm": 1200,  # Keep this sizing test below the helical tip-Mach limit.
     })
     expected_dp_150kw = round(0.22 * math.sqrt(150.0), 3)
     assert pytest.approx(res["propeller_diameter_m"], abs=0.05) == expected_dp_150kw

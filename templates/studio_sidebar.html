@@ -11,18 +11,15 @@
       <button type="button" class="studio-nav-item" data-studio-nav="{{ target }}"><span data-studio-icon="{{ icon }}"></span><span>{{ label }}</span></button>
       {% endfor %}
     </details>
+    <details class="quiet-nav-group" id="learningNavigation">
+      <summary>Nauka i materiały</summary>
+      <a href="/ml1" class="studio-nav-item"><span data-studio-icon="wing"></span><span>Mechanika Lotu I</span></a>
+      {% for target, icon, label in [('tab-faculty-docs','file','Materiały przedmiotów'),('tab-methods','layers','Metody i źródła'),('tab-coursework','check','Plan pracy i zaliczenie'),('tab-bipol-guide','file','Zakres projektów')] %}
+      <button type="button" class="studio-nav-item" data-studio-nav="{{ target }}"><span data-studio-icon="{{ icon }}"></span><span>{{ label }}</span></button>
+      {% endfor %}
+    </details>
     <div style="display:none;" aria-hidden="true">
-      <details id="learningNavigation">
-        <summary></summary>
-        <button type="button" id="btnModeProjects" onclick="setPortalMode('projects')"></button>
-        <button type="button" data-studio-nav="tab-coursework"></button>
-        <button type="button" data-studio-nav="tab-exam"></button>
-        <button type="button" data-studio-nav="tab-quiz"></button>
-        <button type="button" data-studio-nav="tab-methods"></button>
-        <button type="button" data-studio-nav="tab-faculty-docs"></button>
-        <button type="button" data-studio-nav="tab-didactic-compendium"></button>
-        <button type="button" data-studio-nav="tab-bipol-guide"></button>
-      </details>
+      <button type="button" id="btnModeProjects" onclick="setPortalMode('projects')"></button>
       <button type="button" id="btnModeHolistic" onclick="setPortalMode('holistic')"></button>
     </div>
   </nav>

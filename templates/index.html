@@ -948,8 +948,8 @@
                 <div class="compendium-card">
                   <h4>5. Obciążenia Samolotu, Podmuchy i Rozkład Schrenka (prof. J. Danilecki)</h4>
                   <ul>
-                    <li><strong>Współczynnik bezpieczeństwa konstrukcji (Rozdz. 1, wzór 1.1):</strong> Obciążenia niszczące muszą przewyższać dopuszczalne o współczynnik bezpieczeństwa \(\nu = 1.5\) (\(P_{nisz} \le 1.5 P_{dop}\)), przy czym obciążenia dopuszczalne nie mogą powodować trwałych odkształceń plastycznych (\(P_{dop} \le P_{plast}\)).</li>
-                    <li><strong>Współczynnik obciążenia manewrowego (Rozdz. 2, wzory 2.1–2.9):</strong> Zgodnie z II zasadą dynamiki \(n = a/g = P_z / (m_0 g)\). W gwałtownym manewrze od \(V_{min}\) do \(V_{max}\) przeciążenie wynosi \(n = (V_{max} / V_{min})^2\).</li>
+                    <li><strong>Współczynnik bezpieczeństwa konstrukcji (Rozdz. 1, wzór 1.1):</strong> Obciążenia niszczące muszą przewyższać dopuszczalne o współczynnik bezpieczeństwa \(\nu = 1.5\) (\(P_{nisz} \ge 1.5 P_{dop}\)), przy czym obciążenia dopuszczalne nie mogą powodować trwałych odkształceń plastycznych (\(P_{dop} \le P_{plast}\)).</li>
+                    <li><strong>Współczynnik obciążenia manewrowego (Rozdz. 2, wzory 2.1–2.9):</strong> Zgodnie z II zasadą dynamiki \(n = P_z / (m_0 g)\). Na dodatniej granicy przeciągnięcia, przy stałym maksymalnym współczynniku siły nośnej, \(n = (V/V_S)^2\).</li>
                     <li><strong>Teoria podmuchu pionowego (Rozdz. 2, wzory 2.10–2.14):</strong> Przyrost przeciążenia \(\Delta n = \pm \frac{\eta \rho V w_{max} a}{2 (W/S)}\). Cecha masowa: \(\mu = \frac{2 m_0}{\rho l_{śa} S a}\), współczynnik łagodzenia podmuchu wg norm: \(\eta = \frac{0.88 \mu}{5.3 + \mu}\).</li>
                     <li><strong>Metoda Schrenka dla powierzchni nośnych (Rozdz. 7, wzory 7.1–7.3):</strong> Średnia arytmetyczna rozkładu rzeczywistego i eliptycznego: \(c_{schrenk}(y) = \frac{1}{2}[c_{geom}(y) + c_{ellip}(y)]\). Rozkład lokalnego współczynnika siły nośnej: \(c_{z1}(y) = \frac{1}{2}[1 + c_{ellip}(y)/c_{geom}(y)]\) wskazuje miejsce inicjacji przeciągnięcia.</li>
                     <li><strong>Wymiarowanie usterzeń i siły tnące (Rozdz. 4 i 8):</strong> Obciążenia usterzeń wyznacza się z warunków wyważenia w zakręcie, nagłego wychylenia steru oraz podmuchu asymetrycznego; moment gnący kadłuba i skrzydła całkuje się z rozkładów sił poprzecznych \(Q(y)\) i masowych \(n q_s\).</li>
@@ -973,6 +973,7 @@
           </div>
         </div>
 
+        </div> <!-- /hidden academic compendium -->
         <!-- TAB: FACULTY MATERIALS (SCRAPED FILES) -->
         <div id="tab-faculty-docs" class="tab-content">
           <div class="b-card">
@@ -1049,8 +1050,6 @@
         </div>
 
         </div> <!-- /#holisticWorkspace -->
-
-        </div>
         <!-- WORKSPACE 2: TRYB REALIZACJI PROJEKTÓW SEMESTRALNYCH BIPOL I (P1 DO P6) -->
         <div id="semesterWorkstation" style="display:none;">
 
@@ -2523,7 +2522,7 @@
   <script src="/static/js/studio-visuals.js?v=3"></script>
   <script src="/static/js/didactic_data.js?v=14"></script>
   <script src="/static/js/charts.js?v=20"></script>
-  <script src="/static/js/app.js?v=42"></script>
+  <script src="/static/js/app.js?v=43"></script>
   <script src="/static/js/didactic_modes.js?v=3"></script>
   <script src="/static/js/constraints-ui.js?v=6"></script>
   <script src="/static/js/design-basis.js?v=7"></script>
@@ -2542,7 +2541,7 @@
   <script src="/static/js/pilot-loading.js?v=3"></script>
   <script src="/static/js/ballast-ui.js?v=1"></script>
   <script src="/static/js/coursework.js?v=6"></script>
-  <script src="/static/js/modern-ui.js?v=2"></script>
+  <script src="/static/js/modern-ui.js?v=3"></script>
   <script src="/static/js/manual-control.js?v=1"></script>
 </body>
 </html>
