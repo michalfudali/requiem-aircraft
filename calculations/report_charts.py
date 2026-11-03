@@ -9,16 +9,10 @@ import math
 
 from markupsafe import Markup
 
-from calculations.bipol1 import CORKE, RAYMER
+from calculations.bipol1 import CORKE, CX0_LABELS, RAYMER, RAYMER_LABELS, WETTED_EXAMPLES
 from calculations.flight_model import propulsion_lapse
 from calculations.report_document import report_number
 from calculations.report_figures import FONT, HALO, INK, MUTED, line_chart
-
-RAYMER_LABELS = {
-    'glider': 'szybowce', 'military_supersonic': 'samoloty bojowe w locie naddźwiękowym',
-    'military_subsonic': 'samoloty bojowe w locie poddźwiękowym', 'jet': 'cywilne samoloty odrzutowe',
-    'prop_retractable': 'samoloty śmigłowe z podwoziem chowanym', 'prop_fixed': 'samoloty śmigłowe z podwoziem stałym',
-}
 
 
 def _n(value, digits=2):
@@ -52,24 +46,33 @@ def corke_chart(corke):
                       extra=dict(points=marks))
 
 
-def raymer_chart(family, wetted_aspect, kmax):
+def raymer_chart(family, wetted_aspect, kmax, extrapolated=False):
+    """Rys. 2 BIPOL_1: krzywa K_max(Λ_wet) dla grupy samolotów z odczytem projektu. Odczyt poza
+    narysowaną krzywą leży na jej przedłużeniu K ∝ √Λ_wet (linia kreskowa)."""
     points = RAYMER[family]
     curve = [(x, y, f'{_n(x, 2)}: K = {_n(y, 1)}') for x, y in points]
-    xs = [x for x, _ in points]
+    extra = dict(points=[(wetted_aspect, kmax, f'K_max = {_n(kmax, 1)}' + (' (przedłużenie)' if extrapolated else ''))])
+    if extrapolated:
+        x_end, y_end = points[0] if wetted_aspect < points[0][0] else points[-1]
+
+        def extension(px, py):
+            xs = [x_end + (wetted_aspect - x_end) * i / 24 for i in range(25)]
+            path = ''.join(f'{"M" if not i else "L"}{px(x):.1f} {py(y_end * math.sqrt(x / x_end)):.1f}' for i, x in enumerate(xs))
+            return f'<path d="{path}" fill="none" stroke="{MUTED}" stroke-width="1.5" stroke-dasharray="5 4"/>'
+        extra['svg'] = extension
     return line_chart([(RAYMER_LABELS.get(family, family), 0, curve)],
                       'Maksymalna doskonałość w funkcji wydłużenia odniesionego do powierzchni omywanej',
-                      'Λ / (S_wet / S)', 'K_max', x_ticks=xs,
-                      x_labels=[_n(x, 1) for x in xs],
-                      extra=dict(points=[(wetted_aspect, kmax, f'K_max = {_n(kmax, 1)}')]))
+                      'Λ / (S_wet / S)', 'K_max', extra=extra)
 
 
-SWET_TYPICAL = ((2.25, 'latające skrzydło'), (3.0, 'myśliwiec z płatem delta'), (3.1, 'szybowiec'),
-                (4.0, 'lekki samolot jednosilnikowy'), (4.9, 'samolot dwusilnikowy śmigłowy'),
-                (5.5, 'myśliwiec odrzutowy'), (6.1, 'samolot komunikacyjny'), (7.6, 'bombowiec, duże gondole'))
+SWET_SHORT = {'flying_wing': 'latające skrzydło', 'delta_fighter': 'delta F-102', 'glider': 'szybowiec',
+              'light_single': 'Cessna 150', 'twin_turboprop': 'King Air', 'fighter': 'F-104',
+              'jet_transport': 'Boeing 747', 'bomber': 'B-47'}
 
 
-def swet_scale_chart(value):
-    """Skala S_wet/S typowych układów (wg Raymera) z wartością projektu."""
+def swet_scale_chart(value, example=None):
+    """Rys. 1 BIPOL_1: S_wet/S typowych układów (wg Raymera) z wartością projektu; wyróżniony układ,
+    z którego przyjęto wartość."""
     width, left, right, axis_y = 680, 40, 40, 120
     lo, hi = 2.0, 8.0
 
@@ -82,11 +85,15 @@ def swet_scale_chart(value):
     for tick in range(2, 9):
         svg.append(f'<path d="M{px(tick):.1f} {axis_y - 5}V{axis_y + 5}" stroke="{INK}"/>'
                    f'<text x="{px(tick):.1f}" y="{axis_y + 20}" text-anchor="middle" font-size="11" fill="{MUTED}" {FONT}>{tick}</text>')
-    for i, (x, label) in enumerate(SWET_TYPICAL):
+    for i, (key, (label, x)) in enumerate(WETTED_EXAMPLES.items()):
         y = axis_y - 18 - 16 * (i % 4)
-        svg.append(f'<circle cx="{px(x):.1f}" cy="{axis_y}" r="3.5" fill="{MUTED}"/>'
+        chosen = key == example
+        color, weight = (INK, ' font-weight="bold"') if chosen else (MUTED, '')
+        anchor = 'end' if x > 7 else 'start' if x < 2.5 else 'middle'
+        svg.append(f'<circle cx="{px(x):.1f}" cy="{axis_y}" r="{4.5 if chosen else 3.5}" fill="{color}"/>'
                    f'<path d="M{px(x):.1f} {axis_y - 4}V{y + 4}" stroke="#b5b4ae" stroke-width="1"/>'
-                   f'<text x="{px(x):.1f}" y="{y}" text-anchor="middle" font-size="10" fill="{MUTED}" {HALO}{FONT}>{html.escape(label)}</text>')
+                   f'<text x="{px(x):.1f}" y="{y}" text-anchor="{anchor}" font-size="10" fill="{color}"{weight} {HALO}{FONT}>'
+                   f'{html.escape(SWET_SHORT.get(key, label))} {_n(x, 2)}</text>')
     svg.append(f'<path d="M{px(value):.1f} {axis_y - 9}L{px(value) + 7:.1f} {axis_y + 40}L{px(value) - 7:.1f} {axis_y + 40}Z" fill="#eb6834"/>'
                f'<text x="{px(value):.1f}" y="{axis_y + 56}" text-anchor="middle" font-size="12" font-weight="bold" fill="{INK}" {FONT}>'
                f'projekt: S_wet/S = {_n(value, 2)}</text>'
@@ -233,10 +240,6 @@ def glide_masses_chart(table, masses):
 # ---------------------------------------------------------------------------------------------
 # Tablice z literatury, z których program przyjmuje wartości (zamieszczane w sprawozdaniu)
 # ---------------------------------------------------------------------------------------------
-CX0_LABELS = {'military': 'samoloty bojowe', 'transport': 'duże samoloty transportowe',
-              'small_twin': 'małe samoloty dwusilnikowe', 'single_retractable': 'jednosilnikowe z podwoziem chowanym',
-              'single_fixed': 'jednosilnikowe z podwoziem stałym', 'agricultural': 'samoloty rolnicze',
-              'motoglider': 'motoszybowce'}
 FLAP_LABELS = {'plain': 'klapa zwykła', 'split': 'klapa krokodylowa', 'single_slotted': 'klapa szczelinowa',
                'flaperon': 'klapolotka', 'fowler': 'klapa Fowlera', 'double_slotted': 'klapa dwuszczelinowa',
                'junkers': 'klapa Junkersa'}

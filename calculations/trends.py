@@ -115,7 +115,57 @@ def reference_catalog():
             'counts': dict(Counter(r['aircraft_type'] for r in rows)), 'aircraft': rows}
 
 
-def select_references(params, m0):
+# One comparison sample per project. The wizard, the input panel, the P1 trend
+# analysis and the empty-mass law select aircraft from these settings only.
+SAMPLE_KEYS = ('trend_source', 'trend_nearest_count', 'trend_engine_count', 'trend_year_min', 'trend_year_max',
+               'trend_weighting', 'trend_year_basis', 'trend_aircraft_ids', 'trend_observations',
+               'mass_initial_guess', 'variable_sweep')
+SAMPLE_CHOICES = {'trend_source': ('all', 'fast', 'cado', 'motogliders', 'geometry_trends', 'user'),
+                  'trend_weighting': ('family', 'variant'), 'trend_year_basis': ('production', 'certification')}
+
+
+def sample_settings(data):
+    """Validated comparison-sample settings of a project; other keys are ignored."""
+    settings = {}
+    for key in ('trend_nearest_count', 'trend_engine_count', 'trend_year_min', 'trend_year_max'):
+        if data.get(key) not in (None, ''):
+            value = float(data[key])
+            if not value.is_integer() or value < 0:
+                raise ValueError(f'Pole {key}: wymagana nieujemna liczba całkowita.')
+            settings[key] = int(value)
+    if data.get('mass_initial_guess') not in (None, ''):
+        mass = float(data['mass_initial_guess'])
+        if not math.isfinite(mass) or mass <= 0:
+            raise ValueError('Masa odniesienia doboru próby musi być dodatnia.')
+        settings['mass_initial_guess'] = mass
+    for key, allowed in SAMPLE_CHOICES.items():
+        if data.get(key) not in (None, ''):
+            if data[key] not in allowed:
+                raise ValueError(f'Pole {key}: nieznana wartość.')
+            settings[key] = data[key]
+    ids = data.get('trend_aircraft_ids')
+    if ids not in (None, ''):
+        ids = [i for i in ids.split(',') if i] if isinstance(ids, str) else ids
+        if not isinstance(ids, list) or any(not isinstance(i, str) for i in ids):
+            raise ValueError('Dobór konstrukcji: wymagana lista identyfikatorów.')
+        settings['trend_aircraft_ids'] = ids
+    if data.get('trend_observations'):
+        from calculations.trend_observations import validate_observations
+        settings['trend_observations'] = validate_observations(data['trend_observations'])
+    if data.get('variable_sweep') not in (None, ''):
+        settings['variable_sweep'] = data['variable_sweep'] in (True, 'true', '1')
+    return settings
+
+
+def sample_reference_mass(params):
+    """MTOW for the optional nearest-mass narrowing. It is an initial assumption,
+    never the computed m0, so the sample is known before the mass is."""
+    if not int(params.get('trend_nearest_count', 0) or 0) or params.get('trend_aircraft_ids') is not None:
+        return None
+    return float(params.get('mass_initial_guess') or 5000)
+
+
+def select_references(params):
     cls, engine = params.get('aircraft_type', 'piston_ga'), params.get('engine_type', 'prop')
     pool = [r for r in load_aircraft() if r['aircraft_type'] == cls and r['engine_type'] == engine]
     overrides = {r['id']: r for r in params.get('trend_observations', [])}
@@ -134,12 +184,11 @@ def select_references(params, m0):
     ids = params.get('trend_aircraft_ids')
     if ids is not None:
         pool = [r for r in pool if r['id'] in ids]
-    if not m0:
-        # Without a design mass there is no "nearest" aircraft; keep the whole class.
+    reference = sample_reference_mass(params)
+    if reference is None:
         return sorted(pool, key=lambda r: r['id'])
-    pool = sorted(pool, key=lambda r: (abs(math.log(r['m0'] / max(m0, 1))), r['id']))
-    count = int(params.get('trend_count', 50))
-    return pool[:count] if count else pool
+    pool = sorted(pool, key=lambda r: (abs(math.log(r['m0'] / reference)), r['id']))
+    return pool[:int(params['trend_nearest_count'])]
 
 
 def valid_value(key, row):
@@ -162,6 +211,15 @@ def sample_weights(weighting):
     return weights
 
 
+def mass_trend(params, rows=None):
+    """The same mass law for P1, suggestions, and the nonlinear mass balance."""
+    rows = select_references(params) if rows is None else rows
+    subset = [r for r in rows if valid_value('empty_fraction', r)]
+    weights = sample_weights(params.get('trend_weighting', 'family'))(subset)
+    fit = fit_regression([(r['m0'], r['empty_fraction']) for r in subset], weights, power=True)
+    return subset, fit
+
+
 def forecast_years(today=None):
     reference = (today or date.today()).year
     return reference, reference + FORECAST_HORIZON_YEARS
@@ -176,6 +234,24 @@ def time_trend(rows, key, weights, forecast_year):
     return subset, fit, predict(fit, forecast_year) if fit else None
 
 
+def forecast_rejection(fit, forecast, metric, forecast_year):
+    """Common acceptance rule for a design forecast, separate from merely plotting a fit.
+
+    R² = 0.2 is a declared screening choice, not an airworthiness requirement.
+    Exceeding the observed y range alone cannot reject an extrapolation.
+    """
+    if not fit:
+        return 'mniej niż 3 kompletne obserwacje lub rozpiętość dat poniżej 5 lat'
+    lo, hi = PHYSICAL_BOUNDS.get(metric, (0, math.inf))
+    if forecast is None or not lo < forecast < hi:
+        return 'prognoza poza zakresem fizycznym'
+    if fit['r2'] is None or fit['r2'] < .2:
+        return 'słaba zależność od roku (R² < 0,2)'
+    if forecast_year - fit['x_max'] > max(5, fit['x_max'] - fit['x_min']):
+        return 'ekstrapolacja dłuższa niż okres objęty obserwacjami'
+    return None
+
+
 def two_point_coefficients(fit):
     """BIPOL_1, eq. (1): C and A from two points read off the fitted mass line."""
     x1, x2 = fit['x_min'], fit['x_max']
@@ -184,16 +260,16 @@ def two_point_coefficients(fit):
     return {'x1': x1, 'y1': y1, 'x2': x2, 'y2': y2, 'C': c, 'A': y1 / x1 ** c}
 
 
-def describe_sample(params, rows, m0):
+def describe_sample(params, rows):
     engine = params.get('engine_type', 'prop')
     parts = [f"klasa „{CLASSES[params.get('aircraft_type', 'piston_ga')]}”, {ENGINE_LABELS.get(engine, engine)}"]
-    count = int(params.get('trend_count', 50))
+    reference = sample_reference_mass(params)
     if params.get('trend_aircraft_ids') is not None:
         parts.append('konstrukcje zaznaczone ręcznie')
-    elif m0 and count:
-        parts.append(f'{count} konstrukcji najbliższych masą m₀ = {_pl(m0, 0)} kg')
+    elif reference:
+        parts.append(f"{int(params['trend_nearest_count'])} konstrukcji najbliższych masie odniesienia {_pl(reference, 0)} kg")
     else:
-        parts.append('wszystkie pasujące konstrukcje' + ('' if m0 else ' (masa projektu jeszcze nieznana)'))
+        parts.append('wszystkie pasujące konstrukcje')
     if params.get('trend_source', 'all') != 'all':
         parts.append(f"źródło: {SOURCES.get(params['trend_source'], {}).get('name', params['trend_source'])}")
     if int(params.get('trend_engine_count', 0)):
@@ -264,6 +340,7 @@ METRICS = {
     'specific_power_kw_kg': ('Moc jednostkowa P/m₀', 'kW/kg'),
     'thrust_to_weight': ('Obciążenie ciągu T/W', '−'),
     'ld_max': ('Doskonałość maksymalna', '−'),
+    'w_z_min_ms': ('Najmniejsze opadanie', 'm/s'),
     'v_h': ('Cecha objętościowa usterzenia poziomego V_H', '−'),
     'v_v': ('Cecha objętościowa usterzenia pionowego V_V', '−'),
     'aileron_span_fraction': ('Część rozpiętości objęta lotkami b_ail/(b/2)', '−'),
@@ -386,8 +463,9 @@ def compute_vector_stats(values):
 
 
 def analyze_geometry_trends(params, geom_res=None):
-    """Conduct comprehensive trend and compliance analysis for the 6 primary geometric parameters."""
-    all_aircraft = load_aircraft()
+    """Geometry diagnostics of the project's selected sample, using the P1 weights."""
+    all_aircraft = select_references(params)
+    weights = sample_weights(params.get('trend_weighting', 'family'))
     ac_type = params.get('aircraft_type', 'piston_ga')
     wing_cfg = params.get('wing_configuration', params.get('wing_config', 'low'))
 
@@ -416,13 +494,19 @@ def analyze_geometry_trends(params, geom_res=None):
 
         all_stats = compute_vector_stats(all_vals)
         class_stats = compute_vector_stats(class_vals)
+        for stats, subset in ((all_stats, all_subset), (class_stats, class_subset)):
+            if stats:
+                sw = weights(subset)
+                stats['mean'] = sum(r[key] * w for r, w in zip(subset, sw)) / sum(sw)
 
         proj_val = proj_vals.get(key)
 
         # Do not mix classes to conceal missing data in the selected class.
         reg_source = class_subset
-        fit_m0 = fit_regression([(r['m0'], r[key]) for r in reg_source if r.get('m0')])
-        fit_b = fit_regression([(r['b'], r[key]) for r in reg_source if r.get('b')])
+        mass_rows = [r for r in reg_source if r.get('m0')]
+        span_rows = [r for r in reg_source if r.get('b')]
+        fit_m0 = fit_regression([(r['m0'], r[key]) for r in mass_rows], weights(mass_rows))
+        fit_b = fit_regression([(r['b'], r[key]) for r in span_rows], weights(span_rows))
 
         # Evaluation against typical literature range
         typ_min, typ_max, lit_note = info['typical_ranges'][ac_type]
@@ -495,13 +579,12 @@ def analyze_geometry_trends(params, geom_res=None):
 
 
 def analyze_trends(params, m0, m_empty, geom_res=None):
-    rows = select_references(params, m0)
+    rows = select_references(params)
     counts = Counter(r['family'] for r in rows)
     weighting = params.get('trend_weighting', 'family')
     weights = sample_weights(weighting)
     reference_year, forecast_year = forecast_years()
-    valid_mass = [r for r in rows if valid_value('empty_fraction', r)]
-    mass_fit = fit_regression([(r['m0'], r['empty_fraction']) for r in valid_mass], weights(valid_mass), power=True)
+    valid_mass, mass_fit = mass_trend(params, rows)
     two_point = two_point_coefficients(mass_fit) if mass_fit else None
     k_vs = 1.04 if params.get('variable_sweep', False) else 1.
     prediction = predict(mass_fit, m0)
@@ -526,11 +609,13 @@ def analyze_trends(params, m0, m_empty, geom_res=None):
     time_rows = [r for r in rows if (r.get('year_basis') or 'certification') == year_basis]
     for key, (label, unit) in METRICS.items():
         subset, fit, forecast = time_trend(time_rows, key, weights, forecast_year)
+        rejection = forecast_rejection(fit, forecast, key, forecast_year)
         time_trends.append({'key': key, 'label': label, 'unit': unit, 'fit': fit,
             'available_n': len(subset), 'points': [{'x': r['year'], 'y': r[key], 'model': r['model']} for r in subset],
             'forecast_year': forecast_year if fit else None, 'forecast': forecast,
             'extrapolation_years': forecast_year - fit['x_max'] if fit else None,
             'forecast_physical': forecast is not None and forecast > 0 and (key != 'empty_fraction' or forecast < 1),
+            'forecast_accepted': rejection is None, 'forecast_rejection': rejection,
             'provisional': len(subset) < BIPOL_1_SAMPLE})
     if max((t['available_n'] for t in time_trends), default=0) < BIPOL_1_SAMPLE:
         warnings.append('Za mało udokumentowanych dat dla pełnej analizy czasowej. Dat certyfikacji nie zastępujemy domyślnym rokiem produkcji.')
@@ -546,7 +631,7 @@ def analyze_trends(params, m0, m_empty, geom_res=None):
     if any(r.get('prop_diameter_m') is not None for r in rows):
         x_keys.append('prop_diameter_m')
         x_labels['prop_diameter_m'] = ('Średnica śmigła d_prop', 'm')
-    y_keys = ['v_cruise_kmh', 'cruise_mach', 'range_km', 'takeoff_distance_m', 'landing_distance_m', 'climb_rate_ms', 'ld_max',
+    y_keys = ['v_cruise_kmh', 'cruise_mach', 'range_km', 'takeoff_distance_m', 'landing_distance_m', 'climb_rate_ms', 'ld_max', 'w_z_min_ms',
               'v_h', 'aileron_span_fraction', 'aileron_chord_ratio', 'dihedral_deg']
     if any(r.get('prop_diameter_m') is not None for r in rows):
         y_keys.append('prop_diameter_m')
@@ -565,7 +650,7 @@ def analyze_trends(params, m0, m_empty, geom_res=None):
         subset = [r for r in rows if valid_value(key, r)]
         ws = weights(subset)
         averages[key] = {'mean': sum(r[key]*w for r,w in zip(subset,ws))/sum(ws) if subset else None, 'n': len(subset)}
-    sample = describe_sample(params, rows, m0)
+    sample = describe_sample(params, rows)
     suggestions = trend_suggestions(rows, params, m0, weights, mass_fit, forecast_year, sample)
 
     geometry_trends_analysis = analyze_geometry_trends(params, geom_res)
@@ -575,7 +660,8 @@ def analyze_trends(params, m0, m_empty, geom_res=None):
     def time_chart(key):
         t = next(t for t in time_trends if t['key'] == key)
         return {'mode': key, 'kind': 'time', 'label': f"{t['label']} w funkcji roku",
-                'parameter': key, 'n': t['available_n'], 'fit': t['fit']}
+                'parameter': key, 'n': t['available_n'], 'fit': t['fit'],
+                'forecast_accepted': t['forecast_accepted'], 'forecast_rejection': t['forecast_rejection']}
 
     def relation_chart(x, y):
         r = next(r for r in relationships if r['x_key'] == x and r['y_key'] == y)
@@ -585,33 +671,41 @@ def analyze_trends(params, m0, m_empty, geom_res=None):
     propulsion_key = 'thrust_to_weight' if params.get('engine_type') == 'jet' else 'power_loading_kg_kw'
     performance_key = ('cruise_mach' if sum(r.get('cruise_mach') is not None for r in rows) >
                        sum(r.get('v_cruise_kmh') is not None for r in rows) else 'v_cruise_kmh')
-    time_options = [time_chart(key) for key in (performance_key, 'ar', 'wing_loading_kg_m2', 'v_h', 'dihedral_deg')]
+    time_keys = [performance_key, 'ar', 'wing_loading_kg_m2']
+    if params.get('engine_type') != 'none':
+        time_keys.append(propulsion_key)
+    time_options = [time_chart(key) for key in time_keys]
     # Prefer complete observations instead of a blank speed/year plot when
     # speed and certification dates belong to different source records.
-    time_options.sort(key=lambda c: not (c['n'] >= MIN_AIRCRAFT and c['fit']))
+    def chart_rank(chart):
+        fit = chart['fit']
+        return (not (chart['n'] >= MIN_AIRCRAFT and fit),
+                -(fit['r2'] if fit and fit['r2'] is not None else 0), -chart['n'])
+
+    time_options.sort(key=chart_rank)
     report_charts = [{'mode': 'mass', 'kind': 'mass', 'label': 'Udział masy pustej w funkcji masy startowej',
                       'n': len(valid_mass), 'fit': mass_fit}, *time_options[:2]]
     if params.get('engine_type') == 'none':
         choices = [('ar','ld_max'), ('wing_loading_kg_m2','v_cruise_kmh'),
-                   ('ar','v_h'), ('ar','aileron_chord_ratio'), ('wing_loading_kg_m2','dihedral_deg')]
+                   ('ar','w_z_min_ms'), ('wing_loading_kg_m2','w_z_min_ms'),
+                   ('wing_loading_kg_m2','ld_max'), ('ar','v_cruise_kmh'), ('ar','range_km')]
+        required_axes = ['ar', 'wing_loading_kg_m2', 'ar']
     else:
         climb_chart = relation_chart(propulsion_key, 'climb_rate_ms')
         choices = [('ar','range_km'), (propulsion_key,'climb_rate_ms'),
                    ('wing_loading_kg_m2','takeoff_distance_m'), (propulsion_key,performance_key),
-                   ('ar','ld_max'), ('wing_loading_kg_m2','v_h'), ('ar','aileron_chord_ratio'),
-                   ('wing_loading_kg_m2','dihedral_deg'), ('wing_loading_kg_m2','landing_distance_m')]
+                   ('ar','ld_max'), ('wing_loading_kg_m2','landing_distance_m'),
+                   ('ar',performance_key), ('wing_loading_kg_m2',performance_key), (propulsion_key,'range_km')]
+        required_axes = ['ar', 'wing_loading_kg_m2', propulsion_key]
         if climb_chart['n'] < MIN_AIRCRAFT:
-            warnings.append('Wznoszenie a obciążenie napędu: uzupełnij katalogowe prędkości wznoszenia. Gdy ich brakuje, zestaw pięciu parametrów wykorzystuje inne jawnie opisane obserwacje.')
+            warnings.append('Wznoszenie a obciążenie napędu: uzupełnij katalogowe prędkości wznoszenia. Braku danych osiągowych nie zastępuje się proporcjami geometrycznymi.')
     candidates = [relation_chart(x, y) for x, y in choices]
-    candidates.sort(key=lambda c: not (c['n'] >= MIN_AIRCRAFT and c['fit']))
+    candidates.sort(key=chart_rank)
     used_parameters = {c['parameter'] for c in report_charts if c['kind'] != 'mass'}
-    for candidate in candidates:
-        if candidate['parameter'] in used_parameters:
-            continue
+    for axis in required_axes:
+        candidate = next(c for c in candidates if c['mode'].split(':')[0] == axis and c['parameter'] not in used_parameters)
         report_charts.append(candidate)
         used_parameters.add(candidate['parameter'])
-        if len(report_charts) == 6:
-            break
     if any(c['n'] < MIN_AIRCRAFT for c in report_charts):
         warnings.append('Część sześciu wymaganych wykresów ma mniej niż 8 par danych. Uzupełnij dane źródłowe; nie zastępuj pełnego startu rozbiegiem ani wznoszenia opadaniem.')
 
@@ -621,7 +715,7 @@ def analyze_trends(params, m0, m_empty, geom_res=None):
         'mass_fit': mass_fit, 'two_point': two_point, 'k_vs': k_vs, 'we_wo_trend': trend_value,
         'we_wo_actual': m_empty/m0 if m0 else None,
         'similar_aircraft': rows, 'averages': averages, 'warnings': warnings,
-        'time_trends': time_trends, 'relationships': relationships, 'sources': sources_in_use(load_aircraft()),
+        'time_trends': time_trends, 'relationships': relationships, 'sources': sources_in_use(rows),
         'report_charts': report_charts, 'sample': sample, 'suggestions': suggestions,
         'reference_year': reference_year, 'forecast_year': forecast_year,
         'mass_trend_decreasing': mass_fit['C'] < 0 if mass_fit else None,
@@ -696,7 +790,6 @@ SUGGESTION_SPECS = (
     ('c_r_ratio', 'rudder_chord_ratio', 'Względna cięciwa steru kierunku', 'c_r/c_V', '−', 'mean', 3),
     ('dihedral_deg', 'dihedral_deg', 'Wznios', 'Γ', '°', 'mean', 1),
 )
-# Sanity limits of an extrapolated value; outside them the sample mean is proposed instead.
 PHYSICAL_BOUNDS = {'wing_loading_kg_m2': (1, 2000), 'ar': (2, 60), 'empty_fraction': (.15, .95),
                    'power_loading_kg_kw': (.5, 100), 'thrust_to_weight': (.01, 2)}
 BIPOL_1_BASIS = {
@@ -774,8 +867,8 @@ def trend_suggestions(rows, params, m0, weights, mass_fit, forecast_year, sample
             date_basis = params.get('trend_year_basis','certification')
             dated_rows = [r for r in rows if (r.get('year_basis') or 'certification')==date_basis]
             dated, fit, forecast = time_trend(dated_rows, metric, weights, forecast_year)
-            # A forecast beyond every similar aircraft is an extrapolation artefact, not a design value.
-            supported = fit and forecast is not None and lo < forecast < hi and fit['y_min'] <= forecast <= fit['y_max']
+            rejection = forecast_rejection(fit, forecast, metric, forecast_year)
+            supported = rejection is None
             if supported:
                 value, model, n = forecast, 'time_trend', len(dated)
                 date_label = 'Rok produkcji' if date_basis=='production' else 'Rok certyfikacji'
@@ -786,22 +879,15 @@ def trend_suggestions(rows, params, m0, weights, mass_fit, forecast_year, sample
                 prov['steps'] += [f"a = {_pl(fit['slope'], 4, True)}{unit_text}/rok; b = {_pl(fit['intercept'], 6, True)}{unit_text}",
                                   f"R² = {_pl(fit['r2'], 3) if fit['r2'] is not None else '—'}; n = {fit['n']}; lata {fit['x_min']:.0f}–{fit['x_max']:.0f}",
                                   f'{symbol}({forecast_year}) = a·{forecast_year} + b = {_pl(forecast, digits + 1)}']
-                prov['alternatives'].append(alternative)
                 item['equation'] = f"{symbol} = {_pl(fit['slope'], 4, True)}·rok {'+' if fit['intercept'] >= 0 else '−'} {_pl(abs(fit['intercept']), 6, True)} → {_pl(forecast, digits)} ({forecast_year})"
                 item['equation_latex'] = rf"{symbol}({forecast_year}) = {fit['slope']:.4g}\cdot{forecast_year} {'+' if fit['intercept'] >= 0 else '-'} {abs(fit['intercept']):.6g}"
                 item['r2'] = round(fit['r2'], 4) if fit['r2'] is not None else None
                 gap = forecast_year - fit['x_max']
                 if gap > 2 * FORECAST_HORIZON_YEARS:
-                    prov['warnings'].append(f"Ekstrapolacja o {gap:.0f} lat poza najnowszą obserwację ({fit['x_max']:.0f} r.). Porównaj z wartością średnią.")
-                if fit['r2'] is not None and fit['r2'] < .2:
-                    prov['warnings'].append('Słaba zależność od roku (R² < 0,2): trend wyjaśnia niewielką część rozrzutu.')
+                    prov['warnings'].append(f"Ekstrapolacja o {gap:.0f} lat poza najnowszą obserwację ({fit['x_max']:.0f} r.). Zweryfikuj aktualność próby.")
             else:
                 outside = fit and forecast is not None and lo < forecast < hi
-                reason = ('mniej niż 3 konstrukcje z datą' if len(dated) < 3 else
-                          'daty obejmują mniej niż 5 lat' if not fit else
-                          f"prognoza {_pl(forecast, digits)}{unit_text} wychodzi poza zakres próby "
-                          f"({_pl(fit['y_min'], digits)}–{_pl(fit['y_max'], digits)}{unit_text})" if outside else
-                          f'prognoza {_pl(forecast, digits)}{unit_text} jest niefizyczna')
+                reason = rejection
                 value, model, n = use_mean(f'{mean_label}; prognoza trendu w czasie nie została przyjęta')
                 if fit:
                     prov['fit'] = dict(fit)
@@ -821,7 +907,8 @@ def trend_suggestions(rows, params, m0, weights, mass_fit, forecast_year, sample
                     f"C = log({_pl(tp['y1'], 4)}/{_pl(tp['y2'], 4)}) / log({_pl(tp['x1'], 0)}/{_pl(tp['x2'], 0)}) = {_pl(tp['C'], 5)}",
                     f"A = y₁ / x₁^C = {_pl(tp['A'], 5)}",
                     f"K_vs = {_pl(k_vs, 2)} ({'skos zmienny wzdłuż rozpiętości' if k_vs != 1 else 'skos stały'})"]
-                item['apply'] = {'empty_mass_trend_A': tp['A'], 'empty_mass_trend_C': tp['C'], 'empty_mass_fraction': None}
+                item['apply'] = {'empty_mass_model': 'trend', 'empty_mass_trend_A': tp['A'],
+                                 'empty_mass_trend_C': tp['C'], 'empty_mass_fraction': None}
                 item['r2'] = round(mass_fit['r2'], 4) if mass_fit['r2'] is not None else None
                 item['equation'] = f"mₑ/m₀ = {_pl(tp['A'], 4, True)}·m₀^{_pl(tp['C'], 4, True)}·{_pl(k_vs, 2)}"
                 item['equation_latex'] = rf"m_e/m_0 = {tp['A']:.4g}\cdot m_0^{{{tp['C']:.4g}}}\cdot{k_vs:.2f}"
@@ -832,7 +919,6 @@ def trend_suggestions(rows, params, m0, weights, mass_fit, forecast_year, sample
                     prov['method'] = 'Równanie (1): linia trendu mₑ/m₀ = f(m₀) z próby'
                     prov['steps'].append(f"mₑ/m₀ = {_pl(tp['A'], 5)}·{_pl(m0, 0)}^{_pl(tp['C'], 5)}·{_pl(k_vs, 2)} = {_pl(equation_value, 4)}")
                     item['equation'] += f' = {_pl(equation_value, 3)}'
-                    prov['alternatives'].append(alternative)
                     if not mass_fit['x_min'] <= m0 <= mass_fit['x_max']:
                         prov['warnings'].append(f"Masa projektu {_pl(m0, 0)} kg leży poza zakresem próby ({_pl(mass_fit['x_min'], 0)}–{_pl(mass_fit['x_max'], 0)} kg); wynik jest ekstrapolacją.")
                 else:
@@ -846,7 +932,8 @@ def trend_suggestions(rows, params, m0, weights, mass_fit, forecast_year, sample
                     prov['warnings'].append('C ≥ 0: udział masy pustej nie maleje z masą startową. Sprawdź dobór próby i definicje mas.')
             else:
                 value, model, n = use_mean(f'{mean_label}; za mało zróżnicowanych mas do linii trendu')
-                item['apply'] = {'empty_mass_fraction': round(mean, digits), 'empty_mass_trend_A': None, 'empty_mass_trend_C': None}
+                item['apply'] = {'empty_mass_model': 'fixed_fraction', 'empty_mass_fraction': round(mean, digits),
+                                 'empty_mass_trend_A': None, 'empty_mass_trend_C': None}
                 prov['warnings'].append('Linia trendu wymaga co najmniej 3 konstrukcji o różnych masach.')
         else:
             value, model, n = use_mean(mean_label)
@@ -863,11 +950,11 @@ def trend_suggestions(rows, params, m0, weights, mass_fit, forecast_year, sample
     return result
 
 
-def get_trend_suggestions(aircraft_type, m0=None, wing_configuration=None, engine_type=None):
+def get_trend_suggestions(aircraft_type, m0=None, wing_configuration=None, engine_type=None, settings=None):
     """BIPOL_1 suggestions before a project is calculated (wizard, input panel).
 
-    Without m0 the whole class and propulsion type form the sample; with m0 the
-    sample is the same nearest-mass selection that P1 uses by default.
+    The sample is the project's own comparison sample (settings), so the values
+    match the P1 trend analysis; m0 only evaluates equation (1), it never selects aircraft.
     """
     if aircraft_type not in CLASSES:
         raise ValueError(f"Unknown aircraft_type: '{aircraft_type}'")
@@ -881,13 +968,13 @@ def get_trend_suggestions(aircraft_type, m0=None, wing_configuration=None, engin
     engine = engine_type or DEFAULT_ENGINE.get(aircraft_type, 'prop')
     if engine not in ENGINE_LABELS:
         raise ValueError(f"Unknown engine_type: '{engine_type}'")
-    params = {'aircraft_type': aircraft_type, 'engine_type': engine, 'wing_configuration': wing_configuration}
-    rows = select_references(params, m0)
-    weights = sample_weights('family')
-    valid_mass = [r for r in rows if valid_value('empty_fraction', r)]
-    mass_fit = fit_regression([(r['m0'], r['empty_fraction']) for r in valid_mass], weights(valid_mass), power=True)
+    params = {**sample_settings(settings or {}), 'aircraft_type': aircraft_type, 'engine_type': engine,
+              'wing_configuration': wing_configuration}
+    rows = select_references(params)
+    weights = sample_weights(params.get('trend_weighting', 'family'))
+    valid_mass, mass_fit = mass_trend(params, rows)
     reference_year, forecast_year = forecast_years()
-    sample = describe_sample(params, rows, m0)
+    sample = describe_sample(params, rows)
     return {'status': 'ok', 'aircraft_type': aircraft_type, 'class_name': CLASSES[aircraft_type],
             'engine_type': engine, 'm0': m0, 'sample': sample,
             'reference_year': reference_year, 'forecast_year': forecast_year,

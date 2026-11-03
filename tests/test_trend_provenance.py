@@ -70,17 +70,19 @@ def test_time_forecast_is_five_years_after_the_design_year():
     assert fit['y_min'] <= ar['suggested_value'] <= fit['y_max']
 
 
-def test_forecast_outside_every_similar_aircraft_falls_back_to_the_mean():
-    ar = get_trend_suggestions('turboprop_regional', m0=22000)['suggestions']['ar']
+def test_supported_forecast_can_exceed_the_historical_sample_range():
+    ar = get_trend_suggestions('turboprop_regional', m0=22000,
+                               settings={'trend_nearest_count': 50, 'mass_initial_guess': 22000})['suggestions']['ar']
     fit = ar['provenance']['fit']
-    assert ar['model_type'] == 'mean'
-    forecast = ar['provenance']['alternatives'][0]['value']
-    assert forecast > fit['y_max']
-    assert any('poza zakres próby' in w for w in ar['provenance']['warnings'])
+    assert fit['r2'] >= .2
+    assert ar['model_type'] == 'time_trend'
+    assert ar['suggested_value'] > fit['y_max']
+    assert not ar['provenance']['alternatives']
 
 
 def test_empty_mass_suggestion_inserts_equation_one_into_the_mass_balance():
-    preset = AIRCRAFT_PRESETS['regional_turboprop']
+    # Similar aircraft: the 50 nearest to the 22 t reference mass (the whole class gives C > 0).
+    preset = {**AIRCRAFT_PRESETS['regional_turboprop'], 'trend_nearest_count': 50, 'mass_initial_guess': 22000}
     me = run_bipol_project(preset)['bipol_projects']['p1']['trend_analysis']['suggestions']['me_m0']
     apply = me['apply']
     assert apply['empty_mass_fraction'] is None and apply['empty_mass_trend_C'] < 0
@@ -123,8 +125,8 @@ def test_api_filters_by_propulsion(client):
 def test_p1_and_p2_reports_state_the_method(client):
     params = {**AIRCRAFT_PRESETS['ga_trainer'], 'empty_mass_trend_A': 0.5, 'empty_mass_trend_C': 0.035}
     html = client.post('/report?sections=p1,p2', json=params).get_data(as_text=True)
-    assert 'Średnie wartości parametrów w próbie' in html
-    assert 'Wartości parametrów wynikające z analizy trendów' in html
+    assert 'Obliczenie średnich parametrów wymaganych przez przewodnik' in html
+    assert 'Wartości wyjściowe do wymiarowania samolotu' in html
     assert 'pięć lat po roku opracowania projektu' in html
     assert 'wyznaczonej w analizie trendów (projekt 1)' in html
 
@@ -151,3 +153,19 @@ def test_wizard_trend_charts_payload_and_dom_containers(client):
     assert charts['vh']['kind'] == 'mean' and len(charts['vh']['points']) >= 10
     glider = client.get('/api/trends/suggestions?aircraft_type=glider').get_json()['charts']
     assert 'pw' not in glider and 'tw' not in glider and len(glider['ar']['points']) >= 10
+
+
+@pytest.mark.parametrize('extra', [{}, {'trend_nearest_count': 20, 'mass_initial_guess': 700},
+                                   {'trend_source': 'motogliders', 'trend_weighting': 'variant'}])
+def test_wizard_and_p1_use_one_comparison_sample(client, extra):
+    params = {**AIRCRAFT_PRESETS['motoglider_aos'], **extra}
+    p1 = run_bipol_project(params)['bipol_projects']['p1']['trend_analysis']
+    wizard = client.post('/api/trends/suggestions', json=params).get_json()
+    assert wizard['sample'] == p1['sample']
+    for key in ('ar', 'ws', 'vh', 'dihedral_deg'):
+        assert wizard['suggestions'][key]['suggested_value'] == p1['suggestions'][key]['suggested_value']
+
+
+def test_suggestions_reject_an_invalid_sample_setting(client):
+    response = client.post('/api/trends/suggestions', json={'aircraft_type': 'motoglider', 'trend_nearest_count': 2.5})
+    assert response.status_code == 400

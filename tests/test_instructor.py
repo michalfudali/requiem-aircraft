@@ -105,7 +105,7 @@ def test_increasing_mass_trend_is_flagged_without_changing_the_fitted_observatio
     for i in range(8):
         mass=500+i*100
         rows.append({**base,'id':str(i),'family':str(i),'m0':mass,'empty_fraction':.3+mass*.0001})
-    monkeypatch.setattr(trends,'select_references',lambda params,m0:rows)
+    monkeypatch.setattr(trends,'select_references',lambda params:rows)
     a=analyze_trends({'aircraft_type':'piston_ga','engine_type':'prop'},1000,600)
     assert a['mass_fit']['C'] > 0 and not a['mass_trend_decreasing']
     assert any('nie jest malejący' in w for w in a['warnings'])

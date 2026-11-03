@@ -5,7 +5,15 @@
     c_e_ratio:'elevator_chord_ratio', c_r_ratio:'rudder_chord_ratio', me_m0:'empty_mass_fraction'};
   function patch(key, value, params, mass, suggestion) {
     // BIPOL_1, s. 4: eq. (1) of the trend analysis goes into the mass balance, not a fixed fraction.
-    if (key === 'me_m0' && suggestion?.apply) return {...suggestion.apply};
+    if (key === 'me_m0' && suggestion?.apply) {
+      const update = {...suggestion.apply};
+      // A live sample law must follow later filter or observation edits. Its
+      // coefficients remain in provenance, not as detached input overrides.
+      if (update.empty_mass_model === 'trend') {
+        update.empty_mass_trend_A = null; update.empty_mass_trend_C = null;
+      }
+      return update;
+    }
     if (!Number.isFinite(value)) throw Error('Brak liczbowej propozycji.');
     if (key === 'ws') {
       if (!(value > 0 && mass > 0)) throw Error('Najpierw oblicz masę projektu.');

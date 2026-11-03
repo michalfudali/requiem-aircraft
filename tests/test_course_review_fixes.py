@@ -227,7 +227,9 @@ def test_p2_and_p4_polars_are_checked_for_consistency(results):
         if not k_p2:
             continue
         assert check[0]['passed'] == (abs(k_p2 - r['aerodynamics']['k_max']) <= POLAR_CONSISTENCY_TOLERANCE * r['aerodynamics']['k_max'])
-        assert check[0]['passed'], name
+        # The graph estimate is retained even if a detailed P4 polar disagrees;
+        # the review flags the actual discrepancy instead of clipping the reading.
+        assert k_p2 == pytest.approx(r['mass']['preliminary_polar']['kmax'])
 
 
 def test_p5_explains_why_range_or_cruise_requirements_fail(results):

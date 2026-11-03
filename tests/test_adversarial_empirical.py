@@ -220,12 +220,14 @@ def test_direct_call_rejects_invalid_class(invalid_ac):
 # =========================================================================
 
 def test_api_zero_m0_behavior(client):
-    """m0=0 in query param is treated as unspecified m0: the whole class is the sample."""
+    """m0=0 in query param is treated as unspecified m0; m0 never selects the sample."""
     res = client.get('/api/trends/suggestions?aircraft_type=piston_ga&m0=0')
     assert res.status_code == 200
     data = res.get_json()
     assert data['m0'] is None
-    assert 'masa projektu jeszcze nieznana' in data['sample']['description']
+    assert 'wszystkie pasujące konstrukcje' in data['sample']['description']
+    with_mass = client.get('/api/trends/suggestions?aircraft_type=piston_ga&m0=1200').get_json()
+    assert with_mass['sample'] == data['sample']
 
 
 @pytest.mark.parametrize('bad_param', ['m0=-5', 'm0=-1e-15', 'm0=nan', 'm0=inf', 'm0=-inf', 'm0=text'])

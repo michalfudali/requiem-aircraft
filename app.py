@@ -226,15 +226,19 @@ def aircraft_item(aircraft_id):
 
 
 
-@app.route('/api/trends/suggestions', methods=['GET'])
+@app.route('/api/trends/suggestions', methods=['GET', 'POST'])
 def get_trends_suggestions():
-    aircraft_type = request.args.get('aircraft_type')
+    # POST carries the project's comparison-sample settings, including its own observations.
+    args = (request.get_json(silent=True) or {}) if request.method == 'POST' else request.args.to_dict()
+    if not isinstance(args, dict):
+        return jsonify(status='error', message='Expected a JSON object'), 400
+    aircraft_type = args.get('aircraft_type')
     if not aircraft_type:
         return jsonify(status='error', message="Missing required parameter: 'aircraft_type'"), 400
     if aircraft_type not in CLASSES:
         return jsonify(status='error', message=f"Unknown aircraft_type: '{aircraft_type}'"), 400
 
-    m0_param = request.args.get('m0')
+    m0_param = args.get('m0')
     m0 = None
     if m0_param is not None and m0_param != '':
         try:
@@ -246,11 +250,15 @@ def get_trends_suggestions():
         except (ValueError, TypeError):
             return jsonify(status='error', message="Invalid 'm0' parameter: must be a number"), 400
 
-    wing_cfg = request.args.get('wing_configuration', request.args.get('wing_config'))
-    engine_type = request.args.get('engine_type') or None
+    wing_cfg = args.get('wing_configuration', args.get('wing_config'))
+    engine_type = args.get('engine_type') or None
     if engine_type not in (None, 'prop', 'jet', 'none'):
         return jsonify(status='error', message=f"Unknown engine_type: '{engine_type}'"), 400
-    res = get_trend_suggestions(aircraft_type, m0=m0, wing_configuration=wing_cfg, engine_type=engine_type)
+    try:
+        res = get_trend_suggestions(aircraft_type, m0=m0, wing_configuration=wing_cfg, engine_type=engine_type,
+                                    settings=args)
+    except ValueError as err:
+        return jsonify(status='error', message=str(err)), 400
     return jsonify(res)
 
 

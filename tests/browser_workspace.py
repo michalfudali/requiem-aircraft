@@ -17,7 +17,7 @@ with sync_playwright() as p:
     assert page.locator('.project-modal-backdrop.active,.wizard-backdrop.active').count()==0
     assert not page.locator('#designForm').is_visible()
     assert page.locator('.kpi-card:visible').count()==4
-    assert page.locator('.studio-nav-item:visible').count()==7
+    assert page.locator('#studioSidebar nav > .studio-nav-item:visible').count()==7
     assert page.locator('#studioAircraft svg').count()==1
     assert page.locator('#studioAircraftProportions').input_value()=='concept'
     original_geometry=page.evaluate('JSON.stringify(currentResults.geometry)')
@@ -25,7 +25,8 @@ with sync_playwright() as p:
     assert page.locator('#studioAircraft svg').get_attribute('data-proportions')=='calculated'
     page.locator('#studioAircraftProportions').select_option('concept')
     assert page.evaluate('JSON.stringify(currentResults.geometry)')==original_geometry
-    assert page.evaluate('document.body.scrollHeight')<2000
+    # The published CG visualizer is a separate panel below the original overview.
+    assert page.evaluate("document.body.scrollHeight-document.getElementById('layoutBalanceVisualizer').getBoundingClientRect().height")<2000
     duplicates=page.evaluate("Object.entries([...document.querySelectorAll('[id]')].reduce((m,e)=>(m[e.id]=(m[e.id]||0)+1,m),{})).filter(([id,n])=>n>1).map(([id])=>id)")
     assert not duplicates,duplicates
     page.locator('.quiet-project-menu>summary').click()
@@ -93,7 +94,7 @@ with sync_playwright() as p:
     page.locator('#trendResultsPanel-tab').focus();page.keyboard.press('ArrowRight')
     assert page.locator('#trendSelectionPanel-tab').get_attribute('aria-selected')=='true'
     assert page.locator('#trendControls').is_visible()
-    page.locator('#trend_source').select_option('cado');page.locator('#trend_count').select_option('20')
+    page.locator('#trend_source').select_option('cado');page.locator('#trend_nearest_count').select_option('20')
     page.locator('#trendRecalculate').click()
     page.wait_for_function("currentResults.params.trend_source === 'cado' && currentResults.bipol_projects.p1.trend_analysis.selected_n === 20")
     page.locator('#trendResultsPanel-tab').click()

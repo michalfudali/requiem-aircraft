@@ -79,14 +79,39 @@
     </div>`;
   }
 
-  async function fetchSuggestions(query) {
-    const params = new URLSearchParams();
-    for (const [key, value] of Object.entries(query)) if (value) params.set(key, value);
-    const keyStr = params.toString();
+  // The comparison sample of the project: the wizard and the input panel must
+  // propose values from the same aircraft as the P1 trend analysis.
+  const SAMPLE_KEYS = ['trend_source', 'trend_nearest_count', 'mass_initial_guess', 'trend_engine_count', 'trend_year_min',
+    'trend_year_max', 'trend_weighting', 'trend_year_basis', 'trend_aircraft_ids', 'trend_observations', 'variable_sweep'];
+
+  function sampleSettings(project, query) {
+    const settings = {};
+    for (const key of SAMPLE_KEYS) {
+      const value = project?.[key];
+      if (value != null && value !== '' && !Number.isNaN(value)) settings[key] = value;
+    }
+    // A manual aircraft selection belongs to one class and propulsion.
+    if (project && (query.aircraft_type !== project.aircraft_type || (query.engine_type && query.engine_type !== project.engine_type))) {
+      delete settings.trend_aircraft_ids;
+    }
+    return settings;
+  }
+
+  function projectSettings() {
+    if (typeof formBaseParams === 'undefined') return {};
+    return typeof collectFormData === 'function' ? collectFormData() : formBaseParams;
+  }
+
+  async function fetchSuggestions(query, project = projectSettings()) {
+    const body = {};
+    for (const [key, value] of Object.entries(query)) if (value) body[key] = value;
+    Object.assign(body, sampleSettings(project, body));
+    const keyStr = JSON.stringify(body);
     if (cachedPromise && cachedQueryKey === keyStr) return cachedPromise;
     cachedQueryKey = keyStr;
     cachedPromise = (async () => {
-      const response = await fetch(`/api/trends/suggestions?${params}`);
+      const response = await fetch('/api/trends/suggestions', {
+        method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(body)});
       const data = await response.json().catch(() => ({}));
       if (!response.ok) throw new Error(data.message || 'Nie udało się pobrać analizy trendów.');
       return data;
@@ -250,7 +275,7 @@
     return `${svg}<div class="wizard-trend-legend">
       <span><i class="wizard-trend-dot" style="background:#5478a9"></i>Konstrukcje (${chart.n})</span>
       <span><i class="wizard-trend-line-swatch" style="background:#147f76"></i>${fit ? 'Regresja z próby' : 'Średnia ważona BIPOL_1'}</span>
-      ${chart.forecast ? `<span><i class="wizard-trend-dot" style="background:#a86621"></i>Prognoza ${chart.forecast.x} r.${chart.forecast.accepted ? '' : ' (poza zakresem → średnia)'}</span>` : ''}
+      ${chart.forecast ? `<span><i class="wizard-trend-dot" style="background:#a86621"></i>Prognoza ${chart.forecast.x} r.${chart.forecast.accepted ? '' : ' (odrzucona według kryteriów → średnia)'}</span>` : ''}
       ${Array.isArray(chart.typical_range) ? `<span><i class="wizard-trend-band-swatch"></i>Zakres lit. (${num(chart.typical_range[0], 2)}–${num(chart.typical_range[1], 2)}${esc(unitSuffix)})</span>` : ''}
       ${marker ? `<span><i class="wizard-trend-line-swatch" style="background:#b5486a"></i>Twój projekt w kreatorze</span>` : ''}
       <span style="margin-left:auto;">${statsParts.join(' · ')}</span>
@@ -296,6 +321,9 @@
     }
   }
 
+  // The project the wizard is building carries its own comparison-sample settings.
+  const wizardProject = () => root.BipolDesignBasis?.wizardBase?.() || projectSettings();
+
   // Wizard: apply the chosen suggestions and show where each value came from.
   async function applyInWizard(button, box, keys, assign) {
     const original = button.textContent;
@@ -303,7 +331,7 @@
     const field = id => document.getElementById(id)?.value;
     try {
       const data = await fetchSuggestions({aircraft_type: field('wiz_aircraft_type') || 'piston_ga',
-        engine_type: field('wiz_engine_type'), wing_configuration: field('wiz_wing_config')});
+        engine_type: field('wiz_engine_type'), wing_configuration: field('wiz_wing_config')}, wizardProject());
       latestWizardData = data;
       const used = keys.map(key => data.suggestions[key]).filter(s => s?.suggested_value != null);
       used.forEach(s => assign(s.key, s.suggested_value));
@@ -338,7 +366,7 @@
         aircraft_type: field('wiz_aircraft_type') || 'piston_ga',
         engine_type: field('wiz_engine_type'),
         wing_configuration: field('wiz_wing_config')
-      });
+      }, wizardProject());
       if (seq !== previewSeq) return;
       latestWizardData = data;
       const ar = data.suggestions?.ar;

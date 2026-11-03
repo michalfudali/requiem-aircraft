@@ -30,11 +30,8 @@ def _size_airframe(params, param_states):
     if params.get('preliminary_polar_mode','input') != 'input':
         params['cx0'] = mass_res['preliminary_polar']['cx0']
         param_states['cx0'] = dict(state='derived',value=params['cx0'],
-            formula='BIPOL_1 (3): π·AR·e/(4·Kmax²)',sources=['sketch_swet_ratio','raymer_family','raymer_kmax'])
-    if mass_res['empty_mass_law'].get('aircraft_ids'):
-        # Freeze the cohort used in the nonlinear solve for the P1 report.
-        params['trend_aircraft_ids'] = mass_res['empty_mass_law']['aircraft_ids']
-        params['trend_count'] = 0
+            formula='BIPOL_1: S_wet/S (rys. 1) → Kmax (rys. 2) → Cx0 = π·AR·e/(4·Kmax²), wzór (3)',
+            sources=['wetted_example','sketch_swet_ratio','aspect_ratio','oswald_e','raymer_kmax'])
     m0 = mass_res["m0"]
 
     # Kategoria operacji UAS zależy od ryzyka operacji, a nie od progu masy 600 kg.

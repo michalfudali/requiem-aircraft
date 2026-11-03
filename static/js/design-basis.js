@@ -201,6 +201,8 @@
       if(input.checked)locked.add(input.dataset.wizardAssumption);else locked.delete(input.dataset.wizardAssumption);
     });
     p.locked_params=[...locked];
+    // A manual aircraft selection belongs to one class and propulsion.
+    if(p.aircraft_type!==wizardBase.aircraft_type||p.engine_type!==wizardBase.engine_type)delete p.trend_aircraft_ids;
     return p;
   }
   function collect(data) {
@@ -241,7 +243,7 @@
     sync(prefix);
   }
   const wizardValue=key=>$('wiz_'+key)?Number($('wiz_'+key).value):wizardBase[key]!=null?Number(wizardBase[key]):formBaseParams[key]!=null?Number(formBaseParams[key]):$(key)?Number($(key).value):Number(window.currentResults?.params?.[key]??classPresets[value('wiz_','aircraft_type')]?.[key]);
-  window.BipolDesignBasis={sync,propulsion,restore,openWizard,seed,snapshot,collect,loadTopic,applyResult,classDefaults,wizardValue};
+  window.BipolDesignBasis={sync,propulsion,restore,openWizard,seed,snapshot,collect,loadTopic,applyResult,classDefaults,wizardValue,wizardBase:()=>wizardBase};
   document.addEventListener('DOMContentLoaded',async()=>{
     $('wiz_topic')?.addEventListener('change',chooseTopic);
     const syncAssumption = (basisId, step2Id, assumptionKey) => {

@@ -14,7 +14,7 @@
 .studio-layout .project-bar-container { margin:0; padding:10px 14px; position:relative; gap:12px; }
 .studio-layout .project-bar-left { flex:1; min-width:0; gap:12px; }
 .studio-layout .project-active-badge { color:#5d7680; background:none; padding:0; font-size:12px; }
-.studio-layout .project-switcher-select { min-width:0; width:auto; flex:1; max-width:360px; height:38px; }
+.studio-layout .project-switcher-select { min-width:130px; width:auto; flex:1; max-width:360px; height:38px; }
 .studio-layout .project-save-status { display:none; }
 .studio-layout .project-bar-right { flex:0 0 auto; }
 .quiet-project-menu { position:relative; font-size:13px; }
@@ -116,7 +116,11 @@ body[data-workspace-view=semester] .quiet-return { display:flex; }
 .studio-layout .project-hero-header .subtitle { display:none; }
 .studio-layout .project-hero-header h3 { font-size:22px; }
 .studio-layout .semester-project-pill.active { box-shadow:none; }
-@media(max-width:1100px) { .studio-layout .app-container { padding:16px 24px 32px; } }
+@media(max-width:1100px) {
+  .studio-layout .app-container { padding:16px 24px 32px; }
+  .studio-layout .project-bar-container { flex-wrap:wrap; }
+  .studio-layout .project-bar-left { flex:1 0 100%; }
+}
 @media(max-width:760px) {
   .studio-layout .app-container { padding:12px 16px 32px; }
   .studio-layout .bipol-navbar { padding:12px 16px; }

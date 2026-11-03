@@ -103,8 +103,8 @@ def test_direct_python_get_trend_suggestions_all_classes(ac_class):
 # 2. Dynamic Evaluation with m0 Provided vs Omitted
 # =========================================================================
 
-def test_piston_ga_sample_follows_design_mass(client):
-    """Without m0 the whole class is the sample; with m0 the 50 aircraft nearest in mass (as in P1)."""
+def test_piston_ga_sample_does_not_follow_design_mass(client):
+    """One sample per project: m0 evaluates equation (1) but never selects aircraft."""
     res_no_m0 = client.get('/api/trends/suggestions?aircraft_type=piston_ga').get_json()
     assert res_no_m0['m0'] is None
     class_rows = [r for r in load_aircraft() if r['aircraft_type'] == 'piston_ga' and r['engine_type'] == 'prop']
@@ -114,8 +114,11 @@ def test_piston_ga_sample_follows_design_mass(client):
 
     res_with_m0 = client.get('/api/trends/suggestions?aircraft_type=piston_ga&m0=1150.0').get_json()
     assert res_with_m0['m0'] == 1150.0
-    assert res_with_m0['sample']['selected_n'] == 50
-    assert '1150 kg' in res_with_m0['sample']['description']
+    assert res_with_m0['sample'] == res_no_m0['sample']
+    narrowed = client.get('/api/trends/suggestions?aircraft_type=piston_ga&trend_nearest_count=50'
+                          '&mass_initial_guess=1150').get_json()
+    assert narrowed['sample']['selected_n'] == 50
+    assert 'masie odniesienia 1150 kg' in narrowed['sample']['description']
     me = res_with_m0['suggestions']['me_m0']
     assert me['model_type'] == 'power'
     fit = me['provenance']['fit']
@@ -129,7 +132,8 @@ def test_piston_ga_sample_follows_design_mass(client):
 def test_jet_transport_dynamic_m0_evaluation(client):
     """Verify dynamic evaluation of wing loading and thrust loading for jet_transport."""
     # Narrow-body jet (A320, 77000 kg)
-    res_a320 = client.get('/api/trends/suggestions?aircraft_type=jet_transport&m0=77000').get_json()
+    res_a320 = client.get('/api/trends/suggestions?aircraft_type=jet_transport&m0=77000'
+                          '&trend_nearest_count=50&mass_initial_guess=77000').get_json()
     assert res_a320['m0'] == 77000.0
     ws_a320 = res_a320['suggestions']['ws']['suggested_value']
     tw_a320 = res_a320['suggestions']['tw']['suggested_value']
@@ -138,8 +142,9 @@ def test_jet_transport_dynamic_m0_evaluation(client):
     # T/W should be ~0.30
     assert 0.25 <= tw_a320 <= 0.35
 
-    # Wide-body heavy jet (B747, 390000 kg): a different nearest-mass sample
-    res_heavy = client.get('/api/trends/suggestions?aircraft_type=jet_transport&m0=390000').get_json()
+    # Wide-body heavy jet (B747, 390000 kg): a sample narrowed around another reference mass
+    res_heavy = client.get('/api/trends/suggestions?aircraft_type=jet_transport&m0=390000'
+                           '&trend_nearest_count=50&mass_initial_guess=390000').get_json()
     ws_heavy = res_heavy['suggestions']['ws']['suggested_value']
     # Heavier similar aircraft have higher wing loading
     assert ws_heavy > ws_a320
@@ -334,7 +339,7 @@ def test_direct_python_validation():
 def test_cache_clearing_reloads_catalog_without_crash():
     """Verify load_aircraft.cache_clear() triggers clean reload for suggestions."""
     load_aircraft.cache_clear()
-    res = get_trend_suggestions('piston_ga', m0=1200.0)
+    res = get_trend_suggestions('piston_ga', m0=1200.0, settings={'trend_nearest_count': 50, 'mass_initial_guess': 1200})
     assert res['status'] == 'ok'
     assert res['sample']['selected_n'] == 50
     assert res['suggestions']['ws']['available_n'] == 50

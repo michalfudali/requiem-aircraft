@@ -24,12 +24,14 @@ with sync_playwright() as p:
     page.wait_for_function("document.querySelectorAll('#trendAircraftRows tr').length > 1")
     assert str(page.request.get(args.base_url+'/api/aircraft').json()['total']) in page.locator('#trendSummary').inner_text()
     assert page.locator('#trendMassChart svg').count() == 1
+    assert page.locator('#trendAverages tbody tr').count() == 8
     assert 'brak' not in page.locator('#trendStatus').inner_text().lower() or 'braki danych' in page.locator('#trendStatus').inner_text()
 
     # Controls use the API cohort, not only a filter on the visible table.
     page.locator('#trendSelectionPanel-tab').click()
     page.locator('#trend_source').select_option('cado')
-    page.locator('#trend_count').select_option('20')
+    page.locator('#trend_nearest_count').select_option('20')
+    reveal_details(page.locator('#trend_engine_count'))
     page.locator('#trend_engine_count').select_option('1')
     page.locator('#trendRecalculate').click()
     page.wait_for_function("currentResults.params.trend_source === 'cado' && currentResults.params.trend_engine_count === 1")
@@ -51,7 +53,7 @@ with sync_playwright() as p:
     assert page.evaluate('currentResults.bipol_projects.p1.trend_analysis.mass_fit') is None
     page.reload(); page.wait_for_function('currentResults?.bipol_projects.p1.trend_analysis.selected_n === 2')
     navigate(page, 'tab-trends')
-    assert page.locator('#trend_count').input_value() == '0'
+    assert page.locator('#trend_nearest_count').input_value() == '0'
     assert set(page.evaluate('getActiveProject().params.trend_aircraft_ids')) == set(chosen)
     print('CUSTOM COHORT AND RELOAD PERSISTENCE: OK')
 
@@ -111,7 +113,7 @@ with sync_playwright() as p:
     navigate(page, 'tab-trends')
     page.locator('#trendSelectionPanel-tab').click()
     page.locator('#trend_source').select_option('fast');page.locator('#trend_engine_count').select_option('0')
-    page.locator('#trend_count').select_option('100');page.locator('#trendRecalculate').click()
+    page.locator('#trend_nearest_count').select_option('100');page.locator('#trendRecalculate').click()
     page.wait_for_function("currentResults.params.trend_source === 'fast' && currentResults.params.trend_engine_count === 0")
     page.locator('#trendResultsPanel-tab').click()
     page.locator('#trendChartView').select_option('1')

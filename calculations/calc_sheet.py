@@ -15,7 +15,8 @@ import math
 import re
 
 from calculations.atmosphere import G0, RHO0, T0, P0, R_AIR, KAPPA, BETA_T, H_TROPO, isa_atmosphere
-from calculations.report_document import tex_number
+from calculations.bipol1 import CX0_LABELS
+from calculations.report_document import report_number, tex_number
 
 REF = re.compile(r'\[\[([A-Za-z_][A-Za-z0-9_]*)\]\]')
 KEY = re.compile(r'^[A-Za-z_][A-Za-z0-9_]*$')
@@ -463,35 +464,40 @@ def _p1_polar(s, r):
     s.given('e_1', 'e', pp['oswald_e'], '', 3, 'Współczynnik Oswalda', SOURCES['B1'] + ': e ≈ 0,8')
     ar = '[[' + ar_key + ']]'
     if pp['mode'] == 'input':
-        base = float(p['cx0'])
-        extra = pp['cx0'] - base
-        if extra > 1e-12:
-            s.given('Cx0_baz', r'C_{x0,baz}', base, '', 4, 'Opór zerowy przyjęty dla klasy samolotu', SOURCES['B1'] + ', tabela Cx0')
-            names = [n for n, on in (('zastrzały', p.get('wing_config') == 'braced_high'),
-                                     ('klapa Junkersa', p.get('flap_type') == 'junkers'),
-                                     ('slot stały', p.get('slat_type') == 'fixed_slot')) if on]
-            s.given('dCx0_konf', r'\Delta C_{x0,konf}', extra, '', 4, 'Dodatek konfiguracji: ' + ', '.join(names), 'Założenie')
-            s.calc('Cx0_1', r'C_{x0}', r'C_{x0,baz}+\Delta C_{x0,konf}', r'[[Cx0_baz]]+[[dCx0_konf]]', pp['cx0'], '', 4,
-                   'Opór zerowy biegunowej szacunkowej', check=lambda v: v.Cx0_baz + v.dCx0_konf)
-        else:
-            s.given('Cx0_1', r'C_{x0}', pp['cx0'], '', 4, 'Opór zerowy przyjęty dla klasy samolotu', SOURCES['B1'] + ', tabela Cx0')
+        # Next design iteration: the P4 polar replaces the graph estimate of project 1.
+        s.given('Cx0_1', r'C_{x0}', pp['cx0'], '', 4, 'Opór zerowy z biegunowej poprzedniej iteracji projektu', 'Biegunowa P4')
         s.calc('Kmax_1', r'K_{max}', r'\frac{1}{2}\sqrt{\frac{\pi\Lambda e}{C_{x0}}}',
                r'\frac{1}{2}\sqrt{\frac{\pi\cdot' + ar + r'\cdot[[e_1]]}{[[Cx0_1]]}}', pp['kmax'], '', 3,
                'Maksymalna doskonałość szacunkowa', SOURCES['B1'] + ', wzór (3)',
                check=lambda v: .5 * math.sqrt(math.pi * getattr(v, ar_key) * v.e_1 / v.Cx0_1))
     else:
-        s.given('Swet_S_szk', r'(S_{wet}/S)_{szk}', pp['swet_ratio'], '', 3, 'Stosunek S_wet/S zmierzony na szkicu',
-                SOURCES['B1'] + ', rys. 1')
-        if pp['mode'] == 'raymer':
-            s.calc('AR_wet', r'\Lambda_{wet}', r'\frac{\Lambda}{(S_{wet}/S)_{szk}}', r'\frac{' + ar + r'}{[[Swet_S_szk]]}', pp['wetted_aspect_ratio'], '', 3,
-                   'Wydłużenie odniesione do powierzchni omywanej',
-                   check=lambda v: getattr(v, ar_key) / v.Swet_S_szk)
-            s.given('Kmax_1', r'K_{max}', pp['kmax'], '', 2, 'Maksymalna doskonałość z wykresu dla Λ_wet',
-                    SOURCES['B1'] + ', rys. 2 (Raymer)')
+        if pp['wetted_example'] == 'sketch':
+            s.given('Swet_S_szk', r'S_{wet}/S', pp['swet_ratio'], '', 2, 'Stosunek powierzchni omywanej do nośnej zmierzony na szkicu',
+                    'Szkic koncepcyjny samolotu')
         else:
-            s.given('Kmax_1', r'K_{max}', pp['kmax'], '', 2, 'Maksymalna doskonałość z wykresu', SOURCES['B1'] + ', rys. 2')
+            s.given('Swet_S_szk', r'S_{wet}/S', pp['swet_ratio'], '', 2,
+                    'Stosunek powierzchni omywanej do nośnej układu najbliższego szkicowi: ' + pp['wetted_example_label'],
+                    SOURCES['B1'] + ', rys. 1')
+        s.calc('AR_wet', r'\Lambda_{wet}', r'\frac{\Lambda}{S_{wet}/S}', r'\frac{' + ar + r'}{[[Swet_S_szk]]}', pp['wetted_aspect_ratio'], '', 3,
+               'Wydłużenie odniesione do powierzchni omywanej', SOURCES['B1'] + ', rys. 2',
+               check=lambda v: getattr(v, ar_key) / v.Swet_S_szk)
+        if pp['mode'] == 'raymer':
+            low, high = pp['raymer_range']
+            s.given('Kmax_1', r'K_{max}', pp['kmax'], '', 2,
+                    'Maksymalna doskonałość z wykresu dla Λ_wet, krzywa: ' + pp['raymer_family_label'],
+                    SOURCES['B1'] + ', rys. 2 (Raymer)',
+                    note=(f"Λ_wet leży poza narysowaną częścią krzywej ({report_number(low, 2)}–{report_number(high, 2)}); "
+                          'odczyt przedłużono zgodnie z kształtem krzywej, K_max ∝ √Λ_wet.') if pp['extrapolated'] else '')
+        else:
+            s.given('Kmax_1', r'K_{max}', pp['kmax'], '', 2, 'Maksymalna doskonałość odczytana z wykresu', SOURCES['B1'] + ', rys. 2')
+        low, high = pp['cx0_bounds']
+        verdict = ('mieści się w przedziale' if pp['cx0_in_range'] else
+                   f"jest {'mniejszy' if pp['cx0_deviation'] < 0 else 'większy'} o {report_number(abs(pp['cx0_deviation']) * 100, 0)}% "
+                   f"od {'dolnej' if pp['cx0_deviation'] < 0 else 'górnej'} granicy przedziału")
         s.calc('Cx0_1', r'C_{x0}', r'\frac{\pi\Lambda e}{4K_{max}^2}', r'\frac{\pi\cdot' + ar + r'\cdot[[e_1]]}{4\cdot[[Kmax_1]]^2}',
-               pp['cx0'], '', 5, 'Opór zerowy z maksymalnej doskonałości', SOURCES['B1'] + ', wzór (3)',
+               pp['cx0'], '', 4, 'Opór zerowy z maksymalnej doskonałości', SOURCES['B1'] + ', wzór (3)',
+               note=f"Porównanie z wartościami typowymi: wynik {verdict} {report_number(low, 3)}–{report_number(high, 3)} "
+                    f"dla klasy: {CX0_LABELS[pp['cx0_class']]}.",
                check=lambda v: math.pi * getattr(v, ar_key) * v.e_1 / (4 * v.Kmax_1 ** 2))
     ar_value = pp['aspect_ratio']
     s.calc('k_1', 'k', r'\frac{1}{\pi\Lambda e}', r'\frac{1}{\pi\cdot' + ar + r'\cdot[[e_1]]}',

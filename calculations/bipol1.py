@@ -22,11 +22,31 @@ RAYMER = {
 CORKE = [(.1,1),(.2,.997),(.3,.993),(.4,.989),(.5,.984),(.7,.975),
          (1,.960),(1.5,.935),(2,.905),(2.5,.873),(3,.839),(4,.770),
          (5,.699),(6,.638),(7,.587),(8,.542),(9,.505)]
+# Fig. 1, p. 2: S_wet/S_ref of the example aircraft, read from the printed scale 2–8.
+WETTED_EXAMPLES = {
+    'flying_wing': ('latające skrzydło', 2.25),
+    'delta_fighter': ('myśliwiec z płatem delta (F-102)', 3.05),
+    'glider': ('szybowiec', 3.05),
+    'light_single': ('lekki samolot jednosilnikowy (Cessna 150)', 3.9),
+    'twin_turboprop': ('dwusilnikowy samolot turbośmigłowy (Beech King Air)', 4.9),
+    'fighter': ('myśliwiec odrzutowy (F-104)', 5.5),
+    'jet_transport': ('samolot komunikacyjny (Boeing 747)', 6.15),
+    'bomber': ('bombowiec z gondolami silników (B-47)', 7.75),
+}
+RAYMER_LABELS = {
+    'glider': 'szybowce', 'military_supersonic': 'samoloty bojowe w locie naddźwiękowym',
+    'military_subsonic': 'samoloty bojowe w locie poddźwiękowym', 'jet': 'cywilne samoloty odrzutowe',
+    'prop_retractable': 'samoloty śmigłowe z podwoziem chowanym', 'prop_fixed': 'samoloty śmigłowe z podwoziem stałym',
+}
 CX0_RANGES = {
     'military': (.014,.020), 'transport': (.018,.024), 'small_twin': (.022,.028),
     'single_retractable': (.020,.030), 'single_fixed': (.025,.040),
     'agricultural': (.060,.080), 'motoglider': (.014,.020),
 }
+CX0_LABELS = {'military': 'samoloty bojowe', 'transport': 'duże samoloty transportowe',
+              'small_twin': 'małe samoloty dwusilnikowe', 'single_retractable': 'jednosilnikowe z podwoziem chowanym',
+              'single_fixed': 'jednosilnikowe z podwoziem stałym', 'agricultural': 'samoloty rolnicze',
+              'motoglider': 'motoszybowce'}
 
 EMPTY_MASS_COEFFICIENTS = {
     'glider': (0.82, -0.05),
@@ -53,9 +73,10 @@ def two_point_power_law(x1: float, y1: float, x2: float, y2: float) -> tuple[flo
 def validate_bipol1(p):
     options = {
         'mass_method': ('auto','proportion','proportions','iterative'),
-        'empty_mass_model': ('class_correlation','fixed_fraction','trend','coefficients','two_point'),
+        'empty_mass_model': ('auto','class_correlation','fixed_fraction','trend','coefficients','two_point'),
         'preliminary_polar_mode': ('input','raymer','reading'),
-        'raymer_family': tuple(RAYMER), 'cx0_reference_class': tuple(CX0_RANGES),
+        'raymer_family': tuple(RAYMER), 'cx0_reference_class': ('', *CX0_RANGES),
+        'wetted_example': ('', 'sketch', *WETTED_EXAMPLES),
         'climb_fraction_mode': ('auto','corke','reading'),
         'trend_year_basis': ('production','certification'),
         'design_iteration_mode': ('preliminary', 'coupled'),
@@ -67,8 +88,10 @@ def validate_bipol1(p):
     mode = p.get('empty_mass_model')
     requirements += {'fixed_fraction':['empty_mass_fraction'], 'coefficients':['empty_mass_a','empty_mass_c'],
                      'two_point':['mass_point_x1','mass_point_x2','mass_point_y1','mass_point_y2']}.get(mode,[])
-    if p.get('preliminary_polar_mode') in ('raymer','reading'):
-        requirements += ['sketch_swet_ratio', 'raymer_family' if p['preliminary_polar_mode']=='raymer' else 'raymer_kmax']
+    if p.get('preliminary_polar_mode') in ('raymer','reading') and p.get('wetted_example') == 'sketch':
+        requirements += ['sketch_swet_ratio']
+    if p.get('preliminary_polar_mode') == 'reading':
+        requirements += ['raymer_kmax']
     if p.get('climb_fraction_mode') == 'reading':
         requirements += ['corke_start_ordinate','corke_end_ordinate']
     if p.get('max_power_time_min',0):
@@ -105,19 +128,59 @@ def interpolate(points, x, logarithmic=False):
     return points[-1][1]
 
 
+def wetted_example(p):
+    """Fig. 1 example closest to the class sketch; the student may measure the sketch instead."""
+    chosen = p.get('wetted_example')
+    if chosen:
+        return chosen
+    ac_type = p.get('aircraft_type', 'piston_ga')
+    if ac_type in ('glider', 'motoglider'):
+        return 'glider'
+    if ac_type == 'jet_transport':
+        return 'jet_transport'
+    if ac_type in ('turboprop_regional', 'jet_business') or int(p.get('n_engines', 1) or 1) >= 2:
+        return 'twin_turboprop'
+    return 'light_single'
+
+
+def raymer_family(p):
+    """Curve of Fig. 2 for the kind of aircraft (legend of the figure)."""
+    if p.get('aircraft_type') in ('glider', 'motoglider') or p.get('engine_type') == 'none':
+        return 'glider'
+    if p.get('engine_type') == 'jet':
+        return 'jet'
+    from calculations.paturski_ml import default_retractable_gear
+    return 'prop_retractable' if default_retractable_gear(p) else 'prop_fixed'
+
+
+def read_raymer(family, wetted_aspect):
+    """K_max from Fig. 2. Outside the printed curve K_max follows K ∝ √Λ_wet from its nearest
+    end, the shape of Raymer's curves at a constant equivalent skin friction; such a reading is flagged."""
+    points = RAYMER[family]
+    (x_lo, y_lo), (x_hi, y_hi) = points[0], points[-1]
+    if x_lo <= wetted_aspect <= x_hi:
+        return interpolate(points, wetted_aspect), False
+    x_end, y_end = (x_lo, y_lo) if wetted_aspect < x_lo else (x_hi, y_hi)
+    return y_end * math.sqrt(wetted_aspect / x_end), True
+
+
 def preliminary_polar(p):
-    mode = p.get('preliminary_polar_mode', 'input')
+    mode = p.get('preliminary_polar_mode', 'raymer')
     ar, e = p.get('aspect_ratio', 8), p.get('oswald_e', .8)
-    if mode == 'raymer':
-        ratio = p['sketch_swet_ratio']
-        kmax = interpolate(RAYMER[p['raymer_family']], ar/ratio)
-        cx0 = math.pi*ar*e/(4*kmax*kmax)
-    elif mode == 'reading':
-        ratio, kmax = p['sketch_swet_ratio'], p['raymer_kmax']
+    example = family = None
+    extrapolated = False
+    if mode in ('raymer', 'reading'):
+        example = wetted_example(p)
+        ratio = p['sketch_swet_ratio'] if example == 'sketch' else WETTED_EXAMPLES[example][1]
+        family = raymer_family(p)
+        if mode == 'raymer':
+            kmax, extrapolated = read_raymer(family, ar/ratio)
+        else:
+            kmax = p['raymer_kmax']
         cx0 = math.pi*ar*e/(4*kmax*kmax)
     else:
+        # Next design iteration: C_x0 of the P4 polar replaces the graph estimate.
         ratio, cx0 = None, p.get('cx0', .025)
-        # Existing aerodynamic input is a preliminary estimate, not a graph reading.
         if not p.get('preliminary_polar_includes_configuration'):
             cx0 += .002 if p.get('wing_config') == 'braced_high' else 0
             cx0 += .0025 if p.get('flap_type') == 'junkers' else 0
@@ -126,16 +189,39 @@ def preliminary_polar(p):
     from calculations.preliminary import classify_bipol_cx0
     inferred_class = classify_bipol_cx0(p)
     inferred_class = {'combat':'military','large_transport':'transport'}.get(inferred_class,inferred_class)
-    bounds = CX0_RANGES[p.get('cx0_reference_class', inferred_class)]
+    cx0_class = p.get('cx0_reference_class') or inferred_class
+    bounds = CX0_RANGES[cx0_class]
+    curve = RAYMER[family] if family else None
     return dict(mode=mode, kmax=kmax, cx0=cx0, swet_ratio=ratio, aspect_ratio=ar, oswald_e=e,
                 wetted_aspect_ratio=ar/ratio if ratio else None,
-                cx0_bounds=list(bounds), cx0_in_range=bounds[0] <= cx0 <= bounds[1],
+                wetted_example=example, wetted_example_label=WETTED_EXAMPLES[example][0] if example in WETTED_EXAMPLES else None,
+                raymer_family=family, raymer_family_label=RAYMER_LABELS.get(family),
+                raymer_range=[curve[0][0], curve[-1][0]] if curve else None, extrapolated=extrapolated,
+                cx0_class=cx0_class, cx0_bounds=list(bounds), cx0_in_range=bounds[0] <= cx0 <= bounds[1],
+                cx0_deviation=(cx0 - bounds[0]) / bounds[0] if cx0 < bounds[0] else (cx0 - bounds[1]) / bounds[1] if cx0 > bounds[1] else 0.,
                 source='BIPOL_1.pdf, s. 2–3, rys. 1–2 i wzór (3)',
-                reading_note='Przybliżony odczyt graficzny; interpolacja odcinkowa bez ekstrapolacji.' if mode == 'raymer' else p.get('graph_source', ''))
+                reading_note=('Odczyt poza narysowaną krzywą: K ∝ √Λ_wet od końca krzywej.' if extrapolated else
+                              'Przybliżony odczyt graficzny; interpolacja odcinkowa.') if mode == 'raymer' else p.get('graph_source', ''))
 
 
 def empty_mass_law(p):
     mode = p.get('empty_mass_model', 'class_correlation')
+    if mode == 'auto':
+        # Explicit assumptions always take precedence. Otherwise a well-supported
+        # trend of the actual project sample precedes the generic class correlation.
+        if p.get('empty_mass_trend_A') is not None or p.get('empty_mass_fraction') is not None:
+            return empty_mass_law(dict(p, empty_mass_model='class_correlation'))
+        from calculations.trends import mass_trend
+        rows, fit = mass_trend(p)
+        good = (fit is not None and fit['n'] >= 20 and len({r['family'] for r in rows}) >= 8
+                and fit['r2'] is not None and fit['r2'] >= .5 and fit['C'] < 0)
+        share, meta = empty_mass_law(dict(p, empty_mass_model='trend' if good else 'class_correlation'))
+        meta.update(selection_mode='auto', selection_reason=(
+            'Przyjęto trend wybranej próby: n ≥ 20, co najmniej 8 rodzin, R² ≥ 0,5 i C < 0.' if good else
+            'Próba nie spełnia przyjętych kryteriów automatycznego doboru trendu masowego '
+            '(n ≥ 20, co najmniej 8 rodzin, R² ≥ 0,5, C < 0); zastosowano korelację klasy.'),
+            selection_r2=fit['r2'] if fit else None)
+        return share, meta
     if p.get('empty_mass_fraction') is not None and mode == 'class_correlation' and p.get('empty_mass_trend_A') is None:
         mode = 'fixed_fraction'
     kvs = 1.04 if p.get('variable_sweep', False) else 1.
@@ -145,16 +231,13 @@ def empty_mass_law(p):
         mode = 'bipol1_trend'
         meta['mode'] = mode
     elif mode == 'trend':
-        from calculations.trends import select_references, fit_regression
-        rows = select_references(p, p.get('mass_initial_guess', 5000))
-        rows = [r for r in rows if r.get('empty_fraction') and .15 < r['empty_fraction'] < .95]
+        from calculations.trends import mass_trend
+        rows, fit = mass_trend(p)
         counts = Counter(r['family'] for r in rows)
-        weights = [1/counts[r['family']] if p.get('trend_weighting', 'family') == 'family' else 1 for r in rows]
-        fit = fit_regression([(r['m0'], r['empty_fraction']/(1.04 if r.get('variable_sweep') else 1)) for r in rows], weights, power=True)
         if not fit:
             raise ValueError('Masa pusta z trendu: potrzeba co najmniej 3 kompletnych konstrukcji o różnych masach. Uzupełnij dobór samolotów.')
         a, c = fit['A'], fit['C']
-        meta.update(n=len(rows), families=len(counts), aircraft_ids=[r['id'] for r in rows],
+        meta.update(n=len(rows), families=len(counts), aircraft_ids=[r['id'] for r in rows], r2=fit['r2'],
                     valid_range=[fit['x_min'], fit['x_max']], definitions=sorted({r.get('empty_mass_definition') or 'nieokreślona' for r in rows}))
     elif mode == 'two_point':
         x1, x2, y1, y2 = (p[k] for k in ('mass_point_x1','mass_point_x2','mass_point_y1','mass_point_y2'))
@@ -450,8 +533,10 @@ def review_bipol1(result):
         p.get('sketch_reference') or 'Podaj odniesienie do własnego szkicu; widok 3D go nie zastępuje.')
     add('mission','Uzgodniona misja i wymagania osiągowe',bool(p.get('mission_approval_reference','').strip()),
         p.get('mission_approval_reference') or 'Podaj odniesienie do uzgodnienia misji i wymagań.')
-    add('raymer','Swet/S ze szkicu → Kmax z Raymera → Cx₀',polar['mode'] in ('raymer','reading') and bool(p.get('graph_source','').strip()),
-        f"Metoda: {polar['mode']}; Kmax={polar['kmax']:.3f}, Cx₀={polar['cx0']:.5f}. Odczyty wykresów mają dokładność graficzną.")
+    add('raymer','Swet/S ze szkicu → Kmax z Raymera → Cx₀',
+        polar['mode'] == 'raymer' and not polar['extrapolated'] or polar['mode'] == 'reading' and bool(p.get('graph_source','').strip()),
+        f"Metoda: {polar['mode']}; Kmax={polar['kmax']:.3f}, Cx₀={polar['cx0']:.5f}. " +
+        ('Λ_wet poza narysowaną krzywą: potwierdź odczyt z prowadzącym.' if polar['extrapolated'] else 'Odczyty wykresów mają dokładność graficzną.'))
     add('cx0','Cx₀ względem tabeli siedmiu klas',polar['cx0_in_range'],
         f"Cx₀={polar['cx0']:.5f}; przedział {polar['cx0_bounds'][0]}–{polar['cx0_bounds'][1]}. Odchylenie wymaga uzasadnienia, nie automatycznej korekty.")
     if p['engine_type']!='none':

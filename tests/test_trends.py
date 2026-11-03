@@ -83,13 +83,26 @@ def test_degenerate_regressions_have_no_fictitious_fit(points, power):
 
 
 def test_cohort_respects_class_source_engine_count_and_manual_ids():
-    params = {'aircraft_type':'piston_ga','engine_type':'prop','trend_source':'cado','trend_engine_count':2,'trend_count':20}
-    rows = select_references(params,1200)
+    params = {'aircraft_type':'piston_ga','engine_type':'prop','trend_source':'cado','trend_engine_count':2,
+              'trend_nearest_count':20,'mass_initial_guess':1200}
+    rows = select_references(params)
     assert rows and all(r['aircraft_type']=='piston_ga' and r['source_id']=='cado' and r['n_engines']==2 for r in rows)
     ids = [r['id'] for r in rows[:3]]
-    chosen = select_references({**params,'trend_aircraft_ids':ids},1200)
+    chosen = select_references({**params,'trend_aircraft_ids':ids})
     assert {r['id'] for r in chosen} == set(ids)
-    assert select_references({**params,'trend_aircraft_ids':[]},1200) == []
+    assert select_references({**params,'trend_aircraft_ids':[]}) == []
+
+
+def test_sample_is_independent_of_the_computed_mass_and_of_the_old_count_key():
+    base = {'aircraft_type':'motoglider','engine_type':'prop'}
+    whole = select_references(base)
+    # Projects saved before the change keep trend_count=50; it no longer narrows the sample.
+    assert select_references({**base,'trend_count':50}) == whole
+    near = select_references({**base,'trend_nearest_count':20,'mass_initial_guess':700})
+    assert len(near) == 20 and set(r['id'] for r in near) <= set(r['id'] for r in whole)
+    a = analyze_trends(base, 650, 400)
+    b = analyze_trends(base, 900, 560)
+    assert a['sample'] == b['sample'] and a['suggestions']['ar']['suggested_value'] == b['suggestions']['ar']['suggested_value']
 
 
 def test_forecast_is_five_years_after_design_year_and_does_not_invent_production_dates():
@@ -191,7 +204,16 @@ def test_reports_share_real_sample_sources_and_inline_plots(client,url):
     response=client.get(url)
     assert response.status_code==200
     text=response.get_data(as_text=True)
-    assert 'data-trend-report' in text and 'ENAC CADO' in text and 'Apache-2.0' in text
+    assert 'data-trend-report' in text
+    # Only sources actually present in the chosen cohort belong in the report.
+    # Gliders do not acquire a CADO citation just because the database also holds GA aircraft.
+    from calculations.trends import SOURCES
+    from calculations.validation import validate_parameters
+    params = validate_parameters(AIRCRAFT_PRESETS['glider_pw5' if 'glider_pw5' in url else 'pzl_kos'])
+    analysis = analyze_trends(params, 1000, 600)
+    for source_id in analysis['sources']:
+        assert SOURCES[source_id]['license'] in text
+    assert ('Apache-2.0' in text) == ('fast' in analysis['sources'])
     assert 'nie rok produkcji' in text and 'Jane\'s Aircraft' not in text
     assert 'statistical_averages' not in text
     if 'glider_pw5' not in url:assert '<svg xmlns=' in text

@@ -135,8 +135,9 @@ def _concept(results):
         text.append(f'Kabina mieści {mass["n_crew"]} {crew} załogi{pax}; łączna masa załogi i ładunku wynosi '
                     f'{number(mass["m_crew"] + mass["m_payload"], 1)} kg.')
     pp = mass['preliminary_polar']
-    text.append(f'Na tym etapie maksymalną doskonałość oszacowano na {number(pp["kmax"], 1)} przy oporze zerowym '
-                f'{number(pp["cx0"], 4)}. Najważniejsze wymagania osiągowe to prędkość przelotowa '
+    text.append((f'Na tym etapie maksymalną doskonałość odczytano z wykresu jako {number(pp["kmax"], 1)}, co odpowiada oporowi zerowemu '
+                 if pp['mode'] != 'input' else f'Na tym etapie maksymalną doskonałość oszacowano na {number(pp["kmax"], 1)} przy oporze zerowym ')
+                + f'{number(pp["cx0"], 4)}. Najważniejsze wymagania osiągowe to prędkość przelotowa '
                 f'{number(p["cruise_speed_kmh"], 0)} km/h na wysokości {number(p["cruise_altitude_m"], 0)} m'
                 + (f', zasięg {number(p["range_km"], 0)} km' if powered else '')
                 + f' oraz prędkość przeciągnięcia nie większa niż {number(p["v_stall_kmh"], 0)} km/h.')
@@ -168,13 +169,26 @@ def _conclusions(results):
     number, powered, jet = report_number, p['engine_type'] != 'none', p['engine_type'] == 'jet'
     pp, dp = mass['preliminary_polar'], results['sizing']['design_point']
     out = {key: [] for key in TITLES}
-    out['p1'].append(f'Do dalszych obliczeń przyjęto wydłużenie skrzydła {number(pp["aspect_ratio"])} i szacunkową '
-                     f'biegunową o oporze zerowym {number(pp["cx0"], 4)}, co daje maksymalną doskonałość '
-                     f'{number(pp["kmax"], 1)}.')
+    if pp['mode'] != 'input':
+        low, high = pp['cx0_bounds']
+        out['p1'].append(f'Do dalszych obliczeń przyjęto wydłużenie skrzydła {number(pp["aspect_ratio"])} i szacunkową '
+                         f'biegunową o maksymalnej doskonałości {number(pp["kmax"], 1)} odczytanej z wykresu dla '
+                         f'S_wet/S = {number(pp["swet_ratio"], 2)}, z której opór zerowy wynosi {number(pp["cx0"], 4)}; '
+                         + (f'wartość mieści się w przedziale typowym {number(low, 3)}–{number(high, 3)}.' if pp['cx0_in_range'] else
+                            f'wartość leży poza przedziałem typowym {number(low, 3)}–{number(high, 3)} '
+                            f'o {number(abs(pp["cx0_deviation"]) * 100, 0)}%.'))
+    else:
+        out['p1'].append(f'Do dalszych obliczeń przyjęto wydłużenie skrzydła {number(pp["aspect_ratio"])} i szacunkową '
+                         f'biegunową o oporze zerowym {number(pp["cx0"], 4)}, co daje maksymalną doskonałość '
+                         f'{number(pp["kmax"], 1)}.')
     if trends['mass_fit']:
+        fitted_law = mass['empty_mass_model'] in ('trend', 'bipol1_trend') and all(
+            math.isclose(mass['empty_mass_law'][key], trends['mass_fit'][key], rel_tol=1e-9)
+            for key in ('A', 'C'))
         out['p1'].append(f'Zależność udziału masy pustej od masy startowej wyznaczono z {trends["mass_fit"]["n"]} par '
                          f'danych (R² = {number(trends["mass_fit"]["r2"], 3)}). '
-                         + ('Rozrzut danych jest duży, dlatego masy pustej nie oparto wyłącznie na tej zależności.'
+                         + ('Tę zależność wprowadzono do bilansu masy w studium wykonalności.' if fitted_law else
+                            'Rozrzut danych jest duży, dlatego masy pustej nie oparto wyłącznie na tej zależności.'
                             if trends['mass_fit']['r2'] < .5 else
                             'Zależność potraktowano jako punkt odniesienia przy doborze udziałów mas.'))
     else:
@@ -264,7 +278,7 @@ def _summaries(results):
                  _row('Opór zerowy (oszacowanie) C_x0', pp['cx0'], '—', 4),
                  _row('Maksymalna doskonałość (oszacowanie) K_max', pp['kmax'], '—', 1)]
     if pp.get('swet_ratio'):
-        out['p1'].append(_row('Stosunek S_wet/S zmierzony na szkicu', pp['swet_ratio'], '—', 2))
+        out['p1'].append(_row('Stosunek powierzchni omywanej do odniesienia S_wet/S', pp['swet_ratio'], '—', 2))
     two = projects['p1']['trend_analysis'].get('two_point') or {}
     if two:
         out['p1'] += [_row('Zależność mₑ/m₀ = A·m₀^C — współczynnik A', two.get('A'), '—', 4),
@@ -404,6 +418,7 @@ def _limitation(text):
 
 
 def report_document(results, sections, overrides=None, folder_cover=False, sheet=None):
+    from calculations.trend_workings import report_trend_workings
     p, mass, geom = results['params'], results['mass'], results['geometry']
     number = report_number
     powered, jet = p['engine_type'] != 'none', p['engine_type'] == 'jet'
@@ -421,21 +436,13 @@ def report_document(results, sections, overrides=None, folder_cover=False, sheet
     if powered:
         summary.append(_row('Ciąg startowy' if jet else 'Moc startowa', dp['thrust_kn'] if jet else dp['power_kw'],
                             'kN' if jet else 'kW', 2 if jet else 1))
-    geometry_sample = {}
-    geometry = results['bipol_projects']['p1']['trend_analysis'].get('geometry_trends_analysis')
-    if geometry:
-        for metric in geometry['metrics']:
-            for sample in metric['samples']:
-                row = geometry_sample.setdefault(sample['model'], {'model': sample['model'], 'values': {}, 'sources': []})
-                row['values'][metric['key']] = sample['val']
-                if sample['source'] not in row['sources']:
-                    row['sources'].append(sample['source'])
     return {'sections': sections, 'titles': TITLES, 'metadata': report_metadata(p, overrides),
             'folder_cover': folder_cover, 'powered': powered, 'jet': jet, 'conclusions': _conclusions(results),
             'checks': checks, 'failed': failed, 'pending': pending, 'summary': summary,
             'summaries': _summaries(results), 'predecessors': _predecessors(results),
             'performance_actions': _performance_actions(results),
-            'geometry_sample': list(geometry_sample.values()), 'concept': _concept(results),
+            'trend_workings': report_trend_workings(results['bipol_projects']['p1']['trend_analysis']),
+            'concept': _concept(results),
             'assumptions': assumption_rows(sheet, sections), 'constants': constant_rows(sheet),
             'scope_limitations': [_limitation(text) for text in results.get('model_scope', {}).get('limitations', [])],
             'title': TITLES[sections[0]] if len(sections) == 1 else 'Projekt wstępny samolotu'}
