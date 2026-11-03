@@ -32,7 +32,7 @@ function isDuplicateCalculatedChange(event) {
 document.addEventListener('bipol:results', () => queueMicrotask(() => {
   // Result consumers restore normalized/derived fields synchronously first.
   calculatedControlProject = getActiveProjectId();
-  document.querySelectorAll('#designForm input, #designForm select, #designForm textarea, [data-analysis-param], [data-bipol1]')
+  document.querySelectorAll('#designForm input, #designForm select, #designForm textarea, [data-analysis-param], [data-bipol1], [data-engine-field]')
     .forEach(control => calculatedControlValues.set(control, designControlValue(control)));
 }));
 function safeLocalItem(key) {
@@ -977,7 +977,8 @@ function collectFormData() {
   data['name'] = activeProj ? activeProj.name : (nameEl ? nameEl.textContent.trim() : 'Wstępny Projekt Samolotu');
   data['locked_params'] = Array.from(window.userLockedParams || []);
   const basis = window.BipolDesignBasis ? BipolDesignBasis.collect(data) : data;
-  return window.Bipol1 ? Bipol1.collect(basis) : basis;
+  const mission = window.Bipol1 ? Bipol1.collect(basis) : basis;
+  return window.BipolEngineFuel ? BipolEngineFuel.collect(mission) : mission;
 }
 
 let calculationSequence = 0;
@@ -1013,6 +1014,8 @@ async function performCalculation() {
   const reportBtn = document.getElementById('openReportBtn');
   if (reportBtn) reportBtn.setAttribute('data-results-stale', 'true');
   try {
+    await window.BipolEngineFuel?.ready;
+    if (sequence !== calculationSequence || projectId !== getActiveProjectId()) return;
     validateNumericFields(document.getElementById('designForm'));
     for (const id of ['trendControls', 'p2CostControls', 'p3SchrenkControls']) {
       const analysisControls = document.getElementById(id);
@@ -4501,6 +4504,7 @@ document.addEventListener('DOMContentLoaded', () => {
   };
   form?.addEventListener('input', markChanged, true);
   form?.addEventListener('change', markChanged, true);
+  document.querySelectorAll('[data-engine-field]').forEach(el=>{el.addEventListener('input',markChanged);el.addEventListener('change',markChanged);});
   form?.addEventListener('submit', event => { event.preventDefault(); performCalculation(); });
   document.getElementById('openReportBtn')?.addEventListener('click', event => {
     if (event.currentTarget.getAttribute('aria-disabled') === 'true') event.preventDefault();

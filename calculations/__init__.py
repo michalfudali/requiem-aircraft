@@ -24,6 +24,7 @@ from calculations.design_solver import resolve_design
 from calculations.model_scope import assessment, is_water
 from calculations.profile_geometry import resolve_profile_geometry
 from calculations.constraints import resolve_and_lock_parameters, finalize_parameter_states, get_initial_constraint_suggestions, WING_PLANFORMS
+from calculations.engine_fuel import engine_assessment, fuel_check
 
 def _size_airframe(params, param_states):
     mass_res = calculate_mass_sizing(params)
@@ -231,10 +232,19 @@ def run_bipol_project(params: dict):
             "note": c["source"] + (" (zalecenie)" if c["severity"] == "warning" else "")
         })
 
+    engine_selection = engine_assessment(params, sizing_res)
+    if params['engine_type'] != 'none':
+        checks.append(fuel_check(engine_selection))
+        if engine_selection.get('supported'):
+            checks.append(dict(parameter='Moc lub ciąg rzeczywistej propozycji silnika',
+                required=f"≥ {engine_selection['required_total']:.3f} {engine_selection['rating_unit']} łącznie",
+                actual=f"{engine_selection['installed_total']:.3f} {engine_selection['rating_unit']} łącznie",
+                passed=engine_selection['adequate'], note='Ocena doboru mocy/ciągu, nie dopuszczenie zabudowy silnika.'))
     result = {
         "status": "success",
         "design_iteration": design_iteration,
         "model_scope": model_scope,
+        "engine_selection": engine_selection,
         "params": params,
         "mass": mass_res,
         "sizing": sizing_res,

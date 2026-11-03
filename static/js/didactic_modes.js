@@ -557,7 +557,7 @@
     return text;
   }
 
-  const SCOPES = '#designForm, #projectWizardBackdrop, #bipol1Panel, #trendControls, #tab-trends, #aircraftEditorFields, #semesterWorkstation, #tab-reports';
+  const SCOPES = '#designForm, #projectWizardBackdrop, #bipol1Panel, #engineFuelPanel, #trendControls, #tab-trends, #aircraftEditorFields, #semesterWorkstation, #tab-reports';
 
   function decorate() {
     // Ikonki z szablonów: rola przycisku i nazwa dla czytnika; natywny dymek title zasłaniałby kartotekę.

@@ -35,6 +35,7 @@ from calculations.report_origin import (number_references, xref, cite, origin, o
                                          component_source)
 from calculations import report_charts
 from calculations import manual_control
+from calculations.engine_fuel import catalog as engine_catalog
 from calculations.calculation_graph import build_calculation_graph
 
 app = Flask(__name__)
@@ -224,6 +225,11 @@ def aircraft_item(aircraft_id):
         except AircraftNotFoundError as err:
             return jsonify(status='error', message=str(err)), 404
 
+
+
+@app.get('/api/engines')
+def engines():
+    return jsonify(engines=engine_catalog())
 
 
 @app.route('/api/trends/suggestions', methods=['GET', 'POST'])

@@ -1,0 +1,30 @@
+{% set ef=res.engine_selection %}
+{% if doc.powered %}
+<h3>Propozycja silnika i podstawa obliczenia zużycia paliwa</h3>
+{% if ef.supported %}
+<p>Do obliczeń przyjęto {{ ef.count }} × <strong>{{ ef.model }}</strong>. {{ ef.rating_note }} Wartość zużycia paliwa pochodzi z: {{ ef.source }}, {{ ef.locator }}{% if ef.source_url %} (<a href="{{ ef.source_url }}">dokument źródłowy</a>){% endif %}.</p>
+<table class="compact-table" id="tab-engine-fuel"><caption>Dane rzeczywistej propozycji napędu i punkt zużycia paliwa</caption><thead><tr><th>Wielkość</th><th>Wartość i podstawa</th></tr></thead><tbody>
+<tr><td>{{ 'Ciąg' if doc.jet else ('Maksymalna moc katalogowa' if ef.rating_basis == 'maximum' else ('Moc zmierzona' if ef.rating_basis == 'measured' else 'Moc ciągła')) }} na jeden silnik</td><td>{{ (ef.rating_kn if doc.jet else ef.rating_kw)|reportnum(3) }} {{ ef.rating_unit }}</td></tr>
+<tr><td>{{ 'Ciąg' if doc.jet else 'Moc' }} całego zespołu</td><td>{{ ef.installed_total|reportnum(3) }} {{ ef.rating_unit }}</td></tr>
+<tr><td>Zużycie odczytane ze źródła</td><td>{{ ef.point.value|reportnum(4) }} {{ ef.point.unit }}</td></tr>
+<tr><td>Warunki odczytu</td><td>{{ ef.point.conditions }}{% if ef.point.power_kw %}; moc w punkcie {{ ef.point.power_kw|reportnum(3) }} kW na silnik{% endif %}</td></tr>
+{% if ef.point.unit in ('l/h','US gal/h') %}<tr><td>Założona gęstość paliwa do przeliczenia</td><td>{{ ef.density_kg_l|reportnum(3) }} kg/l</td></tr>{% endif %}
+<tr><td>SFC użyte w bilansie i osiągach</td><td>{{ ef.sfc|reportnum(4) }} {{ ef.unit }}</td></tr>
+</tbody></table>
+{% if 'p2' not in selected_sections %}
+{% if ef.point.unit in ('l/h','US gal/h') %}
+<p>Objętościowe zużycie paliwa przeliczono na jednostkowe zużycie masowe dla tego samego punktu pracy:</p>
+<div class="equation"><div class="formula">\[c_P=\frac{1000\,\rho_f\dot V_f}{P_{ref}}=\frac{1000\cdot{{ ef.density_kg_l|texnum(3) }}\cdot{{ ef.point.value|texnum(3) }}{% if ef.point.unit == 'US gal/h' %}\cdot3{,}785411784{% endif %}}{ {{ ef.point.power_kw|texnum(4) }} }={{ ef.sfc|texnum(4) }}\;\mathrm{g/(kW\,h)}.\]</div></div>
+{% elif ef.point.unit == 'kg/(N h)' %}
+<div class="equation"><div class="formula">\[c_Tg={{ ef.point.value|texnum(4) }}\cdot9{,}80665={{ ef.sfc|texnum(5) }}\;\mathrm{h^{-1}}.\]</div></div>
+{% elif ef.point.unit == 'kg/(kW h)' %}
+<div class="equation"><div class="formula">\[c_P=1000\cdot{{ ef.point.value|texnum(4) }}={{ ef.sfc|texnum(3) }}\;\mathrm{g/(kW\,h)}.\]</div></div>
+{% endif %}
+{% endif %}
+{% for note in ef.notes %}<p>{{ note }}</p>{% endfor %}
+{% if ef.maximum_point %}<p>Dodatkowe zadanie — dane zużycia: {{ ef.maximum_point.value|reportnum(4) }} {{ ef.maximum_point.unit }}, {{ ef.maximum_point.conditions }}; SFC w obliczeniach zadania: {{ ef.maximum_sfc|reportnum(4) }} {{ ef.unit }}. Źródło: {{ ef.maximum_source or ef.source }}.</p>{% endif %}
+<p>Dobór mocy/ciągu: wymagane łącznie {{ ef.required_total|reportnum(3) }} {{ ef.rating_unit }}, przyjęte {{ ef.installed_total|reportnum(3) }} {{ ef.rating_unit }} — {{ 'warunek spełniony' if ef.adequate else 'warunek niespełniony, potrzebna inna propozycja silnika' }}.</p>
+{% else %}
+<p><strong>Brak rzeczywistej propozycji silnika z danymi zużycia paliwa.</strong> W bilansie użyto roboczego SFC = {{ params.sfc|reportnum(3) }} {{ '1/h' if doc.jet else 'g/(kW·h)' }}. Wyniki paliwowe wymagają uzupełnienia: model i wariant silnika, dokument producenta, warunki punktu pracy i zużycie w tym punkcie. Obecna liczba nie jest potwierdzona danymi rzeczywistego silnika.</p>
+{% endif %}
+{% endif %}

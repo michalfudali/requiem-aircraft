@@ -122,10 +122,12 @@ def refine_takeoff_sizing(sizing, geom, aero, params, mass):
         raise ValueError('Zadana całkowita długość startu jest nieosiągalna w modelu. Zwiększ drogę startu lub zmniejsz obciążenie powierzchni.')
     sizing['takeoff_model_requirement'] = requirement
     if engine == 'jet':
+        dp['required_thrust_kn'] = max(dp.get('required_thrust_kn') or 0, requirement * 1.06 * mass * G0 / 1000)
         if requirement * 1.06 > dp['tw']:
             dp['governing'] = 'start (model mechaniki lotu)'
-        dp['tw'] = max(dp['tw'], requirement * 1.06)
-        dp['thrust_kn'] = dp['tw'] * mass * G0 / 1000
+        if not params.get('engine_static_thrust_kn'):
+            dp['tw'] = max(dp['tw'], requirement * 1.06)
+            dp['thrust_kn'] = dp['tw'] * mass * G0 / 1000
     else:
         model_power_kw = requirement * mass * G0 / 1000 * 1.08
         if model_power_kw > dp['required_power_kw']:

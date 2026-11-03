@@ -266,6 +266,10 @@ def calculate_matching_chart(params: dict, m0: float = None, mass: dict = None):
     power_hp = round((pw_design * w_newtons) / 735.5, 1) if (pw_design and w_newtons) else None
     thrust_kn = round((tw_design * w_newtons) / 1000.0, 2) if (tw_design and w_newtons) else None
     required_power_kw = power_kw
+    required_thrust_kn = thrust_kn
+    if engine_type == 'jet' and params.get('engine_static_thrust_kn'):
+        thrust_kn = float(params['engine_static_thrust_kn'])
+        tw_design = thrust_kn * 1000 / w_newtons
     if engine_type == 'prop' and 'engine_power_kw' in params.get('locked_params', []):
         power_kw = float(params['engine_power_kw'])
         power_hp = power_kw * 1000 / 735.5
@@ -333,6 +337,7 @@ def calculate_matching_chart(params: dict, m0: float = None, mass: dict = None):
             "pw_hp_kg": round(pw_design * G0 / 735.5, 3) if pw_design else None, # KM/kg
             "power_kw": power_kw,
             "required_power_kw": required_power_kw,
+            "required_thrust_kn": required_thrust_kn,
             "power_hp": power_hp,
             "thrust_kn": thrust_kn,
             "tw_min_climb_bipol18": round(tw_climb_min, 4),

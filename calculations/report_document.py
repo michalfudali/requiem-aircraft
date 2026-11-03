@@ -98,6 +98,8 @@ def _relevant_checks(results, sections):
         relevant |= ('p5' in sections and not name.startswith('[') and 'stateczności' not in name)
         relevant |= ('p3' in sections and ('stateczności' in name or 'ŚC' in name))
         relevant |= (bool({'p4', 'p5'} & set(sections)) and name.startswith('[Ściśliwość]'))
+        relevant |= (bool({'p2', 'p4', 'p5'} & set(sections)) and
+                     name in ('Źródło zużycia paliwa i rzeczywisty silnik', 'Moc lub ciąg rzeczywistej propozycji silnika'))
         if relevant:
             checks.append(_clean_check(check))
     return checks

@@ -105,7 +105,8 @@ def refine_flight_sizing(sizing, geom, aero, params, mass):
         note='Wymaganie z końcowej biegunowej; całkowity ciąg statyczny lub moc na wale wszystkich silników.')
     if engine == 'jet':
         required = requirement*1.06/weight
-        if required > dp['tw']:
+        dp['required_thrust_kn'] = max(dp.get('required_thrust_kn') or 0, required * weight / 1000)
+        if required > dp['tw'] and not params.get('engine_static_thrust_kn'):
             dp.update(tw=required, thrust_kn=required*weight/1000, governing=governing)
     else:
         required = requirement*1.08/1000

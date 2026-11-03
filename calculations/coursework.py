@@ -185,7 +185,7 @@ def review_submission(result):
     automatic = {
         'p1_1': b1('sketch', 'mission'),
         'p1_2': course('sample', 'charts', 'mass_trend', 'climb_data') + b1('dates', 'averages'),
-        'p2_1': course('iteration', 'cruise', 'start_fraction') + b1('mass_law', 'mass', 'reserve', 'corke', 'mission'),
+        'p2_1': course('iteration', 'cruise', 'start_fraction') + b1('mass_law', 'mass', 'reserve', 'corke', 'mission', 'engine_fuel'),
         'p2_2': [],  # Source polars are external work; catalogue placeholders are not a verified selection.
         'p2_3': [check('Zbieżność wariantów wrażliwości', all(row['d_mtow_kg'] is not None for row in bp['p2']['sensitivity']['table']),
                        'Każdy wariant wymaga rozwiązania bilansu; brak rozwiązania należy omówić.')],

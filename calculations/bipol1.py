@@ -540,6 +540,10 @@ def review_bipol1(result):
     add('cx0','Cx₀ względem tabeli siedmiu klas',polar['cx0_in_range'],
         f"Cx₀={polar['cx0']:.5f}; przedział {polar['cx0_bounds'][0]}–{polar['cx0_bounds'][1]}. Odchylenie wymaga uzasadnienia, nie automatycznej korekty.")
     if p['engine_type']!='none':
+        from calculations.engine_fuel import fuel_check
+        fuel = fuel_check(result['engine_selection'])
+        add('engine_fuel', fuel['parameter'], fuel['passed'],
+            f"{fuel['actual']}. {fuel['note']}")
         corke=mass['mission_assumptions']['corke']
         add('corke','Wznoszenie: iloraz odczytów Corke’a',not corke.get('provisional') and
             (corke['mode']!='reading' or bool(p.get('graph_source','').strip())),

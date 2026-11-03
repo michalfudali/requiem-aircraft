@@ -1,6 +1,7 @@
 {% import 'reports/calc.html' as c %}
 {% set m = res.mass %}{% set dp = res.sizing.design_point %}{% set af = p_data.airfoil_selection %}{% set ma = m.mission_assumptions %}
 <p>W studium wykonalności zdefiniowano profil misji i na jego podstawie wyznaczono masę startową oraz masę własną samolotu. {% if doc.powered %}Następnie z wykresu doboru ustalono obciążenie powierzchni i {{ 'ciągu' if params.engine_type == 'jet' else 'mocy' }}, a z nich powierzchnię nośną i wielkość zespołu napędowego.{% else %}Następnie z warunku prędkości minimalnej i lądowania ustalono obciążenie powierzchni, a z niego powierzchnię nośną.{% endif %} Opracowanie uzupełniają wstępny wybór profilu, analiza wrażliwości masy startowej i szacunek kosztów {{ cite('galinski_aw') }} {{ cite('galinski_sw') }}.</p>
+{% include 'reports/engine_fuel.html' %}
 <h3>Profil misji</h3>
 {% if doc.powered %}
 <p>Misja obejmuje start, wznoszenie do wysokości przelotowej {{ params.cruise_altitude_m|reportnum(0) }} m, przelot na odległość {{ params.range_km|reportnum(0) }} km z prędkością {{ params.cruise_speed_kmh|reportnum(0) }} km/h{% if params.get('return_range_km') %} (w tym powrót {{ params.return_range_km|reportnum(0) }} km){% endif %}, oczekiwanie na lądowanie przez {{ params.get('loiter_time_min', 45)|reportnum(0) }} min oraz lądowanie{{ xref('fig-mission') }}.</p>

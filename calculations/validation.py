@@ -4,6 +4,8 @@ from calculations.instructor import (CRUISE_LD_FACTOR, PASSENGER_WITH_BAG_KG,
                                      FLAP_TAKEOFF_DEFLECTION_DEG, FLAP_LANDING_DEFLECTION_DEG)
 
 NUMERIC_LIMITS = {
+    'fuel_density_kg_l': (.5, 1.0), 'engine_custom_power_kw': (0, 100000),
+    'engine_custom_thrust_kn': (0, 10000), 'engine_static_thrust_kn': (0, 10000),
     "n_pax": (0, 1000), "n_crew": (0, 20), "m_pax": (0, 500),
     "m_bag": (0, 500), "m_cargo": (0, 500000), "m_crew_person": (0, 500),
     "range_km": (0, 30000), "cruise_altitude_m": (0, 20000),
@@ -170,6 +172,8 @@ def validate_parameters(data):
         p.setdefault('n_engines', 2 if p.get('engine_location') == 'wing' or p['engine_type'] == 'jet' else 1)
         if p['n_engines'] < 1:
             raise ValueError('Samolot z napędem wymaga co najmniej jednego silnika.')
+        from calculations.engine_fuel import apply_engine_inputs
+        apply_engine_inputs(p)
         p.setdefault('sfc', .62 if p['engine_type'] == 'jet' else 265.)
         # One unit convention in forms, mass sizing and performance. Never
         # silently substitute another engine's consumption for a submitted value.
@@ -177,6 +181,9 @@ def validate_parameters(data):
         if not low <= p['sfc'] <= high:
             unit = '1/h' if p['engine_type'] == 'jet' else 'g/(kW·h)'
             raise ValueError(f'SFC: dla tego napędu podaj wartość {low:g}–{high:g} {unit}.')
+    if p['engine_type'] == 'none':
+        from calculations.engine_fuel import apply_engine_inputs
+        apply_engine_inputs(p)
     for key in ('turbocharged', 'retractable_gear'):
         if key in p and not isinstance(p[key], bool):
             raise ValueError(f'Pole {key}: wymagana wartość logiczna.')

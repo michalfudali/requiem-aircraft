@@ -203,6 +203,10 @@ def finalize_parameter_states(params, states, mass, sizing, geometry):
     if params['engine_type'] == 'prop' and 'engine_power_kw' not in params['locked_params']:
         values['engine_power_kw'] = sizing['design_point']['power_kw']
         derived['engine_power_kw'] = ('Moc wyznaczona z diagramu doboru', ['range_km','cruise_speed_kmh','climb_rate_ms'])
+    if params.get('_engine_fuel', {}).get('supported') and params['engine_type'] != 'none':
+        values['sfc'] = params['sfc']
+        derived['sfc'] = ('Zużycie z dokumentacji rzeczywistego silnika; przeliczenie jednostek punktu pracy',
+                          ['engine_model_id', 'engine_fuel_point', 'fuel_density_kg_l'])
     for key, value in values.items():
         if key in states and states[key]['state'] != 'derived' and key not in derived:
             value = params[key]

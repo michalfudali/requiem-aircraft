@@ -478,7 +478,7 @@
     document.addEventListener('bipol:calculating', markStale);
     $('designForm').addEventListener('input', markStale, true);
     $('designForm').addEventListener('change', markStale, true);
-    document.querySelectorAll('[data-analysis-param]').forEach(input => {
+    document.querySelectorAll('[data-analysis-param], [data-engine-field]').forEach(input => {
       input.addEventListener('input', markStale);
       input.addEventListener('change', markStale);
     });

@@ -528,6 +528,46 @@ def _p1_trend(s, r):
 # =============================================================================================
 # P2 — studium wykonalności
 # =============================================================================================
+def _engine_consumption(s, p, jet):
+    ef = p.get('_engine_fuel', {})
+    point = ef.get('point', {})
+    source = (f"Silnik {ef['model']}; {ef['source']}; {ef.get('locator', '')}" if ef.get('supported') else
+              'Nieudokumentowane założenie robocze — wymagane dane rzeczywistego silnika')
+    note = point.get('conditions', 'Brak źródła i warunków punktu pracy.')
+    if ef.get('supported'):
+        s.given('engine_count_ref', r'n_{sil}', p['n_engines'], '', 0,
+                'Liczba jednakowych silników w projekcie', 'Założenie autora')
+        s.given('engine_rating_ref', r'T_{sil}' if jet else r'P_{sil}',
+                ef['rating_kn' if jet else 'rating_kw'], KN if jet else KW, 4,
+                'Katalogowy ciąg jednego silnika' if jet else 'Katalogowa moc jednego silnika', source,
+                ef['rating_note'])
+    key, symbol, unit = ('TSFC', r'c_Tg', r'\mathrm{1/h}') if jet else ('SFC', 'SFC', r'\mathrm{g/(kW\,h)}')
+    raw_unit = point.get('unit')
+    if raw_unit in ('l/h', 'US gal/h'):
+        s.given('engine_flow_ref', r'\dot V_{f,ref}', point['value'],
+                r'\mathrm{US\,gal/h}' if raw_unit == 'US gal/h' else r'\mathrm{l/h}', 3,
+                'Zużycie objętościowe w punkcie pracy rzeczywistego silnika', source, note)
+        s.given('engine_power_ref', r'P_{ref}', point['power_kw'], KW, 4, 'Moc jednego silnika w punkcie zużycia', source)
+        s.given('fuel_density', r'\rho_f', ef['density_kg_l'], r'\mathrm{kg/l}', 3,
+                'Gęstość paliwa do przeliczenia przepływu', 'Założenie autora — nie jest daną zużycia silnika')
+        factor = r'\cdot3{,}785411784' if raw_unit == 'US gal/h' else ''
+        s.calc(key, symbol, r'\frac{1000\rho_f\dot V_{f,ref}' + factor + r'}{P_{ref}}',
+               r'\frac{1000\cdot[[fuel_density]]\cdot[[engine_flow_ref]]' + factor + r'}{[[engine_power_ref]]}',
+               p['sfc'], unit, 4, 'Jednostkowe zużycie z punktu producenta', source,
+               check=lambda v: 1000*v.fuel_density*v.engine_flow_ref*(3.785411784 if raw_unit == 'US gal/h' else 1)/v.engine_power_ref)
+    elif raw_unit in ('kg/(N h)', 'kg/(kW h)'):
+        s.given('engine_sfc_ref', r'c_{ref}', point['value'],
+                r'\mathrm{kg/(N\,h)}' if jet else r'\mathrm{kg/(kW\,h)}', 5,
+                'Jednostkowe zużycie w jednostkach dokumentu silnika', source, note)
+        multiplier = '[[g]]' if jet else '1000'
+        s.calc(key, symbol, r'c_{ref}\,g' if jet else r'1000\,c_{ref}', r'[[engine_sfc_ref]]\cdot' + multiplier,
+               p['sfc'], unit, 5, 'Zużycie jednostkowe w jednostkach projektu', source,
+               check=lambda v: v.engine_sfc_ref*(v.g if jet else 1000))
+    else:
+        s.given(key, symbol, p['sfc'], unit, 3, 'Jednostkowe zużycie paliwa rzeczywistego silnika' if ef.get('supported') else
+                'Robocze zużycie paliwa — brak danych silnika', source, note)
+
+
 def _p2(s, r):
     p, mass = r['params'], r['mass']
     powered = _powered(r)
@@ -554,12 +594,11 @@ def _p2(s, r):
         back = float(p.get('return_range_km') or 0)
         total = float(p['range_km'])
         s.given('R_km', 'R', total, KM, 0, 'Zasięg obliczeniowy misji', 'Wymagania tematu')
+        _engine_consumption(s, p, jet)
         if jet:
-            s.given('TSFC', r'c_T g', float(p['sfc']), r'\mathrm{1/h}', 3, 'Jednostkowe zużycie paliwa (ciągowe)', 'Dane silnika / założenie')
             s.calc('c_T', 'c_T', r'\frac{c_T g\,[\mathrm{1/h}]}{3600}', r'\frac{[[TSFC]]}{3600}', float(p['sfc']) / 3600,
                    r'\mathrm{1/s}', 6, 'Jednostkowe zużycie paliwa w jednostkach SI', check=lambda v: v.TSFC / 3600)
         else:
-            s.given('SFC', r'SFC', float(p['sfc']), r'\mathrm{g/(kW\,h)}', 1, 'Jednostkowe zużycie paliwa (mocowe)', 'Dane silnika / założenie')
             s.calc('c_P', 'c_P', r'\frac{SFC}{3{,}6\cdot10^{9}}', r'\frac{[[SFC]]}{3{,}6\cdot10^{9}}', float(p['sfc']) / 3.6e9,
                    r'\mathrm{kg/(W\,s)}', 4, 'Jednostkowe zużycie paliwa w jednostkach SI', check=lambda v: v.SFC / 3.6e9)
             s.given('eta_p', r'\eta_p', float(p.get('prop_efficiency', .82)), '', 2, 'Sprawność śmigła w przelocie',
@@ -649,8 +688,12 @@ def _p2(s, r):
         if 'task' in phases:
             task_h = float(p['max_power_time_min'])
             s.given('t_zad', r't_{zad}', task_h, r'\mathrm{min}', 0, 'Czas pracy na maksymalnym ciągu (mocy)', 'Profil misji')
+            ef = p.get('_engine_fuel', {})
+            maximum_source = (f"Silnik {ef['model']}; {ef.get('maximum_source') or ef['source']}" if ef.get('maximum_supported') else
+                              'Nieudokumentowane założenie robocze — wymagane dane maksymalnego ustawienia silnika')
             s.given('SFC_max', r'SFC_{max}', float(p['max_power_sfc']), r'\mathrm{1/h}' if jet else r'\mathrm{g/(kW\,h)}', 3,
-                    'Zużycie jednostkowe przy maksymalnym ciągu (mocy)', 'Dane silnika')
+                    'Zużycie jednostkowe przy maksymalnym ciągu (mocy)', maximum_source,
+                    ef.get('maximum_point', {}).get('conditions', 'Brak udokumentowanych warunków.'))
             if jet:
                 s.given('T_max_zad', r'T_{max}', float(p['max_thrust_kn']), KN, 2, 'Maksymalny ciąg', 'Dane silnika')
                 s.calc('m_f_zad', r'm_{f,zad}', r'\frac{SFC_{max}}{g}\,1000\,T_{max}\frac{t_{zad}}{60}',
@@ -892,7 +935,12 @@ def _p2_matching(s, r):
                r'1{,}06\cdot\max\left\{[[TW_TO]];\;[[TW_wzn]];\;[[TW_cr_inst]];\;[[TW_extra]]\right\}', tw0, '', 3,
                'Stosunek ciągu do ciężaru z wykresu doboru (6% zapasu)', SOURCES['B2'],
                check=lambda v: round(1.06 * max(v.TW_TO, v.TW_wzn, v.TW_cr_inst, v.TW_extra), 3))
-        if abs(dp['tw'] - tw0) <= 5e-4:
+        if p.get('engine_static_thrust_kn'):
+            s.calc('TW', r'\frac{T}{W}', r'\frac{1000\,n_{sil}T_{sil}}{m_0 g}',
+                   r'\frac{1000\cdot[[engine_count_ref]]\cdot[[engine_rating_ref]]}{[[m0]]\cdot[[g]]}',
+                   dp['tw'], '', 5, 'Ciąg względny rzeczywistego zespołu napędowego',
+                   check=lambda v: 1000*v.engine_count_ref*v.engine_rating_ref/(v.m0*v.g))
+        elif abs(dp['tw'] - tw0) <= 5e-4:
             s.calc('TW', r'\frac{T}{W}', r'\left(\tfrac{T}{W}\right)_{dob}', r'[[TW_dob]]', dp['tw'], '', 4,
                    'Stosunek ciągu do ciężaru przyjęty', check=lambda v: v.TW_dob, tolerance=6e-4)
         else:
@@ -923,7 +971,11 @@ def _p2_matching(s, r):
         p_dob = round(pw0 * mass['m0'] * G0 / 1000, 1)
         s.calc('P_dob', r'N_{dob}', r'\frac{(N/W)_{dob}\,m_0 g}{1000}', r'\frac{[[PW_dob]]\cdot[[m0]]\cdot[[g]]}{1000}', p_dob, KW, 1,
                'Moc z wykresu doboru', check=lambda v: v.PW_dob * v.m0 * v.g / 1000)
-        if p.get('power_input_mode') == 'fixed' or 'engine_power_kw' in p.get('locked_params', []):
+        if p.get('_engine_fuel', {}).get('supported'):
+            s.calc('P', 'N', r'n_{sil}P_{sil}', r'[[engine_count_ref]]\cdot[[engine_rating_ref]]',
+                   dp['power_kw'], KW, 2, 'Moc rzeczywistego zespołu napędowego',
+                   check=lambda v: v.engine_count_ref*v.engine_rating_ref)
+        elif p.get('power_input_mode') == 'fixed' or 'engine_power_kw' in p.get('locked_params', []):
             s.given('P', 'N', dp['power_kw'], KW, 1, 'Moc wybranego silnika', 'Założenia projektu')
         elif abs(dp['power_kw'] - p_dob) <= .05:
             s.calc('P', 'N', r'N_{dob}', r'[[P_dob]]', dp['power_kw'], KW, 1, 'Moc startowa zespołu napędowego',
