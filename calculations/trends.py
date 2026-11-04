@@ -22,15 +22,6 @@ BIPOL_1_SAMPLE = 20
 ENGINE_LABELS = {'prop': 'napęd śmigłowy', 'jet': 'napęd odrzutowy', 'none': 'bez napędu'}
 DEFAULT_ENGINE = {'glider': 'none', 'jet_business': 'jet', 'jet_transport': 'jet'}
 
-EMPTY_MASS_COEFFICIENTS = {
-    'glider': (0.82, -0.05),
-    'motoglider': (0.86, -0.05),
-    'piston_ga': (0.92, -0.06),
-    'turboprop_regional': (0.96, -0.05),
-    'jet_business': (1.02, -0.06),
-    'jet_transport': (0.95, -0.05),
-    'uav': (0.82, -0.04),
-}
 
 
 def two_point_power_law(x1: float, y1: float, x2: float, y2: float) -> tuple[float, float]:
@@ -115,7 +106,103 @@ def reference_catalog():
             'counts': dict(Counter(r['aircraft_type'] for r in rows)), 'aircraft': rows}
 
 
-def select_references(params, m0):
+# One comparison sample per project. The wizard, the input panel, the P1 trend
+# analysis and the empty-mass law select aircraft from the project parameters only.
+# BIPOL_1, s. 1: at least twenty aircraft similar to the design; similarity is judged by
+# MTOW, the only size measure of every record. Fifty keep the eq. (1) fit stable.
+SIMILAR_COUNT = 50
+
+
+EQ1_UNSOLVABLE = 'Równanie (1)'
+PAYLOAD_MARGIN = 1.1  # P2 sensitivity analysis: payload +10%
+
+
+def similar_counts(params):
+    """Sizes of the sample of similar aircraft: the chosen one, widened by a quarter at a time,
+    up to the whole matching class (0)."""
+    start = int(params.get('trend_nearest_count', SIMILAR_COUNT) or 0)
+    pool = len(select_references({**params, '_similar_count': 0, '_reference_mass': None}))
+    sizes, count = [], start
+    while count and count < pool:
+        sizes.append(count)
+        count = math.ceil(count * 1.25)
+    return sizes + [0]
+
+
+def design_reference(params, count):
+    """MTOW of the design around which the `count` aircraft nearest in mass are chosen.
+
+    The design MTOW follows from the P1 mass balance with eq. (1) of that very sample, so the
+    choice is repeated from the whole class until the sample stops changing. When it alternates
+    between two samples, the mean of their masses is the reference. `unsolvable` marks a sample
+    whose eq. (1) leaves the BIPOL_1 mass iteration without a solution, also for the payload
+    increased by 10% of the sensitivity analysis (opis projektu 2)."""
+    from calculations.bipol1 import solve_mass
+    from calculations.mass import mission_loads
+    base = {k: v for k, v in params.items() if k not in ('_mission_polar', '_reference_mass', '_reference')}
+    base.update(design_iteration_mode='preliminary', _similar_count=count)
+    base, payload, crew = mission_loads(base)
+    reference, seen, path = None, [], []
+    for _ in range(15):
+        sample = tuple(r['id'] for r in select_references({**base, '_reference_mass': reference}))
+        if sample in seen:
+            cycle = path[seen.index(sample):]
+            if len(cycle) > 1:
+                reference = sum(cycle) / len(cycle)
+            try:
+                solve_mass({**base, '_reference_mass': reference}, payload * PAYLOAD_MARGIN, crew)
+            except ValueError as error:
+                if not str(error).startswith(EQ1_UNSOLVABLE):
+                    raise
+                return dict(mass=reference, path=path, cycle=len(cycle) > 1, unsolvable=True)
+            return dict(mass=reference, path=path, cycle=len(cycle) > 1, unsolvable=False)
+        try:
+            mass = solve_mass({**base, '_reference_mass': reference}, payload, crew)['m0']
+        except ValueError as error:
+            if not str(error).startswith(EQ1_UNSOLVABLE):
+                raise
+            return dict(mass=reference, path=path, cycle=False, unsolvable=True)
+        seen.append(sample)
+        path.append(mass)
+        reference = mass
+    return dict(mass=reference, path=path, cycle=False, unsolvable=False)
+
+
+def similar_sample(params, first=0):
+    """BIPOL_1, s. 1 and 4: the aircraft similar to the design are those nearest to it in MTOW;
+    their eq. (1) must let the mass iteration close. The smallest such sample, starting from the
+    chosen size (sizes[first]), is the comparison sample; the whole class is the last resort."""
+    sizes = similar_counts(params)
+    for index in range(first, len(sizes)):
+        count = sizes[index]
+        reference = design_reference(params, count) if count else dict(mass=None, path=[], cycle=False, unsolvable=False)
+        if not reference['unsolvable']:
+            return dict(reference, count=count, start=sizes[0], index=index, widened=index > 0)
+    raise ValueError('Równanie (1) nie daje fizycznego rozwiązania bilansu nawet dla całej klasy samolotów; '
+                     'sprawdź misję i masę ładunku.')
+
+
+def sample_size(params):
+    """(number of nearest aircraft or 0 for all, reference MTOW) of the project's sample."""
+    if params.get('trend_aircraft_ids') is not None or not int(params.get('trend_nearest_count', SIMILAR_COUNT) or 0):
+        return 0, None
+    if '_similar_count' in params:
+        return int(params['_similar_count'] or 0), params.get('_reference_mass')
+    if '_reference_mass' in params:
+        # Reference given by the caller (the design mass, or None for the whole class).
+        reference = params['_reference_mass']
+        return (int(params.get('trend_nearest_count', SIMILAR_COUNT) or 0) if reference is not None else 0), reference
+    sample = similar_sample(params)
+    return sample['count'], sample['mass']
+
+
+def sample_reference_mass(params):
+    """MTOW around which the nearest aircraft are taken; None means every matching aircraft."""
+    count, reference = sample_size(params)
+    return reference if count else None
+
+
+def select_references(params):
     cls, engine = params.get('aircraft_type', 'piston_ga'), params.get('engine_type', 'prop')
     pool = [r for r in load_aircraft() if r['aircraft_type'] == cls and r['engine_type'] == engine]
     overrides = {r['id']: r for r in params.get('trend_observations', [])}
@@ -134,12 +221,11 @@ def select_references(params, m0):
     ids = params.get('trend_aircraft_ids')
     if ids is not None:
         pool = [r for r in pool if r['id'] in ids]
-    if not m0:
-        # Without a design mass there is no "nearest" aircraft; keep the whole class.
+    count, reference = sample_size(params)
+    if not count or reference is None:
         return sorted(pool, key=lambda r: r['id'])
-    pool = sorted(pool, key=lambda r: (abs(math.log(r['m0'] / max(m0, 1))), r['id']))
-    count = int(params.get('trend_count', 50))
-    return pool[:count] if count else pool
+    pool = sorted(pool, key=lambda r: (abs(math.log(r['m0'] / reference)), r['id']))
+    return pool[:count]
 
 
 def valid_value(key, row):
@@ -167,6 +253,14 @@ def forecast_years(today=None):
     return reference, reference + FORECAST_HORIZON_YEARS
 
 
+def dated_rows(rows):
+    """Aircraft on the time axis. BIPOL_1 asks for the production year; the basis with more dated
+    aircraft in the sample gives the better trend (production on a tie). Returns (basis, rows)."""
+    counts = Counter(r.get('year_basis') or 'certification' for r in rows if r.get('year') is not None)
+    basis = 'production' if counts['production'] and counts['production'] >= counts['certification'] else 'certification'
+    return basis, [r for r in rows if r.get('year') is not None and (r.get('year_basis') or 'certification') == basis]
+
+
 def time_trend(rows, key, weights, forecast_year):
     subset = [r for r in rows if r.get('year') is not None and valid_value(key, r)]
     fit = fit_regression([(r['year'], r[key]) for r in subset], weights(subset))
@@ -184,16 +278,26 @@ def two_point_coefficients(fit):
     return {'x1': x1, 'y1': y1, 'x2': x2, 'y2': y2, 'C': c, 'A': y1 / x1 ** c}
 
 
-def describe_sample(params, rows, m0):
+def empty_mass_trend(params, rows=None):
+    """BIPOL_1, wzór (1): linia trendu mₑ/m₀ = f(m₀) próby porównawczej i dwa punkty, z których
+    wyznacza się A i C. Jedna linia służy analizie trendów P1 i bilansowi masy."""
+    rows = select_references(params) if rows is None else rows
+    weights = sample_weights(params.get('trend_weighting', 'family'))
+    valid = [r for r in rows if valid_value('empty_fraction', r)]
+    fit = fit_regression([(r['m0'], r['empty_fraction']) for r in valid], weights(valid), power=True)
+    return valid, fit, two_point_coefficients(fit) if fit else None
+
+
+def describe_sample(params, rows):
     engine = params.get('engine_type', 'prop')
     parts = [f"klasa „{CLASSES[params.get('aircraft_type', 'piston_ga')]}”, {ENGINE_LABELS.get(engine, engine)}"]
-    count = int(params.get('trend_count', 50))
+    reference = sample_reference_mass(params)
     if params.get('trend_aircraft_ids') is not None:
         parts.append('konstrukcje zaznaczone ręcznie')
-    elif m0 and count:
-        parts.append(f'{count} konstrukcji najbliższych masą m₀ = {_pl(m0, 0)} kg')
+    elif reference:
+        parts.append(f"{len(rows)} konstrukcji o masie startowej najbliższej masie projektu {_pl(reference, 0)} kg")
     else:
-        parts.append('wszystkie pasujące konstrukcje' + ('' if m0 else ' (masa projektu jeszcze nieznana)'))
+        parts.append('wszystkie pasujące konstrukcje')
     if params.get('trend_source', 'all') != 'all':
         parts.append(f"źródło: {SOURCES.get(params['trend_source'], {}).get('name', params['trend_source'])}")
     if int(params.get('trend_engine_count', 0)):
@@ -203,7 +307,7 @@ def describe_sample(params, rows, m0):
         parts.append(f"certyfikacja {ymin or '…'}–{ymax or '…'}")
     weighting = params.get('trend_weighting', 'family')
     parts.append('równa waga rodzin' if weighting == 'family' else 'równa waga wariantów')
-    return {'description': '; '.join(parts), 'selected_n': len(rows),
+    return {'description': '; '.join(parts), 'selected_n': len(rows), 'reference_mass': reference,
             'families_n': len({r['family'] for r in rows}), 'weighting': weighting}
 
 
@@ -385,9 +489,11 @@ def compute_vector_stats(values):
     return {'n': n, 'mean': mean, 'median': med, 'std': std, 'min': min(values), 'max': max(values)}
 
 
-def analyze_geometry_trends(params, geom_res=None):
-    """Conduct comprehensive trend and compliance analysis for the 6 primary geometric parameters."""
+def analyze_geometry_trends(params, geom_res=None, rows=None):
+    """Geometric proportions of the project against the comparison sample (the same sample as the
+    P1 trend analysis); the whole database is kept only as a cross-class reference."""
     all_aircraft = load_aircraft()
+    sample = select_references(params) if rows is None else rows
     ac_type = params.get('aircraft_type', 'piston_ga')
     wing_cfg = params.get('wing_configuration', params.get('wing_config', 'low'))
 
@@ -409,7 +515,7 @@ def analyze_geometry_trends(params, geom_res=None):
     metrics_analysis = []
     for key, info in GEOMETRY_METRICS_INFO.items():
         all_subset = [r for r in all_aircraft if r.get(key) is not None]
-        class_subset = [r for r in all_subset if r.get('aircraft_type') == ac_type]
+        class_subset = [r for r in sample if r.get(key) is not None]
 
         all_vals = [r[key] for r in all_subset]
         class_vals = [r[key] for r in class_subset]
@@ -495,14 +601,12 @@ def analyze_geometry_trends(params, geom_res=None):
 
 
 def analyze_trends(params, m0, m_empty, geom_res=None):
-    rows = select_references(params, m0)
+    rows = select_references(params)
     counts = Counter(r['family'] for r in rows)
     weighting = params.get('trend_weighting', 'family')
     weights = sample_weights(weighting)
     reference_year, forecast_year = forecast_years()
-    valid_mass = [r for r in rows if valid_value('empty_fraction', r)]
-    mass_fit = fit_regression([(r['m0'], r['empty_fraction']) for r in valid_mass], weights(valid_mass), power=True)
-    two_point = two_point_coefficients(mass_fit) if mass_fit else None
+    valid_mass, mass_fit, two_point = empty_mass_trend(params, rows)
     k_vs = 1.04 if params.get('variable_sweep', False) else 1.
     prediction = predict(mass_fit, m0)
     trend_value = prediction * k_vs if prediction is not None else None
@@ -522,8 +626,7 @@ def analyze_trends(params, m0, m_empty, geom_res=None):
     if trend_value is not None and not 0 < trend_value < 1:
         warnings.append('Ekstrapolacja daje niefizyczny udział masy. Nie używaj jej do bilansu mas.')
     time_trends = []
-    year_basis = params.get('trend_year_basis','certification')
-    time_rows = [r for r in rows if (r.get('year_basis') or 'certification') == year_basis]
+    year_basis, time_rows = dated_rows(rows)
     for key, (label, unit) in METRICS.items():
         subset, fit, forecast = time_trend(time_rows, key, weights, forecast_year)
         time_trends.append({'key': key, 'label': label, 'unit': unit, 'fit': fit,
@@ -565,10 +668,10 @@ def analyze_trends(params, m0, m_empty, geom_res=None):
         subset = [r for r in rows if valid_value(key, r)]
         ws = weights(subset)
         averages[key] = {'mean': sum(r[key]*w for r,w in zip(subset,ws))/sum(ws) if subset else None, 'n': len(subset)}
-    sample = describe_sample(params, rows, m0)
+    sample = describe_sample(params, rows)
     suggestions = trend_suggestions(rows, params, m0, weights, mass_fit, forecast_year, sample)
 
-    geometry_trends_analysis = analyze_geometry_trends(params, geom_res)
+    geometry_trends_analysis = analyze_geometry_trends(params, geom_res, rows)
 
     # A fixed report structure: one mass plot, two plots against year and
     # three physical relationships. Missing observations remain explicit.
@@ -771,9 +874,8 @@ def trend_suggestions(rows, params, m0, weights, mass_fit, forecast_year, sample
 
         lo, hi = PHYSICAL_BOUNDS.get(metric, (-math.inf, math.inf))
         if rule == 'time':
-            date_basis = params.get('trend_year_basis','certification')
-            dated_rows = [r for r in rows if (r.get('year_basis') or 'certification')==date_basis]
-            dated, fit, forecast = time_trend(dated_rows, metric, weights, forecast_year)
+            date_basis, time_rows = dated_rows(rows)
+            dated, fit, forecast = time_trend(time_rows, metric, weights, forecast_year)
             # A forecast beyond every similar aircraft is an extrapolation artefact, not a design value.
             supported = fit and forecast is not None and lo < forecast < hi and fit['y_min'] <= forecast <= fit['y_max']
             if supported:
@@ -863,11 +965,12 @@ def trend_suggestions(rows, params, m0, weights, mass_fit, forecast_year, sample
     return result
 
 
-def get_trend_suggestions(aircraft_type, m0=None, wing_configuration=None, engine_type=None):
+def get_trend_suggestions(aircraft_type, m0=None, wing_configuration=None, engine_type=None, project=None):
     """BIPOL_1 suggestions before a project is calculated (wizard, input panel).
 
-    Without m0 the whole class and propulsion type form the sample; with m0 the
-    sample is the same nearest-mass selection that P1 uses by default.
+    With the project parameters the sample is the one of the P1 trend analysis: the aircraft
+    nearest in MTOW to the design. Without them m0, if given, is the design mass; otherwise
+    the whole class is the sample.
     """
     if aircraft_type not in CLASSES:
         raise ValueError(f"Unknown aircraft_type: '{aircraft_type}'")
@@ -881,13 +984,40 @@ def get_trend_suggestions(aircraft_type, m0=None, wing_configuration=None, engin
     engine = engine_type or DEFAULT_ENGINE.get(aircraft_type, 'prop')
     if engine not in ENGINE_LABELS:
         raise ValueError(f"Unknown engine_type: '{engine_type}'")
-    params = {'aircraft_type': aircraft_type, 'engine_type': engine, 'wing_configuration': wing_configuration}
-    rows = select_references(params, m0)
-    weights = sample_weights('family')
+    if project is not None:
+        from calculations import run_bipol_project
+        from calculations.validation import validate_parameters
+        project = {**project, 'aircraft_type': aircraft_type, 'engine_type': engine,
+                   **({'wing_config': wing_configuration} if wing_configuration else {})}
+        try:
+            result = run_bipol_project(dict(project))
+        except ValueError:
+            result = None
+        if result:
+            # The wizard and the input panel show the very analysis of the calculated project.
+            ta, params = result['bipol_projects']['p1']['trend_analysis'], result['params']
+            weights = sample_weights(params.get('trend_weighting', 'family'))
+            return {'status': 'ok', 'aircraft_type': aircraft_type, 'class_name': CLASSES[aircraft_type],
+                    'engine_type': engine, 'm0': result['mass']['m0'], 'sample': ta['sample'],
+                    'reference_year': ta['reference_year'], 'forecast_year': ta['forecast_year'],
+                    'suggestions': ta['suggestions'],
+                    'charts': wizard_trend_charts(ta['similar_aircraft'], {**params, 'wing_configuration': params.get('wing_config')},
+                                                  weights, ta['mass_fit'], ta['forecast_year'], ta['suggestions'])}
+        params = validate_parameters(project)
+        params['wing_configuration'] = params.get('wing_config')
+        if params.get('trend_aircraft_ids') is None and int(params.get('trend_nearest_count', SIMILAR_COUNT) or 0):
+            sample = similar_sample(params)
+            params.update(_reference=sample, _reference_mass=sample['mass'], _similar_count=sample['count'])
+            m0 = m0 or params['_reference_mass']
+    else:
+        params = {'aircraft_type': aircraft_type, 'engine_type': engine, 'wing_configuration': wing_configuration,
+                  '_reference_mass': m0, '_similar_count': SIMILAR_COUNT if m0 else 0}
+    rows = select_references(params)
+    weights = sample_weights(params.get('trend_weighting', 'family'))
     valid_mass = [r for r in rows if valid_value('empty_fraction', r)]
     mass_fit = fit_regression([(r['m0'], r['empty_fraction']) for r in valid_mass], weights(valid_mass), power=True)
     reference_year, forecast_year = forecast_years()
-    sample = describe_sample(params, rows, m0)
+    sample = describe_sample(params, rows)
     return {'status': 'ok', 'aircraft_type': aircraft_type, 'class_name': CLASSES[aircraft_type],
             'engine_type': engine, 'm0': m0, 'sample': sample,
             'reference_year': reference_year, 'forecast_year': forecast_year,
@@ -898,13 +1028,12 @@ def get_trend_suggestions(aircraft_type, m0=None, wing_configuration=None, engin
 def wizard_trend_charts(rows, params, weights, mass_fit, forecast_year, suggestions):
     """Compact plot series for interactive BIPOL_1 trend charts inside the project wizard."""
     engine = params.get('engine_type', 'prop')
-    date_basis = params.get('trend_year_basis', 'certification')
-    dated_rows = [r for r in rows if (r.get('year_basis') or 'certification') == date_basis]
+    date_basis, time_rows = dated_rows(rows)
     date_label = 'Rok produkcji' if date_basis == 'production' else 'Rok certyfikacji'
     charts = {}
 
     def add_time(sugg_key, metric, title, y_label, unit, symbol):
-        subset, fit, forecast = time_trend(dated_rows, metric, weights, forecast_year)
+        subset, fit, forecast = time_trend(time_rows, metric, weights, forecast_year)
         s = suggestions.get(sugg_key)
         lo, hi = PHYSICAL_BOUNDS.get(metric, (0.0, math.inf))
         forecast_ok = bool(fit and forecast is not None and lo < forecast < hi)

@@ -9,6 +9,9 @@ from calculations.flight_model import mission_masses, propulsion_lapse
 DESIGN_TOLERANCE = 5e-4
 
 
+MASS_NOT_CLOSED = 'Nie osiągnięto tolerancji domknięcia'
+
+
 def resolve_design(params, states, size_airframe):
     # Recompute internal aerodynamics after every input edit or imported project.
     params.pop('_mission_polar', None)
@@ -54,7 +57,7 @@ def resolve_design(params, states, size_airframe):
             key: .5*(prior[key]+polar[key]) for key in ('cx0', 'k')}}
     refine_flight_sizing(sizing, geometry, aero, params, mass)
     if not converged and failure is None:
-        failure = 'Nie osiągnięto tolerancji domknięcia w 40 iteracjach. Zmień założenia i sprawdź ostatnie kroki iteracji.'
+        failure = MASS_NOT_CLOSED + ' w 40 iteracjach. Zmień założenia i sprawdź ostatnie kroki iteracji.'
     return (*solution, dict(mode='coupled' if coupled else 'preliminary', converged=converged,
                            iterations=len(history), history=history, failure=failure,
                            tolerance=DESIGN_TOLERANCE, route_margin=1.001 if coupled else 1.0))

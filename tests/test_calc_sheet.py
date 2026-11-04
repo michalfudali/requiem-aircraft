@@ -162,7 +162,7 @@ def client():
 
 def test_project_report_writes_every_part_as_formulas(client):
     html = client.post('/report', json=AIRCRAFT_PRESETS['vlj_jet']).get_data(as_text=True)
-    for key in ('m_lad', 'Kmax_1', 'm0', 'WS', 'S', 'b', 'S_H', 'x_N', 'Cx0', 'Cz_L', 'V_S', 's_TO15', 'V_A', 'mu_g', 'n_ult_p'):
+    for key in ('m_lad', 'AR_wet', 'Cx0_1', 'm0', 'WS', 'S', 'b', 'S_H', 'x_N', 'Cx0', 'Cz_L', 'V_S', 's_TO15', 'V_A', 'mu_g', 'n_ult_p'):
         assert f'data-calc="{key}"' in html, key
     assert 'data-mass-iteration="proportion"' in html and 'class="report-chart flow"' in html
     assert 'Paliwo i zrzut ładunku w poszczególnych fazach' in html and '<script src=' not in html

@@ -135,8 +135,9 @@ def _concept(results):
         text.append(f'Kabina mieści {mass["n_crew"]} {crew} załogi{pax}; łączna masa załogi i ładunku wynosi '
                     f'{number(mass["m_crew"] + mass["m_payload"], 1)} kg.')
     pp = mass['preliminary_polar']
-    text.append(f'Na tym etapie maksymalną doskonałość oszacowano na {number(pp["kmax"], 1)} przy oporze zerowym '
-                f'{number(pp["cx0"], 4)}. Najważniejsze wymagania osiągowe to prędkość przelotowa '
+    text.append((f'Na tym etapie maksymalną doskonałość odczytano z wykresu jako {number(pp["kmax"], 1)}, co odpowiada oporowi zerowemu '
+                 if pp['mode'] != 'input' else f'Na tym etapie maksymalną doskonałość oszacowano na {number(pp["kmax"], 1)} przy oporze zerowym ')
+                + f'{number(pp["cx0"], 4)}. Najważniejsze wymagania osiągowe to prędkość przelotowa '
                 f'{number(p["cruise_speed_kmh"], 0)} km/h na wysokości {number(p["cruise_altitude_m"], 0)} m'
                 + (f', zasięg {number(p["range_km"], 0)} km' if powered else '')
                 + f' oraz prędkość przeciągnięcia nie większa niż {number(p["v_stall_kmh"], 0)} km/h.')
@@ -168,9 +169,18 @@ def _conclusions(results):
     number, powered, jet = report_number, p['engine_type'] != 'none', p['engine_type'] == 'jet'
     pp, dp = mass['preliminary_polar'], results['sizing']['design_point']
     out = {key: [] for key in TITLES}
-    out['p1'].append(f'Do dalszych obliczeń przyjęto wydłużenie skrzydła {number(pp["aspect_ratio"])} i szacunkową '
-                     f'biegunową o oporze zerowym {number(pp["cx0"], 4)}, co daje maksymalną doskonałość '
-                     f'{number(pp["kmax"], 1)}.')
+    if pp['mode'] != 'input':
+        low, high = pp['cx0_bounds']
+        out['p1'].append(f'Do dalszych obliczeń przyjęto wydłużenie skrzydła {number(pp["aspect_ratio"])} i szacunkową '
+                         f'biegunową o maksymalnej doskonałości {number(pp["kmax"], 1)} odczytanej z wykresu dla '
+                         f'S_wet/S = {number(pp["swet_ratio"], 2)}, z której opór zerowy wynosi {number(pp["cx0"], 4)}; '
+                         + (f'wartość mieści się w przedziale typowym {number(low, 3)}–{number(high, 3)}.' if pp['cx0_in_range'] else
+                            f'wartość leży poza przedziałem typowym {number(low, 3)}–{number(high, 3)} '
+                            f'o {number(abs(pp["cx0_deviation"]) * 100, 0)}%.'))
+    else:
+        out['p1'].append(f'Do dalszych obliczeń przyjęto wydłużenie skrzydła {number(pp["aspect_ratio"])} i szacunkową '
+                         f'biegunową o oporze zerowym {number(pp["cx0"], 4)}, co daje maksymalną doskonałość '
+                         f'{number(pp["kmax"], 1)}.')
     if trends['mass_fit']:
         out['p1'].append(f'Zależność udziału masy pustej od masy startowej wyznaczono z {trends["mass_fit"]["n"]} par '
                          f'danych (R² = {number(trends["mass_fit"]["r2"], 3)}). '
@@ -383,12 +393,11 @@ def _performance_actions(results):
             out.append(lead + 'Należy zwiększyć współczynnik siły nośnej do startu (mechanizację), moc (ciąg) '
                        'albo powierzchnię nośną.')
         elif name.startswith('Zasięg'):
-            out.append(lead + f'Bilans paliwa przyjął w przelocie doskonałość 0,94 K_max, a biegunowa samolotu '
-                       f'(C_x0 = {number(aero["cx0_clean"], 4)}) przy wymaganej prędkości daje mniejszą. '
+            out.append(lead + f'Biegunowa samolotu przy wymaganej prędkości przelotowej daje doskonałość niższą od założonej w bilansie paliwa. '
                        + (f'Największy zasięg na wysokości przelotowej odpowiada prędkości około '
                           f'{number(cruise_alt["v_l_max_kmh"], 0)} km/h. ' if cruise_alt else '')
-                       + 'Należy zmniejszyć prędkość przelotową w stronę prędkości największego zasięgu albo '
-                       'powtórzyć bilans masy z doskonałością wynikającą z biegunowej samolotu (większy zapas paliwa).')
+                       + 'Należy zmniejszyć prędkość przelotową w stronę prędkości optymalnej lub '
+                       'skorygować bilans masy o większy zapas paliwa.')
         else:
             out.append(lead)
     return out
@@ -421,15 +430,14 @@ def report_document(results, sections, overrides=None, folder_cover=False, sheet
     if powered:
         summary.append(_row('Ciąg startowy' if jet else 'Moc startowa', dp['thrust_kn'] if jet else dp['power_kw'],
                             'kN' if jet else 'kW', 2 if jet else 1))
+    # Proporcje geometryczne samolotów tej samej próby, z której wyznaczono średnie analizy trendów.
+    from calculations.trends import GEOMETRY_METRICS_INFO
     geometry_sample = {}
-    geometry = results['bipol_projects']['p1']['trend_analysis'].get('geometry_trends_analysis')
-    if geometry:
-        for metric in geometry['metrics']:
-            for sample in metric['samples']:
-                row = geometry_sample.setdefault(sample['model'], {'model': sample['model'], 'values': {}, 'sources': []})
-                row['values'][metric['key']] = sample['val']
-                if sample['source'] not in row['sources']:
-                    row['sources'].append(sample['source'])
+    for aircraft in results['bipol_projects']['p1']['trend_analysis']['similar_aircraft']:
+        values = {key: aircraft[key] for key in GEOMETRY_METRICS_INFO if aircraft.get(key) is not None}
+        if values:
+            geometry_sample[aircraft['model']] = {'model': aircraft['model'], 'values': values,
+                                                  'sources': [aircraft.get('source_locator') or aircraft.get('source_id')]}
     return {'sections': sections, 'titles': TITLES, 'metadata': report_metadata(p, overrides),
             'folder_cover': folder_cover, 'powered': powered, 'jet': jet, 'conclusions': _conclusions(results),
             'checks': checks, 'failed': failed, 'pending': pending, 'summary': summary,

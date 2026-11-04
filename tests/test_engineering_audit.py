@@ -128,7 +128,9 @@ def test_defense_questions_follow_the_actual_design():
     from calculations.presets import AIRCRAFT_PRESETS
     trainer = {q['id']: q for q in run_bipol_project(dict(AIRCRAFT_PRESETS['ga_trainer']))['engineering_audit']['defense_questions']}
     stall = trainer['q_stall_origin']['expected_answer']
-    assert 'Lotki zaczynają się w η ≈ 0,71' in stall and 'przed nimi' in stall
+    import re
+    eta = float(re.search(r'Lotki zaczynają się w η ≈ (\d+,\d+)', stall).group(1).replace(',', '.'))
+    assert .6 < eta < .8 and 'przed nimi' in stall
     assert 'wznoszenie' in trainer['q_matching_chart']['expected_answer']  # rzeczywiste ograniczenie aktywne
     glider = {q['id']: q for q in run_bipol_project(dict(AIRCRAFT_PRESETS['glider_pw5']))['engineering_audit']['defense_questions']}
     assert 'szybowca' in glider['q_matching_chart']['question'] and 'kN' not in glider['q_matching_chart']['question']

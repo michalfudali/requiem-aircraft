@@ -627,6 +627,35 @@ def calculate_all_bipol_projects(mass_res: dict, sizing_res: dict, geom_res: dic
         dict(param='Zasięg przy wymaganej prędkości [km]', project_assumed=params['range_km'] if powered else None,
              actual_calc=mission_range_km, comment=verdict(range_ok) if powered else 'Nie dotyczy zasięgu paliwowego.'),
     ]
+    # Opis projektu 5: porównanie założeń projektu koncepcyjnego z obliczeniami. Biegunowa szacunkowa
+    # P1 (K_max z wykresu Raymera) wobec biegunowej projektu wstępnego (P4).
+    from calculations.instructor import POLAR_CONSISTENCY_TOLERANCE
+    k_p1, k_p4 = mass_res['preliminary_polar']['kmax'], aero_res['k_max']
+    polar_review = dict(k_p1=k_p1, k_p4=k_p4, deviation=k_p1 / k_p4 - 1, tolerance=POLAR_CONSISTENCY_TOLERANCE,
+                        consistent=abs(k_p1 / k_p4 - 1) <= POLAR_CONSISTENCY_TOLERANCE,
+                        family=mass_res['preliminary_polar'].get('raymer_family_label'),
+                        closed_with_p4=mass_res['mission_assumptions'].get('cruise_model') == 'constant_tas_altitude',
+                        powered=powered, repeated=None)
+    if powered and not polar_review['consistent'] and not polar_review['closed_with_p4']:
+        # Powtórzenie bilansu masy z biegunową projektu wstępnego (P2 <- P4), jak zaleca ocena projektu 5.
+        try:
+            again = calculate_mass_sizing({**params, 'cx0': aero_res['cx0_clean'], 'oswald_e': aero_res['oswald_e'],
+                                           'preliminary_polar_mode': 'input', 'preliminary_polar_includes_configuration': True})
+            polar_review['repeated'] = dict(m0=again['m0'], m_fuel=again['m_fuel'], m_empty=again['m_empty'],
+                                            cx0=aero_res['cx0_clean'], oswald_e=aero_res['oswald_e'],
+                                            change=again['m0'] / m0 - 1)
+        except ValueError as error:
+            polar_review['repeated'] = dict(error=str(error))
+    table_5_1_critical.append(dict(
+        param='Doskonałość maksymalna K_max [−]', project_assumed=k_p1, actual_calc=k_p4,
+        comment=(f"różnica {abs(polar_review['deviation']) * 100:.0f}%: oszacowanie projektu koncepcyjnego potwierdzone"
+                 if polar_review['consistent'] else
+                 f"różnica {abs(polar_review['deviation']) * 100:.0f}%: " + ('osiągi lotu ślizgowego oceniono z biegunowej projektu wstępnego'
+                 if not powered else 'bilans masy domknięto z biegunową projektu wstępnego'
+                 if polar_review['closed_with_p4'] else
+                 f"po powtórzeniu bilansu z biegunową projektu wstępnego m₀ = {polar_review['repeated']['m0']:.0f} kg"
+                 if polar_review['repeated'] and 'm0' in polar_review['repeated'] else
+                 'bilans masy z biegunową projektu wstępnego nie ma rozwiązania'))))
     performance_recommendation = ('Sprawdź wyniki lotu ślizgowego i sposób startu.' if not powered else
         'Przyjęte wymagania przelotu, wznoszenia, startu i zasięgu spełniono w modelu wstępnym; sprawdź pozostałe kryteria.'
         if all((cruise_ok, climb_ok, takeoff_ok, range_ok)) else
@@ -682,6 +711,7 @@ def calculate_all_bipol_projects(mass_res: dict, sizing_res: dict, geom_res: dic
             "landing_from_15m_m": perf_res["landing"].get("distance_from_15m", perf_res["landing"].get("landing_from_15m_m", 0))
         },
         "critical_evaluation_table_5_1": table_5_1_critical,
+        "polar_review": polar_review,
         "recommendations": performance_recommendation,
         "performance_findings": performance_findings,
         "points_max": {"obligatory": 2, "optional": 13, "total": 15}

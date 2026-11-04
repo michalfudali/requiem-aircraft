@@ -890,3 +890,857 @@ table tr:hover,
     background: #ffffff !important;
   }
 }
+
+/* ==========================================================================
+   14. DARK MODE CONSOLIDATION & WORKSPACE INTEGRATION OVERRIDES
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   14.1 Card Collision & Quiet Workspace Container Resets
+   -------------------------------------------------------------------------- */
+.quiet-inputs > .b-card,
+.quiet-disclosure > .b-card,
+.quiet-disclosure > .subpoint-card,
+.quiet-disclosure > .studio-card {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+.quiet-inputs > .b-card:hover,
+.quiet-disclosure > .b-card:hover,
+.quiet-disclosure > .subpoint-card:hover,
+.quiet-disclosure > .studio-card:hover {
+  box-shadow: none !important;
+}
+
+.quiet-inputs > .b-card > .b-card-header {
+  display: none !important;
+}
+
+.quiet-inputs > .b-card > .b-card-body {
+  padding: 0 !important;
+}
+
+/* --------------------------------------------------------------------------
+   14.2 Workspace & Experience Layer Dark Mode Overrides
+   -------------------------------------------------------------------------- */
+[data-theme="dark"] .quiet-inputs .calc-action-wrapper {
+  background: rgba(15, 23, 42, 0.92) !important;
+  border: 1px solid rgba(255, 255, 255, 0.12) !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5) !important;
+  backdrop-filter: blur(8px);
+}
+
+[data-theme="dark"] .quiet-project-menu > summary {
+  background: var(--bg-surface) !important;
+  border-color: var(--border-default) !important;
+  color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .quiet-project-menu-items {
+  background: var(--bg-surface-elevated) !important;
+  border-color: var(--border-default) !important;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6) !important;
+}
+
+[data-theme="dark"] .studio-workflow button {
+  background: var(--card-bg) !important;
+  border-color: var(--card-border) !important;
+  color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .studio-workflow button:hover {
+  background: var(--bg-surface-hover) !important;
+  border-color: var(--accent-teal) !important;
+}
+
+[data-theme="dark"] .studio-workflow-number {
+  background: var(--accent-teal-subtle) !important;
+  color: var(--accent-teal) !important;
+}
+
+[data-theme="dark"] .studio-workflow small {
+  color: var(--text-muted) !important;
+}
+
+[data-theme="dark"] .studio-workflow button > span:last-child {
+  color: var(--accent-teal) !important;
+}
+
+[data-theme="dark"] .studio-input-guide,
+[data-theme="dark"] .studio-input-sections button {
+  background: var(--card-bg) !important;
+  border-color: var(--card-border) !important;
+  color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .studio-input-sections button:hover {
+  background: var(--bg-surface-hover) !important;
+  border-color: var(--accent-teal) !important;
+}
+
+[data-theme="dark"] .studio-parameter-search > label {
+  color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .studio-layout .studio-parameter-search > input {
+  background: var(--input-bg) !important;
+  border-color: var(--input-border) !important;
+  color: var(--input-text) !important;
+}
+
+[data-theme="dark"] #studioParameterResults {
+  background: var(--bg-surface-elevated) !important;
+  border-color: var(--border-default) !important;
+}
+
+[data-theme="dark"] #studioParameterResults button {
+  color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] #studioParameterResults button:hover {
+  background: var(--bg-surface-hover) !important;
+}
+
+[data-theme="dark"] #studioParameterResults small {
+  color: var(--text-muted) !important;
+}
+
+[data-theme="dark"] .studio-guidance {
+  background: rgba(20, 184, 166, 0.08) !important;
+  border-color: rgba(20, 184, 166, 0.25) !important;
+}
+
+[data-theme="dark"] .studio-guidance-label {
+  color: var(--accent-teal) !important;
+}
+
+[data-theme="dark"] .studio-guidance .studio-tag {
+  background: var(--bg-surface-subtle) !important;
+  border-color: var(--border-subtle) !important;
+  color: var(--text-secondary) !important;
+}
+
+[data-theme="dark"] .studio-catalog-invitation {
+  background: rgba(14, 165, 233, 0.08) !important;
+  border-color: rgba(14, 165, 233, 0.25) !important;
+}
+
+[data-theme="dark"] .studio-catalog-invitation strong {
+  color: var(--accent-cyan) !important;
+}
+
+[data-theme="dark"] .studio-catalog-invitation p {
+  color: var(--text-secondary) !important;
+}
+
+[data-theme="dark"] #workspaceNotice {
+  background: rgba(239, 68, 68, 0.15) !important;
+  color: #fca5a5 !important;
+  border-color: rgba(239, 68, 68, 0.3) !important;
+}
+
+[data-theme="dark"] .quiet-disclosure,
+[data-theme="dark"] .quiet-inputs .module-accordion {
+  background: var(--card-bg) !important;
+  border-color: var(--card-border) !important;
+}
+
+[data-theme="dark"] .quiet-disclosure > summary,
+[data-theme="dark"] .quiet-inputs .module-title {
+  color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .quiet-disclosure[open] > summary {
+  border-bottom-color: var(--border-subtle) !important;
+}
+
+[data-theme="dark"] .quiet-inputs .module-header,
+[data-theme="dark"] .quiet-inputs .module-header.active,
+[data-theme="dark"] .quiet-inputs .module-body {
+  background: var(--card-bg) !important;
+}
+
+[data-theme="dark"] .quiet-inputs .initial-constraints-panel {
+  background: var(--bg-surface-subtle) !important;
+  border-color: var(--border-subtle) !important;
+}
+
+[data-theme="dark"] .quiet-help-content {
+  border-color: var(--border-subtle) !important;
+  background: var(--bg-surface-subtle) !important;
+}
+
+[data-theme="dark"] .quiet-help-content > summary {
+  color: var(--text-secondary) !important;
+}
+
+[data-theme="dark"] .quiet-section-tabs button[aria-selected="true"],
+[data-theme="dark"] .studio-layout .quiet-section-tabs button[aria-selected="true"] {
+  color: var(--accent-teal) !important;
+  background: var(--accent-teal-subtle) !important;
+}
+
+[data-theme="dark"] .quiet-section-tabs button,
+[data-theme="dark"] .studio-layout .quiet-section-tabs button {
+  color: var(--text-muted) !important;
+}
+
+[data-theme="dark"] #trailingEdgeLayoutCard {
+  background: var(--bg-surface-subtle) !important;
+  border-color: var(--border-subtle) !important;
+  color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] #trailingEdgeLayoutCard div {
+  color: var(--text-primary);
+}
+
+[data-theme="dark"] #uav_easa_banner {
+  background: rgba(56, 189, 248, 0.12) !important;
+  border-color: rgba(56, 189, 248, 0.3) !important;
+  color: #7dd3fc !important;
+}
+
+[data-theme="dark"] #accordion_mod0 {
+  border-color: var(--accent-cyan) !important;
+}
+
+[data-theme="dark"] #accordion_mod0 .module-header {
+  background: var(--bg-surface) !important;
+}
+
+[data-theme="dark"] #pill_mod0 {
+  background: rgba(56, 189, 248, 0.15) !important;
+  color: var(--accent-cyan) !important;
+}
+
+/* --------------------------------------------------------------------------
+   14.3 Dialogs, Modals, Popovers & Wizards Dark Mode
+   -------------------------------------------------------------------------- */
+[data-theme="dark"] .wizard-modal,
+[data-theme="dark"] .project-modal,
+[data-theme="dark"] .session-starter-modal {
+  background: var(--bg-surface) !important;
+  border-color: var(--border-default) !important;
+  color: var(--text-primary) !important;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.7) !important;
+}
+
+[data-theme="dark"] .wizard-stepper {
+  background: var(--bg-surface-subtle) !important;
+  border-bottom-color: var(--border-subtle) !important;
+}
+
+[data-theme="dark"] .wizard-step-tab {
+  color: var(--text-muted) !important;
+}
+
+[data-theme="dark"] .wizard-step-tab.active {
+  background: var(--bg-surface) !important;
+  color: var(--accent-cyan) !important;
+  border-bottom-color: var(--accent-cyan) !important;
+}
+
+[data-theme="dark"] .wizard-step-tab .step-circle {
+  background: var(--bg-surface-hover) !important;
+  color: var(--text-secondary) !important;
+}
+
+[data-theme="dark"] .wizard-step-tab.active .step-circle {
+  background: var(--accent-cyan) !important;
+  color: #ffffff !important;
+}
+
+[data-theme="dark"] .wizard-footer {
+  background: var(--bg-surface-subtle) !important;
+  border-top-color: var(--border-subtle) !important;
+}
+
+[data-theme="dark"] .wizard-template-chip {
+  background: var(--bg-surface-subtle) !important;
+  border-color: var(--border-default) !important;
+  color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .wizard-template-chip:hover {
+  background: var(--bg-surface-hover) !important;
+  border-color: var(--accent-teal) !important;
+}
+
+[data-theme="dark"] .project-card {
+  background: var(--card-bg) !important;
+  border-color: var(--card-border) !important;
+  color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .project-card.active {
+  background: var(--bg-surface-subtle) !important;
+  border-color: var(--accent-teal) !important;
+}
+
+[data-theme="dark"] .project-card-title {
+  color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .project-card-meta {
+  color: var(--text-muted) !important;
+}
+
+[data-theme="dark"] .project-card-actions {
+  border-top-color: var(--border-subtle) !important;
+}
+
+[data-theme="dark"] .starter-choice-card {
+  background: var(--card-bg) !important;
+  border-color: var(--card-border) !important;
+  color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .starter-choice-card:hover {
+  border-color: var(--accent-teal) !important;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5) !important;
+}
+
+[data-theme="dark"] .starter-choice-card.primary {
+  background: var(--card-bg) !important;
+  border-color: var(--accent-cyan) !important;
+}
+
+[data-theme="dark"] .starter-choice-title {
+  color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .starter-choice-desc {
+  color: var(--text-secondary) !important;
+}
+
+[data-theme="dark"] .aircraft-editor {
+  background: var(--bg-surface) !important;
+  color: var(--text-primary) !important;
+  border-color: var(--border-default) !important;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8) !important;
+}
+
+[data-theme="dark"] .aircraft-editor-header {
+  background: var(--bg-surface-subtle) !important;
+  border-bottom-color: var(--border-subtle) !important;
+  color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .aircraft-editor-header h2 {
+  color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .aircraft-editor-header p {
+  color: var(--text-secondary) !important;
+}
+
+[data-theme="dark"] .aircraft-editor label {
+  color: var(--text-secondary) !important;
+}
+
+[data-theme="dark"] .aircraft-editor details {
+  border-color: var(--border-subtle) !important;
+}
+
+[data-theme="dark"] .aircraft-editor summary {
+  color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .aircraft-editor-preview {
+  background: var(--bg-surface-subtle) !important;
+  border: 1px solid var(--border-subtle) !important;
+  color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .aircraft-editor-preview dt {
+  color: var(--text-muted) !important;
+}
+
+[data-theme="dark"] .aircraft-editor-preview dd {
+  color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .aircraft-editor-preview dl div {
+  border-bottom-color: var(--border-subtle) !important;
+}
+
+[data-theme="dark"] .aircraft-editor-footer {
+  background: var(--bg-surface) !important;
+  border-top-color: var(--border-subtle) !important;
+}
+
+[data-theme="dark"] .aircraft-editor input,
+[data-theme="dark"] .aircraft-editor select,
+[data-theme="dark"] .aircraft-editor textarea {
+  background: var(--input-bg) !important;
+  border-color: var(--input-border) !important;
+  color: var(--input-text) !important;
+}
+
+[data-theme="dark"] .aircraft-editor-error {
+  background: rgba(239, 68, 68, 0.15) !important;
+  color: #fca5a5 !important;
+}
+
+/* --------------------------------------------------------------------------
+   14.4 Academic Coursework, Exam Simulator & Defense Questions
+   -------------------------------------------------------------------------- */
+[data-theme="dark"] .audit-item-card,
+[data-theme="dark"] .defense-q-card,
+[data-theme="dark"] .exam-chip,
+[data-theme="dark"] .exam-section,
+[data-theme="dark"] .quiz-lecture,
+[data-theme="dark"] .quiz-lectures {
+  background: var(--card-bg) !important;
+  border-color: var(--card-border) !important;
+  color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .audit-item-title,
+[data-theme="dark"] .defense-q-card summary,
+[data-theme="dark"] .exam-chip strong,
+[data-theme="dark"] .quiz-timer strong {
+  color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .audit-cat-tag,
+[data-theme="dark"] .audit-eng-note,
+[data-theme="dark"] .exam-chip span,
+[data-theme="dark"] .exam-entry-label {
+  color: var(--text-muted) !important;
+}
+
+[data-theme="dark"] .audit-values-row {
+  color: var(--text-secondary) !important;
+}
+
+[data-theme="dark"] .audit-val-chip {
+  background: var(--bg-surface-subtle) !important;
+  border-color: var(--border-subtle) !important;
+  color: var(--text-secondary) !important;
+}
+
+[data-theme="dark"] .audit-didactic-text {
+  background: rgba(56, 189, 248, 0.1) !important;
+  color: #bae6fd !important;
+}
+
+[data-theme="dark"] .defense-q-answer,
+[data-theme="dark"] .quiz-model {
+  background: rgba(20, 184, 166, 0.1) !important;
+  color: #ccfbf1 !important;
+}
+
+[data-theme="dark"] .defense-q-tip {
+  background: rgba(245, 158, 11, 0.1) !important;
+  color: #fde68a !important;
+}
+
+[data-theme="dark"] .coursework-item {
+  border-top-color: var(--border-subtle) !important;
+}
+
+[data-theme="dark"] .coursework-item small {
+  color: var(--text-muted) !important;
+}
+
+[data-theme="dark"] .coursework-schedule tr.coursework-next {
+  background: rgba(20, 184, 166, 0.12) !important;
+}
+
+[data-theme="dark"] .coursework-schedule tr.coursework-next [data-schedule-state] {
+  color: var(--accent-teal) !important;
+}
+
+[data-theme="dark"] .coursework-schedule tr.coursework-past {
+  color: var(--text-muted) !important;
+}
+
+[data-theme="dark"] .coursework-state {
+  background: var(--bg-surface-subtle) !important;
+  color: var(--text-secondary) !important;
+}
+
+[data-theme="dark"] .coursework-state[data-state="blocked"],
+[data-theme="dark"] .coursework-state[data-state="stale"] {
+  background: rgba(245, 158, 11, 0.15) !important;
+  color: #fbbf24 !important;
+}
+
+[data-theme="dark"] .coursework-state[data-state="review"] {
+  background: rgba(16, 185, 129, 0.15) !important;
+  color: #34d399 !important;
+}
+
+[data-theme="dark"] .studio-deadline {
+  background: rgba(20, 184, 166, 0.1) !important;
+  border-color: rgba(20, 184, 166, 0.25) !important;
+  color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .studio-deadline span {
+  color: var(--text-muted) !important;
+}
+
+[data-theme="dark"] .cost-controls select {
+  background: var(--input-bg) !important;
+  border-color: var(--input-border) !important;
+  color: var(--input-text) !important;
+}
+
+[data-theme="dark"] .exam-entry {
+  border-bottom-color: var(--border-subtle) !important;
+}
+
+[data-theme="dark"] .exam-entry-note {
+  color: #fbbf24 !important;
+}
+
+[data-theme="dark"] .exam-svg svg {
+  fill: var(--text-muted) !important;
+}
+
+[data-theme="dark"] .exam-svg .exam-grid {
+  stroke: var(--border-subtle) !important;
+}
+
+[data-theme="dark"] .exam-svg .exam-axis {
+  stroke: var(--border-strong) !important;
+}
+
+[data-theme="dark"] .exam-svg .exam-axis-label {
+  fill: var(--text-secondary) !important;
+}
+
+[data-theme="dark"] .exam-svg .exam-bar {
+  fill: rgba(56, 189, 248, 0.25) !important;
+  stroke: var(--accent-cyan) !important;
+}
+
+[data-theme="dark"] .exam-svg .exam-bar-label {
+  fill: var(--text-primary) !important;
+  stroke: var(--bg-surface) !important;
+}
+
+/* --------------------------------------------------------------------------
+   14.5 Statistical Trends & Reference DB Dark Mode
+   -------------------------------------------------------------------------- */
+[data-theme="dark"] #trendSummary,
+[data-theme="dark"] .trend-empty {
+  background: var(--card-bg) !important;
+  border-color: var(--card-border) !important;
+  color: var(--text-secondary) !important;
+}
+
+[data-theme="dark"] #trendSummary > div {
+  border-left-color: var(--border-subtle) !important;
+}
+
+[data-theme="dark"] #trendSummary strong {
+  color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] #tab-trends label {
+  color: var(--text-secondary) !important;
+}
+
+[data-theme="dark"] .trend-selected {
+  background: rgba(20, 184, 166, 0.15) !important;
+}
+
+[data-theme="dark"] .trend-provenance {
+  background: var(--bg-surface-subtle) !important;
+  color: var(--text-secondary) !important;
+}
+
+[data-theme="dark"] .trend-provenance-row > td {
+  background: var(--bg-surface-subtle) !important;
+}
+
+[data-theme="dark"] .trend-warnings p {
+  background: rgba(245, 158, 11, 0.15) !important;
+  color: #fbbf24 !important;
+  border-left-color: #f59e0b !important;
+}
+
+[data-theme="dark"] .trend-chart svg text {
+  fill: var(--text-muted) !important;
+}
+
+[data-theme="dark"] .trend-chart circle:hover {
+  fill: var(--accent-cyan) !important;
+}
+
+/* --------------------------------------------------------------------------
+   14.6 Manual Parameter Gate & Override Controls
+   -------------------------------------------------------------------------- */
+[data-theme="dark"] .mc-modal {
+  background: var(--bg-surface) !important;
+  color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .mc-lead,
+[data-theme="dark"] .mc-origin,
+[data-theme="dark"] .mc-status,
+[data-theme="dark"] .mc-unit {
+  color: var(--text-secondary) !important;
+}
+
+[data-theme="dark"] .mc-row {
+  border-color: var(--border-default) !important;
+}
+
+[data-theme="dark"] .mc-row.mc-conflict {
+  background: rgba(239, 68, 68, 0.18) !important;
+  border-color: var(--accent-rose) !important;
+}
+
+[data-theme="dark"] .mc-field input {
+  background: var(--input-bg) !important;
+  color: var(--input-text) !important;
+  border-color: var(--input-border) !important;
+}
+
+[data-theme="dark"] .manual-control-switch {
+  background: var(--bg-surface-subtle) !important;
+  color: var(--text-primary) !important;
+  border-color: var(--border-default) !important;
+}
+
+[data-theme="dark"] .manual-control-switch.active {
+  background: #b45309 !important;
+  border-color: #b45309 !important;
+  color: #ffffff !important;
+}
+
+[data-theme="dark"] .mc-banner {
+  background: #2d1804 !important;
+  color: #fbbf24 !important;
+  border-color: #b45309 !important;
+}
+
+/* --------------------------------------------------------------------------
+   14.7 Semester Workstation Title Card Dark Mode
+   -------------------------------------------------------------------------- */
+[data-theme="dark"] #semesterWorkstation label {
+  color: var(--text-primary) !important;
+}
+
+/* --------------------------------------------------------------------------
+   14.8 Mobile Viewport Sticky Navbar Override
+   -------------------------------------------------------------------------- */
+@media (max-width: 760px) {
+  .studio-layout .bipol-navbar {
+    position: static !important;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   14.9 High-Lift & Control Surface Highlight Classes
+   -------------------------------------------------------------------------- */
+.flap-select-highlight {
+  border: 2px solid var(--accent-cyan) !important;
+  font-weight: 600 !important;
+  background: var(--input-bg, #ffffff) !important;
+  color: var(--input-text, #0f172a) !important;
+}
+
+.aileron-select-highlight {
+  border: 2px solid var(--accent-emerald) !important;
+  font-weight: 600 !important;
+  background: var(--input-bg, #ffffff) !important;
+  color: var(--input-text, #0f172a) !important;
+}
+
+.slat-select-highlight {
+  border: 2px solid var(--accent-teal) !important;
+  font-weight: 600 !important;
+  background: var(--input-bg, #ffffff) !important;
+  color: var(--input-text, #0f172a) !important;
+}
+
+.flap-label-highlight {
+  color: var(--accent-cyan) !important;
+  font-weight: 700;
+}
+
+.aileron-label-highlight {
+  color: var(--accent-emerald) !important;
+  font-weight: 700;
+}
+
+.slat-label-highlight {
+  color: var(--accent-teal) !important;
+  font-weight: 700;
+}
+
+/* --------------------------------------------------------------------------
+   14.10 Dual-Portal Navigation Switcher in Sidebar
+   -------------------------------------------------------------------------- */
+.studio-portal-toggle-bar {
+  display: flex;
+  gap: 6px;
+  padding: 8px 10px;
+  margin: 12px 0 8px;
+  background: var(--bg-surface-subtle, rgba(255, 255, 255, 0.05));
+  border-radius: var(--radius-sm, 6px);
+  border: 1px solid var(--border-subtle, rgba(255, 255, 255, 0.1));
+}
+
+.portal-toggle-btn {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 6px 8px;
+  font-size: 11px;
+  font-weight: 600;
+  border-radius: 4px;
+  border: none;
+  background: transparent;
+  color: var(--text-muted, #94a3b8);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.portal-toggle-btn:hover {
+  color: var(--text-primary);
+  background: var(--bg-surface-hover);
+}
+
+.portal-toggle-btn.active,
+.portal-toggle-btn.projects-active {
+  background: var(--bg-surface, #ffffff);
+  color: var(--accent-teal, #14b8a6);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+[data-theme="dark"] .studio-portal-toggle-bar {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+[data-theme="dark"] .portal-toggle-btn {
+  color: var(--sidebar-text);
+}
+
+[data-theme="dark"] .portal-toggle-btn:hover {
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+[data-theme="dark"] .portal-toggle-btn.active,
+[data-theme="dark"] .portal-toggle-btn.projects-active {
+  background: var(--sidebar-item-active, #1e293b);
+  color: var(--accent-teal, #2dd4bf);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
+}
+
+/* --------------------------------------------------------------------------
+   14.11 UI Polish & Semantic Token Card Classes
+   -------------------------------------------------------------------------- */
+.mod-designer-accordion {
+  border: 2px solid var(--accent-cyan, #0284c7) !important;
+}
+
+.mod-pill-designer {
+  background: var(--accent-cyan-subtle, #e0f2fe) !important;
+  color: var(--accent-cyan, #0369a1) !important;
+}
+
+.uav-easa-banner {
+  background: var(--accent-cyan-subtle, #eff6ff);
+  border: 1px solid var(--accent-cyan, #93c5fd);
+  border-radius: 6px;
+  padding: 6px 10px;
+  margin-bottom: 10px;
+  font-size: 0.75rem;
+  color: var(--text-primary, #1e40af);
+}
+
+.trailing-edge-card {
+  margin-bottom: 0.75rem;
+  padding: 0.65rem 0.85rem;
+  border: 1px solid var(--border-default, #cbd5e1);
+  border-radius: 6px;
+  background: var(--bg-surface-subtle, #f8fafc);
+  font-size: 0.82rem;
+  color: var(--text-primary);
+}
+
+.trailing-edge-header {
+  font-weight: 700;
+  color: var(--text-primary, #0f172a);
+  margin-bottom: 0.35rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.starter-card-holistic {
+  border-color: var(--accent-cyan, #0284c7) !important;
+  background: var(--card-bg, #ffffff) !important;
+  text-align: left;
+  align-items: flex-start;
+}
+
+.starter-card-projects {
+  border-color: #1e40af !important;
+  background: var(--card-bg, #ffffff) !important;
+  text-align: left;
+  align-items: flex-start;
+}
+
+.session-starter-toolbar {
+  background: var(--bg-surface-subtle, #f8fafc);
+  border: 1px solid var(--border-subtle, #e2e8f0);
+  border-radius: 10px;
+  padding: 0.85rem 1rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.session-starter-toolbar-title {
+  font-size: 0.82rem;
+  color: var(--text-secondary, #334155);
+}
+
+.paturski-summary-card {
+  background: var(--bg-surface-subtle, #f8fafc);
+  border: 1px solid var(--border-subtle, #cbd5e1);
+  border-radius: 6px;
+  padding: 0.75rem 1rem;
+  font-size: 0.84rem;
+  color: var(--text-primary, #1e293b);
+  margin-bottom: 0.85rem;
+}
+
+.text-hint-cyan {
+  color: var(--accent-cyan, #0284c7);
+}
+
+/* --------------------------------------------------------------------------
+   14.12 Responsive Switcher Select Wrap (Viewports <= 1100px)
+   -------------------------------------------------------------------------- */
+@media (max-width: 1100px) {
+  .studio-layout .project-bar-container {
+    flex-wrap: wrap !important;
+  }
+  .studio-layout .project-bar-left {
+    flex: 1 0 100% !important;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   14.13 Overview Layout Balance Card Collapse Guardrail
+   -------------------------------------------------------------------------- */
+.studio-layout #layoutBalanceVisualizer {
+  display: none;
+}

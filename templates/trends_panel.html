@@ -7,7 +7,7 @@
   <section class="studio-card" id="trendControls"><h2>Próba porównawcza</h2><p id="trendClassDescription"></p>
     <div class="trend-controls">
       <label for="trend_source">Źródło danych<select id="trend_source" data-analysis-param><option value="all">Wszystkie źródła</option><option value="cado">ENAC CADO</option><option value="fast">FAST Aerobase</option><option value="motogliders">Motoszybowce</option><option value="geometry_trends">Dane geometryczne</option><option value="user">Wpisy użytkownika</option></select></label>
-      <label for="trend_count">Najbliższe masą konstrukcje<select id="trend_count" data-analysis-param><option value="8">8</option><option value="20">20</option><option value="30">30</option><option value="50" selected>50</option><option value="100">100</option><option value="0">Wszystkie pasujące</option></select></label>
+      <label for="trend_nearest_count">Samoloty podobne masą do projektu<select id="trend_nearest_count" data-analysis-param><option value="20">20 najbliższych</option><option value="30">30 najbliższych</option><option value="50" selected>50 najbliższych</option><option value="100">100 najbliższych</option><option value="0">Wszystkie pasujące</option></select></label>
       <label for="trend_engine_count">Liczba silników<select id="trend_engine_count" data-analysis-param><option value="0">Dowolna</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option></select></label>
       <label for="trend_year_min">Certyfikacja od (0 = bez limitu)<input id="trend_year_min" data-analysis-param type="number" min="0" max="2100" step="1" value="0"></label>
       <label for="trend_year_max">Certyfikacja do (0 = bez limitu)<input id="trend_year_max" data-analysis-param type="number" min="0" max="2100" step="1" value="0"></label>
@@ -15,7 +15,7 @@
       <label for="trend_variable_sweep">Skos skrzydła w równaniu (1)<select id="trend_variable_sweep"><option value="false">Stały — współczynnik 1,00</option><option value="true">Zmienny wzdłuż rozpiętości — współczynnik 1,04</option></select></label>
     </div>
     <div class="studio-actions"><button type="button" class="btn btn-primary" id="trendRecalculate">Przelicz analizę</button><button type="button" class="btn btn-outline" id="trendAutomatic">Przywróć automatyczny dobór</button></div>
-    <p class="studio-fine-print">Dobór obejmuje wyłącznie klasę i rodzaj napędu aktualnego projektu; konstrukcje porządkujemy według względnej różnicy MTOW. Datowanie pochodzi z certyfikacji wariantu. Nie zastępuje roku rozpoczęcia produkcji wymaganego w ćwiczeniu — uzupełnij go w pracy źródłowej. Założenia i ręczny dobór zapisują się z projektem.</p>
+    <p class="studio-fine-print">Dobór obejmuje wyłącznie klasę i rodzaj napędu aktualnego projektu. Za podobne uznajemy samoloty o MTOW najbliższym masie projektu; tę masę wyznacza bilans masy P1 z zależnością (1) tej samej próby, więc dobór powtarza się, aż skład próby przestanie się zmieniać. Ta sama próba służy kreatorowi, propozycjom parametrów, analizie trendów P1 i bilansowi masy. Datowanie pochodzi z certyfikacji wariantu. Nie zastępuje roku rozpoczęcia produkcji wymaganego w ćwiczeniu — uzupełnij go w pracy źródłowej. Założenia i ręczny dobór zapisują się z projektem.</p>
   </section>
   <div id="trendWarnings" class="trend-warnings" role="status"></div>
 

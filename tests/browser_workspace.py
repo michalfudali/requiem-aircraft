@@ -93,7 +93,7 @@ with sync_playwright() as p:
     page.locator('#trendResultsPanel-tab').focus();page.keyboard.press('ArrowRight')
     assert page.locator('#trendSelectionPanel-tab').get_attribute('aria-selected')=='true'
     assert page.locator('#trendControls').is_visible()
-    page.locator('#trend_source').select_option('cado');page.locator('#trend_count').select_option('20')
+    page.locator('#trend_source').select_option('cado');page.locator('#trend_nearest_count').select_option('20')
     page.locator('#trendRecalculate').click()
     page.wait_for_function("currentResults.params.trend_source === 'cado' && currentResults.bipol_projects.p1.trend_analysis.selected_n === 20")
     page.locator('#trendResultsPanel-tab').click()

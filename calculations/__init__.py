@@ -26,15 +26,19 @@ from calculations.profile_geometry import resolve_profile_geometry
 from calculations.constraints import resolve_and_lock_parameters, finalize_parameter_states, get_initial_constraint_suggestions, WING_PLANFORMS
 
 def _size_airframe(params, param_states):
+    # BIPOL_1, s. 1: one comparison sample of aircraft similar to the design for the P1 trend
+    # analysis and the empty-mass law; its reference mass is computed once per project.
+    from calculations.trends import SIMILAR_COUNT, similar_sample
+    if ('_similar_count' not in params and params.get('trend_aircraft_ids') is None
+            and int(params.get('trend_nearest_count', SIMILAR_COUNT) or 0)):
+        sample = similar_sample(params)
+        params.update(_reference=sample, _reference_mass=sample['mass'], _similar_count=sample['count'])
     mass_res = calculate_mass_sizing(params)
     if params.get('preliminary_polar_mode','input') != 'input':
         params['cx0'] = mass_res['preliminary_polar']['cx0']
         param_states['cx0'] = dict(state='derived',value=params['cx0'],
-            formula='BIPOL_1 (3): π·AR·e/(4·Kmax²)',sources=['sketch_swet_ratio','raymer_family','raymer_kmax'])
-    if mass_res['empty_mass_law'].get('aircraft_ids'):
-        # Freeze the cohort used in the nonlinear solve for the P1 report.
-        params['trend_aircraft_ids'] = mass_res['empty_mass_law']['aircraft_ids']
-        params['trend_count'] = 0
+            formula='BIPOL_1: S_wet/S (rys. 1) → Kmax (rys. 2) → Cx0 = π·AR·e/(4·Kmax²), wzór (3)',
+            sources=['wetted_example','sketch_swet_ratio','aspect_ratio','oswald_e','raymer_kmax'])
     m0 = mass_res["m0"]
 
     # Kategoria operacji UAS zależy od ryzyka operacji, a nie od progu masy 600 kg.
@@ -108,6 +112,7 @@ def run_bipol_project(params: dict):
     Wykonuje pełny ciąg obliczeniowy projektu BIPOL I (etapy P1 - P6).
     """
     # Normalizacja domeny: napęd odrzutowy nie występuje w konfiguracji ciągnącej w nosie kadłuba (GA tractor)
+    given = dict(params) if isinstance(params, dict) else params
     params = validate_parameters(params)
     params, law_corrections = normalize_occupants(params)
     params["_law_corrections"] = law_corrections
@@ -123,8 +128,41 @@ def run_bipol_project(params: dict):
             formula='Model mechanizacji 20°/40°', sources=['cz_max_clean','flap_type','slat_type'])
 
     # Etap P1 i P2: Bilans masowy (szacowanie MTOW)
-    mass_res, sizing_res, geom_res, aero_res, design_iteration = resolve_design(params, param_states, _size_airframe)
+    # BIPOL_1, s. 1 i 4: próba samolotów podobnych do projektu (najbliższych masą). Gdy z jej
+    # zależnością (1) iteracja masy — także z biegunową kolejnych iteracji — nie ma rozwiązania,
+    # próbę poszerza się o kolejne najbliższe konstrukcje.
+    import copy
+    from calculations.design_solver import MASS_NOT_CLOSED
+    from calculations.trends import EQ1_UNSOLVABLE, PAYLOAD_MARGIN, SIMILAR_COUNT, similar_sample
+    nearest = params.get('trend_aircraft_ids') is None and int(params.get('trend_nearest_count', SIMILAR_COUNT) or 0)
+    initial, first, coupled_widening = copy.deepcopy((params, param_states)), 0, False
+    while True:
+        params, param_states = copy.deepcopy(initial)
+        if nearest:
+            sample = dict(similar_sample(params, first))
+            if coupled_widening:
+                sample.update(widened=True, coupled=True)
+            params.update(_reference=sample, _reference_mass=sample['mass'], _similar_count=sample['count'])
+        mass_res, sizing_res, geom_res, aero_res, design_iteration = resolve_design(params, param_states, _size_airframe)
+        failure = design_iteration['failure'] or ''
+        if nearest and not failure and params['_similar_count']:
+            # The closed design must also close with the payload of the P2 sensitivity analysis.
+            try:
+                calculate_mass_sizing({**params, **{k: params.get(k, 0) * PAYLOAD_MARGIN for k in ('m_pax', 'm_bag', 'm_cargo')}})
+            except ValueError as error:
+                failure = str(error)
+        # BIPOL_1, s. 4: the mass iteration must reach agreement of 0,1%.
+        if not (nearest and failure.startswith((EQ1_UNSOLVABLE, MASS_NOT_CLOSED)) and params['_similar_count']):
+            break
+        first, coupled_widening = params['_reference']['index'] + 1, True
     m0 = mass_res["m0"]
+    # Tematy oficjalne: masa, nie liczba miejsc, przenosi samolot do CS-25 — także masa obliczonego
+    # projektu, dopóki kategoria jest ta przydzielona tematowi (wybór autora zostaje bez zmian).
+    from calculations.polish_law import CS23_MTOM_MAX_KG
+    if (params.get('topic_origin') == 'official' and params.get('category') == params.get('category_seed')
+            and str(params['category']).startswith('cs23') and m0 > CS23_MTOM_MAX_KG):
+        return run_bipol_project({**given, 'category': 'cs25_transport', 'category_seed': 'cs25_transport',
+                                  'n_crew': max(2, int(given.get('n_crew') or 1))})
     finalize_parameter_states(params, param_states, mass_res, sizing_res, geom_res)
 
     # Etap P5: Osiągi samolotu (prędkości, wznoszenie, pułap, start, lądowanie)

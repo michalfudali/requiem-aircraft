@@ -104,7 +104,7 @@ def test_direct_python_get_trend_suggestions_all_classes(ac_class):
 # =========================================================================
 
 def test_piston_ga_sample_follows_design_mass(client):
-    """Without m0 the whole class is the sample; with m0 the 50 aircraft nearest in mass (as in P1)."""
+    """Without m0 the whole class is the sample; with m0 (the design mass) the 50 aircraft nearest in MTOW."""
     res_no_m0 = client.get('/api/trends/suggestions?aircraft_type=piston_ga').get_json()
     assert res_no_m0['m0'] is None
     class_rows = [r for r in load_aircraft() if r['aircraft_type'] == 'piston_ga' and r['engine_type'] == 'prop']
@@ -115,7 +115,7 @@ def test_piston_ga_sample_follows_design_mass(client):
     res_with_m0 = client.get('/api/trends/suggestions?aircraft_type=piston_ga&m0=1150.0').get_json()
     assert res_with_m0['m0'] == 1150.0
     assert res_with_m0['sample']['selected_n'] == 50
-    assert '1150 kg' in res_with_m0['sample']['description']
+    assert 'masie projektu 1150 kg' in res_with_m0['sample']['description']
     me = res_with_m0['suggestions']['me_m0']
     assert me['model_type'] == 'power'
     fit = me['provenance']['fit']

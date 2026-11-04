@@ -79,14 +79,35 @@
     </div>`;
   }
 
-  async function fetchSuggestions(query) {
-    const params = new URLSearchParams();
-    for (const [key, value] of Object.entries(query)) if (value) params.set(key, value);
-    const keyStr = params.toString();
+  // The project defines its comparison sample (the aircraft nearest in MTOW to the design), so the
+  // wizard and the input panel send the whole project and get the aircraft of its P1 trend analysis.
+  function projectBody(project, query) {
+    const body = {};
+    for (const [key, value] of Object.entries(project || {})) {
+      if (key.startsWith('_') || value == null || value === '' || Number.isNaN(value)) continue;
+      body[key] = value;
+    }
+    // A manual aircraft selection belongs to one class and propulsion.
+    if (query.aircraft_type !== body.aircraft_type || (query.engine_type && query.engine_type !== body.engine_type)) {
+      delete body.trend_aircraft_ids;
+    }
+    for (const [key, value] of Object.entries(query)) if (value) body[key] = value;
+    return body;
+  }
+
+  function projectSettings() {
+    if (typeof formBaseParams === 'undefined') return {};
+    return typeof collectFormData === 'function' ? collectFormData() : formBaseParams;
+  }
+
+  async function fetchSuggestions(query, project = projectSettings()) {
+    const body = projectBody(project, query);
+    const keyStr = JSON.stringify(body);
     if (cachedPromise && cachedQueryKey === keyStr) return cachedPromise;
     cachedQueryKey = keyStr;
     cachedPromise = (async () => {
-      const response = await fetch(`/api/trends/suggestions?${params}`);
+      const response = await fetch('/api/trends/suggestions', {
+        method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(body)});
       const data = await response.json().catch(() => ({}));
       if (!response.ok) throw new Error(data.message || 'Nie udało się pobrać analizy trendów.');
       return data;
@@ -296,6 +317,12 @@
     }
   }
 
+  // The project the wizard is building carries its own comparison-sample settings.
+  const wizardProject = () => {
+    try { return root.BipolDesignBasis?.snapshot?.() || projectSettings(); }
+    catch (_) { return root.BipolDesignBasis?.wizardBase?.() || projectSettings(); }
+  };
+
   // Wizard: apply the chosen suggestions and show where each value came from.
   async function applyInWizard(button, box, keys, assign) {
     const original = button.textContent;
@@ -303,7 +330,7 @@
     const field = id => document.getElementById(id)?.value;
     try {
       const data = await fetchSuggestions({aircraft_type: field('wiz_aircraft_type') || 'piston_ga',
-        engine_type: field('wiz_engine_type'), wing_configuration: field('wiz_wing_config')});
+        engine_type: field('wiz_engine_type'), wing_configuration: field('wiz_wing_config')}, wizardProject());
       latestWizardData = data;
       const used = keys.map(key => data.suggestions[key]).filter(s => s?.suggested_value != null);
       used.forEach(s => assign(s.key, s.suggested_value));
@@ -338,7 +365,7 @@
         aircraft_type: field('wiz_aircraft_type') || 'piston_ga',
         engine_type: field('wiz_engine_type'),
         wing_configuration: field('wiz_wing_config')
-      });
+      }, wizardProject());
       if (seq !== previewSeq) return;
       latestWizardData = data;
       const ar = data.suggestions?.ar;

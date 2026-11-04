@@ -163,9 +163,9 @@ class TestMalformedParameters:
         assert dih['suggested_value'] is not None
         assert math.isfinite(dih['suggested_value'])
 
-    @pytest.mark.parametrize("method", ["post", "put", "delete", "patch"])
+    @pytest.mark.parametrize("method", ["put", "delete", "patch"])
     def test_non_get_http_methods_rejected(self, client, method):
-        """Endpoint only allows GET; POST/PUT/DELETE must return 405 Method Not Allowed."""
+        """Endpoint allows GET and POST (project sample settings); PUT/DELETE/PATCH return 405."""
         func = getattr(client, method)
         res = func('/api/trends/suggestions?aircraft_type=piston_ga')
         assert res.status_code == 405

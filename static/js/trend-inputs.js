@@ -2,10 +2,10 @@
   'use strict';
   const direct = {ar:'aspect_ratio', vh:'v_h', v_h:'v_h', v_v:'v_v', dihedral_deg:'dihedral_deg',
     b_ail_ratio:'aileron_span_ratio', c_ail_ratio:'aileron_chord_ratio',
-    c_e_ratio:'elevator_chord_ratio', c_r_ratio:'rudder_chord_ratio', me_m0:'empty_mass_fraction'};
+    c_e_ratio:'elevator_chord_ratio', c_r_ratio:'rudder_chord_ratio'};
   function patch(key, value, params, mass, suggestion) {
-    // BIPOL_1, s. 4: eq. (1) of the trend analysis goes into the mass balance, not a fixed fraction.
-    if (key === 'me_m0' && suggestion?.apply) return {...suggestion.apply};
+    // BIPOL_1, s. 4: eq. (1) of the trend analysis always goes into the mass balance.
+    if (key === 'me_m0') return {empty_mass_model:'trend'};
     if (!Number.isFinite(value)) throw Error('Brak liczbowej propozycji.');
     if (key === 'ws') {
       if (!(value > 0 && mass > 0)) throw Error('Najpierw oblicz masę projektu.');
@@ -18,7 +18,6 @@
     const field = direct[key];
     if (!field) throw Error('Ten wynik służy do porównania; nie jest wejściem modelu.');
     const update = {[field]:value};
-    if (key === 'me_m0') Object.assign(update, {empty_mass_trend_A:null, empty_mass_trend_C:null});
     if (key === 'ar' && params.wing_input_mode === 'span_area') update.wing_input_mode='span_aspect';
     return update;
   }

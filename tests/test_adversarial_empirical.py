@@ -225,7 +225,7 @@ def test_api_zero_m0_behavior(client):
     assert res.status_code == 200
     data = res.get_json()
     assert data['m0'] is None
-    assert 'masa projektu jeszcze nieznana' in data['sample']['description']
+    assert 'wszystkie pasujące konstrukcje' in data['sample']['description']
 
 
 @pytest.mark.parametrize('bad_param', ['m0=-5', 'm0=-1e-15', 'm0=nan', 'm0=inf', 'm0=-inf', 'm0=text'])

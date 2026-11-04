@@ -27,7 +27,7 @@ PARAM = {
     'm_os': 'm_crew_person', 'H_cr': 'cruise_altitude_m', 'V_cr_kmh': 'cruise_speed_kmh', 'R_km': 'range_km',
     'V_min_kmh': 'v_stall_kmh', 's_L': 'landing_distance_m', 's_TO': 'takeoff_distance_m', 's_roz': 'takeoff_run_m',
     'w_y_wym': 'climb_rate_ms', 'R_pow': 'return_range_km', 'AR': 'aspect_ratio', 'e_1': 'oswald_e',
-    'Cx0_1': 'cx0', 'Cx0_baz': 'cx0', 'tc': 'tc_ratio', 'SFC': 'sfc', 'TSFC': 'sfc', 'eta_p': 'prop_efficiency',
+    'Cx0_1': 'cx0', 'tc': 'tc_ratio', 'SFC': 'sfc', 'TSFC': 'sfc', 'eta_p': 'prop_efficiency',
     'k_K': 'mission_ld_factor', 'r_TO': 'takeoff_mass_fraction', 'r_LND': 'landing_mass_fraction',
     'k_rez': 'fuel_reserve_factor', 'H_0': 'climb_start_altitude_m', 'V_0_kmh': 'climb_start_speed_kmh',
     't_ocz': 'loiter_time_min', 'V_ocz_kmh': 'loiter_speed_kmh', 't_zad': 'max_power_time_min',
@@ -86,6 +86,8 @@ def apply(params):
             result[SCALED[key][0]] = value * SCALED[key][1]
         elif key == 'P':
             result.update(power_input_mode='fixed', engine_power_kw=value)
+        elif key == 'Swet_S_szk':
+            result.update(wetted_example='sketch', sketch_swet_ratio=value)
     return result
 
 

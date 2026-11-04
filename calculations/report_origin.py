@@ -105,10 +105,9 @@ ORIGIN = {
     'AR': ('ass', 'wydłużenie przyjęte w koncepcji; porównanie z analizą trendów {tab:trend-suggestions}'),
     'AR_1': ('ass', 'wynika z zadanej rozpiętości i powierzchni skrzydła'),
     'e_1': ('ass', 'typowa wartość dla płata o umiarkowanym wydłużeniu, e ≈ 0,8 {lit:galinski_aw}'),
-    'Cx0_1': ('ass', 'wartość z przedziału typowego dla klasy samolotu {tab:cx0-classes}'),
-    'Cx0_baz': ('ass', 'wartość z przedziału typowego dla klasy samolotu {tab:cx0-classes}'),
-    'dCx0_konf': ('ass', 'dodatek oporu od elementów konfiguracji wymienionych w opisie koncepcji'),
-    'Swet_S_szk': ('calc', 'zmierzono na szkicu koncepcyjnym samolotu {fig:sketch}'),
+    'Cx0_1': ('calc', 'z biegunowej samolotu wyznaczonej w poprzedniej iteracji projektu'),
+    'Swet_S_szk': lambda e: (('calc', 'zmierzono na szkicu koncepcyjnym samolotu {fig:sketch}') if 'Szkic' in (e.get('source') or '')
+                             else ('ass', 'wartość dla układu najbliższego szkicowi {fig:sketch}, odczytana z zestawienia typowych układów {fig:swet-1}')),
     'Kmax_1': ('chart', 'odczyt z wykresu maksymalnej doskonałości w funkcji Λ/(S_wet/S) {fig:raymer}'),
     'tr_x1': ('chart', 'odczyt z linii trendu udziału masy pustej {fig:mass-trend}'),
     'tr_y1': ('chart', 'odczyt z linii trendu udziału masy pustej {fig:mass-trend}'),

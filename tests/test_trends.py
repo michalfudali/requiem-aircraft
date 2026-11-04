@@ -83,13 +83,38 @@ def test_degenerate_regressions_have_no_fictitious_fit(points, power):
 
 
 def test_cohort_respects_class_source_engine_count_and_manual_ids():
-    params = {'aircraft_type':'piston_ga','engine_type':'prop','trend_source':'cado','trend_engine_count':2,'trend_count':20}
-    rows = select_references(params,1200)
+    params = {'aircraft_type':'piston_ga','engine_type':'prop','trend_source':'cado','trend_engine_count':2,
+              'trend_nearest_count':20,'_reference_mass':1200}
+    rows = select_references(params)
     assert rows and all(r['aircraft_type']=='piston_ga' and r['source_id']=='cado' and r['n_engines']==2 for r in rows)
     ids = [r['id'] for r in rows[:3]]
-    chosen = select_references({**params,'trend_aircraft_ids':ids},1200)
+    chosen = select_references({**params,'trend_aircraft_ids':ids})
     assert {r['id'] for r in chosen} == set(ids)
-    assert select_references({**params,'trend_aircraft_ids':[]},1200) == []
+    assert select_references({**params,'trend_aircraft_ids':[]}) == []
+
+
+def test_similar_aircraft_are_the_nearest_in_mass_to_the_design():
+    from calculations import run_bipol_project
+    from calculations.presets import AIRCRAFT_PRESETS
+    from calculations.trends import SIMILAR_COUNT, design_reference
+    base = {'aircraft_type':'motoglider','engine_type':'prop'}
+    whole = select_references({**base,'_reference_mass':None})
+    # Projects saved before the change keep trend_count=50; only trend_nearest_count narrows the sample.
+    assert select_references({**base,'_reference_mass':None,'trend_count':50}) == whole
+    near = select_references({**base,'_reference_mass':700,'trend_nearest_count':20})
+    assert len(near) == 20 and set(r['id'] for r in near) <= set(r['id'] for r in whole)
+    # The design mass is the fixed point of the P1 balance with eq. (1) of its own sample.
+    r = run_bipol_project(dict(AIRCRAFT_PRESETS['motoglider_aos']))
+    reference = r['params']['_reference_mass']
+    sample = r['bipol_projects']['p1']['trend_analysis']['similar_aircraft']
+    assert len(sample) == SIMILAR_COUNT and reference == design_reference(r['params'], SIMILAR_COUNT)['mass']
+    pool = sorted((x for x in load_aircraft() if x['aircraft_type']=='motoglider' and x['engine_type']=='prop'),
+                  key=lambda x: (abs(math.log(x['m0']/reference)), x['id']))
+    assert [x['id'] for x in sample] == [x['id'] for x in pool[:SIMILAR_COUNT]]
+    # m0 only evaluates eq. (1): the same project parameters give the same sample.
+    a = analyze_trends({**base,'_reference_mass':reference}, 650, 400)
+    b = analyze_trends({**base,'_reference_mass':reference}, 900, 560)
+    assert a['sample'] == b['sample'] and a['suggestions']['ar']['suggested_value'] == b['suggestions']['ar']['suggested_value']
 
 
 def test_forecast_is_five_years_after_design_year_and_does_not_invent_production_dates():
@@ -121,7 +146,7 @@ def test_new_upstream_cohorts_never_fall_back_to_powered_ga(preset):
 
 
 def test_variable_sweep_factor_is_applied_only_to_project_prediction():
-    p={'aircraft_type':'piston_ga','engine_type':'prop'}
+    p={'aircraft_type':'piston_ga','engine_type':'prop','_reference_mass':1200}
     a=analyze_trends(p,1200,700)
     b=analyze_trends({**p,'variable_sweep':True},1200,700)
     assert a['mass_fit']==b['mass_fit']

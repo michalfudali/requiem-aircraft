@@ -213,13 +213,28 @@ def test_partial_cargo_bay_cannot_silently_disable_geometric_sizing(value):
 
 
 def test_entire_official_catalogue_has_finite_closed_numerical_starting_designs():
-    failures = []
+    failures, off_path = [], []
     for entry in ALL_TOPICS:
         result = run_bipol_project(entry['parameters'])
         json.dumps(result, allow_nan=False)
         if not result['design_iteration']['converged'] or not result['performance']['mission_range']['passed']:
             failures.append(entry['num'])
+        # Every topic follows the path of the BIPOL_1 guide: C_x0 from S_wet/S -> K_max (Fig. 2) ->
+        # eq. (3), compared with the typical values; eq. (1) from two points of the trend line of the
+        # one comparison sample of the P1 analysis; climb from the Corke chart.
+        pp, mass = result['mass']['preliminary_polar'], result['mass']
+        ta, law = result['bipol_projects']['p1']['trend_analysis'], mass['empty_mass_law']
+        corke = mass['mission_assumptions'].get('corke') or {}
+        on_path = (pp['mode'] == 'raymer' and pp['swet_ratio'] and pp['cx0_bounds']
+                   and pp['cx0'] == pytest.approx(math.pi * pp['aspect_ratio'] * pp['oswald_e'] / (4 * pp['kmax'] ** 2))
+                   and result['params']['cx0'] == pp['cx0']
+                   and law['mode'] == 'trend' and (law['A'], law['C']) == (ta['two_point']['A'], ta['two_point']['C'])
+                   and set(law['aircraft_ids']) <= {x['id'] for x in ta['similar_aircraft']}
+                   and (not corke or corke['mode'] == 'corke' and not corke['provisional']))
+        if not on_path:
+            off_path.append(entry['num'])
     assert not failures, f'Unclosed numerical catalogue seeds: {failures}'
+    assert not off_path, f'Topics off the guide path: {off_path}'
 
 
 @pytest.mark.parametrize('number', [23, 31, 68, 96])

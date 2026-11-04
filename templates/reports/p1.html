@@ -1,33 +1,40 @@
 {% import 'reports/calc.html' as c %}
 {% set bp=res.mass.preliminary_polar %}
-<p>Zadaniem projektu koncepcyjnego jest wybór układu samolotu spełniającego wymagania tematu{{ xref('tab-requirements') }} oraz określenie parametrów wyjściowych do dalszego wymiarowania: wydłużenia skrzydła, szacunkowej biegunowej i zależności masy własnej od masy startowej. Parametry dobrano na podstawie analizy samolotów o podobnym przeznaczeniu {{ cite('galinski_aw') }}.</p>
+<p>W projekcie koncepcyjnym wybrano układ samolotu spełniający wymagania zadania projektowego{{ xref('tab-requirements') }} oraz wyznaczono wyjściowe parametry geometryczne, masowe i aerodynamiczne na podstawie analizy konstrukcji porównawczych {{ cite('galinski_aw') }}.</p>
 <h3>Koncepcja samolotu</h3>
 {% for paragraph in doc.concept %}<p>{{ paragraph }}</p>{% endfor %}
-<figure id="fig-sketch">{{ report_sketch(res, dimensions=False) }}<figcaption>Szkic koncepcyjny samolotu w trzech rzutach (proporcje orientacyjne; wymiary wyznacza się w kolejnych projektach).</figcaption></figure>
-<p>Układ samolotu — położenie skrzydła względem kadłuba, usterzenia, zespół napędowy i podwozie — przedstawiono na{{ xref('fig-sketch', ' ', '') }}.</p>
+<figure id="fig-sketch">{{ report_sketch(res, dimensions=False) }}<figcaption>Szkic koncepcyjny samolotu w trzech rzutach.</figcaption></figure>
+<p>Układ samolotu przedstawiono na szkicu koncepcyjnym{{ xref('fig-sketch') }}.</p>
 {% if doc.predecessors %}
 <h4>Porównanie z samolotami podobnymi</h4>
-<p>Wybór najważniejszych parametrów miał zapewnić samolot o własnościach nie gorszych niż u poprzedników. W tabeli zestawiono przyjęte wartości z wartościami wynikającymi z analizy trendów{{ xref('tab-trend-suggestions') }}.</p>
+<p>Główne parametry wyjściowe zestawiono z wynikami analizy trendów statystycznych samolotów danej klasy{{ xref('tab-trend-suggestions') }}.</p>
 <table class="compact-table" id="tab-predecessors"><caption>Najważniejsze parametry projektu na tle samolotów podobnych</caption><thead><tr><th>Parametr</th><th class="number">Projekt</th><th class="number">Analiza trendów</th><th class="number">Różnica [%]</th><th>Podstawa porównania</th></tr></thead><tbody>
 {% for row in doc.predecessors %}<tr><td>{{ row.label|subs }}{% if row.unit != '—' %} [{{ row.unit }}]{% endif %}</td><td class="number">{{ row.project|reportnum(row.digits) }}</td><td class="number">{{ row.reference|reportnum(row.digits) }}</td><td class="number">{{ row.delta|reportnum(1) }}</td><td>{{ row.method|replace('Równanie (1): ', '') }}</td></tr>{% endfor %}
 </tbody></table>
-<p>Większe wydłużenie zmniejsza opór indukowany i poprawia doskonałość, mniejszy udział masy pustej zwiększa masę użyteczną przy tej samej masie startowej, a obciążenie powierzchni wynika z kompromisu między prędkością przeciągnięcia a oporem w przelocie. Ostateczne wartości obciążeń powierzchni i mocy wyznaczono w studium wykonalności.</p>
+<p>Przyjęte wydłużenie skrzydła oraz szacunkowy udział masy własnej zapewniają wymaganą doskonałość aerodynamiczną i korzystną masę użyteczną. Szczegółowe obciążenia powierzchni i napędu wyznaczono w studium wykonalności.</p>
 {% endif %}
 <h3>Masa załogi i masa płatna</h3>
 {{ c.section(sheet, 'p1.load') }}
 {% include 'trend_report.html' %}
 {% if sheet.section_entries('p1.trend') %}
 <h3>Współczynniki zależności masy własnej od masy startowej</h3>
-<p>Współczynniki A i C zależności \(m_e/m_0=A\,m_0^{C}K_{vs}\) wyznaczono z dwóch punktów odczytanych z linii trendu{{ xref('fig-mass-trend') }}; punkty zaznaczono na wykresie.</p>
+<p>Współczynniki \(A\) i \(C\) potęgowej zależności masy własnej \(m_e/m_0=A\,m_0^{C}K_{vs}\) wyznaczono na podstawie dwóch punktów linii trendu{{ xref('fig-mass-trend') }}.</p>
 {{ c.section(sheet, 'p1.trend') }}
 {% endif %}
 <h3>Szacunkowa biegunowa analityczna</h3>
-<p>Biegunową samolotu przyjęto w postaci parabolicznej \(C_x=C_{x0}+C_z^2/(\pi\Lambda e)\) {{ cite('galinski_aw') }}. {% if bp.mode == 'input' %}Opór zerowy przyjęto z przedziału typowego dla klasy samolotu{{ xref('tab-cx0-classes') }}, a maksymalną doskonałość obliczono z oporu zerowego.{% else %}Stosunek powierzchni omywanej do nośnej zmierzono na szkicu koncepcyjnym{{ xref('fig-sketch') }}, maksymalną doskonałość odczytano z wykresu w funkcji wydłużenia odniesionego do powierzchni omywanej{{ xref('fig-raymer') }} {{ cite('raymer') }}, a opór zerowy obliczono z maksymalnej doskonałości.{% endif %} Przyjęty opór zerowy {% if bp.cx0_in_range %}mieści się{% else %}nie mieści się{% endif %} w przedziale {{ bp.cx0_bounds[0]|reportnum(3) }}–{{ bp.cx0_bounds[1]|reportnum(3) }} typowym dla tej klasy samolotów{% if not bp.cx0_in_range %}, co wynika z cech konfiguracji opisanych wyżej{% endif %}. Biegunową przedstawiono na{{ xref('fig-polar-1', ' ', '') }}; jest ona podstawą bilansu masy i wykresu doboru w studium wykonalności.</p>
-<table class="compact-table" id="tab-cx0-classes"><caption>Typowe wartości współczynnika oporu zerowego {{ cite('galinski_aw') }}</caption><thead><tr><th>Rodzaj samolotu</th><th class="number">C<sub>x0</sub></th></tr></thead><tbody>
-{% for row in charts.cx0_classes() %}<tr{% if (row.low, row.high) == (bp.cx0_bounds[0], bp.cx0_bounds[1]) %} class="highlight"{% endif %}><td>{{ row.label }}{% if (row.low, row.high) == (bp.cx0_bounds[0], bp.cx0_bounds[1]) %} — klasa projektowanego samolotu{% endif %}</td><td class="number">{{ row.low|reportnum(3) }}–{{ row.high|reportnum(3) }}</td></tr>{% endfor %}
-</tbody></table>
-{% if bp.mode != 'input' and bp.get('wetted_aspect_ratio') and params.get('raymer_family') %}
-<figure id="fig-raymer">{{ charts.raymer_chart(params.raymer_family, bp.wetted_aspect_ratio, bp.kmax) }}<figcaption>Maksymalna doskonałość w funkcji wydłużenia odniesionego do powierzchni omywanej, krzywa dla grupy: {{ charts.RAYMER_LABELS.get(params.raymer_family, params.raymer_family) }} (wg Raymera {{ cite('raymer') }}). Zaznaczono odczyt dla \(\Lambda/(S_{wet}/S)={{ bp.wetted_aspect_ratio|texnum(2) }}\).</figcaption></figure>
+<p>Szacunkową biegunową samolotu przyjęto w postaci parabolicznej \(C_x=C_{x0}+C_z^2/(\pi\Lambda e)\) przy wydłużeniu \(\Lambda={{ bp.aspect_ratio|texnum(2) }}\) i współczynniku Oswalda \(e={{ bp.oswald_e|texnum(2) }}\) {{ cite('galinski_aw') }}. {% if bp.mode == 'input' %}Współczynnik oporu zerowego przyjęto z poprzedniej iteracji obliczeń.{% else %}Współczynnik oporu zerowego oszacowano na podstawie powierzchni omywanej i maksymalnej doskonałości aerodynamicznej wg korelacji Raymera {{ cite('raymer') }}.{% endif %}</p>
+{% if bp.mode != 'input' %}
+<h4>Stosunek powierzchni omywanej do powierzchni odniesienia</h4>
+<p>{% if bp.wetted_example == 'sketch' %}Stosunek powierzchni omywanej do nośnej \(S_{wet}/S={{ bp.swet_ratio|texnum(2) }}\) wyznaczono ze szkicu koncepcyjnego{{ xref('fig-sketch') }}{{ xref('fig-swet-1') }}.{% else %}Dla przyjętego układu konstrukcyjnego ({{ bp.wetted_example_label }}) przyjęto stosunek powierzchni omywanej do nośnej \(S_{wet}/S={{ bp.swet_ratio|texnum(2) }}\) {{ cite('raymer') }}{{ xref('fig-swet-1') }}.{% endif %}</p>
+<figure id="fig-swet-1">{{ charts.swet_scale_chart(bp.swet_ratio, bp.wetted_example) }}<figcaption>Stosunek powierzchni omywanej do powierzchni odniesienia różnych układów samolotów (wg Raymera {{ cite('raymer') }}){% if bp.wetted_example != 'sketch' %}; wyróżniono układ, dla którego przyjęto wartość projektu{% endif %}.</figcaption></figure>
+<h4>Maksymalna doskonałość</h4>
+<p>Wydłużenie zredukowane do powierzchni omywanej wynosi \(\Lambda_{wet}=\Lambda/(S_{wet}/S)={{ bp.wetted_aspect_ratio|texnum(2) }}\). Z krzywej korelacyjnej dla grupy „{{ bp.raymer_family_label }}”{{ xref('fig-raymer') }} {{ cite('raymer') }} odczytano maksymalną doskonałość \(K_{max}={{ bp.kmax|texnum(1) }}\){% if bp.extrapolated %} (ekstrapolacja \(K_{max}\propto\sqrt{\Lambda_{wet}}\) poza zakres {{ bp.raymer_range[0]|reportnum(1) }}–{{ bp.raymer_range[1]|reportnum(1) }}){% endif %}.</p>
+<figure id="fig-raymer">{{ charts.raymer_chart(bp.raymer_family, bp.wetted_aspect_ratio, bp.kmax, bp.extrapolated) }}<figcaption>Maksymalna doskonałość w funkcji wydłużenia odniesionego do powierzchni omywanej, krzywa dla grupy: {{ bp.raymer_family_label }} (wg Raymera {{ cite('raymer') }}). Zaznaczono odczyt dla \(\Lambda_{wet}={{ bp.wetted_aspect_ratio|texnum(2) }}\){% if bp.extrapolated %}; linia przerywana — przedłużenie krzywej poza zakres wykresu{% endif %}.</figcaption></figure>
+<h4>Opór zerowy</h4>
 {% endif %}
 {{ c.section(sheet, 'p1.polar') }}
+<p>Wyznaczony współczynnik oporu zerowego \(C_{x0}={{ bp.cx0|texnum(4) }}\) {% if bp.cx0_in_range %}mieści się w typowym przedziale {{ bp.cx0_bounds[0]|reportnum(3) }}–{{ bp.cx0_bounds[1]|reportnum(3) }} dla klasy „{{ charts.CX0_LABELS[bp.cx0_class] }}”{{ xref('tab-cx0-classes') }}.{% else %}odbiega od typowego zakresu {{ bp.cx0_bounds[0]|reportnum(3) }}–{{ bp.cx0_bounds[1]|reportnum(3) }} dla klasy „{{ charts.CX0_LABELS[bp.cx0_class] }}”{{ xref('tab-cx0-classes') }} ({% if bp.cx0_deviation < 0 %}o {{ (-100 * bp.cx0_deviation)|reportnum(0) }}% poniżej dolnej granicy{% else %}o {{ (100 * bp.cx0_deviation)|reportnum(0) }}% powyżej górnej granicy{% endif %}); wartość tę przyjęto do dalszych etapów jako szacunek wyjściowy.{% endif %} Wykres szacunkowej biegunowej przedstawiono na{{ xref('fig-polar-1', ' ', '') }}.</p>
+<table class="compact-table" id="tab-cx0-classes"><caption>Typowe wartości współczynnika oporu zerowego {{ cite('galinski_aw') }}</caption><thead><tr><th>Rodzaj samolotu</th><th class="number">C<sub>x0</sub></th></tr></thead><tbody>
+{% for row in charts.cx0_classes() %}<tr{% if row.key == bp.cx0_class %} class="highlight"{% endif %}><td>{{ row.label }}{% if row.key == bp.cx0_class %} — klasa projektowanego samolotu{% endif %}</td><td class="number">{{ row.low|reportnum(3) }}–{{ row.high|reportnum(3) }}</td></tr>{% endfor %}
+</tbody></table>
 <figure id="fig-polar-1">{{ charts.preliminary_polar_chart(bp.cx0, 1 / (3.141592653589793 * bp.aspect_ratio * bp.oswald_e), params.cz_max_clean) }}<figcaption>Szacunkowa biegunowa analityczna samolotu \(C_x=C_{x0}+k\,C_z^2\) (oś \(C_z\) skierowana w dół). Zaznaczono opór zerowy oraz punkt największej doskonałości, w którym biegunowa jest styczna do prostej poprowadzonej z początku układu.</figcaption></figure>

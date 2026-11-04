@@ -3,7 +3,7 @@
   'use strict';
   const {escape: esc, format: fmt, csv, filename} = BipolStudio;
   const $ = id => document.getElementById(id);
-  const defaults = {trend_source:'all', trend_count:50, trend_engine_count:0, trend_year_min:0, trend_year_max:0,
+  const defaults = {trend_source:'all', trend_nearest_count:50, trend_engine_count:0, trend_year_min:0, trend_year_max:0,
     trend_weighting:'family', mission_phase_model:'galinski', fuel_reserve_factor:1.06, mission_ld_factor:0.94};
   let result, catalog, catalogPromise, page = 0, selected = new Set(), visible = [];
   let latestSuggestions = null;
@@ -106,7 +106,7 @@
     if(!s) return false;
     // The alternative (sample mean) of eq. (1) is a fixed fraction, not the trend equation.
     const patch=BipolTrendInputs.patch(key,value??s.suggested_value,collectFormData(),currentResults?.mass?.m0,value==null?s:null);
-    if(key==='me_m0') patch.empty_mass_model='class_correlation';
+    if(key==='me_m0') patch.empty_mass_model='trend';
     const previous={};
     for(const [field,fieldValue] of Object.entries(patch)) {
       previous[field]={base:formBaseParams[field],input:$(field)?.value};
@@ -280,7 +280,7 @@
       // Search only affects visibility; keep all checked aircraft in this class.
       const ids=[...selected].filter(id=>catalog.aircraft.some(r=>r.id===id&&r.aircraft_type===result.params.aircraft_type&&r.engine_type===result.params.engine_type));
       if(!ids.length){status('Zaznacz przynajmniej jedną konstrukcję.',true);return;}
-      formBaseParams.trend_aircraft_ids=ids;$('trend_count').value='0';performCalculation();
+      formBaseParams.trend_aircraft_ids=ids;$('trend_nearest_count').value='0';performCalculation();
     });
     $('trendSearch').addEventListener('input',()=>{page=0;renderCatalog();});
     $('trendCatalogScope').addEventListener('change',()=>{page=0;renderCatalog();});
@@ -318,13 +318,10 @@
     // Obsługa panelu sugestii parametrów
     $('btnApplyAllTrendSuggestions')?.addEventListener('click', applyAllKeySuggestions);
     $('trendResetMassModel')?.addEventListener('click',async()=>{
-      delete formBaseParams.empty_mass_fraction;
-      formBaseParams.empty_mass_model='class_correlation';
-      if($('empty_mass_model'))$('empty_mass_model').value='class_correlation';
-      delete formBaseParams.empty_mass_trend_A;
-      delete formBaseParams.empty_mass_trend_C;
+      formBaseParams.empty_mass_model='trend';
+      if($('empty_mass_model'))$('empty_mass_model').value='trend';
       await performCalculation();
-      $('trendSuggestionsStatus').textContent='Przywrócono korelację masy pustej dla klasy samolotu.';
+      $('trendSuggestionsStatus').textContent='Masa pusta: równanie (1) z linii trendu próby porównawczej.';
     });
     $('trendSuggestionsRows')?.addEventListener('click', event => {
       const why = event.target.closest('.trend-why-btn');

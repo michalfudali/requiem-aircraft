@@ -3,8 +3,10 @@
 {% set corke = res.mass.mission_assumptions.corke %}
 {% if fid == 'corke' and corke and corke.get('mach_start') %}
 <figure id="fig-corke">{{ charts.corke_chart(corke) }}<figcaption>Stosunek mas w funkcji liczby Macha dla wznoszenia i rozpędzania (wykres Corke’a {{ cite('corke') }}) z odczytami dla M<sub>p</sub> i M<sub>k</sub>.</figcaption></figure>
-{% elif fid == 'raymer' and bp.get('wetted_aspect_ratio') and params.get('raymer_family') %}
-<figure id="fig-raymer">{{ charts.raymer_chart(params.raymer_family, bp.wetted_aspect_ratio, bp.kmax) }}<figcaption>Maksymalna doskonałość w funkcji wydłużenia odniesionego do powierzchni omywanej (wg Raymera {{ cite('raymer') }}) z zaznaczonym odczytem.</figcaption></figure>
+{% elif fid == 'raymer' and bp.get('wetted_aspect_ratio') and bp.get('raymer_family') %}
+<figure id="fig-raymer">{{ charts.raymer_chart(bp.raymer_family, bp.wetted_aspect_ratio, bp.kmax, bp.extrapolated) }}<figcaption>Maksymalna doskonałość w funkcji wydłużenia odniesionego do powierzchni omywanej, krzywa dla grupy: {{ bp.raymer_family_label }} (wg Raymera {{ cite('raymer') }}) z zaznaczonym odczytem{% if bp.extrapolated %}; linia przerywana — przedłużenie krzywej poza zakres wykresu{% endif %}.</figcaption></figure>
+{% elif fid == 'swet-1' and bp.get('swet_ratio') %}
+<figure id="fig-swet-1">{{ charts.swet_scale_chart(bp.swet_ratio, bp.wetted_example) }}<figcaption>Stosunek powierzchni omywanej do powierzchni odniesienia różnych układów samolotów (wg Raymera {{ cite('raymer') }}) z wartością przyjętą dla projektu.</figcaption></figure>
 {% elif fid == 'mass-trend' and ta.mass_fit %}
 <figure id="fig-mass-trend">{{ trend_chart(ta, 'mass', [(tp.x1, tp.y1, 'punkt 1'), (tp.x2, tp.y2, 'punkt 2')] if tp else []) }}<figcaption>Udział masy pustej w funkcji masy startowej samolotów podobnych z linią trendu; zaznaczono punkty odczytane z linii trendu.</figcaption></figure>
 {% elif fid == 'schrenk' %}

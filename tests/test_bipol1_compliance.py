@@ -13,6 +13,7 @@ from calculations.preliminary import (
     BIPOL_1_CX0_TABLE
 )
 from calculations.presets import AIRCRAFT_PRESETS
+from calculations.validation import validate_parameters
 from calculations import run_bipol_project
 
 
@@ -106,22 +107,17 @@ class TestBipol1MassSizing:
         assert it['residual_relative'] < 0.001
 
     def test_trend_regression_coefficients_feed_mass_solver(self):
-        """Współczynniki regresji A, C i Kvs (BIPOL_1 eq. 1) dynamicznie zasilają solver masy."""
-        params = dict(AIRCRAFT_PRESETS['ga_trainer'])
-        # Podajemy własne współczynniki trendu z analizy
-        params['empty_mass_trend_A'] = 0.95
-        params['empty_mass_trend_C'] = -0.055
-        params['variable_sweep'] = True
-
+        """Współczynniki A, C (dwa punkty linii trendu próby) i Kvs (BIPOL_1 wzór 1) zasilają bilans masy."""
+        from calculations.trends import empty_mass_trend
+        params = validate_parameters(dict(AIRCRAFT_PRESETS['ga_trainer'], variable_sweep=True,
+                                          empty_mass_trend_A=0.95, empty_mass_trend_C=-0.055))
         res = calculate_mass_sizing(params)
+        _, _, points = empty_mass_trend(params)
 
-        assert res['empty_mass_model'] == 'bipol1_trend'
-        assert res['empty_mass_trend'] == {'A': 0.95, 'C': -0.055, 'k_vs': 1.04}
-
-        # Sprawdzenie czy udział masy pustej odpowiada formule A * m0^C * Kvs
+        assert res['empty_mass_model'] == 'trend'
+        assert res['empty_mass_trend'] == {'A': points['A'], 'C': points['C'], 'k_vs': 1.04}
         m0 = res['m0']
-        expected_share = 0.95 * (m0 ** -0.055) * 1.04
-        assert abs(res['empty_fraction'] - expected_share) < 1e-3
+        assert res['empty_fraction'] == pytest.approx(points['A'] * m0 ** points['C'] * 1.04, abs=1e-4)
 
 
 class TestBipol1CorkeClimb:

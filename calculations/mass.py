@@ -602,6 +602,16 @@ def estimate_component_masses(
     }
 
 
+def mission_loads(params: dict):
+    """Parametry z liczbą osób, masa ładunku i masa załogi do bilansu masy (kg)."""
+    unmanned = is_unmanned(params)
+    n_pax = 0 if unmanned else int(params.get("n_pax", 4))
+    n_crew = 0 if unmanned else int(params.get("n_crew", 1 if n_pax <= 4 else 2))
+    payload = n_pax * (params.get("m_pax", 80) + params.get("m_bag", 0)) + params.get("m_cargo", 0)
+    crew = n_crew * params.get("m_crew_person", 90)
+    return dict(params, n_pax=n_pax, n_crew=n_crew), payload, crew
+
+
 def calculate_mass_sizing(params: dict) -> dict:
     """Perform preliminary mass sizing and component mass allocation.
 
@@ -612,11 +622,8 @@ def calculate_mass_sizing(params: dict) -> dict:
     engine_type = params.get("engine_type", "prop")
     wing_config = params.get("wing_config", "low")
     unmanned = is_unmanned(params)
-    n_pax = 0 if unmanned else int(params.get("n_pax", 4))
-    n_crew = 0 if unmanned else int(params.get("n_crew", 1 if n_pax <= 4 else 2))
-    payload = n_pax * (params.get("m_pax", 80) + params.get("m_bag", 0)) + params.get("m_cargo", 0)
-    crew = n_crew * params.get("m_crew_person", 90)
-    p = dict(params, n_pax=n_pax, n_crew=n_crew)
+    p, payload, crew = mission_loads(params)
+    n_pax, n_crew = p["n_pax"], p["n_crew"]
     result = solve_mass(p, payload, crew)
     m_empty = result["m_empty"]
     m0 = result["m0"]
@@ -702,7 +709,7 @@ def calculate_mass_sizing(params: dict) -> dict:
     law = result["empty_mass_law"]
     result["empty_mass_trend"] = (
         {k: law[k] for k in ("A", "C", "k_vs")}
-        if law["mode"] in ("trend", "coefficients", "two_point", "bipol1_trend")
+        if law["mode"] in ("trend", "two_point")
         else None
     )
     result["sizing_methods"] = {}

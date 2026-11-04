@@ -53,7 +53,15 @@ def test_horizontal_tail_is_sized_for_the_minimum_static_margin():
 
 
 def test_two_seat_ultralight_fits_the_ul_mass_limit():
-    r = run_bipol_project(topic(17))
+    # BIPOL_1, eq. (1) from the trend line of similar aircraft. The database holds certified light
+    # aircraft (mₑ/m₀ ≈ 0,63), so its sample cannot meet the UL limit and the program says so.
+    database = run_bipol_project(topic(17))
+    assert database['mass']['empty_mass_law']['mode'] == 'trend' and database['mass']['m0'] > 600
+    assert [c['name'] for c in database['easa_compliance']['checks']
+            if c['severity'] != 'warning' and not c['ok']] == ['Maksymalna masa startowa MTOM']
+    # Two points read from the trend line of ultralights (mₑ/m₀ 0,53 at 450 kg, 0,51 at 600 kg).
+    r = run_bipol_project(topic(17, empty_mass_model='two_point', mass_point_x1=450, mass_point_y1=.53,
+                                mass_point_x2=600, mass_point_y2=.51))
     assert r['mass']['m0'] <= 600
     assert .48 <= r['mass']['empty_fraction'] <= .56
     assert all(c['ok'] for c in r['easa_compliance']['checks'] if c['severity'] != 'warning')

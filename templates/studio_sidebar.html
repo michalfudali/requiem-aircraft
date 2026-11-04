@@ -1,12 +1,22 @@
 <aside id="studioSidebar" class="studio-sidebar" aria-label="Nawigacja pracowni">
   <a href="#" class="studio-brand" data-studio-home><span data-studio-icon="plane"></span><span>BiPOL <b>Requiem</b></span></a>
+  <div class="studio-portal-toggle-bar" role="group" aria-label="Tryb pracy">
+    <button type="button" id="btnModeHolistic" class="portal-toggle-btn active" onclick="setPortalMode('holistic')" title="Całościowe Studio CAD/CAE">
+      <span data-studio-icon="plane"></span>
+      <span>Studio CAE</span>
+    </button>
+    <button type="button" id="btnModeProjects" class="portal-toggle-btn" onclick="setPortalMode('projects')" title="Projekty Semestralne P1–P6 MEiL PW">
+      <span data-studio-icon="check"></span>
+      <span>Projekty P1–P6</span>
+    </button>
+  </div>
   <p class="studio-sidebar-caption">TWÓJ PROJEKT</p>
   <nav aria-label="Projekt">
     {% for target, icon, label in [('tab-overview','grid','Podsumowanie'),('tab-inputs','settings','Założenia projektu'),('tab-trends','chart','Samoloty i trendy'),('tab-cad','layers','Rysunek samolotu'),('tab-variants','compare','Porównaj warianty'),('tab-reports','file','Raport i eksport')] %}
     <button type="button" class="studio-nav-item{% if target == 'tab-overview' %} active{% endif %}" data-studio-nav="{{ target }}"><span data-studio-icon="{{ icon }}"></span><span>{{ label }}</span></button>
     {% endfor %}
     <button type="button" class="studio-nav-item" data-studio-nav="tab-calculation-tree"><span data-studio-icon="layers"></span><span>Drzewo obliczeń</span></button>
-    <details class="quiet-nav-group" id="analysisNavigation" open><summary>Analizy szczegółowe</summary>
+    <details class="quiet-nav-group" id="analysisNavigation"><summary>Analizy szczegółowe</summary>
       {% for target, icon, label in [('tab-p1-p2','target','Masy i napęd'),('tab-p3','wing','Geometria i wyważenie'),('tab-p4','chart','Aerodynamika'),('tab-p5','clock','Osiągi'),('tab-glide','glider','Lot szybowy'),('tab-p6','shield','Obwiednia obciążeń'),('tab-compliance','check','Weryfikacja')] %}
       <button type="button" class="studio-nav-item" data-studio-nav="{{ target }}"><span data-studio-icon="{{ icon }}"></span><span>{{ label }}</span></button>
       {% endfor %}
@@ -18,10 +28,6 @@
       <button type="button" class="studio-nav-item" data-studio-nav="{{ target }}"><span data-studio-icon="{{ icon }}"></span><span>{{ label }}</span></button>
       {% endfor %}
     </details>
-    <div style="display:none;" aria-hidden="true">
-      <button type="button" id="btnModeProjects" onclick="setPortalMode('projects')"></button>
-      <button type="button" id="btnModeHolistic" onclick="setPortalMode('holistic')"></button>
-    </div>
   </nav>
   <div class="studio-sidebar-foot"><strong>PW / MEiL</strong><p>Pracownia projektowa</p></div>
 </aside>

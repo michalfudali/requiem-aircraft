@@ -24,7 +24,7 @@ NUMERIC_LIMITS = {
     "flap_span_ratio": (0.05, 0.98), "flap_chord_ratio": (0.05, 0.50),
     "aileron_span_ratio": (0.05, 0.90), "aileron_chord_ratio": (0.05, 0.45),
     "vmo_kcas": (1, 1000), "mmo": (0.01, 2),
-    "trend_count": (0, 716), "trend_engine_count": (0, 8),
+    "trend_count": (0, 716), "trend_nearest_count": (0, 716), "trend_engine_count": (0, 8),
     "trend_year_min": (0, 2100), "trend_year_max": (0, 2100),
     "fuel_reserve_factor": (1, 1.5), "mission_ld_factor": (0.5, 1),
     "wing_area_m2": (0, 1000), "engine_power_kw": (0, 100000),
@@ -77,13 +77,13 @@ DEFAULTS = {
     "mission_phase_model": "galinski", "mission_ld_factor": CRUISE_LD_FACTOR,
     "gear_attachment": "fuselage",
     "takeoff_distance_m": 0, "landing_distance_m": 0,
-    "mass_method": "auto", "empty_mass_model": "class_correlation",
+    "mass_method": "auto", "empty_mass_model": "trend",
     "mass_initial_guess": 5000, "payload_drop_kg": 0, "return_range_km": 0,
     "design_iteration_mode": "preliminary", "operating_surface": "land", "runway_surface": "paved",
     "cs22_gust_model": "amendment3",
     "profile_thickness_mode": "auto", "tc_ratio": 0.12,
     "cargo_bay_length_m": 0, "cargo_bay_width_m": 0, "cargo_bay_height_m": 0,
-    "max_power_time_min": 0, "preliminary_polar_mode": "input",
+    "max_power_time_min": 0, "preliminary_polar_mode": "raymer",
     "climb_fraction_mode": "auto", "trend_year_basis": "certification",
 }
 
@@ -180,7 +180,7 @@ def validate_parameters(data):
     for key in ('turbocharged', 'retractable_gear'):
         if key in p and not isinstance(p[key], bool):
             raise ValueError(f'Pole {key}: wymagana wartość logiczna.')
-    for key in ('trend_count', 'trend_engine_count', 'trend_year_min', 'trend_year_max'):
+    for key in ('trend_count', 'trend_nearest_count', 'trend_engine_count', 'trend_year_min', 'trend_year_max'):
         if key in p and not float(p[key]).is_integer():
             raise ValueError(f'Pole {key}: wymagana liczba całkowita.')
     for key, allowed in {'trend_source': ('all', 'fast', 'cado', 'motogliders', 'geometry_trends', 'user'),
@@ -235,6 +235,23 @@ def validate_parameters(data):
     p['mission_phase_model'] = 'galinski'
     p['flap_takeoff_deg'] = FLAP_TAKEOFF_DEFLECTION_DEG
     p['flap_landing_deg'] = FLAP_LANDING_DEFLECTION_DEG
+    # BIPOL_1, s. 2–3: C_x0 of project 1 comes from S_wet/S, Fig. 2 and equation (3). A typed C_x0
+    # remains only for the next iteration with the P4 polar (preliminary_polar_includes_configuration).
+    if p['preliminary_polar_mode'] == 'input' and not p.get('preliminary_polar_includes_configuration'):
+        p['preliminary_polar_mode'] = 'raymer'
+        p.pop('wetted_example', None)
+    elif p['preliminary_polar_mode'] in ('raymer', 'reading') and 'wetted_example' not in data and 'sketch_swet_ratio' in data:
+        # Earlier projects measured S_wet/S on the sketch.
+        p['wetted_example'] = 'sketch'
+    # Masa odniesienia próby wynika z obliczeń, nigdy z zapisanych parametrów.
+    for key in ('_reference_mass', '_reference', '_similar_count'):
+        p.pop(key, None)
+    # BIPOL_1, s. 1 i 4: masa pusta z równania (1) analizy trendów; wcześniejsze modele
+    # (korelacja klasy, stały udział, własne A i C) nie należą do ścieżki projektu.
+    if p.get('empty_mass_model') != 'two_point':
+        p['empty_mass_model'] = 'trend'
+    for key in ('empty_mass_trend_A', 'empty_mass_trend_C', 'empty_mass_fraction', 'empty_mass_a', 'empty_mass_c'):
+        p.pop(key, None)
     from calculations.bipol1 import validate_bipol1
     validate_bipol1(p)
     if 'trend_observations' in p:

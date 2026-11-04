@@ -80,31 +80,28 @@ def test_forecast_outside_every_similar_aircraft_falls_back_to_the_mean():
 
 
 def test_empty_mass_suggestion_inserts_equation_one_into_the_mass_balance():
-    preset = AIRCRAFT_PRESETS['regional_turboprop']
-    me = run_bipol_project(preset)['bipol_projects']['p1']['trend_analysis']['suggestions']['me_m0']
-    apply = me['apply']
-    assert apply['empty_mass_fraction'] is None and apply['empty_mass_trend_C'] < 0
-    params = {**preset, 'empty_mass_trend_A': apply['empty_mass_trend_A'],
-              'empty_mass_trend_C': apply['empty_mass_trend_C'], 'variable_sweep': True}
-    mass = calculate_mass_sizing(validate_parameters(params))
-    assert mass['empty_mass_model'] == 'bipol1_trend'
-    expected = apply['empty_mass_trend_A'] * mass['m0'] ** apply['empty_mass_trend_C'] * 1.04
+    # BIPOL_1, s. 1 and 4: A and C of the P1 trend line are the ones of the mass balance.
+    r = run_bipol_project({**AIRCRAFT_PRESETS['regional_turboprop'], 'variable_sweep': True})
+    ta, mass = r['bipol_projects']['p1']['trend_analysis'], r['mass']
+    assert ta['mass_trend_decreasing'] and ta['suggestions']['me_m0']['apply']['empty_mass_trend_C'] < 0
+    assert mass['empty_mass_model'] == 'trend'
+    assert (mass['empty_mass_law']['A'], mass['empty_mass_law']['C']) == (ta['two_point']['A'], ta['two_point']['C'])
+    expected = ta['two_point']['A'] * mass['m0'] ** ta['two_point']['C'] * 1.04
     assert mass['empty_fraction'] == pytest.approx(expected, abs=1e-4)
 
 
-def test_rising_empty_mass_trend_is_explained_when_equation_five_has_no_solution(ga):
-    apply = ga['bipol_projects']['p1']['trend_analysis']['suggestions']['me_m0']['apply']
-    assert apply['empty_mass_trend_C'] > 0
-    # A positive C alone does not prove absence of a root. Force an
-    # impossible law (me/m0 > 1 throughout the admissible mass interval).
-    params = {**AIRCRAFT_PRESETS['ga_trainer'], 'empty_mass_trend_A': 20,
-              'empty_mass_trend_C': apply['empty_mass_trend_C']}
+def test_rising_empty_mass_trend_is_explained_when_equation_five_has_no_solution():
+    # A positive C alone does not prove absence of a root. Force an impossible law read from
+    # the chart (me/m0 plus fuel above 1 throughout the admissible mass interval).
+    params = {**AIRCRAFT_PRESETS['ga_trainer'], 'empty_mass_model': 'two_point', 'mass_point_x1': 1000,
+              'mass_point_y1': .95, 'mass_point_x2': 2000, 'mass_point_y2': .97}
     with pytest.raises(ValueError, match=r'Równanie \(1\).*C < 0'):
         calculate_mass_sizing(validate_parameters(params))
 
 
 def test_equation_one_is_not_clamped_in_the_mass_balance():
-    params = {**AIRCRAFT_PRESETS['ga_trainer'], 'empty_mass_trend_A': 0.3, 'empty_mass_trend_C': 0.0}
+    params = {**AIRCRAFT_PRESETS['ga_trainer'], 'empty_mass_model': 'two_point', 'mass_point_x1': 1000,
+              'mass_point_y1': .3, 'mass_point_x2': 2000, 'mass_point_y2': .3}
     assert calculate_mass_sizing(validate_parameters(params))['empty_fraction'] == pytest.approx(0.3)
 
 
@@ -151,3 +148,19 @@ def test_wizard_trend_charts_payload_and_dom_containers(client):
     assert charts['vh']['kind'] == 'mean' and len(charts['vh']['points']) >= 10
     glider = client.get('/api/trends/suggestions?aircraft_type=glider').get_json()['charts']
     assert 'pw' not in glider and 'tw' not in glider and len(glider['ar']['points']) >= 10
+
+
+@pytest.mark.parametrize('extra', [{}, {'trend_nearest_count': 20, 'mass_initial_guess': 700},
+                                   {'trend_source': 'motogliders', 'trend_weighting': 'variant'}])
+def test_wizard_and_p1_use_one_comparison_sample(client, extra):
+    params = {**AIRCRAFT_PRESETS['motoglider_aos'], **extra}
+    p1 = run_bipol_project(params)['bipol_projects']['p1']['trend_analysis']
+    wizard = client.post('/api/trends/suggestions', json=params).get_json()
+    assert wizard['sample'] == p1['sample']
+    for key in ('ar', 'ws', 'vh', 'dihedral_deg'):
+        assert wizard['suggestions'][key]['suggested_value'] == p1['suggestions'][key]['suggested_value']
+
+
+def test_suggestions_reject_an_invalid_sample_setting(client):
+    response = client.post('/api/trends/suggestions', json={'aircraft_type': 'motoglider', 'trend_nearest_count': 2.5})
+    assert response.status_code == 400

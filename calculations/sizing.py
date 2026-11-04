@@ -81,11 +81,13 @@ def calculate_matching_chart(params: dict, m0: float = None, mass: dict = None):
     slat_type = params.get("slat_type", "none")
 
     cx0 = cx0_base
-    if wing_config == "braced_high" and not params.get('preliminary_polar_includes_configuration'):
+    # The P1 polar from Fig. 2 (or the P4 polar of the next iteration) is used as it is.
+    typed = params.get('preliminary_polar_mode', 'input') == 'input' and not params.get('preliminary_polar_includes_configuration')
+    if wing_config == "braced_high" and typed:
         cx0 += 0.0020
-    if flap_type == "junkers" and not params.get('preliminary_polar_includes_configuration'):
+    if flap_type == "junkers" and typed:
         cx0 += 0.0025
-    if slat_type == "fixed_slot" and not params.get('preliminary_polar_includes_configuration'):
+    if slat_type == "fixed_slot" and typed:
         cx0 += 0.0030
 
     cz_max_to = float(params.get("cz_max_to", 1.8))

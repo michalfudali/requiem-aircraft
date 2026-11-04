@@ -57,7 +57,12 @@ BIPOL_1_CX0_TABLE = {
 def classify_bipol_cx0(params):
     """Przyporządkowanie projektu do jednej z siedmiu klas z BIPOL_1.pdf s. 3."""
     ac_type = params.get('aircraft_type', 'piston_ga')
-    gear = 'retractable' if params.get('retractable_gear') or params.get('gear_retraction')=='retractable' else params.get('landing_gear_type', params.get('gear_type', 'fixed'))
+    from calculations.paturski_ml import default_retractable_gear
+    explicit = params.get('landing_gear_type', params.get('gear_type'))
+    if explicit in ('fixed', 'retractable') and 'retractable_gear' not in params and params.get('gear_retraction', 'auto') == 'auto':
+        gear = explicit
+    else:
+        gear = 'retractable' if default_retractable_gear(params) else 'fixed'
     n_eng = int(params.get('n_engines', 1))
 
     if ac_type in ('glider', 'motoglider'):
@@ -108,16 +113,10 @@ def preliminary_insights(params, mass, geometry, aero):
     e_oswald = float(params.get('oswald_e', 0.80))
     from calculations.bipol1 import preliminary_polar
     reading = mass['preliminary_polar']
-    graph_error = None
+
     if reading['mode'] == 'input':
-        family = ('glider' if params['engine_type']=='none' else 'jet' if params['engine_type']=='jet'
-                  else 'prop_retractable' if params.get('retractable_gear') else 'prop_fixed')
-        try:
-            reading = preliminary_polar(dict(params,preliminary_polar_mode='raymer',
-                sketch_swet_ratio=swet_over_s,aspect_ratio=ar,raymer_family=family))
-        except ValueError as error:
-            reading = None
-            graph_error = str(error)
+        reading = preliminary_polar(dict(params, preliminary_polar_mode='raymer', wetted_example='sketch',
+                                         sketch_swet_ratio=swet_over_s, aspect_ratio=ar))
     k_max_raymer = reading['kmax'] if reading else None
     cx0_raymer_est = reading['cx0'] if reading else None
     cx0_from_kmax_formula3 = cx0_raymer_est
@@ -144,14 +143,14 @@ def preliminary_insights(params, mass, geometry, aero):
     }
 
     raymer_estimate = {
-        'wetted_aspect_ratio': round(ar_wet, 2),
-        'swet_over_s': round(swet_over_s, 2),
+        'wetted_aspect_ratio': round(reading['wetted_aspect_ratio'], 2),
+        'swet_over_s': round(reading['swet_ratio'], 2),
         'k_max_raymer': round(k_max_raymer, 2) if k_max_raymer is not None else None,
         'cx0_from_raymer': round(cx0_raymer_est, 4) if cx0_raymer_est is not None else None,
         'cx0_from_formula3': round(cx0_from_kmax_formula3, 4) if cx0_from_kmax_formula3 is not None else None,
         'used_in_mass': params.get('preliminary_polar_mode','input')!='input',
-        'limitation': graph_error,
-        'source': 'BIPOL_1, rys. 2: przybliżony odczyt graficzny, bez ekstrapolacji; wzór (3).'
+        'limitation': reading['reading_note'] if reading.get('extrapolated') else None,
+        'source': 'BIPOL_1, rys. 1–2: przybliżony odczyt graficzny; wzór (3).'
     }
 
     return {

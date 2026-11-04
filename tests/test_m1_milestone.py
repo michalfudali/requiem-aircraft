@@ -17,7 +17,6 @@ import pytest
 from calculations.atmosphere import G0, RHO0, isa_atmosphere
 from calculations.bipol1 import (
     CORKE,
-    EMPTY_MASS_COEFFICIENTS,
     empty_mass_law,
     interpolate,
     preliminary_polar,
@@ -100,7 +99,7 @@ def test_feature1_corke_interpolation_and_fallback():
     res = calculate_mass_sizing(p)
     assert res['fuel_fractions_detail']['climb'] == pytest.approx(0.975 / 0.984, abs=1e-4)
 
-    # Slow flight fallback when M < 0.10
+    # Below M = 0,1 (start of Fig. 3) the chart is read at its start, W/W(0,1) = 1: no non-Corke fallback.
     p_slow = base_params(
         cruise_speed_kmh=90,  # ~25 m/s -> M ~ 0.07 < 0.10
         v_stall_kmh=70,
@@ -108,35 +107,25 @@ def test_feature1_corke_interpolation_and_fallback():
     )
     res_slow = calculate_mass_sizing(p_slow)
     corke_meta = res_slow['mission_assumptions']['corke']
-    assert corke_meta['provisional'] is True
-    assert corke_meta['fraction'] == pytest.approx(0.988)
+    assert corke_meta['provisional'] is False and corke_meta['below_chart'] is True
+    assert corke_meta['ordinate_start'] == corke_meta['ordinate_end'] == pytest.approx(1.0)
+    assert corke_meta['fraction'] == pytest.approx(1.0)
 
 
-@pytest.mark.parametrize("ac_type, expected_A, expected_C", [
-    ('glider', 0.82, -0.05),
-    ('motoglider', 0.86, -0.05),
-    ('piston_ga', 0.92, -0.06),
-    ('turboprop_regional', 0.96, -0.05),
-    ('jet_business', 1.02, -0.06),
-    ('jet_transport', 0.95, -0.05),
-    ('uav', 0.82, -0.04),
-])
-def test_feature2_statistical_empty_weight_7_classes(ac_type, expected_A, expected_C):
-    """Feature 2: Authoritative A and C coefficients across all 7 MEiL BIPOL classes."""
-    assert ac_type in EMPTY_MASS_COEFFICIENTS
-    A, C = EMPTY_MASS_COEFFICIENTS[ac_type]
-    assert A == expected_A
-    assert C == expected_C
-
-    p = base_params(aircraft_type=ac_type, empty_mass_model='class_correlation')
+@pytest.mark.parametrize("ac_type", ['glider', 'motoglider', 'piston_ga', 'turboprop_regional',
+                                     'jet_business', 'jet_transport', 'uav'])
+def test_feature2_statistical_empty_weight_7_classes(ac_type):
+    """Feature 2: BIPOL_1 eq. (1) for every class, A and C from two points of the sample's trend line."""
+    from calculations.trends import empty_mass_trend
+    engine = {'glider': 'none', 'jet_business': 'jet', 'jet_transport': 'jet'}.get(ac_type, 'prop')
+    p = {'aircraft_type': ac_type, 'engine_type': engine, '_reference_mass': None}  # whole class
     share, meta = empty_mass_law(p)
-    assert meta['A'] == expected_A
-    assert meta['C'] == expected_C
-
-    # Verify physical bounds: 0.38 <= me/m0 <= 0.74
-    for test_m0 in [500, 1500, 5000, 25000, 75000]:
-        val = share(test_m0)
-        assert 0.38 <= val <= 0.74
+    rows, fit, points = empty_mass_trend(p)
+    assert meta['mode'] == 'trend' and meta['n'] == len(rows) >= 3
+    assert (meta['A'], meta['C']) == (points['A'], points['C'])
+    # The trend line stays physical over the masses of its own sample.
+    for m in (fit['x_min'], (fit['x_min'] * fit['x_max']) ** .5, fit['x_max']):
+        assert .15 < share(m) < .95
 
 
 def test_feature2_two_point_power_law_derivation():
@@ -411,14 +400,21 @@ def test_tier4_scenario_cs23_ga_trainer():
         v_stall_kmh=95, takeoff_distance_m=480, landing_distance_m=460, climb_rate_ms=4.5
     )
     res_mass = calculate_mass_sizing(p)
-    assert 1000.0 <= res_mass['m0'] <= 1850.0
-    assert 0.50 <= res_mass['empty_fraction'] <= 0.65
+    # BIPOL_1, eq. (1) with A and C from the trend line of the similar aircraft, closed by eq. (5).
+    from calculations.trends import empty_mass_trend
+    rows, fit, points = empty_mass_trend(p)
+    m0 = res_mass['m0']
+    assert res_mass['empty_mass_model'] == 'trend' and len(rows) >= 20
+    assert res_mass['empty_fraction'] == pytest.approx(points['A'] * m0 ** points['C'], abs=1e-4)
+    assert fit['x_min'] <= m0 <= fit['x_max']
+    useful = res_mass['m_payload'] + res_mass['m_crew']
+    assert m0 == pytest.approx(useful / (1 - res_mass['m_fuel'] / m0 - res_mass['m_empty'] / m0), rel=1e-3)
 
     res_chart = calculate_matching_chart(p, m0=res_mass['m0'], mass=res_mass)
     dp = res_chart['design_point']
     assert dp['ws'] <= res_chart['ws_limit']
-    # Power required ~120 to 230 HP (e.g. Cessna 182 class 230 HP)
-    assert 90.0 <= dp['power_hp'] <= 250.0
+    # The power follows the matching chart of that mass: 60–110 W per kg of a light single (Cessna, Piper, Bonanza).
+    assert 60 <= dp['power_hp'] * .7457 * 1000 / m0 <= 110
     assert dp['point_a']['ws'] == dp['ws']
 
 

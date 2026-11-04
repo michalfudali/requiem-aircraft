@@ -15,7 +15,8 @@ import math
 import re
 
 from calculations.atmosphere import G0, RHO0, T0, P0, R_AIR, KAPPA, BETA_T, H_TROPO, isa_atmosphere
-from calculations.report_document import tex_number
+from calculations.bipol1 import CX0_LABELS
+from calculations.report_document import report_number, tex_number
 
 REF = re.compile(r'\[\[([A-Za-z_][A-Za-z0-9_]*)\]\]')
 KEY = re.compile(r'^[A-Za-z_][A-Za-z0-9_]*$')
@@ -463,35 +464,40 @@ def _p1_polar(s, r):
     s.given('e_1', 'e', pp['oswald_e'], '', 3, 'Współczynnik Oswalda', SOURCES['B1'] + ': e ≈ 0,8')
     ar = '[[' + ar_key + ']]'
     if pp['mode'] == 'input':
-        base = float(p['cx0'])
-        extra = pp['cx0'] - base
-        if extra > 1e-12:
-            s.given('Cx0_baz', r'C_{x0,baz}', base, '', 4, 'Opór zerowy przyjęty dla klasy samolotu', SOURCES['B1'] + ', tabela Cx0')
-            names = [n for n, on in (('zastrzały', p.get('wing_config') == 'braced_high'),
-                                     ('klapa Junkersa', p.get('flap_type') == 'junkers'),
-                                     ('slot stały', p.get('slat_type') == 'fixed_slot')) if on]
-            s.given('dCx0_konf', r'\Delta C_{x0,konf}', extra, '', 4, 'Dodatek konfiguracji: ' + ', '.join(names), 'Założenie')
-            s.calc('Cx0_1', r'C_{x0}', r'C_{x0,baz}+\Delta C_{x0,konf}', r'[[Cx0_baz]]+[[dCx0_konf]]', pp['cx0'], '', 4,
-                   'Opór zerowy biegunowej szacunkowej', check=lambda v: v.Cx0_baz + v.dCx0_konf)
-        else:
-            s.given('Cx0_1', r'C_{x0}', pp['cx0'], '', 4, 'Opór zerowy przyjęty dla klasy samolotu', SOURCES['B1'] + ', tabela Cx0')
+        # Next design iteration: the P4 polar replaces the graph estimate of project 1.
+        s.given('Cx0_1', r'C_{x0}', pp['cx0'], '', 4, 'Opór zerowy z biegunowej poprzedniej iteracji projektu', 'Biegunowa P4')
         s.calc('Kmax_1', r'K_{max}', r'\frac{1}{2}\sqrt{\frac{\pi\Lambda e}{C_{x0}}}',
                r'\frac{1}{2}\sqrt{\frac{\pi\cdot' + ar + r'\cdot[[e_1]]}{[[Cx0_1]]}}', pp['kmax'], '', 3,
                'Maksymalna doskonałość szacunkowa', SOURCES['B1'] + ', wzór (3)',
                check=lambda v: .5 * math.sqrt(math.pi * getattr(v, ar_key) * v.e_1 / v.Cx0_1))
     else:
-        s.given('Swet_S_szk', r'(S_{wet}/S)_{szk}', pp['swet_ratio'], '', 3, 'Stosunek S_wet/S zmierzony na szkicu',
-                SOURCES['B1'] + ', rys. 1')
-        if pp['mode'] == 'raymer':
-            s.calc('AR_wet', r'\Lambda_{wet}', r'\frac{\Lambda}{(S_{wet}/S)_{szk}}', r'\frac{' + ar + r'}{[[Swet_S_szk]]}', pp['wetted_aspect_ratio'], '', 3,
-                   'Wydłużenie odniesione do powierzchni omywanej',
-                   check=lambda v: getattr(v, ar_key) / v.Swet_S_szk)
-            s.given('Kmax_1', r'K_{max}', pp['kmax'], '', 2, 'Maksymalna doskonałość z wykresu dla Λ_wet',
-                    SOURCES['B1'] + ', rys. 2 (Raymer)')
+        if pp['wetted_example'] == 'sketch':
+            s.given('Swet_S_szk', r'S_{wet}/S', pp['swet_ratio'], '', 2, 'Stosunek powierzchni omywanej do nośnej zmierzony na szkicu',
+                    'Szkic koncepcyjny samolotu')
         else:
-            s.given('Kmax_1', r'K_{max}', pp['kmax'], '', 2, 'Maksymalna doskonałość z wykresu', SOURCES['B1'] + ', rys. 2')
+            s.given('Swet_S_szk', r'S_{wet}/S', pp['swet_ratio'], '', 2,
+                    'Stosunek powierzchni omywanej do nośnej układu najbliższego szkicowi: ' + pp['wetted_example_label'],
+                    SOURCES['B1'] + ', rys. 1')
+        s.calc('AR_wet', r'\Lambda_{wet}', r'\frac{\Lambda}{S_{wet}/S}', r'\frac{' + ar + r'}{[[Swet_S_szk]]}', pp['wetted_aspect_ratio'], '', 3,
+               'Wydłużenie odniesione do powierzchni omywanej', SOURCES['B1'] + ', rys. 2',
+               check=lambda v: getattr(v, ar_key) / v.Swet_S_szk)
+        if pp['mode'] == 'raymer':
+            low, high = pp['raymer_range']
+            s.given('Kmax_1', r'K_{max}', pp['kmax'], '', 2,
+                    'Maksymalna doskonałość z wykresu dla Λ_wet, krzywa: ' + pp['raymer_family_label'],
+                    SOURCES['B1'] + ', rys. 2 (Raymer)',
+                    note=(f"Λ_wet leży poza narysowaną częścią krzywej ({report_number(low, 2)}–{report_number(high, 2)}); "
+                          'odczyt przedłużono zgodnie z kształtem krzywej, K_max ∝ √Λ_wet.') if pp['extrapolated'] else '')
+        else:
+            s.given('Kmax_1', r'K_{max}', pp['kmax'], '', 2, 'Maksymalna doskonałość odczytana z wykresu', SOURCES['B1'] + ', rys. 2')
+        low, high = pp['cx0_bounds']
+        verdict = ('mieści się w przedziale' if pp['cx0_in_range'] else
+                   f"jest {'mniejszy' if pp['cx0_deviation'] < 0 else 'większy'} o {report_number(abs(pp['cx0_deviation']) * 100, 0)}% "
+                   f"od {'dolnej' if pp['cx0_deviation'] < 0 else 'górnej'} granicy przedziału")
         s.calc('Cx0_1', r'C_{x0}', r'\frac{\pi\Lambda e}{4K_{max}^2}', r'\frac{\pi\cdot' + ar + r'\cdot[[e_1]]}{4\cdot[[Kmax_1]]^2}',
-               pp['cx0'], '', 5, 'Opór zerowy z maksymalnej doskonałości', SOURCES['B1'] + ', wzór (3)',
+               pp['cx0'], '', 4, 'Opór zerowy z maksymalnej doskonałości', SOURCES['B1'] + ', wzór (3)',
+               note=f"Porównanie z wartościami typowymi: wynik {verdict} {report_number(low, 3)}–{report_number(high, 3)} "
+                    f"dla klasy: {CX0_LABELS[pp['cx0_class']]}.",
                check=lambda v: math.pi * getattr(v, ar_key) * v.e_1 / (4 * v.Kmax_1 ** 2))
     ar_value = pp['aspect_ratio']
     s.calc('k_1', 'k', r'\frac{1}{\pi\Lambda e}', r'\frac{1}{\pi\cdot' + ar + r'\cdot[[e_1]]}',
@@ -571,34 +577,33 @@ def _p2(s, r):
         s.given('r_TO', r'\frac{m_1}{m_0}', mass['fuel_fractions_detail']['takeoff'], '', 3, 'Start i kołowanie',
                 SOURCES['B1'] + ', s. 4: 0,970–0,975')
         corke = ma['corke']
-        if corke.get('provisional'):
-            s.given('r_CL', r'\frac{m_2}{m_1}', corke['fraction'], '', 5,
-                    'Wznoszenie — przybliżenie robocze (Mach poniżej zakresu rys. 3)', 'Wymaga odczytu źródłowego')
-        else:
-            if corke['mode'] != 'reading':
-                h0 = float(p.get('climb_start_altitude_m', 0))
-                isa0 = isa_atmosphere(h0)
-                s.given('H_0', 'H_0', h0, M, 0, 'Wysokość początku wznoszenia', 'Profil misji')
-                v0 = float(p.get('climb_start_speed_kmh', p['cruise_speed_kmh']))
-                _kmh(s, 'V_0', 'V_0', v0, 'Prędkość na początku wznoszenia', 'Profil misji')
-                if h0 <= H_TROPO:
-                    s.calc('a_0', 'a_0', r'\sqrt{\kappa R\,(T_0+\beta H_0)}', r'\sqrt{[[kappa]]\cdot[[R_air]]\cdot([[T0]]+[[beta]]\cdot[[H_0]])}',
-                           isa0['a'], MS, 2, 'Prędkość dźwięku na początku wznoszenia',
-                           check=lambda v: math.sqrt(v.kappa * v.R_air * (v.T0 + v.beta * v.H_0)))
-                else:
-                    s.given('a_0', 'a_0', isa0['a'], MS, 2, 'Prędkość dźwięku na początku wznoszenia', 'ISA')
-                s.calc('M_p', 'M_p', r'\frac{V_0}{a_0}', r'\frac{[[V_0]]}{[[a_0]]}', corke['mach_start'], '', 4,
-                       'Liczba Macha na początku wznoszenia', check=lambda v: v.V_0 / v.a_0)
-                s.calc('M_k', 'M_k', r'\frac{V_{cr}}{a_H}', r'\frac{[[V_cr]]}{[[a_cr]]}', corke['mach_end'], '', 4,
-                       'Liczba Macha na końcu wznoszenia', check=lambda v: v.V_cr / v.a_cr)
-                source = SOURCES['B1'] + ', rys. 3 (Corke, oś M logarytmiczna)'
-                s.given('W_p', r'\bar W(M_p)', corke['ordinate_start'], '', 5, 'Stosunek mas z wykresu Corke’a dla M_p', source)
-                s.given('W_k', r'\bar W(M_k)', corke['ordinate_end'], '', 5, 'Stosunek mas z wykresu Corke’a dla M_k', source)
+        if corke['mode'] != 'reading':
+            h0 = float(p.get('climb_start_altitude_m', 0))
+            isa0 = isa_atmosphere(h0)
+            s.given('H_0', 'H_0', h0, M, 0, 'Wysokość początku wznoszenia', 'Profil misji')
+            v0 = float(p.get('climb_start_speed_kmh', p['cruise_speed_kmh']))
+            _kmh(s, 'V_0', 'V_0', v0, 'Prędkość na początku wznoszenia', 'Profil misji')
+            if h0 <= H_TROPO:
+                s.calc('a_0', 'a_0', r'\sqrt{\kappa R\,(T_0+\beta H_0)}', r'\sqrt{[[kappa]]\cdot[[R_air]]\cdot([[T0]]+[[beta]]\cdot[[H_0]])}',
+                       isa0['a'], MS, 2, 'Prędkość dźwięku na początku wznoszenia',
+                       check=lambda v: math.sqrt(v.kappa * v.R_air * (v.T0 + v.beta * v.H_0)))
             else:
-                s.given('W_p', r'\bar W(M_p)', corke['ordinate_start'], '', 5, 'Stosunek mas z wykresu Corke’a', SOURCES['B1'] + ', rys. 3')
-                s.given('W_k', r'\bar W(M_k)', corke['ordinate_end'], '', 5, 'Stosunek mas z wykresu Corke’a', SOURCES['B1'] + ', rys. 3')
-            s.calc('r_CL', r'\frac{m_2}{m_1}', r'\frac{\bar W(M_k)}{\bar W(M_p)}', r'\frac{[[W_k]]}{[[W_p]]}', corke['fraction'],
-                   '', 5, 'Wznoszenie i rozpędzanie', SOURCES['B1'] + ', s. 4–5', check=lambda v: v.W_k / v.W_p)
+                s.given('a_0', 'a_0', isa0['a'], MS, 2, 'Prędkość dźwięku na początku wznoszenia', 'ISA')
+            s.calc('M_p', 'M_p', r'\frac{V_0}{a_0}', r'\frac{[[V_0]]}{[[a_0]]}', corke['mach_start'], '', 4,
+                   'Liczba Macha na początku wznoszenia', check=lambda v: v.V_0 / v.a_0)
+            s.calc('M_k', 'M_k', r'\frac{V_{cr}}{a_H}', r'\frac{[[V_cr]]}{[[a_cr]]}', corke['mach_end'], '', 4,
+                   'Liczba Macha na końcu wznoszenia', check=lambda v: v.V_cr / v.a_cr)
+            source = SOURCES['B1'] + ', rys. 3 (Corke, oś M logarytmiczna)'
+            start = 'Wykres zaczyna się od M = 0,1 (W/W₀,₁ = 1); dla mniejszej liczby Macha odczytano początek wykresu.'
+            s.given('W_p', r'\bar W(M_p)', corke['ordinate_start'], '', 5, 'Stosunek mas z wykresu Corke’a dla M_p', source,
+                    note=start if corke['mach_start'] < .1 else '')
+            s.given('W_k', r'\bar W(M_k)', corke['ordinate_end'], '', 5, 'Stosunek mas z wykresu Corke’a dla M_k', source,
+                    note=start if corke['mach_end'] < .1 else '')
+        else:
+            s.given('W_p', r'\bar W(M_p)', corke['ordinate_start'], '', 5, 'Stosunek mas z wykresu Corke’a', SOURCES['B1'] + ', rys. 3')
+            s.given('W_k', r'\bar W(M_k)', corke['ordinate_end'], '', 5, 'Stosunek mas z wykresu Corke’a', SOURCES['B1'] + ', rys. 3')
+        s.calc('r_CL', r'\frac{m_2}{m_1}', r'\frac{\bar W(M_k)}{\bar W(M_p)}', r'\frac{[[W_k]]}{[[W_p]]}', corke['fraction'],
+               '', 5, 'Wznoszenie i rozpędzanie', SOURCES['B1'] + ', s. 4–5', check=lambda v: v.W_k / v.W_p)
         legs = [('r_CR', r'\frac{m_3}{m_2}', 'R_1' if back else 'R_km', phases['cruise']['fraction'],
                  'Przelot do celu' if back else 'Przelot')]
         if back:
@@ -726,16 +731,9 @@ def _p2(s, r):
 def _p2_empty_law(s, r):
     p, mass = r['params'], r['mass']
     law = mass['empty_mass_law']
-    mode = law['mode']
     s.section('p2', 'empty', 'Udział masy własnej', SOURCES['B1'] + ', wzór (1)')
-    source = {'class_correlation': 'Korelacja klasy (robocza; do zastąpienia analizą własnej próby)',
-              'trend': f"Regresja próby P1 ({law.get('n', '—')} konstrukcji)",
-              'bipol1_trend': 'Współczynniki z analizy trendów P1', 'coefficients': 'Współczynniki podane przez autora',
-              'two_point': 'Dwa punkty odczytane z wykresu mₑ/m₀ = f(m₀)', 'fixed_fraction': 'Założenie autora'}[mode]
-    if mode == 'fixed_fraction':
-        s.given('e_m0', r'\frac{m_e}{m_0}', law['A'], '', 4, 'Stały udział masy własnej', source)
-        return
-    if mode == 'two_point':
+    if law['mode'] == 'two_point':
+        source = 'Dwa punkty odczytane z wykresu mₑ/m₀ = f(m₀)'
         s.given('mp_x1', 'x_1', float(p['mass_point_x1']), KG, 0, 'Punkt 1 wykresu — masa startowa', source)
         s.given('mp_y1', 'y_1', float(p['mass_point_y1']), '', 4, 'Punkt 1 wykresu — mₑ/m₀', source)
         s.given('mp_x2', 'x_2', float(p['mass_point_x2']), KG, 0, 'Punkt 2 wykresu — masa startowa', source)
@@ -746,26 +744,15 @@ def _p2_empty_law(s, r):
                check=lambda v: math.log(v.mp_y1 / v.mp_y2) / math.log(v.mp_x1 / v.mp_x2))
         s.calc('A_e', 'A', r'\frac{y_1}{x_1^{C}}', r'\frac{[[mp_y1]]}{[[mp_x1]]^{[[C_e]]}}', law['A'], '', 5,
                'Współczynnik A zależności masy pustej', SOURCES['B1'] + ', s. 1', check=lambda v: v.mp_y1 / v.mp_x1 ** v.C_e)
+        a_key, c_key = 'A_e', 'C_e'
     else:
-        s.given('A_e', 'A', law['A'], '', 5, 'Współczynnik A zależności masy pustej', source)
-        s.given('C_e', 'C', law['C'], '', 5, 'Wykładnik C zależności masy pustej', source)
+        # A i C wyznaczono w analizie trendów P1 z dwóch punktów tej samej linii trendu.
+        a_key, c_key = 'tr_A', 'tr_C'
     s.given('K_vs', 'K_{vs}', law['k_vs'], '', 2, 'Współczynnik stałości skosu (1,0 — stały; 1,04 — zmienny)', SOURCES['B1'] + ', s. 1')
-    m0, value = mass['m0'], mass['m_empty'] / mass['m0']
-    if mode == 'class_correlation':
-        s.given('K_kor', 'K_{kor}', law['structural_modifier'], '', 4, 'Poprawka konstrukcyjna korelacji klasy', 'Korelacja klasy')
-        raw = law['A'] * m0 ** law['C'] * law['k_vs'] * law['structural_modifier']
-        bounded = not .38 <= raw <= .74
-        formula, subst = r'A\,m_0^{C}K_{vs}K_{kor}', r'[[A_e]]\cdot[[m0]]^{[[C_e]]}\cdot[[K_vs]]\cdot[[K_kor]]'
-        if bounded:  # Korelacja klasy jest ograniczona do 0,38–0,74; zapis jawny, by podstawienie dawało wynik.
-            formula = r'\min\left(0{,}74;\;\max\left(0{,}38;\;' + formula + r'\right)\right)'
-            subst = r'\min\left(0{,}74;\;\max\left(0{,}38;\;' + subst + r'\right)\right)'
-        s.calc('e_m0', r'\frac{m_e}{m_0}', formula, subst,
-               value, '', 4, 'Udział masy własnej dla masy startowej projektu', SOURCES['B1'] + ', wzór (1)',
-               check=lambda v: min(.74, max(.38, v.A_e * v.m0 ** v.C_e * v.K_vs * v.K_kor)))
-    else:
-        s.calc('e_m0', r'\frac{m_e}{m_0}', r'A\,m_0^{C}K_{vs}', r'[[A_e]]\cdot[[m0]]^{[[C_e]]}\cdot[[K_vs]]', value, '', 4,
-               'Udział masy własnej dla masy startowej projektu', SOURCES['B1'] + ', wzór (1)',
-               check=lambda v: v.A_e * v.m0 ** v.C_e * v.K_vs)
+    s.calc('e_m0', r'\frac{m_e}{m_0}', r'A\,m_0^{C}K_{vs}',
+           '[[' + a_key + r']]\cdot[[m0]]^{[[' + c_key + r']]}\cdot[[K_vs]]', mass['m_empty'] / mass['m0'], '', 4,
+           'Udział masy własnej dla masy startowej projektu', SOURCES['B1'] + ', wzór (1)',
+           check=lambda v: getattr(v, a_key) * v.m0 ** getattr(v, c_key) * v.K_vs)
 
 
 def _p2_matching(s, r):
@@ -2312,13 +2299,8 @@ def _tw(value, digits):
 def _law_tex(trace, m0, fraction):
     """Udział masy pustego z równania (1): (wzór, podstawienie) dla masy m0."""
     law = trace['law']
-    if law['mode'] == 'fixed_fraction':
-        return r'\left(\frac{m_e}{m_0}\right)_{zał}', _t(fraction, 4)
     formula = r'A\left(m_0^{(k)}\right)^{C}K_{vs}'
     numbers = rf"{_t(law['A'], 5)}\cdot{_t(m0, 2)}^{{{_t(law['C'], 5)}}}\cdot{_t(law['k_vs'], 2)}"
-    if law['mode'] == 'class_correlation':
-        formula += 'K_{kor}'
-        numbers += rf"\cdot{_t(law['modifier'], 4)}"
     return formula, numbers
 
 

@@ -174,14 +174,14 @@ async function renderInitialSuggestions() {
   if (!container) return;
 
   try {
-    const [cResp, tResp] = await Promise.all([
+    // Same comparison sample as the P1 trend analysis of this project.
+    const [cResp, tData] = await Promise.all([
       fetch(`/api/constraints/suggestions?category=${encodeURIComponent(cat)}&aircraft_type=${encodeURIComponent(acType)}`),
-      fetch(`/api/trends/suggestions?${new URLSearchParams({aircraft_type: acType,
+      window.BipolTrendProvenance.fetchSuggestions({aircraft_type: acType,
         engine_type: document.getElementById('engine_type')?.value || '',
-        wing_configuration: document.getElementById('wing_config')?.value || ''})}`)
+        wing_configuration: document.getElementById('wing_config')?.value || ''}).catch(() => ({suggestions: {}}))
     ]);
     const cData = cResp.ok ? await cResp.json() : {suggestions: []};
-    const tData = tResp.ok ? await tResp.json() : {suggestions: {}};
 
     const noEngine = document.getElementById('engine_type')?.value === 'none';
     const suggestions = (cData.suggestions || []).filter(s=>!noEngine||!['engine_power_kw','takeoff_run_m'].includes(s.param));

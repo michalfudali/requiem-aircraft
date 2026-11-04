@@ -105,7 +105,7 @@ def test_increasing_mass_trend_is_flagged_without_changing_the_fitted_observatio
     for i in range(8):
         mass=500+i*100
         rows.append({**base,'id':str(i),'family':str(i),'m0':mass,'empty_fraction':.3+mass*.0001})
-    monkeypatch.setattr(trends,'select_references',lambda params,m0:rows)
+    monkeypatch.setattr(trends,'select_references',lambda params:rows)
     a=analyze_trends({'aircraft_type':'piston_ga','engine_type':'prop'},1000,600)
     assert a['mass_fit']['C'] > 0 and not a['mass_trend_decreasing']
     assert any('nie jest malejący' in w for w in a['warnings'])
@@ -116,9 +116,11 @@ def test_csv_supplements_are_validated_persisted_and_do_not_mutate_shared_catalo
     text=f'id;source;climb_rate_ms;takeoff_distance_m\n{base["id"]};AFM str. 10, ISA SL, MTOW, przeszkoda 15 m;4,5;600\n'
     observations=import_observations(text)
     assert observations[0]['climb_rate_ms'] == 4.5
-    params={'aircraft_type':'piston_ga','engine_type':'prop','trend_aircraft_ids':[base['id']], 'trend_observations':observations}
+    # Eq. (1) needs a trend line: the manual selection holds the supplemented aircraft and four more.
+    others=[r['id'] for r in load_aircraft() if r['aircraft_type']=='piston_ga' and r['id']!=base['id'] and r.get('empty_fraction')][:4]
+    params={'aircraft_type':'piston_ga','engine_type':'prop','trend_aircraft_ids':[base['id'],*others], 'trend_observations':observations}
     a=run_bipol_project(params)['bipol_projects']['p1']['trend_analysis']
-    row=a['similar_aircraft'][0]
+    row=next(r for r in a['similar_aircraft'] if r['id']==base['id'])
     assert row['climb_rate_ms']==4.5 and row['takeoff_distance_m']==600
     assert 'AFM str. 10' in row['source_references']
     assert next(r for r in load_aircraft() if r['id']==base['id'])['climb_rate_ms'] is None

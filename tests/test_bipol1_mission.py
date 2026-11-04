@@ -16,12 +16,15 @@ def base(**changes):
 @pytest.mark.parametrize('drop',[0,100,300])
 @pytest.mark.parametrize('method',['auto','iterative'])
 def test_closed_form_mission_with_absolute_burn_and_drop(drop,method):
+    # Eq. (1) read at two points of equal ordinate: m_e/m_0 = 0,5 for every m_0.
     p=base(m_cargo=300,mass_method=method,payload_drop_kg=drop,range_km=1000,
-        return_range_km=400,empty_mass_model='fixed_fraction',empty_mass_fraction=.5,
+        return_range_km=400,empty_mass_model='two_point',mass_point_x1=1000,mass_point_y1=.5,
+        mass_point_x2=2000,mass_point_y2=.5,
         climb_fraction_mode='reading',corke_start_ordinate=.99,corke_end_ordinate=.98,
         max_power_time_min=10,max_power_kw=200,max_power_sfc=300,loiter_speed_kmh=140)
     r=calculate_mass_sizing(p)
-    k=.5*math.sqrt(math.pi*p['aspect_ratio']*p['oswald_e']/p['cx0'])
+    # BIPOL_1, s. 2–3: K_max of project 1 is read from Fig. 2 (checked in test_raymer_graph_anchor...).
+    k=preliminary_polar(p)['kmax']
     cp=p['sfc']/3.6e9
     qout=math.exp(-600000*cp*G0/(p['prop_efficiency']*.94*k))
     qback=math.exp(-400000*cp*G0/(p['prop_efficiency']*.94*k))
@@ -51,12 +54,14 @@ def test_methods_agree_without_drop():
 
 
 def test_selected_trend_cohort_is_used_and_preserved_in_report():
-    p=dict(AIRCRAFT_PRESETS['regional_turboprop'],empty_mass_model='trend',mass_initial_guess=25000,trend_count=20)
+    p=dict(AIRCRAFT_PRESETS['regional_turboprop'],empty_mass_model='trend',mass_initial_guess=25000,trend_nearest_count=20)
     r=run_bipol_project(p)
     law=r['mass']['empty_mass_law']
     assert law['mode']=='trend' and law['n']>=3
     rows=r['bipol_projects']['p1']['trend_analysis']['similar_aircraft']
-    assert set(law['aircraft_ids'])=={row['id'] for row in rows}
+    # One sample: the law uses every aircraft of the P1 sample that has a usable empty-mass fraction.
+    assert len(rows)==20
+    assert set(law['aircraft_ids'])=={row['id'] for row in rows if row.get('empty_fraction') and .15<row['empty_fraction']<.95}
     assert r['mass']['m_empty']==pytest.approx(law['A']*r['mass']['m0']**(law['C']+1)*law['k_vs'])
 
 
@@ -78,16 +83,42 @@ def test_corke_is_ratio_of_graph_ordinates_at_two_isa_mach_numbers():
 
 
 def test_raymer_graph_anchor_and_equation_three():
-    p=base(preliminary_polar_mode='raymer',sketch_swet_ratio=4,aspect_ratio=8,
-           raymer_family='prop_fixed')
+    p=base(preliminary_polar_mode='raymer',sketch_swet_ratio=4,aspect_ratio=8,gear_retraction='fixed')
     polar=preliminary_polar(p)
-    assert polar['kmax']==12.5
+    assert polar['wetted_example']=='sketch' and polar['raymer_family']=='prop_fixed'
+    assert polar['kmax']==12.5 and not polar['extrapolated']
     assert polar['cx0']==pytest.approx(math.pi*8*.8/(4*12.5**2))
     r=run_bipol_project(p)
     assert r['params']['cx0']==pytest.approx(polar['cx0'])
     assert r['mass']['mission_assumptions']['k_max_preliminary']==12.5
     with pytest.raises(ValueError,match='zakresem'):
         interpolate(RAYMER['prop_fixed'],20)
+
+
+def test_cx0_of_project_one_follows_the_handout_chain_by_default():
+    # Fig. 1: light single (Cessna 150) S_wet/S = 3,9; Fig. 2: retractable-gear propeller curve; eq. (3).
+    p=base()
+    polar=preliminary_polar(p)
+    assert p['preliminary_polar_mode']=='raymer'
+    assert polar['wetted_example']=='light_single' and polar['swet_ratio']==3.9
+    assert polar['wetted_aspect_ratio']==pytest.approx(p['aspect_ratio']/3.9)
+    assert polar['kmax']==pytest.approx(interpolate(RAYMER[polar['raymer_family']],p['aspect_ratio']/3.9))
+    assert polar['cx0']==pytest.approx(math.pi*p['aspect_ratio']*p['oswald_e']/(4*polar['kmax']**2))
+    low,high=polar['cx0_bounds']
+    assert polar['cx0_in_range']==(low<=polar['cx0']<=high)
+    # A typed C_x0 of an earlier project is replaced by the chart method.
+    legacy=validate_parameters(dict(AIRCRAFT_PRESETS['ga_trainer'],preliminary_polar_mode='input',sketch_swet_ratio=4))
+    assert legacy['preliminary_polar_mode']=='raymer' and preliminary_polar(legacy)['wetted_example']=='light_single'
+
+
+def test_reading_beyond_the_printed_curve_follows_its_square_root_shape():
+    from calculations.bipol1 import read_raymer
+    kmax,extrapolated=read_raymer('prop_fixed',4.6)
+    assert extrapolated and kmax==pytest.approx(13.5*math.sqrt(2))
+    assert read_raymer('prop_fixed',2)==(12.5,False)
+    p=base(aspect_ratio=14,gear_retraction='fixed')
+    polar=preliminary_polar(p)
+    assert polar['extrapolated'] and polar['kmax']==pytest.approx(13.5*math.sqrt(14/3.9/2.3))
 
 
 def test_two_point_mass_law_preserves_endpoints_and_kvs():
@@ -127,16 +158,25 @@ def test_project_review_does_not_invent_manual_work_or_missing_data():
     r=run_bipol_project(base())
     c={x['key']:x for x in r['bipol1_review']['checks']}
     assert not c['sketch']['passed'] and not c['mission']['passed']
-    assert not c['mass_law']['passed']
+    # Eq. (1) comes from the program's own trend line of the sample: nothing to write by hand.
+    assert c['mass_law']['passed']
     assert not r['bipol1_review']['complete']
 
 
 def test_production_years_are_not_inferred_from_certification():
-    r=run_bipol_project(base(trend_year_basis='production'))
+    from calculations.trends import dated_rows
+    # The database dates variants by certification: the trends say so instead of inventing production years.
+    r=run_bipol_project(base())
     ta=r['bipol_projects']['p1']['trend_analysis']
-    assert ta['year_basis']=='Rok produkcji'
-    allowed={x['model'] for x in ta['similar_aircraft'] if x.get('year_basis')=='production'}
+    assert ta['year_basis']=='Rok certyfikacji wariantu (nie rok produkcji)'
+    allowed={x['model'] for x in ta['similar_aircraft'] if (x.get('year_basis') or 'certification')=='certification'}
     assert all(point['model'] in allowed for t in ta['time_trends'] for point in t['points'])
+    # BIPOL_1 asks for the production year: it is used once the sample has at least as many such dates.
+    rows=[dict(id=str(i),year=1990+i,year_basis='production' if i<2 else 'certification') for i in range(5)]
+    assert dated_rows(rows)[0]=='certification'
+    rows=[dict(row,year_basis='production') if i<4 else row for i,row in enumerate(rows)]
+    basis,dated=dated_rows(rows)
+    assert basis=='production' and [r['id'] for r in dated]==['0','1','2','3']
 
 
 def test_report_includes_drop_and_completeness(client):

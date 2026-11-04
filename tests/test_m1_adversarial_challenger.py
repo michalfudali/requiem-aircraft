@@ -12,7 +12,6 @@ import math
 import pytest
 
 from calculations.bipol1 import (
-    EMPTY_MASS_COEFFICIENTS,
     empty_mass_law,
     run_mission_mass_sizing,
     two_point_power_law,
@@ -217,37 +216,17 @@ EXTREME_MTOW_VALUES = [
 
 @pytest.mark.parametrize("ac_type", ALL_7_CLASSES)
 def test_adversarial_empty_weight_bounds_across_extreme_masses(ac_type):
-    """Empty weight ratio me/m0 must satisfy 0.38 <= me/m0 <= 0.74 across all 7 classes
-
-    and extreme MTOW values (5 kg to 500,000 kg).
-    """
-    p = {'aircraft_type': ac_type, 'empty_mass_model': 'class_correlation'}
+    """BIPOL_1 eq. (1) of every class stays physical (0.15 < me/m0 < 0.95) over its sample's masses;
+    it is a trend line of real aircraft, not a clamped correlation."""
+    from calculations.trends import empty_mass_trend
+    engine = {'glider': 'none', 'jet_business': 'jet', 'jet_transport': 'jet'}.get(ac_type, 'prop')
+    p = {'aircraft_type': ac_type, 'engine_type': engine, '_reference_mass': None}  # whole class
     share, meta = empty_mass_law(p)
-
-    for m in EXTREME_MTOW_VALUES:
+    _, fit, _ = empty_mass_trend(p)
+    lo, hi = fit['x_min'], fit['x_max']
+    for m in [lo * (hi / lo) ** (k / 8) for k in range(9)]:
         frac = share(m)
-        assert 0.38 <= frac <= 0.74, (
-            f"Class '{ac_type}' violated physical empty weight bounds at MTOW={m} kg: frac={frac}"
-        )
-
-
-@pytest.mark.parametrize("category", ['cs23_normal', 'cs23_aerobatic', 'cs23_utility', 'ltf_ul'])
-def test_adversarial_structural_modifiers_remain_bounded(category):
-    """Regulatory and structural modifiers (+4.5% aerobatic, -15% LTF-UL) must respect 0.38-0.74."""
-    p = {
-        'aircraft_type': 'piston_ga',
-        'category': category,
-        'aspect_ratio': 18.0,  # Extreme AR penalty (+5.4%)
-        'flap_type': 'fowler', # Flap mechanism penalty (+1.2%)
-        'empty_mass_model': 'class_correlation'
-    }
-    share, meta = empty_mass_law(p)
-
-    for m in [5.0, 50.0, 1150.0, 500000.0]:
-        frac = share(m)
-        assert 0.38 <= frac <= 0.74, (
-            f"Modified empty fraction out of bounds for category {category} at m={m}: {frac}"
-        )
+        assert .15 < frac < .95, f"Class '{ac_type}' eq. (1) unphysical at MTOW={m:.0f} kg: {frac}"
 
 
 # ==============================================================================

@@ -1,19 +1,20 @@
 (function () {
   'use strict';
   const $=id=>document.getElementById(id);
-  const defaults={mass_method:'auto',empty_mass_model:'class_correlation',mass_initial_guess:5000,
+  const defaults={mass_method:'auto',empty_mass_model:'trend',
     payload_drop_kg:0,return_range_km:0,max_power_time_min:0,climb_fraction_mode:'auto',
-    climb_start_altitude_m:0,preliminary_polar_mode:'input',sketch_swet_ratio:4,
-    raymer_family:'prop_fixed',raymer_kmax:15,cx0_reference_class:'single_fixed',
+    climb_start_altitude_m:0,preliminary_polar_mode:'raymer',wetted_example:'',sketch_swet_ratio:4,
+    raymer_kmax:15,cx0_reference_class:'',
     empty_mass_a:.95,empty_mass_c:-.05,mass_point_x1:1000,mass_point_x2:2000,
-    mass_point_y1:.6,mass_point_y2:.55,empty_mass_fraction:.55,
-    corke_start_ordinate:.99,corke_end_ordinate:.98,trend_year_basis:'certification'};
+    mass_point_y1:.6,mass_point_y2:.55,
+    corke_start_ordinate:.99,corke_end_ordinate:.98};
   function visibility() {
     const model=$('empty_mass_model').value;
     document.querySelectorAll('[data-bipol1-group]').forEach(el=>el.hidden=el.dataset.bipol1Group!==model);
     document.querySelector('[data-bipol1-task]').hidden=!(Number($('max_power_time_min').value)>0);
     document.querySelector('[data-bipol1-corke-reading]').hidden=$('climb_fraction_mode').value!=='reading';
     document.querySelector('[data-bipol1-raymer-reading]').hidden=$('preliminary_polar_mode').value!=='reading';
+    document.querySelector('[data-bipol1-sketch]').hidden=$('wetted_example').value!=='sketch';
     const jet=($('engine_type')?.value||formBaseParams.engine_type)==='jet';
     document.querySelector('[data-bipol1-prop]').hidden=jet;
     document.querySelector('[data-bipol1-jet]').hidden=!jet;
@@ -21,8 +22,10 @@
   }
   function sync(p=formBaseParams) {
     document.querySelectorAll('[data-bipol1]').forEach(el=>el.value=p[el.id]??defaults[el.id]??'');
-    if(!p.raymer_family) $('raymer_family').value=p.engine_type==='none'?'glider':p.engine_type==='jet'?'jet':p.retractable_gear?'prop_retractable':'prop_fixed';
-    if(!p.cx0_reference_class) $('cx0_reference_class').value=['glider','motoglider'].includes(p.aircraft_type)?'motoglider':p.aircraft_type==='jet_transport'?'transport':p.n_engines>=2?'small_twin':p.retractable_gear?'single_retractable':'single_fixed';
+    // C_x0 of project 1 always comes from Fig. 2; earlier projects measured S_wet/S on the sketch.
+    if(!['raymer','reading'].includes($('preliminary_polar_mode').value)) $('preliminary_polar_mode').value='raymer';
+    if(!['trend','two_point'].includes($('empty_mass_model').value)) $('empty_mass_model').value='trend';
+    if(!p.wetted_example&&['raymer','reading'].includes(p.preliminary_polar_mode)&&p.sketch_swet_ratio) $('wetted_example').value='sketch';
     visibility();
   }
   function collect(data) {
@@ -33,10 +36,10 @@
       if(!el.checkValidity()) throw Error(`Sprawdź: ${el.closest('label')?.textContent.trim()||el.id}. ${el.validationMessage}`);
       data[el.id]=el.type==='number'?Number(el.value):el.value;
     }
-    if(data.empty_mass_model!=='class_correlation') {
-      delete data.empty_mass_trend_A;delete data.empty_mass_trend_C;
-    }
-    if(!['fixed_fraction','class_correlation'].includes(data.empty_mass_model)) delete data.empty_mass_fraction;
+    if(data.wetted_example!=='sketch') delete data.sketch_swet_ratio;
+    delete data.raymer_family;
+    // BIPOL_1, wzór (1): A i C zawsze z linii trendu (programu albo własnego odczytu dwóch punktów).
+    for(const key of ['empty_mass_trend_A','empty_mass_trend_C','empty_mass_fraction','empty_mass_a','empty_mass_c']) delete data[key];
     delete data.outbound_range_km;
     return data;
   }

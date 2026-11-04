@@ -65,13 +65,13 @@
               <!-- ==========================================
                    MODUŁ 0: Dane Projektanta-Studenta (Strona Tytułowa Rys. 2 i Teczka Rys. 1)
                    ========================================== -->
-              <div class="module-accordion" id="accordion_mod0" style="border:2px solid #0284c7;">
-                <div class="module-header active" onclick="toggleAccordion('mod0')" style="background:#f0f9ff;">
+              <div class="module-accordion mod-designer-accordion" id="accordion_mod0">
+                <div class="module-header active" onclick="toggleAccordion('mod0')">
                   <div class="module-title">
                     <span>🪪</span> <b>0. Dane Projektanta-Studenta (Strona Tytułowa)</b>
                   </div>
                   <div class="module-meta">
-                    <span id="pill_mod0" class="mod-pill" style="background:#e0f2fe; color:#0369a1;">Rys. 1 i 2 MEiL</span>
+                    <span id="pill_mod0" class="mod-pill mod-pill-designer">Rys. 1 i 2 MEiL</span>
                     <span class="mod-chevron" id="chev_mod0">▼</span>
                   </div>
                 </div>
@@ -201,7 +201,7 @@
                     <small>Zmienia współczynnik łagodzenia i obciążenia P6. W raporcie podana jest wybrana metoda.</small>
                   </div>
                   <!-- Alert bezzałogowca EASA UAS -->
-                  <div id="uav_easa_banner" style="display:none; background:#eff6ff; border:1px solid #93c5fd; border-radius:6px; padding:6px 10px; margin-bottom:10px; font-size:0.75rem; color:#1e40af;">
+                  <div id="uav_easa_banner" class="uav-easa-banner" style="display:none;">
                     🤖 <strong>EASA UAS (UE 2019/947):</strong> Model bezzałogowy – <strong>0 osób na pokładzie</strong>. Kategoria operacji wymaga oceny ryzyka; nie wynika z masy 600 kg. Sterowanie ze stacji naziemnej (GCS). Masa wyposażenia zadaniowego (sensory/głowica).
                   </div>
 
@@ -376,7 +376,7 @@
                     </div>
                     <div class="input-group" data-param="wingspan_m">
                       <label for="wingspan_m">
-                        <span class="label-text">Rozpiętość b [m] <small style="color:#0284c7;">(0=auto)</small> <span class="info-circle-icon" data-param="wingspan_m" tabindex="0">i</span></span>
+                        <span class="label-text">Rozpiętość b [m] <small class="text-hint-cyan">(0=auto)</small> <span class="info-circle-icon" data-param="wingspan_m" tabindex="0">i</span></span>
                         <button type="button" class="param-lock-btn" id="lock_btn_wingspan_m" onclick="toggleParamLock('wingspan_m')" title="Zablokuj rozpiętość">🔓</button>
                       </label>
                       <input step="any" required type="number" id="wingspan_m" min="0" max="80" value="0" placeholder="0 = wylicz z S·Λ">
@@ -443,10 +443,10 @@
                 <div class="module-body" id="body_mod3">
                   <div class="input-row">
                     <div class="input-group" data-param="flap_type">
-                      <label for="flap_type" style="color:#1e40af; font-weight:700;">
+                      <label for="flap_type" class="flap-label-highlight">
                         <span class="label-text">🛬 Klapa Spływu (Wewnętrzna) <span class="info-circle-icon" data-param="flap_type" tabindex="0">i</span></span>
                       </label>
-                      <select id="flap_type" style="border:2px solid #2563eb; background:#eff6ff; font-weight:600;">
+                      <select id="flap_type" class="flap-select-highlight">
                         <option value="none">Brak klap</option>
                         <option value="plain">1. Klapa zwykła (wysklepiająca)</option>
                         <option value="split">2. Klapa krokodylowa (Split Flap)</option>
@@ -459,10 +459,10 @@
                       <div class="param-didactic-hint" id="hint_flap_type"></div>
                     </div>
                     <div class="input-group" data-param="aileron_type">
-                      <label for="aileron_type" style="color:#047857; font-weight:700;">
+                      <label for="aileron_type" class="aileron-label-highlight">
                         <span class="label-text">🔄 Lotka Poprzeczna (Zewnętrzna) <span class="info-circle-icon" data-param="aileron_type" tabindex="0">i</span></span>
                       </label>
-                      <select id="aileron_type" style="border:2px solid #10b981; background:#f0fdf4; font-weight:600;">
+                      <select id="aileron_type" class="aileron-select-highlight">
                         <option value="differential" selected>1. Lotka różnicowa (Differential - GA)</option>
                         <option value="frise">2. Lotka Frise (ze ściętym noskiem)</option>
                         <option value="slotted">3. Lotka szczelinowa (Slotted)</option>
@@ -475,10 +475,10 @@
 
                   <div class="input-row">
                     <div class="input-group" data-param="slat_type">
-                      <label for="slat_type" style="color:#0284c7; font-weight:700;">
+                      <label for="slat_type" class="slat-label-highlight">
                         <span class="label-text">🌬️ Natarcie / Slot <span class="info-circle-icon" data-param="slat_type" tabindex="0">i</span></span>
                       </label>
-                      <select id="slat_type" style="border:2px solid #0284c7; background:#f0f9ff; font-weight:600;">
+                      <select id="slat_type" class="slat-select-highlight">
                         <option value="none" selected>1. Czysty nos (brak slotów)</option>
                         <option value="fixed_slot">2. Slot stały (Fixed Slat)</option>
                         <option value="slats_auto">3. Slot ruchomy automatyczny</option>
@@ -499,8 +499,8 @@
                   <div id="flapDidacticCard" class="flap-didactic-card" style="margin-bottom:0.75rem;"></div>
 
                   <!-- WIDGET ROZKŁADU KRAWĘDZI SPŁYWU: KLAPY I LOTKI -->
-                  <div id="trailingEdgeLayoutCard" style="margin-bottom:0.75rem; padding:0.65rem 0.85rem; border:1px solid #cbd5e1; border-radius:6px; background:#f8fafc; font-size:0.82rem;">
-                    <div style="font-weight:700; color:#0f172a; margin-bottom:0.35rem; display:flex; justify-content:space-between; align-items:center;">
+                  <div id="trailingEdgeLayoutCard" class="trailing-edge-card">
+                    <div class="trailing-edge-header">
                       <span>📐 Podział Krawędzi Spływu: Klapy (wewn.) &bull; Lotki (zewn.)</span>
                       <span id="cs_layout_badge" class="badge badge-info" style="font-size:0.72rem;">Klapy + Lotki</span>
                     </div>
@@ -625,7 +625,7 @@
                     <div class="input-group" data-power-basis><label for="power_input_mode">Dobór mocy</label><select id="power_input_mode" data-basis-selector><option value="sized">Oblicz wymaganą moc</option><option value="fixed">Znam dostępną moc silnika</option></select></div>
                     <div class="input-group" data-param="engine_power_kw" id="group_engine_power_kw">
                       <label for="engine_power_kw">
-                        <span class="label-text">Moc silnika P_max [kW] <small style="color:#0284c7;">(0=auto)</small> <span class="info-circle-icon" data-param="engine_power_kw" tabindex="0">i</span></span>
+                        <span class="label-text">Moc silnika P_max [kW] <small class="text-hint-cyan">(0=auto)</small> <span class="info-circle-icon" data-param="engine_power_kw" tabindex="0">i</span></span>
                         <button type="button" class="param-lock-btn" id="lock_btn_engine_power_kw" onclick="toggleParamLock('engine_power_kw')" title="Zablokuj moc silnika rynkowego">🔓</button>
                       </label>
                       <input step="any" required type="number" id="engine_power_kw" min="0" max="15000" value="0" placeholder="0 = z bilansu P5">

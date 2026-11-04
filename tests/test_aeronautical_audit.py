@@ -87,12 +87,19 @@ def test_aerobatic_topics_use_aerobatic_loads():
 
 
 def test_heavy_payload_topics_are_transport_category_with_two_pilots():
-    for num in (67, 71, 91, 98):
+    for num in (71, 91, 98):
         p = topic(num)
         assert (p['category'], p['n_crew']) == ('cs25_transport', 2), num
-    assert topic(66)['category'] == 'cs23_level1'
-    r = run_bipol_project(topic(68))
-    assert r['mass']['m0'] > 8618 and all(c['ok'] for c in r['easa_compliance']['checks'] if 'MTOM' in c['name'])
+    # The P1 mass seeds 1,3 t and 1,8 t of cargo in CS-23; the calculated design decides in the end.
+    assert topic(66)['category'] == topic(67)['category'] == 'cs23_level1'
+    for num in (67, 68):
+        r = run_bipol_project(topic(num))
+        assert r['mass']['m0'] > 8618 and (r['params']['category'], r['params']['n_crew']) == ('cs25_transport', 2), num
+        assert all(c['ok'] for c in r['easa_compliance']['checks'] if 'MTOM' in c['name']), num
+    # A category chosen by the author stays, and its MTOM limit is reported.
+    own = run_bipol_project(dict(topic(67), category='cs23_commuter'))
+    assert own['params']['category'] == 'cs23_commuter'
+    assert not all(c['ok'] for c in own['easa_compliance']['checks'] if 'MTOM' in c['name'])
     # The mass, not the seat count, puts a freighter in CS-25.
     assert not any('pasażerów' in c['name'] for c in r['easa_compliance']['checks'])
 
@@ -113,13 +120,17 @@ def test_topic_specific_payloads():
 
 
 def test_known_empty_mass_fraction_changes_the_closed_mass_balance():
+    # BIPOL_1, eq. (1): two points of equal ordinate read from the trend line give a constant mₑ/m₀.
     base = AIRCRAFT_PRESETS['ga_trainer']
-    light = run_bipol_project(dict(base, empty_mass_fraction=.5))
-    heavy = run_bipol_project(dict(base, empty_mass_fraction=.65))
+    level = lambda y: dict(base, empty_mass_model='two_point', mass_point_x1=1000, mass_point_y1=y,
+                           mass_point_x2=2000, mass_point_y2=y)
+    light, heavy = run_bipol_project(level(.5)), run_bipol_project(level(.65))
     assert heavy['mass']['m0'] > light['mass']['m0']
     for r, fraction in [(light,.5),(heavy,.65)]:
         assert r['mass']['m_empty']/r['mass']['m0'] == pytest.approx(fraction, abs=.0002)
-        assert r['mass']['empty_mass_model']=='fixed_fraction'
+        assert r['mass']['empty_mass_model']=='two_point'
+    # A typed fraction is not a step of the project: it is replaced by eq. (1) of the sample.
+    assert run_bipol_project(dict(base, empty_mass_fraction=.5))['mass']['empty_mass_model'] == 'trend'
 
 
 def test_underpowered_aircraft_has_no_invented_level_flight_or_range():

@@ -215,7 +215,7 @@
               </div>
             </div>
             <div class="b-card-body" style="padding:0.75rem;">
-              <div id="blueprintView" class="blueprint-box" style="background:#f1f5f9; padding:0.5rem;"></div>
+              <div id="blueprintView" class="blueprint-box"></div>
             </div>
           </div>
 
@@ -610,7 +610,7 @@
               <span class="badge badge-info">Weryfikacja statystyczna</span>
             </div>
             <div class="subpoint-body">
-              <div id="holistic_paturski_abc_summary" style="background:#f8fafc; border:1px solid #cbd5e1; border-radius:6px; padding:0.75rem 1rem; font-size:0.84rem; color:#1e293b; margin-bottom:0.85rem;"></div>
+              <div id="holistic_paturski_abc_summary" class="paturski-summary-card"></div>
               <div style="font-weight:700; color:#005691; font-size:0.86rem; margin-bottom:0.4rem;">
                 Tabela C: Procentowy wpływ oporów części samolotu na współczynnik C_x,min (porównanie projektu ze statystyką):
               </div>
@@ -1968,7 +1968,7 @@
       <div class="session-starter-body">
         <div class="session-starter-choices" style="margin-bottom:1.1rem;">
           <!-- Wersja 1: Całościowe Projektowanie -->
-          <div class="starter-choice-card" id="starterHolisticCard" style="border-color:#0284c7; background:linear-gradient(180deg, #f0f9ff 0%, #ffffff 100%); text-align:left; align-items:flex-start;">
+          <div class="starter-choice-card starter-card-holistic" id="starterHolisticCard">
             <div style="display:flex; justify-content:space-between; width:100%; align-items:center; margin-bottom:0.4rem;">
               <span style="font-size:2rem;">🌐</span>
               <span class="badge" style="background:#0284c7; color:#fff;">WERSJA 1 PORTALU</span>
@@ -1983,7 +1983,7 @@
           </div>
 
           <!-- Wersja 2: Poszczególne Projekty Semestralne -->
-          <div class="starter-choice-card primary" id="starterProjectsCard" style="display:none;" style="border-color:#1e40af; background:linear-gradient(180deg, #eff6ff 0%, #ffffff 100%); text-align:left; align-items:flex-start;">
+          <div class="starter-choice-card primary starter-card-projects" id="starterProjectsCard" style="display:none;">
             <div style="display:flex; justify-content:space-between; width:100%; align-items:center; margin-bottom:0.4rem;">
               <span style="font-size:2rem;">🎓</span>
               <span class="badge" style="background:#1e40af; color:#fff;">WERSJA 2 PORTALU (KURS BIPOL I)</span>
@@ -1999,8 +1999,8 @@
         </div>
 
         <!-- Dolny pasek narzędzi startowych (Kreator, Menedżer) -->
-        <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; padding:0.85rem 1rem; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.75rem;">
-          <div style="font-size:0.82rem; color:#334155;">
+        <div class="session-starter-toolbar">
+          <div class="session-starter-toolbar-title">
             <strong>Szybkie akcje projektowe:</strong>
           </div>
           <div style="display:flex; gap:0.5rem; flex-wrap:wrap;">
@@ -2523,17 +2523,17 @@
   <script src="/static/js/didactic_data.js?v=14"></script>
   <script src="/static/js/charts.js?v=20"></script>
   <script src="/static/js/app.js?v=43"></script>
-  <script src="/static/js/didactic_modes.js?v=3"></script>
-  <script src="/static/js/constraints-ui.js?v=6"></script>
-  <script src="/static/js/design-basis.js?v=7"></script>
+  <script src="/static/js/didactic_modes.js?v=7"></script>
+  <script src="/static/js/constraints-ui.js?v=7"></script>
+  <script src="/static/js/design-basis.js?v=8"></script>
   <script src="/static/js/parameter-report.js?v=1"></script>
   <script src="/static/js/studio.js?v=13"></script>
   <script src="/static/js/aircraft-project.js?v=1"></script>
   <script src="/static/js/aircraft-editor.js?v=2"></script>
-  <script src="/static/js/trend-inputs.js?v=2"></script>
-  <script src="/static/js/trend-provenance.js?v=2"></script>
-  <script src="/static/js/trends.js?v=10"></script>
-  <script src="/static/js/bipol1.js?v=2"></script>
+  <script src="/static/js/trend-inputs.js?v=3"></script>
+  <script src="/static/js/trend-provenance.js?v=4"></script>
+  <script src="/static/js/trends.js?v=13"></script>
+  <script src="/static/js/bipol1.js?v=5"></script>
   <script src="/static/js/workspace.js?v=7"></script>
   <script src="/static/js/calculation-graph.js?v=1"></script>
   <script src="/static/js/calculation-tree.js?v=4"></script>

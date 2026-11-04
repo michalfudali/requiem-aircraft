@@ -444,6 +444,8 @@ def topic_parameters(topic):
     from calculations.polish_law import CS23_MTOM_MAX_KG
     if p['category'].startswith('cs23') and _estimated_m0(p) > CS23_MTOM_MAX_KG:
         p.update(category='cs25_transport', n_crew=2)
+    # The same rule applies to the mass of the calculated design while the seeded category stays.
+    p['category_seed'] = p['category']
     return p
 
 

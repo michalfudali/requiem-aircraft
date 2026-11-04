@@ -23,24 +23,19 @@
     .iteration-trace-box summary{cursor:pointer;font-weight:600;color:#0f766e;padding:0.4rem 0}
   </style>
   <h2>Misja i masa samolotu — BIPOL 1</h2>
-  <p>Wprowadź przebieg lotu, wybierz źródło masy pustej i sprawdź bilans misji. Zgodnie z czystą merytoryką bilans oparty jest na pełnym domknięciu projektu z biegunowej aerodynamicznej P4 przy zadanej prędkości TAS i wysokości.</p>
+  <p>Wprowadź przebieg lotu i sprawdź bilans misji. Masa pusta wynika z równania (1) BIPOL_1, m<sub>e</sub>/m<sub>0</sub> = A·m<sub>0</sub><sup>C</sup>·K<sub>vs</sub>, ze współczynnikami A i C wyznaczonymi z dwóch punktów linii trendu analizy trendów.</p>
   <div class="trend-controls">
     <label>Metoda masowa<select id="mass_method" data-bipol1><option value="auto">Automatycznie według zrzutu</option><option value="proportion">Proporcji — bez zrzutu</option><option value="iterative">Iteracyjna — bilans kolejnych faz</option></select></label>
-    <label>Masa pusta<select id="empty_mass_model" data-bipol1><option value="class_correlation">Korelacja klasy / dotychczasowy model</option><option value="trend">Regresja wybranych samolotów</option><option value="coefficients">Własne współczynniki A i C</option><option value="two_point">Dwa punkty linii trendu</option><option value="fixed_fraction">Stały udział — założenie robocze</option></select></label>
-    <label>Masa odniesienia do doboru próby [kg]<input id="mass_initial_guess" data-bipol1 type="number" min="1" max="1000000" value="5000"></label>
+    <label>Punkty linii trendu mₑ/m₀ = f(m₀)<select id="empty_mass_model" data-bipol1><option value="trend">Odczyt programu z linii trendu próby</option><option value="two_point">Własny odczyt dwóch punktów z wykresu</option></select></label>
   </div>
-  <div class="trend-controls" data-bipol1-group="coefficients">
-    <label>A (dla m₀ w kg)<input id="empty_mass_a" data-bipol1 type="number" min="0.000001" step="any" value="0.95"></label>
-    <label>C<input id="empty_mass_c" data-bipol1 type="number" min="-2" max="2" step="any" value="-0.05"></label>
-  </div>
+  <p class="studio-fine-print" data-bipol1-group="trend">Linia trendu pochodzi z próby porównawczej z zakładki „Baza i analiza trendów”; ta sama linia jest w raporcie z analizy trendów.</p>
   <div class="trend-controls" data-bipol1-group="two_point">
     <label>x₁: masa [kg]<input id="mass_point_x1" data-bipol1 type="number" min="1" value="1000"></label>
     <label>y₁: mₑ/m₀<input id="mass_point_y1" data-bipol1 type="number" min="0.01" max="0.99" step="any" value="0.60"></label>
     <label>x₂: masa [kg]<input id="mass_point_x2" data-bipol1 type="number" min="1" value="2000"></label>
     <label>y₂: mₑ/m₀<input id="mass_point_y2" data-bipol1 type="number" min="0.01" max="0.99" step="any" value="0.55"></label>
   </div>
-  <div class="trend-controls" data-bipol1-group="fixed_fraction"><label>Stały udział masy pustej<input id="empty_mass_fraction" data-bipol1 type="number" min="0.15" max="0.95" step="any" value="0.55"></label></div>
-  <label>Źródło korelacji i definicja masy pustej<input id="mass_law_source" data-bipol1 type="text" maxlength="4000" placeholder="Dokument, strona, próba; co obejmuje masa pusta"></label>
+  <label data-bipol1-group="two_point">Źródło odczytu i definicja masy pustej<input id="mass_law_source" data-bipol1 type="text" maxlength="4000" placeholder="Dokument, strona, próba; co obejmuje masa pusta"></label>
   <details open><summary>Przebieg misji</summary>
     <p>Zasięg projektu oznacza całą trasę. Dolot = zasięg całkowity − powrót. Zrzut dotyczy cargo; pasażerowie i załoga pozostają na pokładzie.</p>
     <div class="trend-controls">
@@ -69,17 +64,16 @@
   </details>
   <details><summary>Szkic, powierzchnia omywana i biegunowa wstępna</summary>
     <div class="trend-controls">
-      <label>Źródło biegunowej<select id="preliminary_polar_mode" data-bipol1><option value="input">Cx₀ z założeń — oszacowanie robocze</option><option value="raymer">Wykres Raymera</option><option value="reading">Własny odczyt Kmax</option></select></label>
-      <label>Swet/S ze szkicu<input id="sketch_swet_ratio" data-bipol1 type="number" min="1" max="20" step="any" value="4"></label>
-      <label>Krzywa Raymera<select id="raymer_family" data-bipol1><option value="prop_fixed">Śmigłowy, podwozie stałe</option><option value="prop_retractable">Śmigłowy, podwozie chowane</option><option value="jet">Odrzutowy</option><option value="glider">Szybowiec</option><option value="military_subsonic">Bojowy poddźwiękowy</option><option value="military_supersonic">Bojowy naddźwiękowy</option></select></label>
-      <label data-bipol1-raymer-reading>Własny Kmax<input id="raymer_kmax" data-bipol1 type="number" min="1" max="150" step="any" value="15"></label>
-      <label>Klasa do kontroli Cx₀<select id="cx0_reference_class" data-bipol1><option value="single_fixed">Jednosilnikowy, stałe podwozie</option><option value="single_retractable">Jednosilnikowy, chowane podwozie</option><option value="small_twin">Mały dwusilnikowy</option><option value="transport">Duży transportowy</option><option value="military">Bojowy</option><option value="agricultural">Rolniczy</option><option value="motoglider">Motoszybowiec</option></select></label>
+      <label>S<sub>wet</sub>/S — układ z rys. 1<select id="wetted_example" data-bipol1><option value="">Automatycznie: układ najbliższy klasie samolotu</option><option value="flying_wing">Latające skrzydło — 2,25</option><option value="delta_fighter">Myśliwiec z płatem delta (F-102) — 3,05</option><option value="glider">Szybowiec — 3,05</option><option value="light_single">Lekki samolot jednosilnikowy (Cessna 150) — 3,9</option><option value="twin_turboprop">Dwusilnikowy turbośmigłowy (King Air) — 4,9</option><option value="fighter">Myśliwiec odrzutowy (F-104) — 5,5</option><option value="jet_transport">Samolot komunikacyjny (Boeing 747) — 6,15</option><option value="bomber">Bombowiec z gondolami (B-47) — 7,75</option><option value="sketch">Własny pomiar na szkicu</option></select></label>
+      <label data-bipol1-sketch>S<sub>wet</sub>/S zmierzony na szkicu<input id="sketch_swet_ratio" data-bipol1 type="number" min="1" max="20" step="any" value="4"></label>
+      <label>K<sub>max</sub> z rys. 2<select id="preliminary_polar_mode" data-bipol1><option value="raymer">Odczyt programu z krzywej</option><option value="reading">Własny odczyt z wykresu</option></select></label>
+      <label data-bipol1-raymer-reading>Własny odczyt K<sub>max</sub><input id="raymer_kmax" data-bipol1 type="number" min="1" max="150" step="any" value="15"></label>
+      <label>Klasa do porównania C<sub>x0</sub><select id="cx0_reference_class" data-bipol1><option value="">Automatycznie wg klasy samolotu</option><option value="single_fixed">Jednosilnikowy, stałe podwozie</option><option value="single_retractable">Jednosilnikowy, chowane podwozie</option><option value="small_twin">Mały dwusilnikowy</option><option value="transport">Duży transportowy</option><option value="military">Bojowy</option><option value="agricultural">Rolniczy</option><option value="motoglider">Motoszybowiec</option></select></label>
     </div>
-    <p>Kmax z AR/(Swet/S), następnie Cx₀ = π·AR·e/(4·Kmax²). Interpolacja ma dokładność odczytu graficznego. Krzywych nie ekstrapolujemy. <a href="/static/images/bipol1-wetted-area.png" target="_blank" rel="noopener">Swet/S — rys. 1</a> · <a href="/static/images/bipol1-raymer.png" target="_blank" rel="noopener">Wykres i tabela Cx₀</a>.</p>
+    <p>Metoda BIPOL_1, s. 2–3: S<sub>wet</sub>/S ze szkicu lub z rys. 1 → Λ<sub>wet</sub> = Λ/(S<sub>wet</sub>/S) → K<sub>max</sub> z krzywej rys. 2 dla rodzaju samolotu (szybowce, śmigłowe z podwoziem stałym lub chowanym, cywilne odrzutowe) → C<sub>x0</sub> = π·Λ·e/(4·K<sub>max</sub>²) → porównanie z tabelą wartości typowych. Odczyt poza narysowaną krzywą przedłuża się zgodnie z jej kształtem (K<sub>max</sub> ∝ √Λ<sub>wet</sub>) i oznacza do potwierdzenia. <a href="/static/images/bipol1-wetted-area.png" target="_blank" rel="noopener">Rys. 1 — S<sub>wet</sub>/S</a> · <a href="/static/images/bipol1-raymer.png" target="_blank" rel="noopener">Rys. 2 i tabela C<sub>x0</sub></a>.</p>
     <label>Źródło odczytów i Swet/S<input id="graph_source" data-bipol1 type="text" maxlength="4000" placeholder="Rysunek, krzywa, punkty odczytu, powierzchnie ze szkicu"></label>
   </details>
   <details><summary>Dane źródłowe i uzgodnienia</summary>
-    <label>Daty trendów<select id="trend_year_basis" data-bipol1><option value="certification">Certyfikacja — obecna baza</option><option value="production">Produkcja — według PDF</option></select></label>
     <p>Znaczenie roku wybierzesz w edytorze samolotu w bazie. Daty produkcji i certyfikacji są analizowane osobno.</p>
     <label>Odniesienie do uzgodnionego szkicu odręcznego<input id="sketch_reference" data-bipol1 type="text" maxlength="4000" placeholder="Nazwa pliku / arkusza i data uzgodnienia"></label>
     <label>Uzgodnienie misji i wymagań z prowadzącym<input id="mission_approval_reference" data-bipol1 type="text" maxlength="4000" placeholder="Data i zakres uzgodnienia"></label>
