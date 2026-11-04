@@ -111,6 +111,14 @@ def test_optional_openvsp_panel_explains_missing_native_engine(studio):
     navigate(page,'tab-openvsp')
     if status['available']:
         assert page.locator('#vspSyncFromBipolBtn').is_enabled()
+        page.wait_for_function('document.querySelector("#vspGeomTreeList")?.children.length >= 6', timeout=60000)
+        page.locator('[data-vsp-subtab="vsp-sub-scripts"]').click()
+        page.locator('#vspScriptTemplateSelect').select_option('vspscript_demo')
+        assert 'int main()' in page.locator('#vspScriptEditor').input_value()
+        with page.expect_response(lambda r:r.url.endswith('/api/openvsp/script'), timeout=60000) as response:
+            page.locator('#vspRunScriptBtn').click()
+        assert response.value.ok and response.value.json()['returncode'] == 0
+        page.wait_for_function('document.querySelector("#vspScriptStatusMeta").textContent.includes("Status: ok")')
     else:
         notice = page.locator('#vspAvailability')
         notice.wait_for(state='visible')
