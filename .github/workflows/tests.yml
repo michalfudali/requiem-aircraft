@@ -28,7 +28,7 @@ jobs:
         include:
           - os: ubuntu-latest
             python: '3.11'
-            coverage: --cov --cov-report=xml:work/coverage.xml --cov-report=term:skip-covered
+            coverage: --cov --cov-fail-under=90 --cov-report=xml:work/coverage.xml --cov-report=term:skip-covered
           - os: ubuntu-latest
             python: '3.13'
             coverage: ''

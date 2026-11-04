@@ -38,7 +38,7 @@ Aktywuj je (`work/test-venv/Scripts/Activate.ps1` na Windows lub
 ```text
 python -m pip install -r requirements-dev.txt -c requirements-test-constraints.txt
 python tools/check_databases.py
-python -m pytest -q -n 2 --dist=loadfile --cov --cov-report=xml:work/coverage.xml --junitxml=work/pytest.xml
+python -m pytest -q -n 2 --dist=loadfile --cov --cov-fail-under=90 --cov-report=xml:work/coverage.xml --junitxml=work/pytest.xml
 ```
 
 Constraints przypinają również zależności pośrednie do zweryfikowanych wersji.
@@ -102,6 +102,9 @@ Windows 3.11), JS i Chromium. JS działa niezależnie od powodzenia Python.
 Raporty JUnit, pokrycie i ślady są publikowane jako artefakty także przy błędzie.
 Pokrycie mierzymy w przebiegu Linux 3.11; pozostałe dwa przebiegi wykonują pełny
 zestaw bez kosztu ponownego pomiaru tych samych linii.
+Przebieg wprowadzający modernizację osiągnął 94% pokrycia linii `calculations`
+i `app`. CI wymaga minimum 90% w pełnym zestawie; pojedyncze testy można nadal
+uruchamiać z pokryciem bez tej bramki, pomijając `--cov-fail-under=90`.
 Po testach CI sprawdza, czy obie dostarczone bazy pozostały niezmienione.
 Przekroczenie czasu zadania, nieznany marker lub niespodziewany XPASS powodują błąd.
 Awaria zaimplementowanego CRUD/suggestions jest asercją, a nie `pytest.skip`.
