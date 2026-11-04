@@ -2393,6 +2393,23 @@
             <p>Dobierz układ płata, obrys i mechanizację. Wielkości wynikające z założeń są obliczane automatycznie.</p>
           </div>
 
+          <div class="input-row">
+            <div class="input-group">
+              <label for="wiz_wetted_example">Stosunek powierzchni omywanej do powierzchni skrzydła S<sub>wet</sub>/S</label>
+              <select id="wiz_wetted_example" aria-controls="wizWettedRatioGroup">
+                <option value="">Automatycznie według klasy samolotu</option>
+                {% for key, row in wetted_examples.items() %}<option value="{{ key }}">{{ row.label[:1]|upper }}{{ row.label[1:] }} — {{ row.swet_ratio|reportnum(2) }}</option>{% endfor %}
+                <option value="sketch">Wpiszę własny stosunek S_wet/S</option>
+              </select>
+              <small>Całkowita powierzchnia omywana samolotu podzielona przez powierzchnię odniesienia skrzydła. Parametr do wstępnego oszacowania doskonałości z wykresu Raymera (P1).</small>
+            </div>
+            <div class="input-group" id="wizWettedRatioGroup" hidden>
+              <label for="wiz_sketch_swet_ratio">Własny stosunek S<sub>wet</sub>/S [–]</label>
+              <input id="wiz_sketch_swet_ratio" type="number" min="1" max="20" step="any" value="4" required disabled>
+              <small>Wartość bezwymiarowa, np. 4,2. Podaj pomiar ze szkicu lub udokumentowane oszacowanie.</small>
+            </div>
+          </div>
+
           <div class="wizard-suggest-banner" style="margin-bottom:12px; background:#f0f9ff; border:1px solid #bae6fd; padding:6px 12px; border-radius:6px; display:flex; justify-content:space-between; align-items:center; gap:8px; flex-wrap:wrap;">
             <span style="font-size:0.78rem; color:#0369a1;">📊 <strong>Analiza trendów (BIPOL_1):</strong> AR z trendu oraz średnie V_H, V_V, lotek, sterów i wzniosu z podobnych samolotów<span id="wizTrendPreviewGeometry"></span></span>
             <button type="button" class="btn btn-outline" id="wizSuggestTrendsBtn" style="padding:2px 8px; font-size:0.75rem; background:#ffffff; font-weight:700; color:#0284c7;">
@@ -2554,10 +2571,10 @@
   <script src="/static/js/studio-visuals.js?v=3"></script>
   <script src="/static/js/didactic_data.js?v=14"></script>
   <script src="/static/js/charts.js?v=p2-ui-20261104"></script>
-  <script src="/static/js/app.js?v=p2-ui-20261104"></script>
+  <script src="/static/js/app.js?v=wizard-swet-20261104"></script>
   <script src="/static/js/didactic_modes.js?v=merge-20261104"></script>
   <script src="/static/js/constraints-ui.js?v=7"></script>
-  <script src="/static/js/design-basis.js?v=p2-ui-20261104"></script>
+  <script src="/static/js/design-basis.js?v=wizard-swet-20261104"></script>
   <script src="/static/js/parameter-report.js?v=1"></script>
   <script src="/static/js/studio.js?v=p2-ui-20261104"></script>
   <script src="/static/js/aircraft-project.js?v=1"></script>

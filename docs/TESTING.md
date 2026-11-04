@@ -63,7 +63,7 @@ plików; nowy runner uwzględni także przyszłe pliki bez edycji workflow.
 ```text
 python -m pip install -r requirements-browser.txt -c requirements-test-constraints.txt
 python -m playwright install chromium
-python -m pytest tests/test_browser_acceptance.py tests/test_browser_p2.py --browser -q --junitxml=work/browser.xml
+python -m pytest tests/test_browser_acceptance.py tests/test_browser_p2.py tests/test_browser_wizard_wetted.py --browser -q --junitxml=work/browser.xml
 ```
 
 Na Linux instalacja przeglądarki w CI używa `--with-deps`. Przy jawnym

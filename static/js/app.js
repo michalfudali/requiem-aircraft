@@ -3141,6 +3141,7 @@ function renderWizardStep5Summary() {
     <tr><td><b>Osiągi lotniskowe</b></td><td>Całkowity start do 15 m / Wznoszenie w_y</td><td class="num"><b>${runwaySummaryVal}</b></td><td>Długość pasa i odejście na 2. krąg</td></tr>
     <tr><td><b>Zespół Napędowy</b></td><td>Rodzaj, zabudowa i zużycie paliwa</td><td class="num"><b>${propSummaryText}</b></td><td>Zespół napędowy</td></tr>
     <tr><td><b>Założenia skrzydła</b></td><td>${escapeHtml(document.getElementById('wiz_wing_input_mode').selectedOptions[0].textContent)}</td><td class="num"><b>${wingSummaryVal}</b></td><td>Wielkości zależne są obliczane</td></tr>
+    <tr><td><b>Powierzchnia omywana</b></td><td>Stosunek S_wet/S</td><td class="num"><b>${getV('wiz_wetted_example') === 'sketch' ? escapeHtml(getV('wiz_sketch_swet_ratio')) : escapeHtml(document.getElementById('wiz_wetted_example').selectedOptions[0].textContent)}</b></td><td>Wstępne oszacowanie doskonałości P1</td></tr>
     <tr><td><b>Mechanizacja</b></td><td>Klapy spływu i sloty natarcia</td><td class="num"><b>${escapeHtml(flapLabel)} &bull; ${escapeHtml(slatLabel)}</b></td><td>Zapewnienie wymaganego Vs0</td></tr>
   `;
 
