@@ -255,12 +255,12 @@ function drawMatchingChart(canvasId, sizing) {
       ctx.setLineDash([]);
     });
 
-    // 3. Design Points: Point A (Min Power) and Point B (Max Range)
+    // 3. Adopted design point and the maximum-range reference B.
     const dp = sizing.design_point;
     const dpX = toX(dp.ws);
     const dpY = toY(isJet ? dp.tw : dp.pw);
 
-    // Point A (Gold Circle / Star)
+    // Adopted point (gold); a boundary choice is not necessarily optimum A.
     ctx.fillStyle = '#f59e0b';
     ctx.beginPath();
     ctx.arc(dpX, dpY, 6, 0, Math.PI * 2);
@@ -272,7 +272,8 @@ function drawMatchingChart(canvasId, sizing) {
     ctx.fillStyle = '#b45309';
     ctx.font = 'bold 11px sans-serif';
     ctx.textAlign = 'left';
-    BipolSymbols.fillText(ctx, `⭐ Punkt A (${Math.round(dp.ws)} N/m²)`, dpX + 8, dpY - 6);
+    const designLabel = ({minimum_power:'Punkt A',range:'Wybrany punkt B',range_limited:'Granica W/S — B niewykonalny'})[dp.selection_applied] || 'Punkt projektowy';
+    BipolSymbols.fillText(ctx, `⭐ ${designLabel} (${Math.round(dp.ws)} N/m²)`, dpX + 8, dpY - 6);
 
     // Point B (Cyan Diamond) - Maximum Range Point
     if (vis.max_range && Number.isFinite(sizing.ws_max_range) && sizing.ws_max_range >= xMin && sizing.ws_max_range <= xMax) {
@@ -294,7 +295,8 @@ function drawMatchingChart(canvasId, sizing) {
       ctx.fillStyle = '#0891b2';
       ctx.font = 'bold 11px sans-serif';
       ctx.textAlign = 'left';
-      BipolSymbols.fillText(ctx, `🔷 Punkt B (${Math.round(bWs)} N/m²)`, bX + 8, bY + 14);
+      const bLabel = bWs > wsLimit ? 'Punkt B poza obszarem' : 'Punkt B';
+      BipolSymbols.fillText(ctx, `🔷 ${bLabel} (${Math.round(bWs)} N/m²)`, bX + 8, bY + 14);
     }
 
     // 4. Cursor Hover / Crosshairs with Margin Readouts

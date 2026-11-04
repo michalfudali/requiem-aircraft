@@ -121,6 +121,8 @@ int main()
     SetParmVal( wid, "Root_Chord", "XSec_1", 1.6 );
     SetParmVal( wid, "Tip_Chord", "XSec_1", 0.95 );
     Update();
+    SetComputationFileName( COMP_GEOM_TXT_TYPE, "work/openvsp/angelscript_compgeom.txt" );
+    SetComputationFileName( COMP_GEOM_CSV_TYPE, "work/openvsp/angelscript_compgeom.csv" );
     string comp_res = ExecAnalysis( "CompGeom" );
     PrintResults( comp_res );
     WriteVSPFile( "work/openvsp/angelscript_wing.vsp3", SET_ALL );

@@ -370,6 +370,9 @@ def calculate_matching_chart(params: dict, m0: float = None, mass: dict = None):
         },
         "design_point": {
             "selection_mode": selection_mode,
+            "selection_applied": ('fixed_geometry' if fixed_area else 'unpowered' if engine_type == 'none'
+                                  else 'range_limited' if selection_mode == 'range' and ws_max_range > ws_limit
+                                  else selection_mode),
             "selection_note": selection_note,
             "ws": ws_design,
             "ws_N_m2": ws_design,
