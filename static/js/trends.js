@@ -38,7 +38,9 @@
     const padX=(xmax-xmin)*.06||1, padY=(ymax-ymin)*.12||.1;
     xmin-=padX;xmax+=padX;ymin-=padY;ymax+=padY;
     const W=720,H=310,l=78,r=24,t=28,b=57, X=x=>l+(x-xmin)/(xmax-xmin)*(W-l-r), Y=y=>H-b-(y-ymin)/(ymax-ymin)*(H-t-b);
-    let svg=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(title)}"><title>${esc(title)}</title>`;
+    const positions=BipolTrendProvenance.scatterXPositions(points,X,l,W-r);
+    const spread=points.some((p,i)=>Math.abs(positions[i]-X(p.x))>1e-6);
+    let svg=`<svg viewBox="0 0 ${W} ${H+(spread?20:0)}" role="img" aria-label="${esc(title)}"><title>${esc(title)}</title>`;
     for(let i=0;i<=4;i++) {
       const x=xmin+(xmax-xmin)*i/4,y=ymin+(ymax-ymin)*i/4;
       svg+=`<path d="M${X(x)} ${t}V${H-b}M${l} ${Y(y)}H${W-r}" stroke="#dce7eb" stroke-dasharray="3 4"/><text x="${X(x)}" y="${H-b+22}" text-anchor="middle">${fmt(x,Math.abs(x)<10?2:0)}</text><text x="${l-8}" y="${Y(y)+4}" text-anchor="end">${fmt(y,Math.abs(y)<10?2:0)}</text>`;
@@ -49,9 +51,11 @@
       svg+=`<path d="${path}" stroke="#147f76" stroke-width="2.5" fill="none"/>`;
       if(forecast)svg+=`<path d="M${X(fit.x_max)},${Y(predict(fit.x_max))}L${X(forecast.x)},${Y(forecast.y)}" stroke="#a86621" stroke-width="2" stroke-dasharray="5 4"/>`;
     }
-    for(const p of points) svg+=`<circle cx="${X(p.x)}" cy="${Y(p.y)}" r="4" fill="#5478a9" fill-opacity=".72"><title>${esc(p.model)}: ${fmt(p.x,2)}; ${fmt(p.y,3)}</title></circle>`;
+    points.forEach((p,i)=>{svg+=`<circle cx="${positions[i]}" cy="${Y(p.y)}" r="4" fill="#5478a9" fill-opacity=".72"><title>${esc(p.model)}: ${fmt(p.x,2)}; ${fmt(p.y,3)}</title></circle>`;});
     for(const p of [project,forecast].filter(Boolean))svg+=`<circle cx="${X(p.x)}" cy="${Y(p.y)}" r="6" stroke="white" stroke-width="2" fill="${p===project?'#b5486a':'#a86621'}"><title>${esc(p.model)}: ${fmt(p.x,2)}; ${fmt(p.y,3)}</title></circle>`;
-    svg+=`<text x="${(W+l-r)/2}" y="${H-8}" text-anchor="middle">${esc(xLabel)}</text><text transform="translate(17 ${(H+t-b)/2}) rotate(-90)" text-anchor="middle">${esc(yLabel)}</text></svg>`;
+    svg+=`<text x="${(W+l-r)/2}" y="${H-8}" text-anchor="middle">${esc(xLabel)}</text><text transform="translate(17 ${(H+t-b)/2}) rotate(-90)" text-anchor="middle">${esc(yLabel)}</text>`;
+    if(spread)svg+=`<text x="${(W+l-r)/2}" y="${H+14}" text-anchor="middle" style="font-size:9px;">${BipolTrendProvenance.scatterNote}</text>`;
+    svg+='</svg>';
     return `<div class="trend-chart">${svg}</div><p class="studio-fine-print">Niebieskie punkty: konstrukcje · zielona linia: regresja${forecast?' · brązowy: prognoza +5 lat':''}${project?' · różowy: projekt':''}. ${fitText(fit)}</p>`;
   }
 
