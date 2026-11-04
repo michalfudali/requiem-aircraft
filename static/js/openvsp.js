@@ -112,7 +112,7 @@ for fname, fmt in exports:
 result = {"exported_files": generated}
 `,
         vspscript_demo: `// Szablon 5: Natywny skrypt AngelScript (.vspscript) wykonywany przez vspscript.exe
-void main()
+int main()
 {
     Print( "=== Uruchomiono silnik AngelScript OpenVSP ===" );
     string wid = AddGeom( "WING", "" );
@@ -124,6 +124,7 @@ void main()
     string comp_res = ExecAnalysis( "CompGeom" );
     PrintResults( comp_res );
     WriteVSPFile( "work/openvsp/angelscript_wing.vsp3", SET_ALL );
+    return 0;
 }
 `,
     };
@@ -156,6 +157,17 @@ void main()
         if (state.catalogLoaded) return;
         state.catalogLoaded = true;
         try {
+            const availability = await apiFetch('/api/openvsp/status');
+            const notice = el('vspAvailability');
+            if (!availability.available) {
+                if (notice) { notice.hidden = false; notice.textContent = availability.message; }
+                document.querySelectorAll('#tab-openvsp button, #tab-openvsp input, #tab-openvsp select, #tab-openvsp textarea')
+                    .forEach(control => { control.disabled = true; });
+                document.querySelectorAll('#tab-openvsp a[download]').forEach(link => {
+                    link.removeAttribute('href'); link.setAttribute('aria-disabled', 'true');
+                });
+                return;
+            }
             const cat = await apiFetch('/api/openvsp/catalog');
             state.catalog = cat;
             renderKpiFromCatalog(cat);

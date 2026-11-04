@@ -29,7 +29,9 @@ def isa_atmosphere(altitude_m: float):
       - delta: względne ciśnienie p / p0 [-]
       - theta: względna temperatura T / T0 [-]
     """
-    h = max(0.0, float(altitude_m))
+    # Continue the tropospheric law below sea level for low-lying airfields.
+    # The design-input domain extends to -500 m (e.g. the Dead Sea region).
+    h = max(-500.0, float(altitude_m))
     
     if h <= H_TROPO:
         # Troposfera

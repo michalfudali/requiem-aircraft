@@ -10,12 +10,12 @@
 {% endif %}
 <figure id="fig-mission">{{ charts.mission_profile_chart(params, m) }}<figcaption>Schemat profilu misji. Skala pozioma umowna; wysokość oczekiwania przyjęto poglądowo.</figcaption></figure>
 <table class="compact-table" id="tab-mission-profile"><caption>Parametry etapów misji</caption><thead><tr><th>Etap</th><th>Wysokość</th><th>Prędkość</th><th>Długość lub czas</th></tr></thead><tbody>
-<tr><td>Start</td><td>0 m (lotnisko)</td><td>do prędkości oderwania</td><td>{% if params.get('takeoff_distance_m') %}≤ {{ params.takeoff_distance_m|reportnum(0) }} m do 15 m{% else %}—{% endif %}</td></tr>
+<tr><td>Start</td><td>{{ params.get('airfield_elevation_m',0)|reportnum(0) }} m (lotnisko)</td><td>do prędkości oderwania</td><td>{% if params.get('takeoff_distance_m') %}≤ {{ params.takeoff_distance_m|reportnum(0) }} m do 15 m{% else %}—{% endif %}</td></tr>
 {% if doc.powered %}<tr><td>Wznoszenie</td><td>{{ params.get('climb_start_altitude_m', 0)|reportnum(0) }} → {{ params.cruise_altitude_m|reportnum(0) }} m</td><td>{{ params.get('climb_start_speed_kmh', params.cruise_speed_kmh)|reportnum(0) }} → {{ params.cruise_speed_kmh|reportnum(0) }} km/h</td><td>prędkość wznoszenia ≥ {{ params.climb_rate_ms|reportnum(1) }} m/s</td></tr>
 <tr><td>Przelot</td><td>{{ params.cruise_altitude_m|reportnum(0) }} m</td><td>{{ params.cruise_speed_kmh|reportnum(0) }} km/h (TAS)</td><td>{{ (params.range_km - (params.get('return_range_km') or 0))|reportnum(0) }} km</td></tr>
 {% if params.get('return_range_km') %}<tr><td>Powrót</td><td>{{ params.cruise_altitude_m|reportnum(0) }} m</td><td>{{ params.cruise_speed_kmh|reportnum(0) }} km/h</td><td>{{ params.return_range_km|reportnum(0) }} km</td></tr>{% endif %}
 <tr><td>Oczekiwanie</td><td>niska</td><td>{{ ma.get('loiter_speed_kmh')|reportnum(0) }} km/h</td><td>{{ params.get('loiter_time_min', 45)|reportnum(0) }} min</td></tr>{% endif %}
-<tr><td>Lądowanie</td><td>0 m</td><td>podejście</td><td>{% if params.get('landing_distance_m') %}≤ {{ params.landing_distance_m|reportnum(0) }} m znad 15 m{% else %}—{% endif %}</td></tr>
+<tr><td>Lądowanie</td><td>{{ params.get('airfield_elevation_m',0)|reportnum(0) }} m</td><td>podejście</td><td>{% if params.get('landing_distance_m') %}≤ {{ params.landing_distance_m|reportnum(0) }} m znad 15 m{% else %}—{% endif %}</td></tr>
 </tbody></table>
 <h3>Warunki lotu na wysokości przelotu</h3>
 <p>Parametry powietrza na wysokości przelotowej wyznaczono na podstawie modelu atmosfery wzorcowej ISA {{ cite('isa') }}.</p>
@@ -56,7 +56,6 @@
 <tr><td>Wznoszenie</td><td>\(V={{ sa.v_climb_kmh|texnum(1) }}\) km/h, \(G={{ sa.climb_gradient|texnum(4) }}\)</td><td class="number">minimum {{ sz.climb_min|reportnum(3) }} {{ 'W/N' if params.engine_type != 'jet' else '' }}</td></tr>
 <tr><td>Największy zasięg</td><td>masa w połowie przelotu {{ sa.m_mid_cruise_kg|reportnum(0) }} kg</td><td class="number">W/S = {{ sz.ws_max_range|reportnum(0) }} N/m² (punkt B)</td></tr>
 </tbody></table>
-<p>Punkt projektowy przyjęto na granicy dopuszczalnego obciążenia powierzchni.</p>
 {% set adopted = sheet.entries.get('P') or sheet.entries.get('TW') %}{% if adopted and adopted.kind == 'given' %}<p>Do dalszych etapów przyjęto {% if params.engine_type == 'jet' %}stosunek ciągu do ciężaru \(T/W = {{ adopted.value|reportnum(adopted.digits) }}\){% else %}moc \(P = {{ adopted.value|reportnum(adopted.digits) }}\text{ kW}\){% endif %}{% if 'zapasem' in (adopted.source or '') %} z uwzględnieniem typoszeregu dostępnych silników{% else %} (moc nominalna wybranego silnika){% endif %}.</p>{% endif %}
 <figure id="fig-matching"><div id="repMatching"></div><figcaption>Wykres doboru obciążenia powierzchni i {{ 'ciągu' if params.engine_type == 'jet' else 'mocy' }} z zaznaczonym punktem projektowym.</figcaption></figure>
 {% endif %}

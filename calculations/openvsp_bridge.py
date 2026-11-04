@@ -36,11 +36,28 @@ from typing import Any
 
 from flask import Blueprint, abort, jsonify, request, send_file
 
-import openvsp as vsp
+try:
+    import openvsp as vsp
+except (ImportError, OSError):
+    # Native OpenVSP bindings must match the interpreter/OS. The optional
+    # integration must not prevent BIPOL or ML1 from starting without them.
+    vsp = None
 from calculations import run_bipol_project
 from calculations.presets import AIRCRAFT_PRESETS
 
 blueprint = Blueprint("openvsp", __name__, url_prefix="/api/openvsp")
+
+
+@blueprint.before_request
+def require_openvsp():
+    if vsp is None and request.endpoint != 'openvsp.api_status':
+        return jsonify(status='error', available=False,
+                       message='OpenVSP jest niedostępny. Zainstaluj API OpenVSP zgodne z wersją Pythona i systemem.'), 503
+
+
+def _vspscript_path():
+    directory = os.environ.get('BIPOL_OPENVSP_DIR', 'OpenVSP-3.55.0')
+    return os.path.abspath(os.path.join(directory, 'vspscript.exe' if os.name == 'nt' else 'vspscript'))
 
 # Globalny RLock chroniący singleton C++ OpenVSP przed równoległym dostępem wątków Flask
 _VSP_LOCK = threading.RLock()
@@ -418,7 +435,7 @@ def get_api_catalog(force_refresh: bool = False) -> dict[str, Any]:
             "version": vsp.GetVSPVersion(),
             "vspaero_available": bool(vsp.CheckForVSPAERO(vsp.GetVSPAEROPath())),
             "vspaero_path": vsp.GetVSPAEROPath(),
-            "vspscript_available": os.path.isfile("OpenVSP-3.55.0/vspscript.exe"),
+            "vspscript_available": os.path.isfile(_vspscript_path()),
             "counts": {
                 "functions": len(functions),
                 "core_vsp_functions": sum(1 for f in functions if f["module"] == "openvsp.vsp"),
@@ -1762,9 +1779,9 @@ def execute_vsp_script(payload: dict[str, Any]) -> dict[str, Any]:
             script_rel = _ascii_rel_path("user_script.vspscript")
             with open(script_rel, "w", encoding="utf-8") as f:
                 f.write(code)
-            exe_path = os.path.abspath(os.path.join("OpenVSP-3.55.0", "vspscript.exe"))
+            exe_path = _vspscript_path()
             if not os.path.isfile(exe_path):
-                raise ValueError("Nie znaleziono pliku wykonywalnego OpenVSP-3.55.0/vspscript.exe.")
+                raise ValueError("Nie znaleziono vspscript. Wskaż katalog instalacji przez BIPOL_OPENVSP_DIR.")
             proc = subprocess.run(
                 [exe_path, "-script", script_rel],
                 capture_output=True,
@@ -1775,11 +1792,11 @@ def execute_vsp_script(payload: dict[str, Any]) -> dict[str, Any]:
             )
             elapsed_ms = round((time.perf_counter() - t0) * 1000.0, 2)
             state = get_model_state(include_mesh=True, include_all_parms=True)
-            has_script_error = "ERROR" in (proc.stdout + proc.stderr).upper()
+            has_script_error = proc.returncode != 0 or "ERROR" in (proc.stdout + proc.stderr).upper()
             return {
                 "status": "error" if has_script_error else "ok",
                 "mode": "vspscript",
-                "returncode": 0 if not has_script_error else proc.returncode,
+                "returncode": proc.returncode,
                 "stdout": proc.stdout,
                 "stderr": proc.stderr,
                 "elapsed_ms": elapsed_ms,
@@ -1881,6 +1898,9 @@ def manage_design_vars_sets_links(payload: dict[str, Any]) -> dict[str, Any]:
 
 @blueprint.get("/status")
 def api_status():
+    if vsp is None:
+        return jsonify(status='unavailable', available=False, files=[],
+                       message='Brak zgodnego API OpenVSP. Pozostałe obliczenia BIPOL i ML1 są dostępne.')
     cat = get_api_catalog()
     return jsonify({
         "status": "ok",

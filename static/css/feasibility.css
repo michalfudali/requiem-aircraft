@@ -10,6 +10,8 @@
 #panel-p2 .cost-controls .studio-field {min-width:0;}
 #panel-p2 .cost-controls .cost-qc {grid-column:1 / -1;}
 #p2AirfoilEditor {padding:1rem 0;}
+#p2AirfoilEditor input,#p2AirfoilEditor select,#p2AirfoilEditor textarea {display:block;width:100%;min-width:0;max-width:100%;box-sizing:border-box;}
+#p2AirfoilEditor select {padding:.6rem;font:inherit;border:1px solid var(--border-color,#cbd5e1);border-radius:.4rem;background:var(--card-bg,#fff);color:inherit;}
 .p2-profile-note {font-size:.88rem;color:var(--text-secondary,#475569);}
 .p2-profile-preview svg {max-width:100%;height:auto;}
 #p2ProfileStatus {min-height:1.5em;}

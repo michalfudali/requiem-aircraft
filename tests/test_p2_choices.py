@@ -10,7 +10,7 @@ from calculations.calc_sheet import build_sheet
 from calculations.design_controls import controls
 from calculations.presets import AIRCRAFT_PRESETS
 from calculations.sizing import calculate_matching_chart
-from calculations.validation import NUMERIC_LIMITS, validate_parameters
+from calculations.validation import ENUM_CHOICES, NUMERIC_LIMITS
 
 
 def params(**extra):
@@ -83,7 +83,7 @@ def test_new_choices_reject_invalid_api_inputs(client, change):
 
 class FormControls(HTMLParser):
     def __init__(self):
-        super().__init__(); self.fields = {}; self.labels = set()
+        super().__init__(); self.fields = {}; self.labels = set(); self.options = {}; self.select = None
 
     def handle_starttag(self, tag, attrs):
         attrs = dict(attrs)
@@ -92,6 +92,13 @@ class FormControls(HTMLParser):
             self.fields[attrs['id']] = attrs
         if tag == 'label' and attrs.get('for'):
             self.labels.add(attrs['for'])
+        if tag == 'select':
+            self.select = attrs.get('id'); self.options[self.select] = set()
+        if tag == 'option' and self.select:
+            self.options[self.select].add(attrs.get('value'))
+
+    def handle_endtag(self, tag):
+        if tag == 'select': self.select = None
 
 
 # Each missing input must have an explicit scientific/UI reason. This list is
@@ -130,6 +137,32 @@ def test_every_validated_numeric_parameter_has_ui_control_or_explicit_derived_ro
             assert field['id'] in form.labels
             assert 'data-analysis-param' in html and 'data-optional-param' in html
             assert (float(html['min']), float(html['max'])) == NUMERIC_LIMITS[field['id']]
+
+
+def test_every_validated_enum_has_all_supported_course_choices_in_ui(client):
+    form = FormControls(); form.feed(client.get('/').get_data(as_text=True))
+    for key, values in ENUM_CHOICES.items():
+        # Validation accepts old documents, then canonicalizes this legacy mode.
+        expected = set(values) - ({'standard'} if key == 'mission_phase_model' else set())
+        assert form.options.get(key) == expected, key
+
+
+def test_engine_cost_model_rejects_nonphysical_negative_price_but_accepts_quote():
+    from calculations.costs import engine_price
+    p = dict(engine_type='jet', turbine_inlet_temp_k=300)
+    with pytest.raises(ValueError, match='oferty producenta'):
+        engine_price(p,2026,1,None,.3)
+    assert engine_price({**p,'engine_price_usd':40000},2026,1,None,.3)[0] == 40000
+
+
+def test_optional_native_integration_does_not_block_application(client, monkeypatch):
+    from calculations import openvsp_bridge
+    monkeypatch.setattr(openvsp_bridge,'vsp',None)
+    assert client.get('/').status_code == 200
+    assert client.get('/healthz').status_code == 200
+    assert client.get('/api/openvsp/status').json['available'] is False
+    response = client.post('/api/openvsp/build-from-bipol',json={})
+    assert response.status_code == 503 and response.json['available'] is False
 
 
 def test_profile_source_and_decision_are_present_in_real_report(client):

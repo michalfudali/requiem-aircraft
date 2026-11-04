@@ -3,7 +3,6 @@ import pytest
 
 from browser_helpers import edit_inputs, navigate, reveal_details
 from calculations.presets import AIRCRAFT_PRESETS
-from test_browser_acceptance import chromium, studio  # shared real-HTTP fixtures
 
 pytestmark = pytest.mark.browser
 
@@ -98,8 +97,22 @@ def test_finder_reaches_optional_fields_and_mobile_p2_has_no_overflow(studio):
         page.set_viewport_size({'width':width,'height':950})
         navigate(page, 'tab-feasibility')
         assert page.evaluate('document.documentElement.scrollWidth <= innerWidth + 1'), width
-        for field in page.locator('#p2CostControls input, #p2CostControls select').all():
+        for field in page.locator('#p2CostControls input, #p2CostControls select, #p2AirfoilEditor input, #p2AirfoilEditor select').all():
+            if not field.is_visible(): continue
             bounds = field.bounding_box()
             assert bounds and bounds['x'] >= 0 and bounds['x'] + bounds['width'] <= width, field.get_attribute('id')
     duplicates = page.evaluate('Object.entries([...document.querySelectorAll("[id]")].reduce((m,e)=>(m[e.id]=(m[e.id]||0)+1,m),{})).filter(([,n])=>n>1)')
     assert not duplicates
+
+
+def test_optional_openvsp_panel_explains_missing_native_engine(studio):
+    page, base, _ = studio
+    status = page.request.get(base + '/api/openvsp/status').json()
+    navigate(page,'tab-openvsp')
+    if status['available']:
+        assert page.locator('#vspSyncFromBipolBtn').is_enabled()
+    else:
+        notice = page.locator('#vspAvailability')
+        notice.wait_for(state='visible')
+        assert 'BIPOL i ML1' in notice.inner_text()
+        assert page.locator('#vspSyncFromBipolBtn').is_disabled()
