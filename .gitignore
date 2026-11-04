@@ -15,3 +15,5 @@ scrape_*.py
 *.sqlite3-journal
 *.sqlite3-wal
 *.sqlite3-shm
+
+OpenVSP*/
