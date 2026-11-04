@@ -12,6 +12,7 @@ from calculations import aircraft_store
 from calculations.aircraft_store import CLASSES, DATA
 from calculations.atmosphere import G0
 from calculations.instructor import MIN_AIRCRAFT
+from calculations.reference_selection import best_variants, family_groups, selection_description
 
 # Provenance and licence of each data set, stored with the records.
 SOURCES = aircraft_store.load_sources()
@@ -240,6 +241,7 @@ def sample_size(params):
 def select_references(params):
     cls, engine = params.get('aircraft_type', 'piston_ga'), params.get('engine_type', 'prop')
     pool = [r for r in load_aircraft() if r['aircraft_type'] == cls and r['engine_type'] == engine]
+    groups = family_groups(pool)
     overrides = {r['id']: r for r in params.get('trend_observations', [])}
     pool = [{**r, **{k: v for k, v in overrides.get(r['id'], {}).items() if k != 'source'},
              'source_references': r['source_references'] + ('; Uzupełnienie autora: ' + overrides[r['id']]['source'] if r['id'] in overrides else '')}
@@ -255,7 +257,9 @@ def select_references(params):
         pool = [r for r in pool if r.get('year') is not None and (not ymin or r.get('year') >= ymin) and (not ymax or r.get('year') <= ymax)]
     ids = params.get('trend_aircraft_ids')
     if ids is not None:
-        pool = [r for r in pool if r['id'] in ids]
+        selected_families = {groups[aid][0] for aid in ids if aid in groups}
+        pool = [r for r in pool if groups[r['id']][0] in selected_families]
+    pool = best_variants(pool, groups, cls)
     reference = sample_reference_mass(params)
     if reference is None:
         return sorted(pool, key=lambda r: r['id'])
@@ -364,9 +368,12 @@ def describe_sample(params, rows):
     if ymin or ymax:
         parts.append(f"certyfikacja {ymin or '…'}–{ymax or '…'}")
     weighting = params.get('trend_weighting', 'family')
-    parts.append('równa waga rodzin' if weighting == 'family' else 'równa waga wariantów')
+    parts.append('jedna najlepsza odmiana na rodzinę; równa waga konstrukcji')
     return {'description': '; '.join(parts), 'selected_n': len(rows), 'reference_mass': reference,
-            'families_n': len({r['family'] for r in rows}), 'weighting': weighting}
+            'families_n': len({r['family'] for r in rows}), 'weighting': weighting,
+            'variant_policy': 'best_in_family',
+            'variant_selection_rule': selection_description(params.get('aircraft_type', 'piston_ga')),
+            'omitted_variants_n': sum(r.get('variant_selection', {}).get('candidates_n', 1) - 1 for r in rows)}
 
 
 def _pl(value, digits=3, significant=False):
@@ -683,8 +690,6 @@ def analyze_trends(params, m0, m_empty, geom_res=None):
         warnings.append('Trend OEW/MTOW nie jest malejący (C ≥ 0). Sprawdź dobór podobnych konstrukcji, definicje mas i źródła; nie odwracaj sztucznie regresji.')
     if len(rows) < BIPOL_1_SAMPLE:
         warnings.append(f'Wybrano {len(rows)} konstrukcji. Materiał BIPOL_1 zaleca co najmniej 20 podobnych samolotów; poszerz dobór lub uzupełnij źródła.')
-    if rows and len(counts) < BIPOL_1_SAMPLE:
-        warnings.append(f'Próba zawiera {len(counts)} rodzin i {len(rows)} wariantów. Warianty jednej rodziny nie są niezależnymi projektami.')
     if len(valid_mass) < BIPOL_1_SAMPLE:
         warnings.append(f'Regresja masowa ma {len(valid_mass)} kompletnych obserwacji; wynik jest poglądowy.')
     if mass_fit and not mass_fit['x_min'] <= m0 <= mass_fit['x_max']:
@@ -806,7 +811,7 @@ def analyze_trends(params, m0, m_empty, geom_res=None):
         'reference_year': reference_year, 'forecast_year': forecast_year,
         'mass_trend_decreasing': mass_fit['C'] < 0 if mass_fit else None,
         'year_basis': 'Rok produkcji' if year_basis=='production' else 'Rok certyfikacji wariantu (nie rok produkcji)',
-        'method': 'Linia trendu log(OEW/MTOW) = log(A) + C·log(m₀ [kg]) z ważonej regresji; A i C odczytano z dwóch punktów tej linii wzorami BIPOL_1. Domyślnie rodziny mają równą wagę.',
+        'method': 'Linia trendu log(OEW/MTOW) = log(A) + C·log(m₀ [kg]) z regresji; A i C odczytano z dwóch punktów tej linii wzorami BIPOL_1. Każdą rodzinę reprezentuje jedna najlepsza odmiana o wadze 1.',
         'limitations': 'OEW obejmuje wyposażenie operacyjne i nie jest tożsama z masą własną każdego projektu. Cechy geometryczne i sterów (V_H, lotki, stery, wznios) oparto na 82 certyfikowanych konstrukcjach (Raymer, Roskam, Corke, TCDS, MEiL PW). Rodziny są grupowane heurystycznie. Korelacja nie dowodzi przyczynowości.',
         'geometry_trends_analysis': geometry_trends_analysis}
 

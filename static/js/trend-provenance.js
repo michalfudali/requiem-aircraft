@@ -95,7 +95,7 @@
     return `<div class="trend-provenance">
       <p><strong>${esc(p.method)}</strong>${value}</p>
       <p class="trend-provenance-basis">Podstawa: ${esc(p.basis)}</p>
-      <p>Próba: ${esc(p.sample.description)} — ${p.sample.selected_n} wariantów, ${p.sample.families_n} rodzin.</p>
+      <p>Próba: ${esc(p.sample.description)} — ${p.sample.selected_n} konstrukcji z różnych rodzin. ${esc(p.sample.variant_selection_rule)}</p>
       ${p.formula ? `<p class="studio-equation">${esc(p.formula)}</p>` : ''}
       ${p.steps?.length ? `<ol>${p.steps.map(step => `<li>${esc(step)}</li>`).join('')}</ol>` : ''}
       ${alt}

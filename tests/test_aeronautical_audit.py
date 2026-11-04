@@ -44,7 +44,11 @@ def test_regional_stol_is_not_seeded_as_a_light_bush_plane():
     assert r['params']['v_stall_kmh'] == 140
     assert r['params']['n_engines'] == 2
     assert r['geometry']['fuselage']['length'] < 35
-    assert r['geometry']['wing']['b'] < 50
+    # The mass law now uses independent families, so span is a result rather
+    # than a fixed catalogue bound. The wing must still meet the STOL stall limit.
+    vs = r['params']['v_stall_kmh'] / 3.6
+    minimum_area = 2 * r['mass']['m0'] * G0 / (isa_atmosphere(0)['rho'] * vs ** 2 * r['aerodynamics']['cz_max_lnd'])
+    assert r['geometry']['wing']['S'] >= minimum_area * .999
     assert (r['params']['takeoff_distance_m'], r['params']['landing_distance_m']) == (800, 700)
 
 

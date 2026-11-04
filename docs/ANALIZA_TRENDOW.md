@@ -28,11 +28,32 @@ nie zastępujemy szybowców samolotami tłokowymi. Obecne źródła obejmują GA
 turbośmigłowe, odrzutowce biznesowe i transportowe; nie dostarczają wystarczającej
 bazy szybowców, motoszybowców i UAV. W ich przypadku UI i raport informują o braku.
 
-Rodziny grupujemy heurystycznie na podstawie nazw źródłowych. Domyślnie rodzina
-ma sumaryczną wagę 1 w każdym dopasowaniu (po odrzuceniu brakujących pól);
-alternatywnie każdy wariant ma wagę 1. Identyczne nazwy w FAST są deduplikowane.
-Rekordów między bazami nie łączymy automatycznie po podobieństwie nazwy.
-Należy zbadać wpływ zmiany źródła i ręcznie dobrać niezależne konstrukcje.
+Każdą rodzinę reprezentuje zawsze jedna odmiana o najlepszych udokumentowanych
+osiągach. Najpierw stosuje się filtry klasy, napędu, źródła i dat, potem wybiera
+odmianę, a dopiero na końcu zawęża próbę według odległości MTOW. Limit 50 oznacza
+do 50 różnych rodzin. Ręczne identyfikatory wskazują rodziny, z których nadal
+wybierana jest najlepsza odmiana spełniająca filtry. Zapisane ustawienie wag
+wariantów nie wyłącza tej zasady; każda wybrana konstrukcja ma wagę 1.
+
+Kryteria porównuje się kolejno, bez arbitralnej punktacji:
+
+- szybowce i motoszybowce: większa doskonałość, mniejsze opadanie, większa
+  prędkość przelotowa, zasięg, wznoszenie;
+- samoloty: większa prędkość przelotowa (dla odrzutowców najpierw Mach,
+  następnie km/h; dla innych klas km/h), następnie zasięg i wznoszenie;
+- remis: kompletność danych, nowszy rok, identyfikator rekordu.
+
+Brak lub niefizyczna wartość kryterium nie jest zaletą. Wybiera się cały rekord
+jednej rzeczywistej odmiany; nie uzupełnia się go najlepszymi parametrami innych
+odmian. API/JSON podaje regułę, wartości kryteriów i identyfikatory pominiętych
+wariantów w `variant_selection`.
+
+Grupowanie korzysta z pola rodziny w katalogu, ignoruje różnice zapisu znaków
+i łączy aliasy potwierdzone identyczną nazwą modelu w różnych źródłach.
+W katalogu ujednolicono 100 etykiet rodzin, m.in. C172/Skyhawk, Sinus, Taurus,
+SF25, G109, HK36, CRJ, DHC8, Phenom i Learjet. Zmieniono wyłącznie pole `family`; liczby i rekordy
+źródłowe zachowano. Dokładność grupowania zależy od poprawnego oznaczenia
+rodziny w danych; edytor powinien podawać wspólną rodzinę dla kolejnych odmian.
 
 Regresje są opisowe, bez obietnicy przyczynowości i bez przedziałów ufności.
 R² dla stałego y jest nieokreślone. Stałe x i zbyt mała próba nie dają dopasowania.
