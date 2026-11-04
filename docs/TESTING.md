@@ -109,6 +109,15 @@ Po testach CI sprawdza, czy obie dostarczone bazy pozostały niezmienione.
 Przekroczenie czasu zadania, nieznany marker lub niespodziewany XPASS powodują błąd.
 Awaria zaimplementowanego CRUD/suggestions jest asercją, a nie `pytest.skip`.
 
+Macierz Windows ujawniła również wyścig w dawnym teście równoległych odczytów:
+po 15 sekundach zatrzymywał czytelników, czasem z licznikami `[7, 7, 5, 6]`,
+mimo poprawnych transakcji. Teraz czterech czytelników i pisarz przechodzą
+25 wspólnych rund z barierą na początku i końcu. Każda runda uruchamia odczyty
+i pełny cykl create/update/delete. Test wymaga wszystkich 100 odczytów,
+25 cykli zapisu, poprawnego `quick_check`, liczności odpowiadającej bazie plus
+co najwyżej jeden rekord oraz zakończenia wszystkich wątków przed przywróceniem bazy.
+Limit czasu pozostaje zabezpieczeniem przed zakleszczeniem, nie kryterium liczby próbek.
+
 Przed push sprawdź `git status --short`; bazy z danymi użytkownika nie powinny
 zmieniać się wskutek testowania. Nie rozwiązuj konfliktu binarnego przez
 zastąpienie całej bazy starszym plikiem: zachowaj nowe rekordy i zmigruj schemat.
