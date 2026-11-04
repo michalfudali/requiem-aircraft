@@ -26,7 +26,7 @@ def main():
         presets = page.request.get(args.base_url + '/api/presets').json()
         page.evaluate('async params => {loadProjectIntoForm({name:"Silnik — próba",params}); await performCalculation();}',
                       presets['motoglider_aos'])
-        navigate(page, 'tab-p1-p2')
+        navigate(page, 'tab-inputs')
         reveal_details(page.locator('#engineFuelPanel'))
         page.locator('#engine_fuel_mode').select_option('catalog')
         page.locator('#engine_model_id').select_option('rotax_912_ul')
@@ -43,7 +43,7 @@ def main():
         assert page.evaluate('currentResults.mass.m_fuel') > fuel_before
         page.reload()
         page.wait_for_function('currentResults?.params.fuel_density_kg_l === .74')
-        navigate(page, 'tab-p1-p2')
+        navigate(page, 'tab-inputs')
         reveal_details(page.locator('#engineFuelPanel'))
         assert page.locator('#engine_model_id').input_value() == 'rotax_912_ul'
         assert page.locator('#engine_fuel_point').input_value() == 'cruise75'
@@ -52,8 +52,8 @@ def main():
         print('UI: model, operating point, density, mass and reload persistence OK', flush=True)
         page.locator('#engine_fuel_mode').select_option('custom')
         page.locator('#engine_custom_model').fill('Rotax 912 UL — dane autora')
-        page.locator('#engine_custom_power_kw').fill('58')
-        page.locator('#engine_custom_sfc').fill('285')
+        page.locator('#engine_power_kw').fill('58')
+        page.locator('#sfc').fill('285')
         page.locator('#applyEngineFuel').click()
         page.wait_for_function("document.querySelector('#calculationStatus').classList.contains('is-error')")
         assert page.locator('#openReportBtn').get_attribute('data-results-stale') == 'true'
@@ -64,8 +64,8 @@ def main():
         assert page.evaluate('currentResults.params.sfc') == 285
         page.reload()
         page.wait_for_function("currentResults?.engine_selection.status === 'author_source'")
-        navigate(page, 'tab-p1-p2')
-        assert page.locator('#engine_custom_sfc').input_value() == '285'
+        navigate(page, 'tab-inputs')
+        assert page.locator('#sfc').input_value() == '285'
         assert 'OM-912' in page.locator('#engine_fuel_source').input_value()
         print('UI: missing-source error, own engine evidence and reload persistence OK', flush=True)
 
@@ -110,7 +110,7 @@ def main():
         page.set_viewport_size({'width': 390, 'height': 844})
         page.evaluate('async params => {loadProjectIntoForm({name:"Silnik — mobile",params}); await performCalculation();}',
                       dict(presets['motoglider_aos'], engine_fuel_mode='catalog', engine_model_id='rotax_912_uls'))
-        navigate(page, 'tab-p1-p2')
+        navigate(page, 'tab-inputs')
         reveal_details(page.locator('#engineFuelPanel'))
         page.locator('#engine_fuel_point').select_option('continuous')
         page.locator('#applyEngineFuel').click()

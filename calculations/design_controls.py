@@ -16,7 +16,6 @@ GROUPS = [
     ]),
     ('mission', 'Misja i masa załogi', [
         ('loiter_time_min', 'Czas krążenia / oczekiwania [min]'),
-        ('m_crew_person', 'Masa jednej osoby załogi [kg]'),
         ('mass_iteration_start_kg', 'Pierwsze przybliżenie masy w iteracji [kg]'),
     ]),
     ('towing', 'Holowanie szybowca', [

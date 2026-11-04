@@ -102,7 +102,12 @@ def test_advanced_trainers_use_aerobatic_loads_and_course_power_caps():
     assert r['envelope']['limits']['n_max'] >= 6
     assert next(c for c in r['easa_compliance']['checks'] if 'Klasa' in c['name'])['ok']
     assert [topic(n).get('engine_power_limit_kw') for n in (32, 34, 36)] == [100, 200, None]
-    assert check(run_bipol_project(topic(32)), 'Moc silnika')['passed']
+    # The empirical sample can change required power. Test the actual course limit
+    # with a fixed installed engine, rather than assuming every initial design meets it.
+    within = run_bipol_project(topic(32, power_input_mode='fixed', engine_power_kw=100))
+    exceeded = run_bipol_project(topic(32, power_input_mode='fixed', engine_power_kw=101))
+    assert check(within, 'Moc silnika')['passed']
+    assert not check(exceeded, 'Moc silnika')['passed']
 
 
 def test_alternating_rounded_lift_coefficients_settle_on_the_larger_wing():

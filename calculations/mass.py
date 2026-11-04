@@ -608,7 +608,7 @@ def mission_loads(params: dict):
     n_pax = 0 if unmanned else int(params.get("n_pax", 4))
     n_crew = 0 if unmanned else int(params.get("n_crew", 1 if n_pax <= 4 else 2))
     payload = n_pax * (params.get("m_pax", 80) + params.get("m_bag", 0)) + params.get("m_cargo", 0)
-    crew = n_crew * params.get("m_crew_person", 90)
+    crew = n_crew * float(params.get("m_crew_person", 90) or 90)
     return dict(params, n_pax=n_pax, n_crew=n_crew), payload, crew
 
 

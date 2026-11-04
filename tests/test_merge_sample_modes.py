@@ -30,7 +30,7 @@ def test_design_reference_is_the_fixed_point_of_its_own_comparison_sample():
     assert reference == pytest.approx(design_reference(params, 50)['mass'])
     sample = result['bipol_projects']['p1']['trend_analysis']['similar_aircraft']
     assert len(sample) == 50
-    pool = sorted((r for r in load_aircraft() if r['aircraft_type'] == 'motoglider' and r['engine_type'] == 'prop'),
+    pool = sorted(select_references({**params, '_similar_count': 0, '_reference_mass': None}),
                   key=lambda r: (abs(math.log(r['m0'] / reference)), r['id']))
     assert [r['id'] for r in sample] == [r['id'] for r in pool[:50]]
     law = result['mass']['empty_mass_law']

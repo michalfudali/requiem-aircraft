@@ -18,6 +18,7 @@
   <link rel="stylesheet" href="/static/css/modern-ui.css?v=1">
   <link rel="stylesheet" href="/static/css/manual-control.css?v=1">
   <link rel="stylesheet" href="/static/css/feasibility.css?v=1">
+  <link rel="stylesheet" href="/static/css/openvsp.css?v=1">
   <script>
     (function () {
       try {
@@ -189,6 +190,7 @@
           <button class="bipol-tab" data-target="tab-trends">Baza i trendy</button>
           <button class="bipol-tab" data-target="tab-cad">📐 CAD A3Z</button>
           <button class="bipol-tab" data-target="tab-feasibility">Studium wykonalności P2</button>
+          <button class="bipol-tab" data-target="tab-openvsp">🛸 OpenVSP 3D / API</button>
           <button class="bipol-tab" data-target="tab-p1-p2">📦 P1/P2: MTOW & Matching</button>
           <button class="bipol-tab" data-target="tab-p3">📐 P3: Wymiarowanie & Schrenk</button>
           <button class="bipol-tab" data-target="tab-p4">🦅 P4: Biegunowe & Mechanizacja</button>
@@ -199,6 +201,7 @@
 
         {% include "inputs_panel.html" %}
         {% include "studio_panels.html" %}
+        {% include "openvsp_panel.html" %}
         {% include "coursework_panel.html" %}
         {% include "calculation_tree.html" %}
         {% include "feasibility_panel.html" %}
@@ -286,7 +289,25 @@
 
         <!-- MODUŁ P1/P2: WYMAGANIA, BILANS MASOWY (MTOW) I MATCHING CHART -->
         <div id="tab-p1-p2" class="tab-content">
-          {% include "engine_fuel_panel.html" %}
+          <!-- Karta Podsumowania Zespołu Napędowego (P2.2) -->
+          <div id="engineSummaryCard" class="subpoint-card" style="margin-bottom:1.25rem;">
+            <div class="subpoint-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.5rem;">
+              <h4><span class="subpoint-badge p2">Projekt P2</span> Zespół Napędowy & Śmigło (Weryfikacja Doboru)</h4>
+              <button type="button" class="btn btn-outline-primary btn-sm" onclick="focusPropulsionModule()" title="Przejdź do Modułu 4 w panelu Założeń">
+                ⚙️ Konfiguruj napęd i śmigło w Założeniach (Moduł 4)
+              </button>
+            </div>
+            <div class="subpoint-body">
+              <p style="font-size:0.88rem; color:#475569; margin-bottom:0.75rem;">
+                Konfiguracja zespołu napędowego (silnik z katalogu / silnik własny, moc nominalna, jednostkowe zużycie paliwa SFC i śmigło) prowadzona jest centralnie w <strong>Module 4 w lewym panelu Założeń</strong>. Poniżej znajduje się status weryfikacji i porównanie z rynkiem.
+              </p>
+              <div id="engineSummaryStatus" role="status" style="margin-bottom:0.75rem;"></div>
+              <details>
+                <summary style="cursor:pointer; font-weight:600; color:#0f766e;">Porównaj rzeczywiste propozycje silników rynkowych z bazy</summary>
+                <div class="trend-table-scroll" id="engineFuelCandidatesTab" style="margin-top:0.5rem;"></div>
+              </details>
+            </div>
+          </div>
 
           <!-- Podpunkt 2.1: Założenia Taktyczno-Techniczne i Profil Misji -->
           <div class="subpoint-card">
@@ -1077,6 +1098,7 @@
               </div>
             </div>
             <div class="b-card-body" style="padding:0.9rem 1.15rem;">
+              <div style="font-size:0.8rem;color:#0369a1;font-weight:600;margin-bottom:0.5rem;">🪪 Dane projektanta (automatycznie zsynchronizowane z Modułem 0 w panelu Założeń)</div>
               <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(175px, 1fr)); gap:0.65rem;">
                 <div class="input-group" style="margin:0;">
                   <label for="ws_student_name" style="font-weight:700; color:#0f172a;">Imię i Nazwisko projektanta:</label>
@@ -2185,17 +2207,24 @@
               <label for="wiz_n_crew">Liczba załogi (pilotów) [os.]:</label>
               <input type="number" id="wiz_n_crew" min="0" max="6" value="1">
             </div>
-            <div class="input-group" id="wiz_group_n_pax">
-              <label for="wiz_n_pax">Liczba pasażerów [os.]:</label>
-              <input type="number" id="wiz_n_pax" min="0" max="300" value="1">
+            <div class="input-group" id="wiz_group_m_crew_person">
+              <label for="wiz_m_crew_person">Masa 1 członka załogi (pilot) [kg]:</label>
+              <input step="any" required type="number" id="wiz_m_crew_person" min="55" max="150" value="90">
             </div>
           </div>
 
           <div class="input-row" id="wiz_row_occupants_2">
+            <div class="input-group" id="wiz_group_n_pax">
+              <label for="wiz_n_pax">Liczba pasażerów [os.]:</label>
+              <input type="number" id="wiz_n_pax" min="0" max="300" value="1">
+            </div>
             <div class="input-group" id="wiz_group_m_pax">
-              <label for="wiz_m_pax">Masa 1 osoby z bagażem [kg]:</label>
+              <label for="wiz_m_pax">Masa 1 pasażera z bagażem [kg]:</label>
               <input step="any" required type="number" id="wiz_m_pax" min="0" max="150" value="115">
             </div>
+          </div>
+
+          <div class="input-row" id="wiz_row_occupants_3">
             <div class="input-group" id="wiz_group_m_cargo">
               <label for="wiz_m_cargo" id="label_wiz_m_cargo">Dodatkowy ładunek handlowy cargo [kg]:</label>
               <input step="any" required type="number" id="wiz_m_cargo" min="0" max="50000" value="0">
@@ -2534,8 +2563,8 @@
   <script src="/static/js/aircraft-project.js?v=1"></script>
   <script src="/static/js/aircraft-editor.js?v=2"></script>
   <script src="/static/js/trend-inputs.js?v=merge-20261104"></script>
-  <script src="/static/js/trend-provenance.js?v=merge-20261104"></script>
-  <script src="/static/js/trends.js?v=merge-20261104"></script>
+  <script src="/static/js/trend-provenance.js?v=families-20261104"></script>
+  <script src="/static/js/trends.js?v=families-20261104"></script>
   <script src="/static/js/bipol1.js?v=merge-20261104"></script>
   <script src="/static/js/workspace.js?v=7"></script>
   <script src="/static/js/calculation-graph.js?v=1"></script>
@@ -2548,5 +2577,6 @@
   <script src="/static/js/manual-control.js?v=1"></script>
   <script src="/static/js/engine-fuel.js?v=1"></script>
   <script src="/static/js/feasibility.js?v=1"></script>
+  <script src="/static/js/openvsp.js?v=1"></script>
 </body>
 </html>

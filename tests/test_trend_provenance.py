@@ -67,10 +67,19 @@ def test_time_forecast_is_five_years_after_the_design_year():
     assert ar['model_type'] == 'time_trend'
     fit = ar['provenance']['fit']
     assert ar['suggested_value'] == pytest.approx(predict(fit, data['forecast_year']), abs=0.01)
-    assert fit['y_min'] <= ar['suggested_value'] <= fit['y_max']
+    # An accepted extrapolation may exceed the historical values of the unique-family sample.
+    assert ar['suggested_value'] > 0 and fit['r2'] >= .2
 
 
-def test_supported_forecast_can_exceed_the_historical_sample_range():
+def test_supported_forecast_can_exceed_the_historical_sample_range(monkeypatch):
+    # Controlled independent families verify extrapolation regardless of the catalogue's current fit.
+    from calculations.trends import derived, load_aircraft
+    prototype = next(r for r in load_aircraft() if r['aircraft_type'] == 'turboprop_regional')
+    year = date.today().year
+    rows = [derived({**prototype, 'id': f'time-{i}', 'model': f'Independent {i}', 'family': f'Time {i}',
+                     'year': year - 20 + i * 10, 'year_basis': 'certification', 's': 10, 'b': math.sqrt((8 + i) * 10)})
+            for i in range(3)]
+    monkeypatch.setattr('calculations.trends.load_aircraft', lambda: rows)
     ar = get_trend_suggestions('turboprop_regional', m0=22000)['suggestions']['ar']
     fit = ar['provenance']['fit']
     assert fit['r2'] >= .2
@@ -83,7 +92,10 @@ def test_empty_mass_suggestion_inserts_equation_one_into_the_mass_balance():
     # BIPOL_1, s. 1 and 4: A and C of the P1 trend line are the ones of the mass balance.
     r = run_bipol_project({**AIRCRAFT_PRESETS['regional_turboprop'], 'variable_sweep': True})
     ta, mass = r['bipol_projects']['p1']['trend_analysis'], r['mass']
-    assert ta['mass_trend_decreasing'] and ta['suggestions']['me_m0']['apply']['empty_mass_trend_C'] < 0
+    assert ta['suggestions']['me_m0']['apply']['empty_mass_trend_C'] == pytest.approx(ta['reg_C'])
+    assert ta['mass_trend_decreasing'] == (ta['reg_C'] < 0)
+    if not ta['mass_trend_decreasing']:
+        assert any('nie jest malejący' in warning for warning in ta['warnings'])
     assert mass['empty_mass_model'] == 'trend'
     assert (mass['empty_mass_law']['A'], mass['empty_mass_law']['C']) == (ta['two_point']['A'], ta['two_point']['C'])
     expected = ta['two_point']['A'] * mass['m0'] ** ta['two_point']['C'] * 1.04

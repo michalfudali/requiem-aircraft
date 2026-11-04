@@ -1,673 +1,691 @@
-<section id="tab-inputs" class="tab-content studio-panel quiet-inputs">
-  <div class="studio-heading"><div><h1>Jaki samolot projektujesz?</h1><p>Zacznij od misji. Uzupełnij znane wartości, a resztę dobierzemy w obliczeniach.</p></div><button type="button" class="btn btn-outline" data-studio-target="tab-overview">Wróć do wyników</button></div>
-  <section class="studio-input-guide" aria-label="Poruszanie się po parametrach">
-    <div class="studio-parameter-search">
-      <label for="studioParameterSearch">Znajdź parametr</label>
-      <input type="search" id="studioParameterSearch" placeholder="np. rozpiętość, zasięg, klapy" autocomplete="off" aria-controls="studioParameterResults" aria-describedby="studioParameterCount">
-      <p id="studioParameterCount" role="status" aria-live="polite">Wpisz nazwę, aby przejść prosto do pola.</p>
-      <ul id="studioParameterResults" hidden></ul>
-    </div>
-    <nav class="studio-input-sections" aria-label="Grupy parametrów">
-      <button type="button" data-input-section="mod1" aria-controls="body_mod1">Misja</button>
-      <button type="button" data-input-section="mod2" aria-controls="body_mod2">Skrzydło</button>
-      <button type="button" data-input-section="mod3" aria-controls="body_mod3">Aerodynamika</button>
-      <button type="button" data-input-section="mod4" aria-controls="body_mod4">Napęd</button>
-    </nav>
-  </section>
-
-        <div class="b-card">
-          <div class="b-card-header" style="background:linear-gradient(90deg, #0f172a 0%, #1e3a8a 100%); color:#fff;">
-            <h3 style="color:#fff;">⚙️ Założenia Projektowe Samolotu (P1–P6)</h3>
-            <span style="font-size:0.74rem; color:#bfdbfe; font-weight:600;">Najedź na <span class="info-circle-icon" style="background:#3b82f6; color:#fff; border-color:#93c5fd; pointer-events:none;">i</span> po szczegóły</span>
-          </div>
-          <div class="b-card-body">
-
-            <!-- Sidebar Mode Bar (Anti-Overload & Wizard Access) -->
-            <div class="sidebar-mode-bar">
-              <div class="mode-toggle-group">
-                <button type="button" class="mode-btn active" id="modeBasicBtn" onclick="setSidebarMode('basic')">
-                  Podstawowe
-                </button>
-                <button type="button" class="mode-btn" id="modeAdvancedBtn" onclick="setSidebarMode('advanced')">
-                  Wszystkie parametry
-                </button>
-              </div>
-
-            </div>
-
-            <button type="button" id="toggleDidacticHintsBtn" class="btn btn-outline quiet-help-toggle" aria-pressed="false">Objaśnienia</button>
-
-            <!-- Oficjalna lista tematów wydziałowych (opcjonalnie) -->
-            <div class="quick-presets-container topics-only">
-              <button type="button" class="faculty-drawer-btn" id="toggleFacultyTopicsBtn" onclick="toggleFacultyDrawer()">
-                🏛️ Baza 110 tematów MEiL ▾
-              </button>
-              <div id="facultyTopicsDrawer" class="faculty-topics-drawer" style="display:none;">
-                <label for="categorySelect">Kategoria tematu</label>
-                <select id="categorySelect" class="preset-select"></select>
-                <label for="topicSelect">Temat z listy wydziałowej</label>
-                <select id="topicSelect" class="preset-select"></select>
-              </div>
-            </div>
-
-            <!-- Global Accordion Expand/Collapse Controls -->
-            <div class="accordion-global-bar">
-              <span>Grupy parametrów modułowych (P1–P6):</span>
-              <div>
-                <button type="button" class="btn-link-action" onclick="toggleAllAccordions(true)">Rozwiń wszystkie</button>
-                &bull;
-                <button type="button" class="btn-link-action" onclick="toggleAllAccordions(false)">Zwiń</button>
-              </div>
-            </div>
-
-            <form id="designForm" class="mode-basic" onsubmit="return false;">
-
-              <!-- ==========================================
-                   MODUŁ 0: Dane Projektanta-Studenta (Strona Tytułowa Rys. 2 i Teczka Rys. 1)
-                   ========================================== -->
-              <div class="module-accordion mod-designer-accordion" id="accordion_mod0">
-                <div class="module-header active" onclick="toggleAccordion('mod0')">
-                  <div class="module-title">
-                    <span>🪪</span> <b>0. Dane Projektanta-Studenta (Strona Tytułowa)</b>
-                  </div>
-                  <div class="module-meta">
-                    <span id="pill_mod0" class="mod-pill mod-pill-designer">Rys. 1 i 2 MEiL</span>
-                    <span class="mod-chevron" id="chev_mod0">▼</span>
-                  </div>
-                </div>
-                <div class="module-body" id="body_mod0">
-                  <div class="input-row">
-                    <div class="input-group">
-                      <label for="student_name"><span class="label-text">Imię i Nazwisko projektanta</span></label>
-                      <input type="text" id="student_name" value="{{ designer_defaults.student_name }}" placeholder="np. Jan Kowalski" oninput="syncStudentDesignerFields('sidebar')">
-                    </div>
-                    <div class="input-group">
-                      <label for="album_no"><span class="label-text">Nr Albumu</span></label>
-                      <input type="text" id="album_no" value="{{ designer_defaults.album_no }}" placeholder="np. 312456" oninput="syncStudentDesignerFields('sidebar')">
-                    </div>
-                  </div>
-                  <div class="input-row">
-                    <div class="input-group">
-                      <label for="group_no"><span class="label-text">Grupa (wg Rys. 2)</span></label>
-                      <input type="text" id="group_no" value="{{ designer_defaults.group_no }}" placeholder="A – czwartek 8:15-9:00" oninput="syncStudentDesignerFields('sidebar')">
-                    </div>
-                    <div class="input-group">
-                      <label for="supervisor"><span class="label-text">Prowadzący (wg Rys. 2)</span></label>
-                      <input type="text" id="supervisor" value="{{ designer_defaults.supervisor }}" placeholder="np. M.Figat" oninput="syncStudentDesignerFields('sidebar')">
-                    </div>
-                  </div>
-                  <div class="input-row">
-                    <div class="input-group">
-                      <label for="submission_date"><span class="label-text">Data oddania projektu</span></label>
-                      <input type="text" id="submission_date" value="{{ designer_defaults.submission_date }}" placeholder="np. 14.12.2026" oninput="syncStudentDesignerFields('sidebar')">
-                    </div>
-                    <div class="input-group">
-                      <label for="academic_year"><span class="label-text">Rok akademicki (Rys. 1)</span></label>
-                      <input type="text" id="academic_year" value="{{ designer_defaults.academic_year }}" placeholder="np. 2026/27" oninput="syncStudentDesignerFields('sidebar')">
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <!-- ==========================================
-                   MODUŁ 1: Typ Samolotu & Misja (P1 / P2)
-                   ========================================== -->
-              <div class="module-accordion" id="accordion_mod1">
-                <div class="module-header active" onclick="toggleAccordion('mod1')">
-                  <div class="module-title">
-                    <span>🎯</span> <b>Misja i wymagania</b>
-                  </div>
-                  <div class="module-meta">
-                    <span id="pill_mod1" class="mod-pill">1 pas. • 640 km</span>
-                    <span class="mod-chevron" id="chev_mod1">▼</span>
-                  </div>
-                </div>
-                <div class="module-body" id="body_mod1">
-                  {% with prefix='' %}{% include 'basis_selectors.html' %}{% endwith %}
-                  <!-- SUGEROWANE OGRANICZENIA POCZĄTKOWE (BIPOL I / MEiL PW / EASA) -->
-                  <div class="initial-constraints-panel" id="initialConstraintsPanel">
-                    <div class="constraints-drawer-header" onclick="toggleConstraintsDrawer()">
-                      <div class="constraints-drawer-title">
-                        <span>💡</span>
-                        <span>Sugerowane ograniczenia</span>
-                      </div>
-                      <div class="constraints-drawer-meta">
-                        <span class="badge badge-info" style="font-size:0.7rem;">MEiL PW &bull; EASA &bull; Rynek</span>
-                        <span id="constraintsDrawerChevron">▼</span>
-                      </div>
-                    </div>
-                    <div class="constraints-drawer-body" id="constraintsDrawerBody" style="display:none;">
-                      <div style="font-size:0.75rem; color:#475569; margin-bottom:0.5rem;">
-                        Kliknij <b>+ Zastosuj i Zablokuj 🔒</b> aby natychmiast przypiąć wybrane ograniczenie (np. limit prędkości przeciągnięcia CS, rozpiętość FAI lub silnik rynkowy {{ model_examples.naming.engine_constraint }}) jako stałe założenie projektowe.
-                      </div>
-                      <div class="suggestions-cards-grid" id="suggestionsCardsContainer">
-                        <!-- Generowane dynamicznie przez renderInitialSuggestions() -->
-                      </div>
-                    </div>
-                  </div>
-                  <div class="input-row">
-                    <div class="input-group" data-param="aircraft_type">
-                      <label for="aircraft_type">
-                        <span class="label-text">Klasa konstrukcyjna samolotu <span class="info-circle-icon" data-param="aircraft_type" tabindex="0">i</span></span>
-                      </label>
-                      <select id="aircraft_type">
-                        <option value="piston_ga" selected>Tłokowy GA (EASA CS-23 L1-L2 / CS-VLA / CS-LSA / ULM)</option>
-                        <option value="motoglider">Motoszybowiec (EASA CS-22 TMG / Klasa MG • silnik pomocniczy/ciągnący)</option>
-                        <option value="glider">Szybowiec (EASA CS-22 / Klasa S • bez napędu / hol / wyciągarka)</option>
-                        <option value="turboprop_regional">Turbośmigłowy Commuter (EASA CS-23 L3-L4 / Commuter)</option>
-                        <option value="jet_business">Odrzutowy Dyspozycyjny (EASA CS-23 High Speed / VLJ / CS-25)</option>
-                        <option value="jet_transport">Odrzutowy Komunikacyjny (EASA CS-25 Large Aeroplane)</option>
-                        <option value="uav">Bezzałogowy Statek Powietrzny EASA UAS (Specific / Certified • 0 osób)</option>
-                      </select>
-                      <div class="param-didactic-hint" id="hint_aircraft_type"></div>
-                    </div>
-                    <div class="input-group" data-param="category">
-                      <label for="category">
-                        <span class="label-text">Przepisy zdatności EASA <span class="info-circle-icon" data-param="category" tabindex="0">i</span></span>
-                      </label>
-                      <select id="category">
-                        <optgroup label="EASA CS-23 Amdt 5 (Normal Category ≤ 19 pax / 8618 kg)">
-                          <option value="cs23_level1" selected>EASA CS-23 Level 1 (Normal • 0–1 pasażer • Szkolny / Treningowy)</option>
-                          <option value="cs23_level2">EASA CS-23 Level 2 (Normal • 2–6 pasażerów • Turystyczny / GA)</option>
-                          <option value="cs23_level3">EASA CS-23 Level 3 (Normal • 7–9 pasażerów • Użytkowy / Dyspozycyjny)</option>
-                          <option value="cs23_commuter">EASA CS-23 Level 4 / Commuter (10–19 pasażerów • MTOM ≤ 8618 kg)</option>
-                          <option value="cs23_aerobatic">EASA CS-23 Akrobacyjny (Certified for Aerobatics • n = +6.0 / -3.0)</option>
-                        </optgroup>
-                        <optgroup label="EASA Lekkie, Szybowce i Motoszybowce (CS-22 / VLA / LSA)">
-                          <option value="cs_vla">EASA CS-VLA (Bardzo lekki • MTOM ≤ 750 kg, max 2 os., przeciągnięcie ≤ 45 kt)</option>
-                          <option value="cs_lsa">EASA CS-LSA (Lekki sportowy • MTOM ≤ 600/650 kg, max 2 os., przeciągnięcie ≤ 45 kt)</option>
-                          <option value="cs22_motoglider">EASA CS-22 (Motoszybowiec turystyczny TMG • MTOM ≤ 850 kg, m/b² ≤ 3.0 kg/m²)</option>
-                          <option value="cs22_glider">EASA CS-22 (Szybowiec czysty • MTOM ≤ 850 kg, max 2 os., bez napędu)</option>
-                        </optgroup>
-                        <optgroup label="EASA CS-25 (Duże samoloty komunikacyjne)">
-                          <option value="cs25_transport">EASA CS-25 (Large Aeroplanes • podstawa certyfikacji)</option>
-                        </optgroup>
-                        <optgroup label="EASA Załącznik I (Opt-out krajowy / Ultralekkie 600 kg wg art. 2 ust. 8)">
-                          <option value="easa_optout_ul">EASA Annex I Opt-Out / UL-A (Ultralekki • MTOM ≤ 600/650 kg, max 2 os.)</option>
-                          <option value="easa_optout_ul115">EASA Annex I / UL-115 (Jednoosobowy mikrolot • masa własna ≤ 115 kg)</option>
-                        </optgroup>
-                        <optgroup label="EASA Bezzałogowe Statki Powietrzne UAS (UE 2019/947 & 2019/945 • 0 osób na pokładzie)">
-                          <option value="easa_uas_specific">EASA UAS Specific (kategoria operacji wg ryzyka)</option>
-                          <option value="easa_uas_certified">EASA UAS Certified (kategoria operacji wg ryzyka)</option>
-                        </optgroup>
-                      </select>
-                      <div class="param-didactic-hint" id="hint_category"></div>
-                    </div>
-                  </div>
-
-                  <div class="input-group" id="cs22GustModelGroup" data-param="cs22_gust_model" hidden>
-                    <label for="cs22_gust_model">Model podmuchu szybowca</label>
-                    <select id="cs22_gust_model"><option value="amendment3">CS-22 Amendment 3 — podmuch 1-cos</option><option value="pratt">CS-22 Amendment 2 — starsza metoda Pratta</option></select>
-                    <small>Zmienia współczynnik łagodzenia i obciążenia P6. W raporcie podana jest wybrana metoda.</small>
-                  </div>
-                  <!-- Alert bezzałogowca EASA UAS -->
-                  <div id="uav_easa_banner" class="uav-easa-banner" style="display:none;">
-                    🤖 <strong>EASA UAS (UE 2019/947):</strong> Model bezzałogowy – <strong>0 osób na pokładzie</strong>. Kategoria operacji wymaga oceny ryzyka; nie wynika z masy 600 kg. Sterowanie ze stacji naziemnej (GCS). Masa wyposażenia zadaniowego (sensory/głowica).
-                  </div>
-
-                  <div class="input-row" id="row_main_occupants">
-                    <div class="input-group" data-param="n_pax" id="group_n_pax">
-                      <label for="n_pax">
-                        <span class="label-text">Liczba pasażerów [os.] <span class="info-circle-icon" data-param="n_pax" tabindex="0">i</span></span>
-                        <button type="button" class="param-lock-btn" id="lock_btn_n_pax" onclick="toggleParamLock('n_pax')" title="Zablokuj liczbę pasażerów">🔓</button>
-                      </label>
-                      <input type="number" id="n_pax" min="0" max="300" step="1" value="1">
-                      <div class="param-didactic-hint" id="hint_n_pax"></div>
-                      <div class="derived-badge" id="derived_badge_n_pax" style="display:none;"></div>
-                    </div>
-                    <div class="input-group" data-param="m_cargo" id="group_m_cargo">
-                      <label for="m_cargo">
-                        <span class="label-text" id="label_m_cargo_text">Ładunek cargo [kg] <span class="info-circle-icon" data-param="m_cargo" tabindex="0">i</span></span>
-                        <button type="button" class="param-lock-btn" id="lock_btn_m_cargo" onclick="toggleParamLock('m_cargo')" title="Zablokuj ładunek cargo">🔓</button>
-                      </label>
-                      <input step="any" required type="number" id="m_cargo" min="0" max="50000" value="0">
-                      <div class="param-didactic-hint" id="hint_m_cargo"></div>
-                      <div class="derived-badge" id="derived_badge_m_cargo" style="display:none;"></div>
-                    </div>
-                    <div class="input-group" data-param="m_payload" id="group_m_payload">
-                      <label for="m_payload">
-                        <span class="label-text">Masa płatna bez załogi [kg] <span class="info-circle-icon" data-param="m_payload" tabindex="0">i</span></span>
-                        <button type="button" class="param-lock-btn" id="lock_btn_m_payload" onclick="toggleParamLock('m_payload')" title="Zablokuj łączną masę płatną">🔓</button>
-                      </label>
-                      <input step="any" type="number" id="m_payload" min="0" max="50000" value="0" placeholder="0 = z pax + cargo">
-                      <div class="param-didactic-hint" id="hint_m_payload">Masa pasażerów z bagażem i cargo. Sposób obliczania wybierasz w założeniach masy płatnej.</div>
-                      <div class="derived-badge" id="derived_badge_m_payload" style="display:none;"></div>
-                    </div>
-                  </div>
-
-                  <div class="input-row">
-                    <div class="input-group" data-param="range_km">
-                      <label for="range_km">
-                        <span class="label-text">Zasięg obliczeniowy R [km] <span class="info-circle-icon" data-param="range_km" tabindex="0">i</span></span>
-                        <button type="button" class="param-lock-btn" id="lock_btn_range_km" onclick="toggleParamLock('range_km')" title="Zablokuj zasięg">🔓</button>
-                      </label>
-                      <input step="any" required type="number" id="range_km" min="0" max="30000" value="640">
-                      <div class="param-didactic-hint" id="hint_range_km"></div>
-                      <div class="derived-badge" id="derived_badge_range_km" style="display:none;"></div>
-                    </div>
-                    <div class="input-group" data-param="cruise_speed_kmh">
-                      <label for="cruise_speed_kmh">
-                        <span class="label-text">Prędkość przelotowa Vcr [km/h] <span class="info-circle-icon" data-param="cruise_speed_kmh" tabindex="0">i</span></span>
-                        <button type="button" class="param-lock-btn" id="lock_btn_cruise_speed_kmh" onclick="toggleParamLock('cruise_speed_kmh')" title="Zablokuj prędkość przelotową">🔓</button>
-                      </label>
-                      <input step="any" required type="number" id="cruise_speed_kmh" min="80" max="950" value="174">
-                      <div class="param-didactic-hint" id="hint_cruise_speed_kmh"></div>
-                      <div class="derived-badge" id="derived_badge_cruise_speed_kmh" style="display:none;"></div>
-                    </div>
-                  </div>
-
-                  <div class="input-row">
-                    <div class="input-group" data-param="v_stall_kmh">
-                      <label for="v_stall_kmh">
-                        <span class="label-text">Prędkość przeciągnięcia VS0 [km/h] <span class="info-circle-icon" data-param="v_stall_kmh" tabindex="0">i</span></span>
-                        <button type="button" class="param-lock-btn" id="lock_btn_v_stall_kmh" onclick="toggleParamLock('v_stall_kmh')" title="Zablokuj prędkość przeciągnięcia">🔓</button>
-                      </label>
-                      <input step="any" required type="number" id="v_stall_kmh" min="45" max="250" value="84">
-                      <div class="param-didactic-hint" id="hint_v_stall_kmh"></div>
-                      <div class="derived-badge" id="derived_badge_v_stall_kmh" style="display:none;"></div>
-                    </div>
-                    <div class="input-group" data-param="cruise_altitude_m">
-                      <label for="cruise_altitude_m">
-                        <span class="label-text">Wysokość przelotu H [m] <span class="info-circle-icon" data-param="cruise_altitude_m" tabindex="0">i</span></span>
-                      </label>
-                      <input step="any" required type="number" id="cruise_altitude_m" min="100" max="15000" value="2000">
-                      <div class="param-didactic-hint" id="hint_cruise_altitude_m"></div>
-                    </div>
-                  </div>
-
-                  <!-- Parametry uzupełniające misji (widoczne w trybie zaawansowanym) -->
-                  <div class="advanced-only">
-                    <div class="input-row" id="row_main_crew">
-                      <div class="input-group" data-param="n_crew" id="group_n_crew">
-                        <label for="n_crew">
-                          <span class="label-text">Liczba załogi (pilotów) [os.] <span class="info-circle-icon" data-param="n_crew" tabindex="0">i</span></span>
-                        </label>
-                        <input type="number" id="n_crew" min="0" max="6" step="1" value="1">
-                        <div class="param-didactic-hint" id="hint_n_crew"></div>
-                      </div>
-                      <div class="input-group" data-param="m_pax" id="group_m_pax">
-                        <label for="m_pax">
-                          <span class="label-text">Masa 1 os. z bagażem [kg] <span class="info-circle-icon" data-param="m_pax" tabindex="0">i</span></span>
-                        </label>
-                        <input step="any" required type="number" id="m_pax" min="0" max="150" value="115">
-                        <div class="param-didactic-hint" id="hint_m_pax"></div>
-                      </div>
-                    </div>
-                    <div class="input-row">
-                      <div class="input-group" data-param="takeoff_distance_m"><label for="takeoff_distance_m">Maks. całkowita długość startu [m]</label><input type="number" id="takeoff_distance_m" min="0" max="20000" step="any" value="600"><small>Przeszkoda 15 m; 0 = nie określono.</small></div><div class="input-group" data-param="landing_distance_m"><label for="landing_distance_m">Maks. całkowita długość lądowania [m]</label><input type="number" id="landing_distance_m" min="0" max="20000" step="any" value="600"><small>Przeszkoda 15 m; 0 = nie określono.</small></div><details class="legacy-runway"><summary>Dodatkowe ograniczenie rozbiegu</summary><div class="input-group" data-param="takeoff_run_m">
-                        <label for="takeoff_run_m">
-                          <span class="label-text">Droga rozbiegu S_to [m] <span class="info-circle-icon" data-param="takeoff_run_m" tabindex="0">i</span></span>
-                        </label>
-                        <input step="any" required type="number" id="takeoff_run_m" min="60" max="3500" value="210">
-                        <div class="param-didactic-hint" id="hint_takeoff_run_m"></div>
-                      </div></details>
-                      <div class="input-group" data-param="runway_surface">
-                        <label for="runway_surface">Nawierzchnia rozbiegu</label>
-                        <select id="runway_surface"><option value="paved">Utwardzona</option><option value="grass">Trawa</option></select>
-                        <small>Domyślne tarcie toczne przy starcie: 0,030 / 0,055. Hamowanie przy lądowaniu ma osobne założenie μ = 0,40.</small>
-                      </div>
-                      <div class="input-group" data-param="climb_rate_ms">
-                        <label for="climb_rate_ms">
-                          <span class="label-text">Wznoszenie przy ziemi w_y [m/s] <span class="info-circle-icon" data-param="climb_rate_ms" tabindex="0">i</span></span>
-                        </label>
-                        <input step="any" required type="number" id="climb_rate_ms" min="1.5" max="35" value="4.1">
-                        <div class="param-didactic-hint" id="hint_climb_rate_ms"></div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <!-- ==========================================
-                   MODUŁ 2: Geometria Płata & Kadłuba (P3)
-                   ========================================== -->
-              <div class="module-accordion" id="accordion_mod2">
-                <div class="module-header active" onclick="toggleAccordion('mod2')">
-                  <div class="module-title">
-                    <span>✈️</span> <b>2. Geometria Płata & Obrys (P3)</b>
-                  </div>
-                  <div class="module-meta">
-                    <span id="pill_mod2" class="mod-pill">Dolnopłat • AR=7.33</span>
-                    <span class="mod-chevron" id="chev_mod2">▼</span>
-                  </div>
-                </div>
-                <div class="module-body" id="body_mod2">
-                  <!-- WYBÓR OBRYSU SKRZYDŁA (PLANFORM) WG BADAŃ MEiL & DANIELECKIEGO -->
-                  <div class="input-row">
-                    <div class="input-group" data-param="wing_planform" id="group_wing_planform">
-                      <label for="wing_planform">
-                        <span class="label-text">📐 Obrys skrzydła (Planform) <span class="info-circle-icon" data-param="wing_planform" tabindex="0">i</span></span>
-                        <button type="button" class="param-lock-btn" id="lock_btn_wing_planform" onclick="toggleParamLock('wing_planform')" title="Zablokuj obrys">🔓</button>
-                      </label>
-                      <select id="wing_planform" onchange="onWingPlanformChange()">
-                        <option value="trapezoidal" selected>1. Trapezowy (zbieżny klasyczny &bull; Danilecki)</option>
-                        <option value="rectangular">2. Prostokątny (stała cięciwa c = const)</option>
-                        <option value="compound_trapezoid">3. Prostokątno-trapezowy (centropłat prostokątny + końcówki)</option>
-                        <option value="elliptical">4. Eliptyczny (rozkład Prandtla)</option>
-                        <option value="swept_trapezoidal">5. Skośny trapezowy (duże prędkości / skos)</option>
-                      </select>
-                      <div class="param-didactic-hint" id="hint_wing_planform">Wybierz obrys determinujący cyrkulację Schrenka i technologię żeber.</div>
-                      <div class="derived-badge" id="derived_badge_wing_planform" style="display:none;"></div>
-                    </div>
-                    <div class="input-group" data-param="break_span_ratio" id="group_break_span_ratio" style="display:none;">
-                      <label for="break_span_ratio">
-                        <span class="label-text">Centropłat y_brk/(b/2) [-] <span class="info-circle-icon" data-param="break_span_ratio" tabindex="0">i</span></span>
-                      </label>
-                      <input step="0.05" type="number" id="break_span_ratio" min="0.10" max="0.80" value="0.40">
-                      <div class="param-didactic-hint" id="hint_break_span_ratio">Udział centropłata o stałej cięciwie w rozpiętości (0.30–0.50).</div>
-                    </div>
-                  </div>
-
-                  <!-- Karta Dydaktyczna Wybranego Obrysu Skrzydła (Danilecki / Schrenk) -->
-                  <div id="wingPlanformDidacticBox" class="flap-didactic-card" style="margin-bottom:0.75rem;"></div>
-
-                  <div class="input-row">
-                    <div class="input-group"><label for="gear_attachment">Mocowanie podwozia głównego</label><select id="gear_attachment"><option value="fuselage">Do kadłuba</option><option value="wing">Do skrzydła</option></select></div><div class="input-group"><label for="gear_retraction">Podwozie</label><select id="gear_retraction" title="Automatycznie: stałe dla szybowców i motoszybowców oraz dla tłokowych GA i UAV o Vmax ≤ 270 km/h; chowane dla pozostałych."><option value="auto">Automatycznie wg klasy</option><option value="fixed">Stałe</option><option value="retractable">Chowane</option></select></div><div class="input-group" data-param="wing_config">
-                      <label for="wing_config">
-                        <span class="label-text">Układ pionowy skrzydła <span class="info-circle-icon" data-param="wing_config" tabindex="0">i</span></span>
-                      </label>
-                      <select id="wing_config">
-                        <option value="low">Dolnopłat wolnonośny</option>
-                        <option value="high">Górnopłat wolnonośny (STOL / Transport)</option>
-                        <option value="braced_high">Górnopłat zastrzałowy (np. {{ model_examples.wing_config.braced_high }})</option>
-                        <option value="mid">Średniopłat (Motoszybowce / Akrobacja)</option>
-                      </select>
-                      <div class="param-didactic-hint" id="hint_wing_config"></div>
-                    </div>
-                    <div class="input-group" data-param="wingspan_m">
-                      <label for="wingspan_m">
-                        <span class="label-text">Rozpiętość b [m] <small class="text-hint-cyan">(0=auto)</small> <span class="info-circle-icon" data-param="wingspan_m" tabindex="0">i</span></span>
-                        <button type="button" class="param-lock-btn" id="lock_btn_wingspan_m" onclick="toggleParamLock('wingspan_m')" title="Zablokuj rozpiętość">🔓</button>
-                      </label>
-                      <input step="any" required type="number" id="wingspan_m" min="0" max="80" value="0" placeholder="0 = wylicz z S·Λ">
-                      <div class="param-didactic-hint" id="hint_wingspan_m"></div>
-                      <div class="derived-badge" id="derived_badge_wingspan_m" style="display:none;"></div>
-                    </div>
-                  </div>
-
-                  <div class="input-group" data-param="wing_area_m2"><label for="wing_area_m2">Powierzchnia skrzydła S [m²]</label><input type="number" step="any" id="wing_area_m2" min="0" max="1000" value="0"><div class="derived-badge" id="derived_badge_wing_area_m2" hidden></div></div>
-                  <!-- Karta Dydaktyczna Plusów i Minusów Wybranego Układu Skrzydła -->
-                  <div id="wingConfigDidacticBox" class="flap-didactic-card" style="margin-bottom:0.75rem;"></div>
-
-                  <div class="input-row">
-                    <div class="input-group" data-param="aspect_ratio">
-                      <label for="aspect_ratio">
-                        <span class="label-text">Wydłużenie skrzydła Λ (AR) [-] <span class="info-circle-icon" data-param="aspect_ratio" tabindex="0">i</span></span>
-                        <button type="button" class="param-lock-btn" id="lock_btn_aspect_ratio" onclick="toggleParamLock('aspect_ratio')" title="Zablokuj wydłużenie">🔓</button>
-                      </label>
-                      <input step="any" required type="number" id="aspect_ratio" min="2" max="35" value="7.33">
-                      <div class="param-didactic-hint" id="hint_aspect_ratio"></div>
-                      <div class="derived-badge" id="derived_badge_aspect_ratio" style="display:none;"></div>
-                    </div>
-                    <div class="input-group" data-param="taper_ratio">
-                      <label for="taper_ratio">
-                        <span class="label-text">Zbieżność skrzydła η = ct/cr [-] <span class="info-circle-icon" data-param="taper_ratio" tabindex="0">i</span></span>
-                      </label>
-                      <input step="any" required type="number" id="taper_ratio" min="0" max="1.0" value="0.60">
-                      <div class="param-didactic-hint" id="hint_taper_ratio"></div>
-                    </div>
-                  </div>
-
-                  <div class="input-row">
-                    <div class="input-group" data-param="sweep_quarter_deg">
-                      <label for="sweep_quarter_deg">
-                        <span class="label-text">Skos skrzydła χ25% [°] <span class="info-circle-icon" data-param="sweep_quarter_deg" tabindex="0">i</span></span>
-                      </label>
-                      <input step="any" required type="number" id="sweep_quarter_deg" min="0" max="45" value="0">
-                      <div class="param-didactic-hint" id="hint_sweep_quarter_deg"></div>
-                    </div>
-                    <div class="input-group" data-param="dihedral_deg">
-                      <label for="dihedral_deg">
-                        <span class="label-text">Wznios skrzydła Γ [°] <span class="info-circle-icon" data-param="dihedral_deg" tabindex="0">i</span></span>
-                      </label>
-                      <input step="any" required type="number" id="dihedral_deg" min="-3" max="10" value="4.0">
-                      <div class="param-didactic-hint" id="hint_dihedral_deg"></div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <!-- ==========================================
-                   MODUŁ 3: Mechanizacja & Biegunowe (P4)
-                   ========================================== -->
-              <div class="module-accordion" id="accordion_mod3">
-                <div class="module-header active" onclick="toggleAccordion('mod3')">
-                  <div class="module-title">
-                    <span>💨</span> <b>3. Mechanizacja & Aerodynamika (P4)</b>
-                  </div>
-                  <div class="module-meta">
-                    <span id="pill_mod3" class="mod-pill">Klapa szczelinowa • Cz=2.05</span>
-                    <span class="mod-chevron" id="chev_mod3">▼</span>
-                  </div>
-                </div>
-                <div class="module-body" id="body_mod3">
-                  <div class="input-row">
-                    <div class="input-group" data-param="flap_type">
-                      <label for="flap_type" class="flap-label-highlight">
-                        <span class="label-text">🛬 Klapa Spływu (Wewnętrzna) <span class="info-circle-icon" data-param="flap_type" tabindex="0">i</span></span>
-                      </label>
-                      <select id="flap_type" class="flap-select-highlight">
-                        <option value="none">Brak klap</option>
-                        <option value="plain">1. Klapa zwykła (wysklepiająca)</option>
-                        <option value="split">2. Klapa krokodylowa (Split Flap)</option>
-                        <option value="junkers">3. Klapa Junkersa (STOL)</option>
-                        <option value="single_slotted" selected>4. Klapa jednoszczelinowa</option>
-                        <option value="fowler">5. Klapa Fowlera szynowa</option>
-                        <option value="double_slotted">6. Klapa dwuszczelinowa</option>
-                        <option value="flaperon">7. Klapolotka różnicowa</option>
-                      </select><p class="basis-note">Wychylenia według wytycznych: start 20°, lądowanie 40°.</p>
-                      <div class="param-didactic-hint" id="hint_flap_type"></div>
-                    </div>
-                    <div class="input-group" data-param="aileron_type">
-                      <label for="aileron_type" class="aileron-label-highlight">
-                        <span class="label-text">🔄 Lotka Poprzeczna (Zewnętrzna) <span class="info-circle-icon" data-param="aileron_type" tabindex="0">i</span></span>
-                      </label>
-                      <select id="aileron_type" class="aileron-select-highlight">
-                        <option value="differential" selected>1. Lotka różnicowa (Differential - GA)</option>
-                        <option value="frise">2. Lotka Frise (ze ściętym noskiem)</option>
-                        <option value="slotted">3. Lotka szczelinowa (Slotted)</option>
-                        <option value="plain">4. Lotka zwykła (Plain)</option>
-                        <option value="flaperon">5. Klapolotka (Flaperon z mikserem)</option>
-                      </select>
-                      <div class="param-didactic-hint" id="hint_aileron_type"></div>
-                    </div>
-                  </div>
-
-                  <div class="input-row">
-                    <div class="input-group" data-param="slat_type">
-                      <label for="slat_type" class="slat-label-highlight">
-                        <span class="label-text">🌬️ Natarcie / Slot <span class="info-circle-icon" data-param="slat_type" tabindex="0">i</span></span>
-                      </label>
-                      <select id="slat_type" class="slat-select-highlight">
-                        <option value="none" selected>1. Czysty nos (brak slotów)</option>
-                        <option value="fixed_slot">2. Slot stały (Fixed Slat)</option>
-                        <option value="slats_auto">3. Slot ruchomy automatyczny</option>
-                        <option value="krueger">4. Klapa Kruegera</option>
-                      </select>
-                      <div class="param-didactic-hint" id="hint_slat_type"></div>
-                    </div>
-                    <div class="input-group" data-param="flap_span_ratio">
-                      <label for="flap_span_ratio">
-                        <span class="label-text">Zasięg klap bf/b [-] <span class="info-circle-icon" data-param="flap_span_ratio" tabindex="0">i</span></span>
-                      </label>
-                      <input step="0.01" type="number" id="flap_span_ratio" min="0.20" max="0.85" value="0.60">
-                      <div class="param-didactic-hint" id="hint_flap_span_ratio"></div>
-                    </div>
-                  </div>
-
-                  <!-- INTERAKTYWNA KARTA DYDAKTYCZNA KLAPY I LOTEK -->
-                  <div id="flapDidacticCard" class="flap-didactic-card" style="margin-bottom:0.75rem;"></div>
-
-                  <!-- WIDGET ROZKŁADU KRAWĘDZI SPŁYWU: KLAPY I LOTKI -->
-                  <div id="trailingEdgeLayoutCard" class="trailing-edge-card">
-                    <div class="trailing-edge-header">
-                      <span>📐 Podział Krawędzi Spływu: Klapy (wewn.) &bull; Lotki (zewn.)</span>
-                      <span id="cs_layout_badge" class="badge badge-info" style="font-size:0.72rem;">Klapy + Lotki</span>
-                    </div>
-                    <div id="cs_span_bar" style="display:flex; height:18px; border-radius:4px; overflow:hidden; border:1px solid #94a3b8; font-size:0.68rem; font-weight:bold; color:#fff; text-align:center; line-height:18px; margin-bottom:0.4rem;">
-                      <div id="bar_fuselage" style="width:14%; background:#64748b;" title="Kadłub">Kadłub</div>
-                      <div id="bar_flaps" style="width:60%; background:#2563eb;" title="Klapy wysklepiające">Klapy (60%)</div>
-                      <div id="bar_gap" style="width:2%; background:#94a3b8;" title="Szczelina montażowa"></div>
-                      <div id="bar_ailerons" style="width:21%; background:#059669;" title="Lotki sterowania poprzecznego">Lotki (21%)</div>
-                      <div id="bar_tip" style="width:3%; background:#cbd5e1; color:#475569;" title="Końcówka skrzydła"></div>
-                    </div>
-                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.5rem; font-size:0.78rem;">
-                      <div>
-                        <strong>Klapy:</strong> <span id="cs_flaps_text">bf = --- m (---% b), Sf = --- m²</span>
-                      </div>
-                      <div>
-                        <strong>Lotki:</strong> <span id="cs_ailerons_text">ba = --- m (---% b), Sa = --- m²</span>
-                      </div>
-                    </div>
-                    <div id="cs_roll_text" style="margin-top:0.3rem; font-size:0.76rem; color:#0369a1;">
-                      Skuteczność poprzeczna: <b>pb/(2V) = ---</b> &bull; Bezpieczeństwo Schrenka: <b>---</b>
-                    </div>
-                  </div>
-
-                  <div class="input-row">
-                    <div class="input-group" data-param="profile_thickness_mode">
-                      <label for="profile_thickness_mode">Źródło grubości skrzydła t/c</label>
-                      <select id="profile_thickness_mode">
-                        <option value="auto">Z wybranego profilu (P3)</option>
-                        <option value="assumed">Ręczne założenie</option>
-                      </select>
-                      <small>Bez wybranego profilu obowiązuje założenie t/c.</small>
-                    </div>
-                    <div class="input-group" data-param="tc_ratio">
-                      <label for="tc_ratio"><span class="label-text">Grubość względna skrzydła t/c [-]</span>
-                        <button type="button" class="param-lock-btn" id="lock_btn_tc_ratio" onclick="toggleParamLock('tc_ratio')" title="Zablokuj założenie grubości">🔓</button>
-                      </label>
-                      <input step="any" required type="number" id="tc_ratio" min="0.04" max="0.30" value="0.12">
-                      <div class="derived-badge" id="derived_badge_tc_ratio" style="display:none;"></div>
-                      <small>0,12 oznacza 12% cięciwy. Oznaczenie i rzędne wybierz w P3.</small>
-                    </div>
-                  </div>
-                  <p data-profile-thickness-summary role="status" class="table-note"></p>
-                  <div class="input-row">
-                    <div class="input-group" data-param="cx0">
-                      <label for="cx0">
-                        <span class="label-text">Opór szkodliwy Cx0 [-] <span class="info-circle-icon" data-param="cx0" tabindex="0">i</span></span>
-                      </label>
-                      <input step="any" required type="number" id="cx0" min="0.001" max="0.300" value="0.028">
-                      <div class="param-didactic-hint" id="hint_cx0"></div>
-                    </div>
-                    <div class="input-group" data-param="oswald_e">
-                      <label for="oswald_e">
-                        <span class="label-text">Współczynnik Oswalda e [-] <span class="info-circle-icon" data-param="oswald_e" tabindex="0">i</span></span>
-                      </label>
-                      <input step="any" required type="number" id="oswald_e" min="0.6" max="0.95" value="0.78">
-                      <div class="param-didactic-hint" id="hint_oswald_e"></div>
-                    </div>
-                  </div>
-
-                  <div class="input-row">
-                    <div class="input-group" data-param="cz_max_clean">
-                      <label for="cz_max_clean">
-                        <span class="label-text">Cz_max (gładka) [-] <span class="info-circle-icon" data-param="cz_max_clean" tabindex="0">i</span></span>
-                      </label>
-                      <input step="any" required type="number" id="cz_max_clean" min="1.0" max="2.0" value="1.40">
-                      <div class="param-didactic-hint" id="hint_cz_max_clean"></div>
-                    </div>
-                    <div class="input-group" data-param="cz_max_lnd">
-                      <label for="cz_max_lnd">
-                        <span class="label-text">Cz_max,lnd (klapa) [-] <span class="info-circle-icon" data-param="cz_max_lnd" tabindex="0">i</span></span>
-                      </label>
-                      <input step="any" required type="number" id="cz_max_lnd" min="0.1" max="7" value="2.05">
-                      <div class="param-didactic-hint" id="hint_cz_max_lnd"></div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <!-- ==========================================
-                   MODUŁ 4: Zespół Napędowy (P2 / P5)
-                   ========================================== -->
-              <div class="module-accordion" id="accordion_mod4">
-                <div class="module-header active" onclick="toggleAccordion('mod4')">
-                  <div class="module-title">
-                    <span>⚙️</span> <b id="title_mod4">4. Zespół Napędowy & Śmigło (P2/P5)</b>
-                  </div>
-                  <div class="module-meta">
-                    <span id="pill_mod4" class="mod-pill">Śmigłowy • 265 g/kWh</span>
-                    <span class="mod-chevron" id="chev_mod4">▼</span>
-                  </div>
-                </div>
-                <div class="module-body" id="body_mod4">
-                  <div class="input-row">
-                    <div class="input-group" data-param="engine_type">
-                      <label for="engine_type">
-                        <span class="label-text">Rodzaj napędu <span class="info-circle-icon" data-param="engine_type" tabindex="0">i</span></span>
-                      </label>
-                      <select id="engine_type">
-                        <option value="prop">Śmigłowy (Tłokowy / Turboprop)</option>
-                        <option value="jet">Odrzutowy (Turbofan / Turbojet)</option>
-
-                        <option value="none">Bez napędu (szybowiec)</option>
-                      </select>
-                      <div class="param-didactic-hint" id="hint_engine_type"></div>
-                    </div>
-                    <div class="input-group" data-param="engine_location">
-                      <label for="engine_location">
-                        <span class="label-text">Umiejscowienie silnika <span class="info-circle-icon" data-param="engine_location" tabindex="0">i</span></span>
-                      </label>
-                      <select id="engine_location">
-                        <option value="nose">Dziób kadłuba (Tractor)</option>
-                        <option value="wing">Skrzydła (Gondole)</option>
-                        <option value="rear">Tył kadłuba (Pchający / Gondole)</option>
-                        <option value="retractable">Chowany w kadłubie (AOS)</option>
-                        <option value="none" hidden>Nie dotyczy — bez napędu</option>
-                      </select>
-                      <div class="param-didactic-hint" id="hint_engine_location"></div></div><div class="input-group" data-param="n_engines" id="group_n_engines"><label for="n_engines"><span class="label-text">Liczba silników [szt.]</span></label><input type="number" id="n_engines" min="1" max="8" step="1" value="1">
-                    </div>
-                  </div>
-
-                  <div class="input-row">
-                    <div class="input-group" data-power-basis><label for="power_input_mode">Dobór mocy</label><select id="power_input_mode" data-basis-selector><option value="sized">Oblicz wymaganą moc</option><option value="fixed">Znam dostępną moc silnika</option></select></div>
-                    <div class="input-group" data-param="engine_power_kw" id="group_engine_power_kw">
-                      <label for="engine_power_kw">
-                        <span class="label-text">Moc silnika P_max [kW] <small class="text-hint-cyan">(0=auto)</small> <span class="info-circle-icon" data-param="engine_power_kw" tabindex="0">i</span></span>
-                        <button type="button" class="param-lock-btn" id="lock_btn_engine_power_kw" onclick="toggleParamLock('engine_power_kw')" title="Zablokuj moc silnika rynkowego">🔓</button>
-                      </label>
-                      <input step="any" required type="number" id="engine_power_kw" min="0" max="15000" value="0" placeholder="0 = z bilansu P5">
-                      <div class="param-didactic-hint" id="hint_engine_power_kw">Podaj moc silnika rynkowego ({{ model_examples.typical_values.engine_power_hint }}) lub 0 dla automatycznego doboru.</div>
-                      <div class="derived-badge" id="derived_badge_engine_power_kw" style="display:none;"></div>
-                    </div>
-                  </div>
-
-                  <div class="input-row">
-                    <div class="input-group" data-param="sfc" id="group_sfc">
-                      <label for="sfc">
-                        <span class="label-text"><span id="label_sfc_text">Zużycie SFC c_p [g/(kW&bull;h)]</span> <span class="info-circle-icon" data-param="sfc" tabindex="0">i</span></span>
-                      </label>
-                      <input step="any" required type="number" id="sfc" min="0.2" max="600" value="265">
-                      <div class="param-didactic-hint" id="hint_sfc"></div>
-                    </div>
-                    <div class="input-group" data-param="prop_efficiency" id="group_prop_efficiency">
-                      <label for="prop_efficiency">
-                        <span class="label-text">Sprawność śmigła &eta;_p [-] <span class="info-circle-icon" data-param="prop_efficiency" tabindex="0">i</span></span>
-                      </label>
-                      <input step="any" required type="number" id="prop_efficiency" min="0.5" max="0.92" value="0.80">
-                      <div class="param-didactic-hint" id="hint_prop_efficiency"></div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Action Calculate Button -->
-              <div class="calc-action-wrapper" style="margin-top:1.15rem;">
-                <button type="button" id="calcBtn" aria-describedby="calculationStatus" class="btn btn-calc-hero btn-block">
-                  <span class="btn-calc-icon">🚀</span>
-                  <span class="btn-calc-content">
-                    <span class="btn-calc-title">Przelicz projekt</span>
-                    <span class="btn-calc-subtitle">Zapisz zmiany i odśwież wyniki</span>
-                  </span>
-                </button>
-                <div id="calculationStatus" class="calculation-status" role="status" aria-live="polite"></div>
-              </div>
-
-            </form>
-
-          </div>
-        </div>
-
-</section>
+<section id="tab-inputs" class="tab-content studio-panel quiet-inputs">
+  <div class="studio-heading"><div><h1>Jaki samolot projektujesz?</h1><p>Zacznij od misji. Uzupełnij znane wartości, a resztę dobierzemy w obliczeniach.</p></div><button type="button" class="btn btn-outline" data-studio-target="tab-overview">Wróć do wyników</button></div>
+  <section class="studio-input-guide" aria-label="Poruszanie się po parametrach">
+    <div class="studio-parameter-search">
+      <label for="studioParameterSearch">Znajdź parametr</label>
+      <input type="search" id="studioParameterSearch" placeholder="np. rozpiętość, zasięg, klapy" autocomplete="off" aria-controls="studioParameterResults" aria-describedby="studioParameterCount">
+      <p id="studioParameterCount" role="status" aria-live="polite">Wpisz nazwę, aby przejść prosto do pola.</p>
+      <ul id="studioParameterResults" hidden></ul>
+    </div>
+    <nav class="studio-input-sections" aria-label="Grupy parametrów">
+      <button type="button" data-input-section="mod1" aria-controls="body_mod1">Misja</button>
+      <button type="button" data-input-section="mod2" aria-controls="body_mod2">Skrzydło</button>
+      <button type="button" data-input-section="mod3" aria-controls="body_mod3">Aerodynamika</button>
+      <button type="button" data-input-section="mod4" aria-controls="body_mod4">Napęd</button>
+    </nav>
+  </section>
+
+        <div class="b-card">
+          <div class="b-card-header" style="background:linear-gradient(90deg, #0f172a 0%, #1e3a8a 100%); color:#fff;">
+            <h3 style="color:#fff;">⚙️ Założenia Projektowe Samolotu (P1–P6)</h3>
+            <span style="font-size:0.74rem; color:#bfdbfe; font-weight:600;">Najedź na <span class="info-circle-icon" style="background:#3b82f6; color:#fff; border-color:#93c5fd; pointer-events:none;">i</span> po szczegóły</span>
+          </div>
+          <div class="b-card-body">
+
+            <!-- Sidebar Mode Bar (Anti-Overload & Wizard Access) -->
+            <div class="sidebar-mode-bar">
+              <div class="mode-toggle-group">
+                <button type="button" class="mode-btn active" id="modeBasicBtn" onclick="setSidebarMode('basic')">
+                  Podstawowe
+                </button>
+                <button type="button" class="mode-btn" id="modeAdvancedBtn" onclick="setSidebarMode('advanced')">
+                  Wszystkie parametry
+                </button>
+              </div>
+
+            </div>
+
+            <button type="button" id="toggleDidacticHintsBtn" class="btn btn-outline quiet-help-toggle" aria-pressed="false">Objaśnienia</button>
+
+            <!-- Oficjalna lista tematów wydziałowych (opcjonalnie) -->
+            <div class="quick-presets-container topics-only">
+              <button type="button" class="faculty-drawer-btn" id="toggleFacultyTopicsBtn" onclick="toggleFacultyDrawer()">
+                🏛️ Baza 110 tematów MEiL ▾
+              </button>
+              <div id="facultyTopicsDrawer" class="faculty-topics-drawer" style="display:none;">
+                <label for="categorySelect">Kategoria tematu</label>
+                <select id="categorySelect" class="preset-select"></select>
+                <label for="topicSelect">Temat z listy wydziałowej</label>
+                <select id="topicSelect" class="preset-select"></select>
+              </div>
+            </div>
+
+            <!-- Global Accordion Expand/Collapse Controls -->
+            <div class="accordion-global-bar">
+              <span>Grupy parametrów modułowych (P1–P6):</span>
+              <div>
+                <button type="button" class="btn-link-action" onclick="toggleAllAccordions(true)">Rozwiń wszystkie</button>
+                &bull;
+                <button type="button" class="btn-link-action" onclick="toggleAllAccordions(false)">Zwiń</button>
+              </div>
+            </div>
+
+            <form id="designForm" class="mode-basic" onsubmit="return false;">
+
+              <!-- ==========================================
+                   MODUŁ 0: Dane Projektanta-Studenta (Strona Tytułowa Rys. 2 i Teczka Rys. 1)
+                   ========================================== -->
+              <div class="module-accordion mod-designer-accordion" id="accordion_mod0">
+                <div class="module-header active" onclick="toggleAccordion('mod0')">
+                  <div class="module-title">
+                    <span>🪪</span> <b>0. Dane Projektanta-Studenta (Strona Tytułowa)</b>
+                  </div>
+                  <div class="module-meta">
+                    <span id="pill_mod0" class="mod-pill mod-pill-designer">Rys. 1 i 2 MEiL</span>
+                    <span class="mod-chevron" id="chev_mod0">▼</span>
+                  </div>
+                </div>
+                <div class="module-body" id="body_mod0">
+                  <div class="input-row">
+                    <div class="input-group">
+                      <label for="student_name"><span class="label-text">Imię i Nazwisko projektanta</span></label>
+                      <input type="text" id="student_name" value="{{ designer_defaults.student_name }}" placeholder="np. Jan Kowalski" oninput="syncStudentDesignerFields('sidebar')">
+                    </div>
+                    <div class="input-group">
+                      <label for="album_no"><span class="label-text">Nr Albumu</span></label>
+                      <input type="text" id="album_no" value="{{ designer_defaults.album_no }}" placeholder="np. 312456" oninput="syncStudentDesignerFields('sidebar')">
+                    </div>
+                  </div>
+                  <div class="input-row">
+                    <div class="input-group">
+                      <label for="group_no"><span class="label-text">Grupa (wg Rys. 2)</span></label>
+                      <input type="text" id="group_no" value="{{ designer_defaults.group_no }}" placeholder="A – czwartek 8:15-9:00" oninput="syncStudentDesignerFields('sidebar')">
+                    </div>
+                    <div class="input-group">
+                      <label for="supervisor"><span class="label-text">Prowadzący (wg Rys. 2)</span></label>
+                      <input type="text" id="supervisor" value="{{ designer_defaults.supervisor }}" placeholder="np. M.Figat" oninput="syncStudentDesignerFields('sidebar')">
+                    </div>
+                  </div>
+                  <div class="input-row">
+                    <div class="input-group">
+                      <label for="submission_date"><span class="label-text">Data oddania projektu</span></label>
+                      <input type="text" id="submission_date" value="{{ designer_defaults.submission_date }}" placeholder="np. 14.12.2026" oninput="syncStudentDesignerFields('sidebar')">
+                    </div>
+                    <div class="input-group">
+                      <label for="academic_year"><span class="label-text">Rok akademicki (Rys. 1)</span></label>
+                      <input type="text" id="academic_year" value="{{ designer_defaults.academic_year }}" placeholder="np. 2026/27" oninput="syncStudentDesignerFields('sidebar')">
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- ==========================================
+                   MODUŁ 1: Typ Samolotu & Misja (P1 / P2)
+                   ========================================== -->
+              <div class="module-accordion" id="accordion_mod1">
+                <div class="module-header active" onclick="toggleAccordion('mod1')">
+                  <div class="module-title">
+                    <span>🎯</span> <b>Misja i wymagania</b>
+                  </div>
+                  <div class="module-meta">
+                    <span id="pill_mod1" class="mod-pill">1 pas. • 640 km</span>
+                    <span class="mod-chevron" id="chev_mod1">▼</span>
+                  </div>
+                </div>
+                <div class="module-body" id="body_mod1">
+                  {% with prefix='' %}{% include 'basis_selectors.html' %}{% endwith %}
+                  <!-- SUGEROWANE OGRANICZENIA POCZĄTKOWE (BIPOL I / MEiL PW / EASA) -->
+                  <div class="initial-constraints-panel" id="initialConstraintsPanel">
+                    <div class="constraints-drawer-header" onclick="toggleConstraintsDrawer()">
+                      <div class="constraints-drawer-title">
+                        <span>💡</span>
+                        <span>Sugerowane ograniczenia</span>
+                      </div>
+                      <div class="constraints-drawer-meta">
+                        <span class="badge badge-info" style="font-size:0.7rem;">MEiL PW &bull; EASA &bull; Rynek</span>
+                        <span id="constraintsDrawerChevron">▼</span>
+                      </div>
+                    </div>
+                    <div class="constraints-drawer-body" id="constraintsDrawerBody" style="display:none;">
+                      <div style="font-size:0.75rem; color:#475569; margin-bottom:0.5rem;">
+                        Kliknij <b>+ Zastosuj i Zablokuj 🔒</b> aby natychmiast przypiąć wybrane ograniczenie (np. limit prędkości przeciągnięcia CS, rozpiętość FAI lub silnik rynkowy {{ model_examples.naming.engine_constraint }}) jako stałe założenie projektowe.
+                      </div>
+                      <div class="suggestions-cards-grid" id="suggestionsCardsContainer">
+                        <!-- Generowane dynamicznie przez renderInitialSuggestions() -->
+                      </div>
+                    </div>
+                  </div>
+                  <div class="input-row">
+                    <div class="input-group" data-param="aircraft_type">
+                      <label for="aircraft_type">
+                        <span class="label-text">Klasa konstrukcyjna samolotu <span class="info-circle-icon" data-param="aircraft_type" tabindex="0">i</span></span>
+                      </label>
+                      <select id="aircraft_type">
+                        <option value="piston_ga" selected>Tłokowy GA (EASA CS-23 L1-L2 / CS-VLA / CS-LSA / ULM)</option>
+                        <option value="motoglider">Motoszybowiec (EASA CS-22 TMG / Klasa MG • silnik pomocniczy/ciągnący)</option>
+                        <option value="glider">Szybowiec (EASA CS-22 / Klasa S • bez napędu / hol / wyciągarka)</option>
+                        <option value="turboprop_regional">Turbośmigłowy Commuter (EASA CS-23 L3-L4 / Commuter)</option>
+                        <option value="jet_business">Odrzutowy Dyspozycyjny (EASA CS-23 High Speed / VLJ / CS-25)</option>
+                        <option value="jet_transport">Odrzutowy Komunikacyjny (EASA CS-25 Large Aeroplane)</option>
+                        <option value="uav">Bezzałogowy Statek Powietrzny EASA UAS (Specific / Certified • 0 osób)</option>
+                      </select>
+                      <div class="param-didactic-hint" id="hint_aircraft_type"></div>
+                    </div>
+                    <div class="input-group" data-param="category">
+                      <label for="category">
+                        <span class="label-text">Przepisy zdatności EASA <span class="info-circle-icon" data-param="category" tabindex="0">i</span></span>
+                      </label>
+                      <select id="category">
+                        <optgroup label="EASA CS-23 Amdt 5 (Normal Category ≤ 19 pax / 8618 kg)">
+                          <option value="cs23_level1" selected>EASA CS-23 Level 1 (Normal • 0–1 pasażer • Szkolny / Treningowy)</option>
+                          <option value="cs23_level2">EASA CS-23 Level 2 (Normal • 2–6 pasażerów • Turystyczny / GA)</option>
+                          <option value="cs23_level3">EASA CS-23 Level 3 (Normal • 7–9 pasażerów • Użytkowy / Dyspozycyjny)</option>
+                          <option value="cs23_commuter">EASA CS-23 Level 4 / Commuter (10–19 pasażerów • MTOM ≤ 8618 kg)</option>
+                          <option value="cs23_aerobatic">EASA CS-23 Akrobacyjny (Certified for Aerobatics • n = +6.0 / -3.0)</option>
+                        </optgroup>
+                        <optgroup label="EASA Lekkie, Szybowce i Motoszybowce (CS-22 / VLA / LSA)">
+                          <option value="cs_vla">EASA CS-VLA (Bardzo lekki • MTOM ≤ 750 kg, max 2 os., przeciągnięcie ≤ 45 kt)</option>
+                          <option value="cs_lsa">EASA CS-LSA (Lekki sportowy • MTOM ≤ 600/650 kg, max 2 os., przeciągnięcie ≤ 45 kt)</option>
+                          <option value="cs22_motoglider">EASA CS-22 (Motoszybowiec turystyczny TMG • MTOM ≤ 850 kg, m/b² ≤ 3.0 kg/m²)</option>
+                          <option value="cs22_glider">EASA CS-22 (Szybowiec czysty • MTOM ≤ 850 kg, max 2 os., bez napędu)</option>
+                        </optgroup>
+                        <optgroup label="EASA CS-25 (Duże samoloty komunikacyjne)">
+                          <option value="cs25_transport">EASA CS-25 (Large Aeroplanes • podstawa certyfikacji)</option>
+                        </optgroup>
+                        <optgroup label="EASA Załącznik I (Opt-out krajowy / Ultralekkie 600 kg wg art. 2 ust. 8)">
+                          <option value="easa_optout_ul">EASA Annex I Opt-Out / UL-A (Ultralekki • MTOM ≤ 600/650 kg, max 2 os.)</option>
+                          <option value="easa_optout_ul115">EASA Annex I / UL-115 (Jednoosobowy mikrolot • masa własna ≤ 115 kg)</option>
+                        </optgroup>
+                        <optgroup label="EASA Bezzałogowe Statki Powietrzne UAS (UE 2019/947 & 2019/945 • 0 osób na pokładzie)">
+                          <option value="easa_uas_specific">EASA UAS Specific (kategoria operacji wg ryzyka)</option>
+                          <option value="easa_uas_certified">EASA UAS Certified (kategoria operacji wg ryzyka)</option>
+                        </optgroup>
+                      </select>
+                      <div class="param-didactic-hint" id="hint_category"></div>
+                    </div>
+                  </div>
+
+                  <div class="input-group" id="cs22GustModelGroup" data-param="cs22_gust_model" hidden>
+                    <label for="cs22_gust_model">Model podmuchu szybowca</label>
+                    <select id="cs22_gust_model"><option value="amendment3">CS-22 Amendment 3 — podmuch 1-cos</option><option value="pratt">CS-22 Amendment 2 — starsza metoda Pratta</option></select>
+                    <small>Zmienia współczynnik łagodzenia i obciążenia P6. W raporcie podana jest wybrana metoda.</small>
+                  </div>
+                  <!-- Alert bezzałogowca EASA UAS -->
+                  <div id="uav_easa_banner" class="uav-easa-banner" style="display:none;">
+                    🤖 <strong>EASA UAS (UE 2019/947):</strong> Model bezzałogowy – <strong>0 osób na pokładzie</strong>. Kategoria operacji wymaga oceny ryzyka; nie wynika z masy 600 kg. Sterowanie ze stacji naziemnej (GCS). Masa wyposażenia zadaniowego (sensory/głowica).
+                  </div>
+
+                  <div class="input-row" id="row_main_crew">
+                    <div class="input-group" data-param="n_crew" id="group_n_crew">
+                      <label for="n_crew">
+                        <span class="label-text">Liczba załogi (pilotów) [os.] <span class="info-circle-icon" data-param="n_crew" tabindex="0">i</span></span>
+                      </label>
+                      <input type="number" id="n_crew" min="0" max="6" step="1" value="1">
+                      <div class="param-didactic-hint" id="hint_n_crew"></div>
+                    </div>
+                    <div class="input-group" data-param="m_crew_person" id="group_m_crew_person">
+                      <label for="m_crew_person">
+                        <span class="label-text">Masa 1 członka załogi (pilot) [kg] <span class="info-circle-icon" data-param="m_crew_person" tabindex="0">i</span></span>
+                      </label>
+                      <input step="any" required type="number" id="m_crew_person" min="55" max="150" value="90">
+                      <div class="param-didactic-hint" id="hint_m_crew_person">Domyślnie 90 kg (pilot z wyposażeniem osobistym / spadochronem ratowniczym wg norm CS-22.771 / CS-VLA / CS-23). Min. certyfikacyjna: 70 kg (77 kg ze spadochronem).</div>
+                    </div>
+                  </div>
+
+                  <div class="input-row" id="row_main_occupants">
+                    <div class="input-group" data-param="n_pax" id="group_n_pax">
+                      <label for="n_pax">
+                        <span class="label-text">Liczba pasażerów [os.] <span class="info-circle-icon" data-param="n_pax" tabindex="0">i</span></span>
+                        <button type="button" class="param-lock-btn" id="lock_btn_n_pax" onclick="toggleParamLock('n_pax')" title="Zablokuj liczbę pasażerów">🔓</button>
+                      </label>
+                      <input type="number" id="n_pax" min="0" max="300" step="1" value="0">
+                      <div class="param-didactic-hint" id="hint_n_pax"></div>
+                      <div class="derived-badge" id="derived_badge_n_pax" style="display:none;"></div>
+                    </div>
+                    <div class="input-group" data-param="m_pax" id="group_m_pax">
+                      <label for="m_pax">
+                        <span class="label-text">Masa 1 pasażera z bagażem [kg] <span class="info-circle-icon" data-param="m_pax" tabindex="0">i</span></span>
+                      </label>
+                      <input step="any" required type="number" id="m_pax" min="0" max="150" value="115">
+                      <div class="param-didactic-hint" id="hint_m_pax">Masa pojedynczego pasażera z bagażem (standardowo 115 kg: 80 kg pasażer + 35 kg bagaż).</div>
+                    </div>
+                  </div>
+
+                  <div class="input-row" id="row_main_payload">
+                    <div class="input-group" data-param="m_cargo" id="group_m_cargo">
+                      <label for="m_cargo">
+                        <span class="label-text" id="label_m_cargo_text">Ładunek cargo [kg] <span class="info-circle-icon" data-param="m_cargo" tabindex="0">i</span></span>
+                        <button type="button" class="param-lock-btn" id="lock_btn_m_cargo" onclick="toggleParamLock('m_cargo')" title="Zablokuj ładunek cargo">🔓</button>
+                      </label>
+                      <input step="any" required type="number" id="m_cargo" min="0" max="50000" value="0">
+                      <div class="param-didactic-hint" id="hint_m_cargo"></div>
+                      <div class="derived-badge" id="derived_badge_m_cargo" style="display:none;"></div>
+                    </div>
+                    <div class="input-group" data-param="m_payload" id="group_m_payload">
+                      <label for="m_payload">
+                        <span class="label-text">Masa płatna bez załogi [kg] <span class="info-circle-icon" data-param="m_payload" tabindex="0">i</span></span>
+                        <button type="button" class="param-lock-btn" id="lock_btn_m_payload" onclick="toggleParamLock('m_payload')" title="Zablokuj łączną masę płatną">🔓</button>
+                      </label>
+                      <input step="any" type="number" id="m_payload" min="0" max="50000" value="0" placeholder="0 = z pax + cargo">
+                      <div class="param-didactic-hint" id="hint_m_payload">Masa pasażerów z bagażem i cargo. Sposób obliczania wybierasz w założeniach masy płatnej.</div>
+                      <div class="derived-badge" id="derived_badge_m_payload" style="display:none;"></div>
+                    </div>
+                  </div>
+
+                  <div class="input-row">
+                    <div class="input-group" data-param="range_km">
+                      <label for="range_km">
+                        <span class="label-text">Zasięg obliczeniowy R [km] <span class="info-circle-icon" data-param="range_km" tabindex="0">i</span></span>
+                        <button type="button" class="param-lock-btn" id="lock_btn_range_km" onclick="toggleParamLock('range_km')" title="Zablokuj zasięg">🔓</button>
+                      </label>
+                      <input step="any" required type="number" id="range_km" min="0" max="30000" value="640">
+                      <div class="param-didactic-hint" id="hint_range_km"></div>
+                      <div class="derived-badge" id="derived_badge_range_km" style="display:none;"></div>
+                    </div>
+                    <div class="input-group" data-param="cruise_speed_kmh">
+                      <label for="cruise_speed_kmh">
+                        <span class="label-text">Prędkość przelotowa Vcr [km/h] <span class="info-circle-icon" data-param="cruise_speed_kmh" tabindex="0">i</span></span>
+                        <button type="button" class="param-lock-btn" id="lock_btn_cruise_speed_kmh" onclick="toggleParamLock('cruise_speed_kmh')" title="Zablokuj prędkość przelotową">🔓</button>
+                      </label>
+                      <input step="any" required type="number" id="cruise_speed_kmh" min="80" max="950" value="174">
+                      <div class="param-didactic-hint" id="hint_cruise_speed_kmh"></div>
+                      <div class="derived-badge" id="derived_badge_cruise_speed_kmh" style="display:none;"></div>
+                    </div>
+                  </div>
+
+                  <div class="input-row">
+                    <div class="input-group" data-param="v_stall_kmh">
+                      <label for="v_stall_kmh">
+                        <span class="label-text">Prędkość przeciągnięcia VS0 [km/h] <span class="info-circle-icon" data-param="v_stall_kmh" tabindex="0">i</span></span>
+                        <button type="button" class="param-lock-btn" id="lock_btn_v_stall_kmh" onclick="toggleParamLock('v_stall_kmh')" title="Zablokuj prędkość przeciągnięcia">🔓</button>
+                      </label>
+                      <input step="any" required type="number" id="v_stall_kmh" min="45" max="250" value="84">
+                      <div class="param-didactic-hint" id="hint_v_stall_kmh"></div>
+                      <div class="derived-badge" id="derived_badge_v_stall_kmh" style="display:none;"></div>
+                    </div>
+                    <div class="input-group" data-param="cruise_altitude_m">
+                      <label for="cruise_altitude_m">
+                        <span class="label-text">Wysokość przelotu H [m] <span class="info-circle-icon" data-param="cruise_altitude_m" tabindex="0">i</span></span>
+                      </label>
+                      <input step="any" required type="number" id="cruise_altitude_m" min="100" max="15000" value="2000">
+                      <div class="param-didactic-hint" id="hint_cruise_altitude_m"></div>
+                    </div>
+                  </div>
+
+                  <!-- Parametry uzupełniające misji (widoczne w trybie zaawansowanym) -->
+                  <div class="advanced-only">
+                    <div class="input-row">
+                      <div class="input-group" data-param="takeoff_distance_m"><label for="takeoff_distance_m">Maks. całkowita długość startu [m]</label><input type="number" id="takeoff_distance_m" min="0" max="20000" step="any" value="600"><small>Przeszkoda 15 m; 0 = nie określono.</small></div><div class="input-group" data-param="landing_distance_m"><label for="landing_distance_m">Maks. całkowita długość lądowania [m]</label><input type="number" id="landing_distance_m" min="0" max="20000" step="any" value="600"><small>Przeszkoda 15 m; 0 = nie określono.</small></div><details class="legacy-runway"><summary>Dodatkowe ograniczenie rozbiegu</summary><div class="input-group" data-param="takeoff_run_m">
+                        <label for="takeoff_run_m">
+                          <span class="label-text">Droga rozbiegu S_to [m] <span class="info-circle-icon" data-param="takeoff_run_m" tabindex="0">i</span></span>
+                        </label>
+                        <input step="any" required type="number" id="takeoff_run_m" min="60" max="3500" value="210">
+                        <div class="param-didactic-hint" id="hint_takeoff_run_m"></div>
+                      </div></details>
+                      <div class="input-group" data-param="runway_surface">
+                        <label for="runway_surface">Nawierzchnia rozbiegu</label>
+                        <select id="runway_surface"><option value="paved">Utwardzona</option><option value="grass">Trawa</option></select>
+                        <small>Domyślne tarcie toczne przy starcie: 0,030 / 0,055. Hamowanie przy lądowaniu ma osobne założenie μ = 0,40.</small>
+                      </div>
+                      <div class="input-group" data-param="climb_rate_ms">
+                        <label for="climb_rate_ms">
+                          <span class="label-text">Wznoszenie przy ziemi w_y [m/s] <span class="info-circle-icon" data-param="climb_rate_ms" tabindex="0">i</span></span>
+                        </label>
+                        <input step="any" required type="number" id="climb_rate_ms" min="1.5" max="35" value="4.1">
+                        <div class="param-didactic-hint" id="hint_climb_rate_ms"></div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- ==========================================
+                   MODUŁ 2: Geometria Płata & Kadłuba (P3)
+                   ========================================== -->
+              <div class="module-accordion" id="accordion_mod2">
+                <div class="module-header active" onclick="toggleAccordion('mod2')">
+                  <div class="module-title">
+                    <span>✈️</span> <b>2. Geometria Płata & Obrys (P3)</b>
+                  </div>
+                  <div class="module-meta">
+                    <span id="pill_mod2" class="mod-pill">Dolnopłat • AR=7.33</span>
+                    <span class="mod-chevron" id="chev_mod2">▼</span>
+                  </div>
+                </div>
+                <div class="module-body" id="body_mod2">
+                  <!-- WYBÓR OBRYSU SKRZYDŁA (PLANFORM) WG BADAŃ MEiL & DANIELECKIEGO -->
+                  <div class="input-row">
+                    <div class="input-group" data-param="wing_planform" id="group_wing_planform">
+                      <label for="wing_planform">
+                        <span class="label-text">📐 Obrys skrzydła (Planform) <span class="info-circle-icon" data-param="wing_planform" tabindex="0">i</span></span>
+                        <button type="button" class="param-lock-btn" id="lock_btn_wing_planform" onclick="toggleParamLock('wing_planform')" title="Zablokuj obrys">🔓</button>
+                      </label>
+                      <select id="wing_planform" onchange="onWingPlanformChange()">
+                        <option value="trapezoidal" selected>1. Trapezowy (zbieżny klasyczny &bull; Danilecki)</option>
+                        <option value="rectangular">2. Prostokątny (stała cięciwa c = const)</option>
+                        <option value="compound_trapezoid">3. Prostokątno-trapezowy (centropłat prostokątny + końcówki)</option>
+                        <option value="elliptical">4. Eliptyczny (rozkład Prandtla)</option>
+                        <option value="swept_trapezoidal">5. Skośny trapezowy (duże prędkości / skos)</option>
+                      </select>
+                      <div class="param-didactic-hint" id="hint_wing_planform">Wybierz obrys determinujący cyrkulację Schrenka i technologię żeber.</div>
+                      <div class="derived-badge" id="derived_badge_wing_planform" style="display:none;"></div>
+                    </div>
+                    <div class="input-group" data-param="break_span_ratio" id="group_break_span_ratio" style="display:none;">
+                      <label for="break_span_ratio">
+                        <span class="label-text">Centropłat y_brk/(b/2) [-] <span class="info-circle-icon" data-param="break_span_ratio" tabindex="0">i</span></span>
+                      </label>
+                      <input step="0.05" type="number" id="break_span_ratio" min="0.10" max="0.80" value="0.40">
+                      <div class="param-didactic-hint" id="hint_break_span_ratio">Udział centropłata o stałej cięciwie w rozpiętości (0.30–0.50).</div>
+                    </div>
+                  </div>
+
+                  <!-- Karta Dydaktyczna Wybranego Obrysu Skrzydła (Danilecki / Schrenk) -->
+                  <div id="wingPlanformDidacticBox" class="flap-didactic-card" style="margin-bottom:0.75rem;"></div>
+
+                  <div class="input-row">
+                    <div class="input-group"><label for="gear_attachment">Mocowanie podwozia głównego</label><select id="gear_attachment"><option value="fuselage">Do kadłuba</option><option value="wing">Do skrzydła</option></select></div><div class="input-group"><label for="gear_retraction">Podwozie</label><select id="gear_retraction" title="Automatycznie: stałe dla szybowców i motoszybowców oraz dla tłokowych GA i UAV o Vmax ≤ 270 km/h; chowane dla pozostałych."><option value="auto">Automatycznie wg klasy</option><option value="fixed">Stałe</option><option value="retractable">Chowane</option></select></div><div class="input-group" data-param="wing_config">
+                      <label for="wing_config">
+                        <span class="label-text">Układ pionowy skrzydła <span class="info-circle-icon" data-param="wing_config" tabindex="0">i</span></span>
+                      </label>
+                      <select id="wing_config">
+                        <option value="low">Dolnopłat wolnonośny</option>
+                        <option value="high">Górnopłat wolnonośny (STOL / Transport)</option>
+                        <option value="braced_high">Górnopłat zastrzałowy (np. {{ model_examples.wing_config.braced_high }})</option>
+                        <option value="mid">Średniopłat (Motoszybowce / Akrobacja)</option>
+                      </select>
+                      <div class="param-didactic-hint" id="hint_wing_config"></div>
+                    </div>
+                    <div class="input-group" data-param="wingspan_m">
+                      <label for="wingspan_m">
+                        <span class="label-text">Rozpiętość b [m] <small class="text-hint-cyan">(0=auto)</small> <span class="info-circle-icon" data-param="wingspan_m" tabindex="0">i</span></span>
+                        <button type="button" class="param-lock-btn" id="lock_btn_wingspan_m" onclick="toggleParamLock('wingspan_m')" title="Zablokuj rozpiętość">🔓</button>
+                      </label>
+                      <input step="any" required type="number" id="wingspan_m" min="0" max="80" value="0" placeholder="0 = wylicz z S·Λ">
+                      <div class="param-didactic-hint" id="hint_wingspan_m"></div>
+                      <div class="derived-badge" id="derived_badge_wingspan_m" style="display:none;"></div>
+                    </div>
+                  </div>
+
+                  <div class="input-group" data-param="wing_area_m2"><label for="wing_area_m2">Powierzchnia skrzydła S [m²]</label><input type="number" step="any" id="wing_area_m2" min="0" max="1000" value="0"><div class="derived-badge" id="derived_badge_wing_area_m2" hidden></div></div>
+                  <!-- Karta Dydaktyczna Plusów i Minusów Wybranego Układu Skrzydła -->
+                  <div id="wingConfigDidacticBox" class="flap-didactic-card" style="margin-bottom:0.75rem;"></div>
+
+                  <div class="input-row">
+                    <div class="input-group" data-param="aspect_ratio">
+                      <label for="aspect_ratio">
+                        <span class="label-text">Wydłużenie skrzydła Λ (AR) [-] <span class="info-circle-icon" data-param="aspect_ratio" tabindex="0">i</span></span>
+                        <button type="button" class="param-lock-btn" id="lock_btn_aspect_ratio" onclick="toggleParamLock('aspect_ratio')" title="Zablokuj wydłużenie">🔓</button>
+                      </label>
+                      <input step="any" required type="number" id="aspect_ratio" min="2" max="35" value="7.33">
+                      <div class="param-didactic-hint" id="hint_aspect_ratio"></div>
+                      <div class="derived-badge" id="derived_badge_aspect_ratio" style="display:none;"></div>
+                    </div>
+                    <div class="input-group" data-param="taper_ratio">
+                      <label for="taper_ratio">
+                        <span class="label-text">Zbieżność skrzydła η = ct/cr [-] <span class="info-circle-icon" data-param="taper_ratio" tabindex="0">i</span></span>
+                      </label>
+                      <input step="any" required type="number" id="taper_ratio" min="0" max="1.0" value="0.60">
+                      <div class="param-didactic-hint" id="hint_taper_ratio"></div>
+                    </div>
+                  </div>
+
+                  <div class="input-row">
+                    <div class="input-group" data-param="sweep_quarter_deg">
+                      <label for="sweep_quarter_deg">
+                        <span class="label-text">Skos skrzydła χ25% [°] <span class="info-circle-icon" data-param="sweep_quarter_deg" tabindex="0">i</span></span>
+                      </label>
+                      <input step="any" required type="number" id="sweep_quarter_deg" min="0" max="45" value="0">
+                      <div class="param-didactic-hint" id="hint_sweep_quarter_deg"></div>
+                    </div>
+                    <div class="input-group" data-param="dihedral_deg">
+                      <label for="dihedral_deg">
+                        <span class="label-text">Wznios skrzydła Γ [°] <span class="info-circle-icon" data-param="dihedral_deg" tabindex="0">i</span></span>
+                      </label>
+                      <input step="any" required type="number" id="dihedral_deg" min="-3" max="10" value="4.0">
+                      <div class="param-didactic-hint" id="hint_dihedral_deg"></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- ==========================================
+                   MODUŁ 3: Mechanizacja & Biegunowe (P4)
+                   ========================================== -->
+              <div class="module-accordion" id="accordion_mod3">
+                <div class="module-header active" onclick="toggleAccordion('mod3')">
+                  <div class="module-title">
+                    <span>💨</span> <b>3. Mechanizacja & Aerodynamika (P4)</b>
+                  </div>
+                  <div class="module-meta">
+                    <span id="pill_mod3" class="mod-pill">Klapa szczelinowa • Cz=2.05</span>
+                    <span class="mod-chevron" id="chev_mod3">▼</span>
+                  </div>
+                </div>
+                <div class="module-body" id="body_mod3">
+                  <div class="input-row">
+                    <div class="input-group" data-param="flap_type">
+                      <label for="flap_type" class="flap-label-highlight">
+                        <span class="label-text">🛬 Klapa Spływu (Wewnętrzna) <span class="info-circle-icon" data-param="flap_type" tabindex="0">i</span></span>
+                      </label>
+                      <select id="flap_type" class="flap-select-highlight">
+                        <option value="none">Brak klap</option>
+                        <option value="plain">1. Klapa zwykła (wysklepiająca)</option>
+                        <option value="split">2. Klapa krokodylowa (Split Flap)</option>
+                        <option value="junkers">3. Klapa Junkersa (STOL)</option>
+                        <option value="single_slotted" selected>4. Klapa jednoszczelinowa</option>
+                        <option value="fowler">5. Klapa Fowlera szynowa</option>
+                        <option value="double_slotted">6. Klapa dwuszczelinowa</option>
+                        <option value="flaperon">7. Klapolotka różnicowa</option>
+                      </select><p class="basis-note">Wychylenia według wytycznych: start 20°, lądowanie 40°.</p>
+                      <div class="param-didactic-hint" id="hint_flap_type"></div>
+                    </div>
+                    <div class="input-group" data-param="aileron_type">
+                      <label for="aileron_type" class="aileron-label-highlight">
+                        <span class="label-text">🔄 Lotka Poprzeczna (Zewnętrzna) <span class="info-circle-icon" data-param="aileron_type" tabindex="0">i</span></span>
+                      </label>
+                      <select id="aileron_type" class="aileron-select-highlight">
+                        <option value="differential" selected>1. Lotka różnicowa (Differential - GA)</option>
+                        <option value="frise">2. Lotka Frise (ze ściętym noskiem)</option>
+                        <option value="slotted">3. Lotka szczelinowa (Slotted)</option>
+                        <option value="plain">4. Lotka zwykła (Plain)</option>
+                        <option value="flaperon">5. Klapolotka (Flaperon z mikserem)</option>
+                      </select>
+                      <div class="param-didactic-hint" id="hint_aileron_type"></div>
+                    </div>
+                  </div>
+
+                  <div class="input-row">
+                    <div class="input-group" data-param="slat_type">
+                      <label for="slat_type" class="slat-label-highlight">
+                        <span class="label-text">🌬️ Natarcie / Slot <span class="info-circle-icon" data-param="slat_type" tabindex="0">i</span></span>
+                      </label>
+                      <select id="slat_type" class="slat-select-highlight">
+                        <option value="none" selected>1. Czysty nos (brak slotów)</option>
+                        <option value="fixed_slot">2. Slot stały (Fixed Slat)</option>
+                        <option value="slats_auto">3. Slot ruchomy automatyczny</option>
+                        <option value="krueger">4. Klapa Kruegera</option>
+                      </select>
+                      <div class="param-didactic-hint" id="hint_slat_type"></div>
+                    </div>
+                    <div class="input-group" data-param="flap_span_ratio">
+                      <label for="flap_span_ratio">
+                        <span class="label-text">Zasięg klap bf/b [-] <span class="info-circle-icon" data-param="flap_span_ratio" tabindex="0">i</span></span>
+                      </label>
+                      <input step="0.01" type="number" id="flap_span_ratio" min="0.20" max="0.85" value="0.60">
+                      <div class="param-didactic-hint" id="hint_flap_span_ratio"></div>
+                    </div>
+                  </div>
+
+                  <!-- INTERAKTYWNA KARTA DYDAKTYCZNA KLAPY I LOTEK -->
+                  <div id="flapDidacticCard" class="flap-didactic-card" style="margin-bottom:0.75rem;"></div>
+
+                  <!-- WIDGET ROZKŁADU KRAWĘDZI SPŁYWU: KLAPY I LOTKI -->
+                  <div id="trailingEdgeLayoutCard" class="trailing-edge-card">
+                    <div class="trailing-edge-header">
+                      <span>📐 Podział Krawędzi Spływu: Klapy (wewn.) &bull; Lotki (zewn.)</span>
+                      <span id="cs_layout_badge" class="badge badge-info" style="font-size:0.72rem;">Klapy + Lotki</span>
+                    </div>
+                    <div id="cs_span_bar" style="display:flex; height:18px; border-radius:4px; overflow:hidden; border:1px solid #94a3b8; font-size:0.68rem; font-weight:bold; color:#fff; text-align:center; line-height:18px; margin-bottom:0.4rem;">
+                      <div id="bar_fuselage" style="width:14%; background:#64748b;" title="Kadłub">Kadłub</div>
+                      <div id="bar_flaps" style="width:60%; background:#2563eb;" title="Klapy wysklepiające">Klapy (60%)</div>
+                      <div id="bar_gap" style="width:2%; background:#94a3b8;" title="Szczelina montażowa"></div>
+                      <div id="bar_ailerons" style="width:21%; background:#059669;" title="Lotki sterowania poprzecznego">Lotki (21%)</div>
+                      <div id="bar_tip" style="width:3%; background:#cbd5e1; color:#475569;" title="Końcówka skrzydła"></div>
+                    </div>
+                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.5rem; font-size:0.78rem;">
+                      <div>
+                        <strong>Klapy:</strong> <span id="cs_flaps_text">bf = --- m (---% b), Sf = --- m²</span>
+                      </div>
+                      <div>
+                        <strong>Lotki:</strong> <span id="cs_ailerons_text">ba = --- m (---% b), Sa = --- m²</span>
+                      </div>
+                    </div>
+                    <div id="cs_roll_text" style="margin-top:0.3rem; font-size:0.76rem; color:#0369a1;">
+                      Skuteczność poprzeczna: <b>pb/(2V) = ---</b> &bull; Bezpieczeństwo Schrenka: <b>---</b>
+                    </div>
+                  </div>
+
+                  <div class="input-row">
+                    <div class="input-group" data-param="profile_thickness_mode">
+                      <label for="profile_thickness_mode">Źródło grubości skrzydła t/c</label>
+                      <select id="profile_thickness_mode">
+                        <option value="auto">Z wybranego profilu (P3)</option>
+                        <option value="assumed">Ręczne założenie</option>
+                      </select>
+                      <small>Bez wybranego profilu obowiązuje założenie t/c.</small>
+                    </div>
+                    <div class="input-group" data-param="tc_ratio">
+                      <label for="tc_ratio"><span class="label-text">Grubość względna skrzydła t/c [-]</span>
+                        <button type="button" class="param-lock-btn" id="lock_btn_tc_ratio" onclick="toggleParamLock('tc_ratio')" title="Zablokuj założenie grubości">🔓</button>
+                      </label>
+                      <input step="any" required type="number" id="tc_ratio" min="0.04" max="0.30" value="0.12">
+                      <div class="derived-badge" id="derived_badge_tc_ratio" style="display:none;"></div>
+                      <small>0,12 oznacza 12% cięciwy. Oznaczenie i rzędne wybierz w P3.</small>
+                    </div>
+                  </div>
+                  <div id="sidebar_airfoil_box" style="margin:-0.2rem 0 0.6rem 0;padding:0.35rem 0.6rem;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:4px;font-size:0.8rem;display:flex;justify-content:space-between;align-items:center;">
+                    <span>Profil aerodynamiczny skrzydła: <strong id="sidebar_airfoil_display">NACA 64-412</strong></span>
+                    <button type="button" class="btn btn-xs btn-outline" onclick="selectTab('tab-p4')" style="padding:0.15rem 0.45rem;font-size:0.75rem;">Wybierz w P4 ↗</button>
+                  </div>
+                  <p data-profile-thickness-summary role="status" class="table-note"></p>
+                  <div class="input-row">
+                    <div class="input-group" data-param="cx0">
+                      <label for="cx0">
+                        <span class="label-text">Opór szkodliwy Cx0 [-] <span class="info-circle-icon" data-param="cx0" tabindex="0">i</span></span>
+                      </label>
+                      <input step="any" required type="number" id="cx0" min="0.001" max="0.300" value="0.028">
+                      <div class="param-didactic-hint" id="hint_cx0"></div>
+                    </div>
+                    <div class="input-group" data-param="oswald_e">
+                      <label for="oswald_e">
+                        <span class="label-text">Współczynnik Oswalda e [-] <span class="info-circle-icon" data-param="oswald_e" tabindex="0">i</span></span>
+                      </label>
+                      <input step="any" required type="number" id="oswald_e" min="0.6" max="0.95" value="0.78">
+                      <div class="param-didactic-hint" id="hint_oswald_e"></div>
+                    </div>
+                  </div>
+
+                  <div class="input-row">
+                    <div class="input-group" data-param="cz_max_clean">
+                      <label for="cz_max_clean">
+                        <span class="label-text">Cz_max (gładka) [-] <span class="info-circle-icon" data-param="cz_max_clean" tabindex="0">i</span></span>
+                      </label>
+                      <input step="any" required type="number" id="cz_max_clean" min="1.0" max="2.0" value="1.40">
+                      <div class="param-didactic-hint" id="hint_cz_max_clean"></div>
+                    </div>
+                    <div class="input-group" data-param="cz_max_lnd">
+                      <label for="cz_max_lnd">
+                        <span class="label-text">Cz_max,lnd (klapa) [-] <span class="info-circle-icon" data-param="cz_max_lnd" tabindex="0">i</span></span>
+                      </label>
+                      <input step="any" required type="number" id="cz_max_lnd" min="0.1" max="7" value="2.05">
+                      <div class="param-didactic-hint" id="hint_cz_max_lnd"></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- ==========================================
+                   MODUŁ 4: Zespół Napędowy (P2 / P5)
+                   ========================================== -->
+              <div class="module-accordion" id="accordion_mod4">
+                <div class="module-header active" onclick="toggleAccordion('mod4')">
+                  <div class="module-title">
+                    <span>⚙️</span> <b id="title_mod4">4. Zespół Napędowy & Śmigło (P2/P5)</b>
+                  </div>
+                  <div class="module-meta">
+                    <span id="pill_mod4" class="mod-pill">Śmigłowy • 265 g/kWh</span>
+                    <span class="mod-chevron" id="chev_mod4">▼</span>
+                  </div>
+                </div>
+                <div class="module-body" id="body_mod4">
+                  <div class="input-row">
+                    <div class="input-group" data-param="engine_type">
+                      <label for="engine_type">
+                        <span class="label-text">Rodzaj napędu <span class="info-circle-icon" data-param="engine_type" tabindex="0">i</span></span>
+                      </label>
+                      <select id="engine_type">
+                        <option value="prop">Śmigłowy (Tłokowy / Turboprop)</option>
+                        <option value="jet">Odrzutowy (Turbofan / Turbojet)</option>
+
+                        <option value="none">Bez napędu (szybowiec)</option>
+                      </select>
+                      <div class="param-didactic-hint" id="hint_engine_type"></div>
+                    </div>
+                    <div class="input-group" data-param="engine_location">
+                      <label for="engine_location">
+                        <span class="label-text">Umiejscowienie silnika <span class="info-circle-icon" data-param="engine_location" tabindex="0">i</span></span>
+                      </label>
+                      <select id="engine_location">
+                        <option value="nose">Dziób kadłuba (Tractor)</option>
+                        <option value="wing">Skrzydła (Gondole)</option>
+                        <option value="rear">Tył kadłuba (Pchający / Gondole)</option>
+                        <option value="retractable">Chowany w kadłubie (AOS)</option>
+                        <option value="none" hidden>Nie dotyczy — bez napędu</option>
+                      </select>
+                      <div class="param-didactic-hint" id="hint_engine_location"></div></div><div class="input-group" data-param="n_engines" id="group_n_engines"><label for="n_engines"><span class="label-text">Liczba silników [szt.]</span></label><input type="number" id="n_engines" min="1" max="8" step="1" value="1">
+                    </div>
+                  </div>
+
+                  <!-- Pełna konfiguracja rzeczywistego silnika, dokumentacji i SFC -->
+                  {% include "engine_fuel_panel.html" %}
+
+                  <div class="input-row">
+                    <div class="input-group" data-power-basis><label for="power_input_mode">Dobór mocy</label><select id="power_input_mode" data-basis-selector><option value="sized">Oblicz wymaganą moc</option><option value="fixed">Znam dostępną moc silnika</option></select></div>
+                    <div class="input-group" data-param="engine_power_kw" id="group_engine_power_kw">
+                      <label for="engine_power_kw">
+                        <span class="label-text">Moc silnika P_max [kW] <small class="text-hint-cyan">(0=auto)</small> <span class="info-circle-icon" data-param="engine_power_kw" tabindex="0">i</span></span>
+                        <button type="button" class="param-lock-btn" id="lock_btn_engine_power_kw" onclick="toggleParamLock('engine_power_kw')" title="Zablokuj moc silnika rynkowego">🔓</button>
+                      </label>
+                      <input step="any" required type="number" id="engine_power_kw" min="0" max="15000" value="0" placeholder="0 = z bilansu P5">
+                      <div class="param-didactic-hint" id="hint_engine_power_kw">Podaj moc silnika rynkowego ({{ model_examples.typical_values.engine_power_hint }}) lub 0 dla automatycznego doboru.</div>
+                      <div class="derived-badge" id="derived_badge_engine_power_kw" style="display:none;"></div>
+                    </div>
+                  </div>
+
+                  <div class="input-row">
+                    <div class="input-group" data-param="sfc" id="group_sfc">
+                      <label for="sfc">
+                        <span class="label-text"><span id="label_sfc_text">Zużycie SFC c_p [g/(kW&bull;h)]</span> <span class="info-circle-icon" data-param="sfc" tabindex="0">i</span></span>
+                      </label>
+                      <input step="any" required type="number" id="sfc" min="0.2" max="600" value="265">
+                      <div class="param-didactic-hint" id="hint_sfc"></div>
+                    </div>
+                    <div class="input-group" data-param="prop_efficiency" id="group_prop_efficiency">
+                      <label for="prop_efficiency">
+                        <span class="label-text">Sprawność śmigła &eta;_p [-] <span class="info-circle-icon" data-param="prop_efficiency" tabindex="0">i</span></span>
+                      </label>
+                      <input step="any" required type="number" id="prop_efficiency" min="0.5" max="0.92" value="0.80">
+                      <div class="param-didactic-hint" id="hint_prop_efficiency"></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Action Calculate Button -->
+              <div class="calc-action-wrapper" style="margin-top:1.15rem;">
+                <button type="button" id="calcBtn" aria-describedby="calculationStatus" class="btn btn-calc-hero btn-block">
+                  <span class="btn-calc-icon">🚀</span>
+                  <span class="btn-calc-content">
+                    <span class="btn-calc-title">Przelicz projekt</span>
+                    <span class="btn-calc-subtitle">Zapisz zmiany i odśwież wyniki</span>
+                  </span>
+                </button>
+                <div id="calculationStatus" class="calculation-status" role="status" aria-live="polite"></div>
+              </div>
+
+            </form>
+
+          </div>
+        </div>
+
+</section>

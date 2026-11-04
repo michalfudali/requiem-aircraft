@@ -45,9 +45,12 @@
       <label>Czas maksymalnej mocy / ciągu [min]<input id="max_power_time_min" data-bipol1 type="number" min="0" max="1440" value="0"></label>
     </div>
     <div class="trend-controls" data-bipol1-task>
-      <label data-bipol1-prop>Maksymalna moc łączna na etapie zadania [kW]<input id="max_power_kw" data-bipol1 type="number" min="0" step="any"></label>
-      <label data-bipol1-jet>Maksymalny ciąg łączny na etapie zadania [kN]<input id="max_thrust_kn" data-bipol1 type="number" min="0" step="any"></label>
-      <label>SFC przy maksymalnym ustawieniu <span id="bipol1SfcUnit"></span><input id="max_power_sfc" data-bipol1 type="number" min="0.001" max="1000" step="any"></label>
+      <div style="grid-column: 1 / -1; font-size: 0.8rem; color: #475569; background: #f1f5f9; padding: 0.45rem 0.65rem; border-radius: 4px; margin-bottom: 0.35rem; border-left: 3px solid #0284c7;">
+        ℹ️ <strong>Dodatkowa faza na mocy maksymalnej:</strong> Poniższe parametry dotyczą wyłącznie opcjonalnego etapu misji na mocy maksymalnej (np. 5 min wznoszenia lub zrzutu). Główne przelotowe SFC samolotu oraz nominalną moc silnika konfiguruje się w <strong>Module 4 (Założenia)</strong>.
+      </div>
+      <label data-bipol1-prop>Maksymalna moc łączna na etapie zadania [kW]<input id="max_power_kw" data-bipol1 type="number" min="0" step="any" placeholder="0 = z mocy silników"></label>
+      <label data-bipol1-jet>Maksymalny ciąg łączny na etapie zadania [kN]<input id="max_thrust_kn" data-bipol1 type="number" min="0" step="any" placeholder="0 = z ciągu silników"></label>
+      <label>SFC etapu maksymalnego (np. start/wznoszenie) <span id="bipol1SfcUnit"></span><input id="max_power_sfc" data-bipol1 type="number" min="0.001" max="1000" step="any" placeholder="Domyślnie z SFC przelotowego"></label>
     </div>
   </details>
   <details><summary>Wznoszenie i rozpędzanie — Corke</summary>

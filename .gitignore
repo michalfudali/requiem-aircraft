@@ -15,9 +15,12 @@ static/scraped_materials/
 scrape_*.py
 .env
 
+data/projects/projects.sqlite3
+
 # Pliki tymczasowe SQLite (dziennik transakcji).
 *.sqlite3-journal
 *.sqlite3-wal
 *.sqlite3-shm
 
 OpenVSP*/
+data/projects/projects.sqlite3

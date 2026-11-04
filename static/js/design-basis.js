@@ -61,6 +61,7 @@
     const uas=value(prefix,'aircraft_type')==='uav';
     derived(prefix,'n_pax',uas,'Statek bezzałogowy — brak osób na pokładzie.',uas?0:undefined);
     derived(prefix,'n_crew',uas,'Statek bezzałogowy — brak osób na pokładzie.',uas?0:undefined);
+    derived(prefix,'m_crew_person',uas,'Statek bezzałogowy — brak osób na pokładzie.',uas?0:undefined);
     const note=$(prefix+'basis_note');
     if (note) note.textContent=mode==='loading'
       ? 'Powierzchnia i rozpiętość wynikają z masy, wymagania VS0 i przyjętego wydłużenia.'

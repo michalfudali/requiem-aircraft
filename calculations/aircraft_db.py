@@ -308,7 +308,7 @@ class AircraftDatabase:
 
         # Provide safe standard defaults for optional metadata fields
         if not clean.get('family'):
-            clean['family'] = clean['model'].split()[0] if clean.get('model') else aid
+            clean['family'] = clean.get('model') or aid
         if not clean.get('source_locator'):
             clean['source_locator'] = 'BiPOL Requiem User Input'
         if not clean.get('source_references'):

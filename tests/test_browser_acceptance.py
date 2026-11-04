@@ -117,6 +117,89 @@ def test_error_recovery_reload_and_mobile_navigation(studio):
             assert page.evaluate('document.documentElement.scrollWidth <= innerWidth + 1'), (width, target)
 
 
+def test_repeated_masses_do_not_form_columns_in_live_and_offline_charts(studio, chromium):
+    page, base, output = studio
+    page.evaluate('''async params => {
+        loadProjectIntoForm({name:'Scatter layout',params}); await performCalculation();
+    }''', AIRCRAFT_PRESETS['pzl_kos'])
+    navigate(page, 'tab-trends')
+    points = page.evaluate('''currentResults.bipol_projects.p1.trend_analysis.similar_aircraft
+        .filter(r=>r.empty_fraction>.15&&r.empty_fraction<.95)
+        .map(r=>({x:r.m0,y:r.empty_fraction,model:r.model}))''')
+    from collections import Counter
+    counts = Counter(p['x'] for p in points)
+    repeated_x, count = counts.most_common(1)[0]
+    assert count > 1  # Independent families may legitimately share the same MTOW.
+    indices = [i for i, p in enumerate(points) if p['x'] == repeated_x]
+    for width in (1440, 390):
+        page.set_viewport_size({'width': width, 'height': 1000})
+        coords = page.locator('#trendMassChart circle[fill="#5478a9"]').evaluate_all(
+            'els=>els.map(el=>el.getAttribute("cx"))')
+        assert len({coords[i] for i in indices}) == count
+        assert 'rozsunięto poziomo' in page.locator('#trendMassChart svg').text_content()
+        assert page.evaluate('document.documentElement.scrollWidth <= innerWidth + 1')
+        page.locator('#trendMassChart').screenshot(path=str(output / f'panel-{width}.png'))
+    params = page.evaluate('currentResults.params')
+    with chromium.new_context(offline=True, viewport={'width': 1100, 'height': 900}) as offline:
+        report = offline.new_page()
+        response = page.request.post(base + '/report/project/p1', data=params, timeout=90000)
+        assert response.ok
+        report.set_content(response.text(), wait_until='load')
+        report.evaluate('document.fonts.ready')
+        chart = report.locator('#fig-mass-trend svg')
+        coords = chart.locator('circle[fill="#5478a9"]').evaluate_all(
+            'els=>els.map(el=>el.getAttribute("cx"))')
+        assert len({coords[i] for i in indices}) == count
+        assert 'rozsunięto poziomo' in chart.text_content()
+        # Footnotes and the rightmost trend reading must remain inside the SVG.
+        assert chart.evaluate('''svg=>[...svg.querySelectorAll('text')].every(el=>{
+            const b=el.getBoundingClientRect(), bounds=svg.getBoundingClientRect();
+            return b.left>=bounds.left && b.right<=bounds.right;
+        })''')
+        report.locator('#fig-mass-trend').screenshot(path=str(output / 'report.png'))
+        report.pdf(path=str(output / 'report.pdf'), prefer_css_page_size=True)
+
+
+def test_trend_sample_uses_best_family_variants_in_panel_export_and_report(studio, chromium):
+    import json
+    page, base, output = studio
+    page.evaluate('''async params => {
+        loadProjectIntoForm({name:'Independent families',params}); await performCalculation();
+    }''', AIRCRAFT_PRESETS['motoglider_aos'])
+    navigate(page, 'tab-trends')
+    analysis = page.evaluate('currentResults.bipol_projects.p1.trend_analysis')
+    rows = analysis['similar_aircraft']
+    assert len(rows) == len({r['family_key'] for r in rows})
+    assert analysis['sample']['variant_policy'] == 'best_in_family'
+    assert 'Jedna odmiana z każdej rodziny' in page.locator('#trendClassDescription').inner_text()
+    assert page.locator('#trend_weighting').is_disabled()
+    # A saved manual choice of an inferior variant still selects the best of that family.
+    representative = next(r for r in rows if r['variant_selection']['omitted_ids'])
+    params = page.evaluate('currentResults.params')
+    params['trend_aircraft_ids'] = [r['id'] for r in rows if r['id'] != representative['id']]
+    params['trend_aircraft_ids'].append(representative['variant_selection']['omitted_ids'][0])
+    page.evaluate('''async params => {
+        loadProjectIntoForm({name:'Manual families',params}); await performCalculation();
+    }''', params)
+    actual = page.evaluate('currentResults.bipol_projects.p1.trend_analysis')
+    assert {r['id'] for r in actual['similar_aircraft']} == {r['id'] for r in rows}
+    with page.expect_download() as pending:
+        page.locator('#trendExportJson').click()
+    pending.value.save_as(output / 'analysis.json')
+    exported = json.loads((output / 'analysis.json').read_text(encoding='utf-8'))
+    exported_rows = exported['analysis']['trend_analysis']['similar_aircraft']
+    assert len(exported_rows) == len({r['family_key'] for r in exported_rows})
+    with chromium.new_context(offline=True) as offline:
+        report = offline.new_page()
+        response = page.request.post(base + '/report/project/p1', data=page.evaluate('currentResults.params'))
+        assert response.ok
+        report.set_content(response.text(), wait_until='load')
+        assert report.locator('#tab-sample tbody tr').count() == len(exported_rows)
+        assert 'Jedna odmiana z każdej rodziny' in report.locator('[data-trend-report]').inner_text()
+        assert not report.locator('.katex-error').count()
+        report.locator('#fig-mass-trend').screenshot(path=str(output / 'unique-families.png'))
+
+
 def test_calculation_graph_mouse_pan_and_real_formula(studio):
     page, _, _ = studio
     navigate(page, 'tab-calculation-tree')
@@ -140,7 +223,7 @@ def test_engine_proposal_drives_fuel_and_survives_reload(studio):
     page, _, _ = studio
     page.evaluate('async params => {loadProjectIntoForm({name:"Engine acceptance",params}); await performCalculation();}',
                   AIRCRAFT_PRESETS['motoglider_aos'])
-    navigate(page, 'tab-p1-p2')
+    navigate(page, 'tab-inputs')
     reveal_details(page.locator('#engineFuelPanel'))
     page.locator('#engine_fuel_mode').select_option('catalog')
     page.locator('#engine_model_id').select_option('rotax_912_ul')

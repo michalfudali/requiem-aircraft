@@ -67,7 +67,7 @@ def test_advanced_assumptions_reach_calculations_and_survive_reload(studio):
     page, _, _ = studio; setup_ga(page)
     chosen = {'airfield_elevation_m':1000,'airfield_delta_t_k':10,'prop_eff_to':.7,
               'service_ceiling_m':4000,'ceiling_climb_rate_ms':.5,'loiter_time_min':30,
-              'm_crew_person':80,'cost_rate_production_per_month':3.5,'cost_rate_rdte_per_month':.12,
+              'cost_rate_production_per_month':3.5,'cost_rate_rdte_per_month':.12,
               'flap_chord_ratio':.3,'aileron_chord_ratio':.2}
     for field, value in chosen.items():
         control = page.locator('#' + field); reveal_details(control); control.fill(str(value))

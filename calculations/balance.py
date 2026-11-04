@@ -366,7 +366,8 @@ def calculate_balance_envelope(params: dict) -> dict:
     m_fuel = float(params.get("m_fuel") or m_sizing.get("m_fuel") or (0.18 * m0))
     m_payload = float(params.get("m_payload") or m_sizing.get("m_payload") or max(0.0, m0 - m_empty - m_fuel))
     n_crew = int(params.get("n_crew") or m_sizing.get("n_crew") or 1)
-    crew_ref_mass = float(params.get("m_crew") or (0.085 * m0 if "m_crew" not in params and m0 > 2500.0 else n_crew * 85.0))
+    m_crew_person = float(params.get("m_crew_person", 85.0) or 85.0)
+    crew_ref_mass = float(params.get("m_crew") or m_sizing.get("m_crew") or (0.085 * m0 if "m_crew" not in params and m0 > 2500.0 else n_crew * m_crew_person))
     pilot_light = crew_ref_mass * (55.0 / 85.0)
     pilot_heavy = crew_ref_mass * (110.0 / 85.0)
 

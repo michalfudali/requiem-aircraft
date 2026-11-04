@@ -1,0 +1,589 @@
+<!-- =========================================================================
+     WIDOK: OPENVSP 3D STUDIO & PEŁNY KATALOG API (OpenVSP 3.55.0)
+     ========================================================================= -->
+<section id="tab-openvsp" class="tab-content studio-panel">
+    <div class="vsp-studio-header">
+        <div class="vsp-studio-title-wrap">
+            <div class="vsp-studio-badge">OpenVSP 3.55.0 C++/SWIG + VSPAERO 7.2.2</div>
+            <h2 class="vsp-studio-title">OpenVSP 3D Studio i Pełny Wykonawca API</h2>
+            <p class="vsp-studio-subtitle">
+                Dwukierunkowa integracja z bieżącym projektem BiPOL: parametryczny generator bryły 3D (kadłub, płat, mechanizacja, usterzenie, napęd, podwozie),
+                wszystkie 22 solwery i analizy OpenVSP (w tym VSPAERO VLM/Panel, CompGeom, ParasiteDrag, MassProp, WaveDrag),
+                interaktywny katalog i wykonawca wszystkich <strong>1 094 funkcji API</strong> oraz <strong>1 046 stałych</strong>, eksport CAD (STEP, IGES, STL, OBJ, X3D, DXF, SVG, CalculiX, Nastran) i konsola skryptowa Python / AngelScript.
+            </p>
+        </div>
+        <div class="vsp-studio-actions">
+            <button type="button" class="btn-primary vsp-sync-btn" id="vspSyncFromBipolBtn">
+                🔄 Synchronizuj model 3D z projektem BiPOL
+            </button>
+            <button type="button" class="btn-secondary" id="vspRefreshStateBtn">
+                Odśwież stan modelu
+            </button>
+            <a class="btn-secondary vsp-download-vsp3" id="vspQuickDownloadVsp3" href="/api/openvsp/download/bipol_current.vsp3" download>
+                ⬇ Pobierz .vsp3
+            </a>
+        </div>
+    </div>
+
+    <!-- Pasek metryk statusu silnika OpenVSP -->
+    <div class="vsp-kpi-strip" id="vspKpiStrip">
+        <div class="vsp-kpi-card">
+            <span class="vsp-kpi-label">Silnik C++ / SWIG</span>
+            <strong class="vsp-kpi-val" id="vspStatVersion">OpenVSP 3.55.0</strong>
+            <span class="vsp-kpi-sub" id="vspStatVspaero">VSPAERO aktywne</span>
+        </div>
+        <div class="vsp-kpi-card">
+            <span class="vsp-kpi-label">Katalog Funkcji API</span>
+            <strong class="vsp-kpi-val" id="vspStatFuncs">1 094 funkcji</strong>
+            <span class="vsp-kpi-sub" id="vspStatConsts">1 046 stałych · 55 klas</span>
+        </div>
+        <div class="vsp-kpi-card">
+            <span class="vsp-kpi-label">Komponenty w Modelu 3D</span>
+            <strong class="vsp-kpi-val" id="vspStatGeoms">0 komponentów</strong>
+            <span class="vsp-kpi-sub" id="vspStatParms">0 parametrów aktywnych</span>
+        </div>
+        <div class="vsp-kpi-card">
+            <span class="vsp-kpi-label">Powierzchnia i Rozpiętość (BiPOL)</span>
+            <strong class="vsp-kpi-val" id="vspStatWingRef">—</strong>
+            <span class="vsp-kpi-sub" id="vspStatSwetRef">S_wet (P3): —</span>
+        </div>
+    </div>
+
+    <!-- Nawigacja pod-zakładek OpenVSP Studio -->
+    <div class="vsp-subtabs" role="tablist" aria-label="Moduły OpenVSP API">
+        <button type="button" class="vsp-subtab active" data-vsp-subtab="vsp-sub-model">
+            1. Model 3D, Geometria i Parametry (Geom &amp; Parm)
+        </button>
+        <button type="button" class="vsp-subtab" data-vsp-subtab="vsp-sub-analyses">
+            2. Solwery i Analizy (22 analizy + VSPAERO)
+        </button>
+        <button type="button" class="vsp-subtab" data-vsp-subtab="vsp-sub-explorer">
+            3. Katalog i Wykonawca Wszystkich Funkcji API (1094)
+        </button>
+        <button type="button" class="vsp-subtab" data-vsp-subtab="vsp-sub-designvars">
+            4. Zbiory, Zmienne Projektowe i Pomiary (Sets / DesignVar)
+        </button>
+        <button type="button" class="vsp-subtab" data-vsp-subtab="vsp-sub-export">
+            5. Eksport i Import CAD / CFD / FEA (STEP, STL, IGES...)
+        </button>
+        <button type="button" class="vsp-subtab" data-vsp-subtab="vsp-sub-scripts">
+            6. Konsola Skryptowa (Python openvsp &amp; .vspscript)
+        </button>
+    </div>
+
+    <!-- =====================================================================
+         POD-ZAKŁADKA 1: MODEL 3D, DRZEWO GEOMETRII I INSPEKTOR PARAMETRÓW
+         ===================================================================== -->
+    <div id="vsp-sub-model" class="vsp-subpanel active">
+        <div class="vsp-model-grid">
+            <!-- Lewa kolumna: Interaktywny podgląd 3D siatki SurfacePatches z OpenVSP -->
+            <div class="vsp-card vsp-viewer-card">
+                <div class="vsp-card-header">
+                    <div>
+                        <h3>Interaktywna Siatka Powierzchni 3D OpenVSP (SurfacePatches)</h3>
+                        <p class="vsp-card-hint">Przeciągnij myszą, aby obracać bryłę 3D wygenerowaną bezpośrednio przez jądro geometryczne OpenVSP. Kółko myszy przybliża/oddala.</p>
+                    </div>
+                    <div class="vsp-viewer-controls">
+                        <button type="button" class="btn-chip" data-vsp-cam="iso">Izometria</button>
+                        <button type="button" class="btn-chip" data-vsp-cam="top">Rzut z góry (XY)</button>
+                        <button type="button" class="btn-chip" data-vsp-cam="side">Rzut z boku (XZ)</button>
+                        <button type="button" class="btn-chip" data-vsp-cam="front">Rzut z przodu (YZ)</button>
+                        <label class="vsp-toggle-label">
+                            <input type="checkbox" id="vspWireframeToggle" checked> Siatka UV
+                        </label>
+                        <label class="vsp-toggle-label">
+                            <input type="checkbox" id="vspShadedToggle" checked> Cieniowanie
+                        </label>
+                    </div>
+                </div>
+                <div class="vsp-canvas-container">
+                    <canvas id="vsp3dCanvas" width="860" height="460"></canvas>
+                    <div class="vsp-canvas-overlay" id="vspCanvasOverlay">
+                        Kliknij „Synchronizuj model 3D z projektem BiPOL”, aby wygenerować bryłę 3D.
+                    </div>
+                </div>
+
+                <!-- Pasek dodawania nowych komponentów (16 typów Geom w OpenVSP) -->
+                <div class="vsp-geom-toolbar">
+                    <div class="vsp-toolbar-group">
+                        <label for="vspAddGeomTypeSelect">Dodaj komponent (`AddGeom`):</label>
+                        <select id="vspAddGeomTypeSelect" class="vsp-select">
+                            <option value="WING">WING (Płat / Usterzenie)</option>
+                            <option value="FUSELAGE">FUSELAGE (Kadłub wieloprzekrojowy)</option>
+                            <option value="POD">POD (Gondola / Zbiornik)</option>
+                            <option value="PROP">PROP (Śmigło / Wirnik)</option>
+                            <option value="STACK">STACK (Stos osiowy)</option>
+                            <option value="BODYOFREVOLUTION">BODYOFREVOLUTION (Bryła obrotowa)</option>
+                            <option value="ELLIPSOID">ELLIPSOID (Elipsoida)</option>
+                            <option value="GEAR">GEAR (Podwozie)</option>
+                            <option value="HUMAN">HUMAN (Sylwetka pilota/pasażera)</option>
+                            <option value="CONFORMAL">CONFORMAL (Powłoka konforemna)</option>
+                            <option value="HINGE">HINGE (Oś zawiasu / kinematyka)</option>
+                            <option value="ROUTING">ROUTING (Trasa instalacji)</option>
+                            <option value="AUXILIARY">AUXILIARY (Geometria pomocnicza)</option>
+                            <option value="COBRA">COBRA (Wlot/kanał COBRA)</option>
+                            <option value="CLONE">CLONE (Klon komponentu)</option>
+                            <option value="BLANK">BLANK (Punkt odniesienia / układ)</option>
+                        </select>
+                        <input type="text" id="vspAddGeomNameInput" class="vsp-input" placeholder="Nazwa komponentu (np. Winglet)" value="Nowy_Komponent">
+                        <button type="button" class="btn-secondary" id="vspAddGeomBtn">+ Dodaj Geom</button>
+                    </div>
+                    <div class="vsp-toolbar-group">
+                        <label for="vspAddSubSurfTypeSelect">Podpowierzchnia (`AddSubSurf`):</label>
+                        <select id="vspAddSubSurfTypeSelect" class="vsp-select">
+                            <option value="SS_CONTROL">SS_CONTROL (Ster / Klapa / Lotka)</option>
+                            <option value="SS_LINE">SS_LINE (Linia podziału)</option>
+                            <option value="SS_RECTANGLE">SS_RECTANGLE (Łata prostokątna)</option>
+                            <option value="SS_ELLIPSE">SS_ELLIPSE (Łata eliptyczna)</option>
+                            <option value="SS_FINITE_LINE">SS_FINITE_LINE (Odcinek skończony)</option>
+                        </select>
+                        <input type="text" id="vspAddSubSurfNameInput" class="vsp-input" placeholder="Nazwa podpowierzchni" value="Ster_Dodatkowy">
+                        <button type="button" class="btn-secondary" id="vspAddSubSurfBtn">+ Dodaj do wybranego Geom</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Prawa kolumna: Drzewo Geometrii i Edytor Parametrów (Parm) -->
+            <div class="vsp-card vsp-inspector-card">
+                <div class="vsp-card-header">
+                    <div>
+                        <h3>Drzewo Geometrii i Inspektor Parametrów (`Geom` &amp; `Parm`)</h3>
+                        <p class="vsp-card-hint">Wybierz komponent z drzewa, aby przeglądać i edytować wszystkie jego parametry (`SetParmVal`), przekroje (`XSec`) i podpowierzchnie.</p>
+                    </div>
+                </div>
+
+                <!-- Lista komponentów Geom -->
+                <div class="vsp-geom-list" id="vspGeomTreeList"></div>
+
+                <!-- Akcje dla wybranego komponentu -->
+                <div class="vsp-selected-geom-bar" id="vspSelectedGeomBar">
+                    <span id="vspSelectedGeomTitle">Brak wybranego komponentu</span>
+                    <div class="vsp-selected-geom-btns">
+                        <button type="button" class="btn-chip" id="vspInsertXSecBtn" title="Wstaw nowy przekrój XSec (InsertXSec)">+ Przekrój XSec</button>
+                        <button type="button" class="btn-chip" id="vspCopyPasteGeomBtn" title="Duplikuj komponent (Copy/Paste)">Duplikuj</button>
+                        <button type="button" class="btn-chip btn-danger-chip" id="vspDeleteGeomBtn" title="Usuń komponent (DeleteGeom)">Usuń</button>
+                    </div>
+                </div>
+
+                <!-- Filtr grup i wyszukiwarka parametrów -->
+                <div class="vsp-parm-filter-bar">
+                    <select id="vspParmGroupSelect" class="vsp-select">
+                        <option value="ALL">Wszystkie grupy parametrów</option>
+                    </select>
+                    <input type="search" id="vspParmSearchInput" class="vsp-input" placeholder="Szukaj parametru (np. Span, Sweep, Chord, Camber)...">
+                </div>
+
+                <!-- Tabela parametrów z edycją na żywo -->
+                <div class="vsp-parm-table-wrap">
+                    <table class="vsp-table" id="vspParmTable">
+                        <thead>
+                            <tr>
+                                <th>Grupa</th>
+                                <th>Parametr (`GetParmName`)</th>
+                                <th>Wartość (`SetParmVal`)</th>
+                                <th>Zakres [Min..Max]</th>
+                                <th>Akcja</th>
+                            </tr>
+                        </thead>
+                        <tbody id="vspParmTableBody">
+                            <tr><td colspan="5" class="vsp-empty-cell">Zbuduj lub wybierz komponent, aby wyświetlić jego parametry.</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- =====================================================================
+         POD-ZAKŁADKA 2: SOLWERY I ANALIZY (WSZYSTKIE 22 ANALIZY OPENVSP)
+         ===================================================================== -->
+    <div id="vsp-sub-analyses" class="vsp-subpanel">
+        <!-- Szybkie karty analiz porównawczych BiPOL vs OpenVSP -->
+        <div class="vsp-quick-analyses-grid">
+            <div class="vsp-card vsp-quick-card">
+                <h4>1. Geometria Obliczeniowa (`CompGeom`)</h4>
+                <p>Oblicza dokładną powierzchnię omywaną $S_{wet}$, powierzchnię teoretyczną i objętość 3D bryły z uwzględnieniem przenikania komponentów i porównuje z modelem Raymera/Torenbeeka (BiPOL P3).</p>
+                <button type="button" class="btn-primary vsp-quick-run-btn" data-vsp-quick-analysis="CompGeom">
+                    ▶ Uruchom CompGeom i porównaj z P3
+                </button>
+            </div>
+            <div class="vsp-card vsp-quick-card">
+                <h4>2. Bilans Oporu Profilowego (`ParasiteDrag`)</h4>
+                <p>Wyznacza współczynnik tarcia płaskiej płytki $C_f$, współczynniki kształtu $FF$ i opór $C_{D0}$ każdego zespołu dla prędkości i wysokości przelotowej z projektu BiPOL (porównanie z $C_{x0}$ P4).</p>
+                <button type="button" class="btn-primary vsp-quick-run-btn" data-vsp-quick-analysis="ParasiteDrag">
+                    ▶ Uruchom ParasiteDrag i porównaj z P4
+                </button>
+            </div>
+            <div class="vsp-card vsp-quick-card">
+                <h4>3. Solwer Wirowy / Panelowy (`VSPAEROSweep`)</h4>
+                <p>Uruchamia wielowątkowy solwer `vspaero.exe` (metoda powierzchni wirowych VLM): wyznacza biegunową $C_L(\alpha), C_{Di}(\alpha), L/D, C_{my}(\alpha)$ oraz rozkład cyrkulacji $c_l(y)$ względem metody Schrenka.</p>
+                <button type="button" class="btn-primary vsp-quick-run-btn" data-vsp-quick-analysis="VSPAEROSweep">
+                    ▶ Uruchom VSPAERO Sweep (VLM)
+                </button>
+            </div>
+            <div class="vsp-card vsp-quick-card">
+                <h4>4. Masy, Momenty Bezwładności i Przekroje (`MassProp` / `WaveDrag`)</h4>
+                <p>Wyznacza środek masy 3D, tensor bezwładności $(I_{xx}, I_{yy}, I_{zz})$ oraz rozkład pola przekrojów poprzecznych $S(x)$ reguły pól (`PlanarSlice` / `WaveDrag`).</p>
+                <div class="vsp-quick-btn-row">
+                    <button type="button" class="btn-secondary vsp-quick-run-btn" data-vsp-quick-analysis="MassProp">▶ MassProp</button>
+                    <button type="button" class="btn-secondary vsp-quick-run-btn" data-vsp-quick-analysis="PlanarSlice">▶ PlanarSlice</button>
+                    <button type="button" class="btn-secondary vsp-quick-run-btn" data-vsp-quick-analysis="WaveDrag">▶ WaveDrag</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="vsp-analysis-workspace">
+            <!-- Uniwersalny konfigurator wszystkich 22 analiz -->
+            <div class="vsp-card vsp-analysis-config-card">
+                <div class="vsp-card-header">
+                    <div>
+                        <h3>Uniwersalny Konfigurator Wszystkich 22 Analiz (`ListAnalysis`)</h3>
+                        <p class="vsp-card-hint">Wybierz dowolną analizę z `vsp.ListAnalysis()`, dostosuj parametry wejściowe (`Set*AnalysisInput`) i wykonaj `vsp.ExecAnalysis()`.</p>
+                    </div>
+                </div>
+                <div class="vsp-analysis-selector-row">
+                    <select id="vspAnalysisSelect" class="vsp-select"></select>
+                    <button type="button" class="btn-secondary" id="vspResetAnalysisDefaultsBtn">Przywróć domyślne</button>
+                    <button type="button" class="btn-primary" id="vspExecuteSelectedAnalysisBtn">▶ Wykonaj ExecAnalysis</button>
+                </div>
+                <div class="vsp-analysis-inputs-wrap">
+                    <table class="vsp-table">
+                        <thead>
+                            <tr>
+                                <th>Nazwa wejścia (`GetAnalysisInputNames`)</th>
+                                <th>Typ</th>
+                                <th>Wartość (JSON / liczba / stała)</th>
+                            </tr>
+                        </thead>
+                        <tbody id="vspAnalysisInputsBody"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Panel wyników analizy, porównania z BiPOL i wykresów -->
+            <div class="vsp-card vsp-analysis-results-card">
+                <div class="vsp-card-header">
+                    <div>
+                        <h3 id="vspAnalysisResultTitle">Wyniki Analizy i Porównanie z BiPOL (`ResultsMgr`)</h3>
+                        <p class="vsp-card-hint" id="vspAnalysisResultMeta">Uruchom wybraną analizę, aby zobaczyć zestawienie porównawcze, wykresy i pełne drzewo `ResultsMgr`.</p>
+                    </div>
+                </div>
+                <div id="vspAnalysisComparisonBox" class="vsp-comparison-box">
+                    <div class="vsp-empty-state">Brak uruchomionej analizy w bieżącej sesji. Wybierz kartę szybkiej analizy powyżej lub kliknij „Wykonaj ExecAnalysis”.</div>
+                </div>
+                <div class="vsp-raw-results-details">
+                    <h4>Pełne drzewo danych wyjściowych `ResultsMgr` (`GetAllDataNames`)</h4>
+                    <pre id="vspAnalysisRawJson" class="vsp-code-output">{}</pre>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- =====================================================================
+         POD-ZAKŁADKA 3: EKSPLORATOR I WYKONAWCA WSZYSTKICH FUNKCJI API (1076)
+         ===================================================================== -->
+    <div id="vsp-sub-explorer" class="vsp-subpanel">
+        <div class="vsp-explorer-grid">
+            <!-- Lewa kolumna: Wyszukiwarka i lista wszystkich 1076 funkcji API -->
+            <div class="vsp-card vsp-func-list-card">
+                <div class="vsp-card-header">
+                    <div>
+                        <h3>Katalog Wszystkich Funkcji OpenVSP API</h3>
+                        <p class="vsp-card-hint">Przeszukuj wszystkie funkcje C++/SWIG (`openvsp.vsp`) oraz moduły pomocnicze (`utilities`, `surface_patches`, `parasite_drag`, `degen_geom`, `vsp_airfoils`, `avlpy`, `charm`, `pypmarc`).</p>
+                    </div>
+                </div>
+                <div class="vsp-explorer-filters">
+                    <input type="search" id="vspFuncSearchInput" class="vsp-input" placeholder="Szukaj funkcji (np. AddGeom, SetParmVal, ExecAnalysis, ExportFile, VSPAERO)...">
+                    <select id="vspFuncCategorySelect" class="vsp-select">
+                        <option value="ALL">Wszystkie kategorie funkcjonalne</option>
+                    </select>
+                </div>
+                <div class="vsp-func-count-bar" id="vspFuncCountBar">Wyświetlono 0 funkcji</div>
+                <div class="vsp-func-list" id="vspFuncListContainer"></div>
+            </div>
+
+            <!-- Prawa kolumna: Żywy Wykonawca wybranej funkcji API + Słownik Stałych -->
+            <div class="vsp-card vsp-func-runner-card">
+                <div class="vsp-card-header">
+                    <div>
+                        <h3 id="vspRunnerFuncName">Wybierz funkcję z katalogu</h3>
+                        <code id="vspRunnerFuncSig" class="vsp-signature-badge">vsp.GetVSPVersion() -&gt; std::string</code>
+                    </div>
+                    <div class="vsp-runner-header-btns">
+                        <button type="button" class="btn-chip" id="vspCopyPythonCallBtn">Kopiuj jako Python</button>
+                        <label class="vsp-toggle-label">
+                            <input type="checkbox" id="vspRunnerAutoUpdateToggle"> Auto `vsp.Update()`
+                        </label>
+                    </div>
+                </div>
+
+                <pre id="vspRunnerDocstring" class="vsp-docstring-box">Wybierz dowolną funkcję z listy po lewej stronie, aby zobaczyć jej dokumentację SWIG/C++, wprowadzić argumenty i wykonać ją bezpośrednio na aktywnej sesji OpenVSP.</pre>
+
+                <!-- Dynamiczny formularz argumentów funkcji -->
+                <div id="vspRunnerArgsContainer" class="vsp-runner-args"></div>
+
+                <div class="vsp-runner-actions">
+                    <button type="button" class="btn-primary" id="vspExecuteApiFuncBtn">⚡ Wykonaj funkcję API na żywo</button>
+                    <span class="vsp-runner-hint">Podpowiedź: możesz wpisywać nazwy stałych symbolicznych (np. <code>SET_ALL</code>, <code>SYM_XZ</code>, <code>EXPORT_STEP</code>) oraz wektory <code>[x, y, z]</code>.</span>
+                </div>
+
+                <div class="vsp-runner-output-wrap">
+                    <div class="vsp-runner-output-header">
+                        <strong>Wynik wywołania (`return` + `ErrorMgrSingleton`):</strong>
+                        <span id="vspRunnerTimingBadge" class="vsp-badge-muted">— ms</span>
+                    </div>
+                    <pre id="vspRunnerResultJson" class="vsp-code-output">{}</pre>
+                </div>
+
+                <!-- Słownik wszystkich 1046 stałych i enumów OpenVSP -->
+                <div class="vsp-constants-section">
+                    <div class="vsp-constants-header">
+                        <h4>Słownik Wszystkich Stałych i Enumów (`vsp.*` — 1 046 stałych)</h4>
+                        <div class="vsp-constants-filters">
+                            <select id="vspConstGroupSelect" class="vsp-select">
+                                <option value="ALL">Wszystkie grupy stałych</option>
+                            </select>
+                            <input type="search" id="vspConstSearchInput" class="vsp-input" placeholder="Szukaj stałej (np. EXPORT_, SYM_, XS_, SET_)...">
+                        </div>
+                    </div>
+                    <div class="vsp-const-table-wrap">
+                        <table class="vsp-table">
+                            <thead>
+                                <tr>
+                                    <th>Stała (`vsp.NAZWA`)</th>
+                                    <th>Grupa</th>
+                                    <th>Wartość</th>
+                                    <th>Kopiuj</th>
+                                </tr>
+                            </thead>
+                            <tbody id="vspConstTableBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- =====================================================================
+         POD-ZAKŁADKA 4: ZBIORY (SETS), ZMIENNE PROJEKTOWE I SONDY POMIAROWE
+         ===================================================================== -->
+    <div id="vsp-sub-designvars" class="vsp-subpanel">
+        <div class="vsp-dv-grid">
+            <!-- Zarządzanie zbiorami (Sets) -->
+            <div class="vsp-card">
+                <div class="vsp-card-header">
+                    <div>
+                        <h3>Zbiory Komponentów (`GetSetName` / `SetSetFlag`)</h3>
+                        <p class="vsp-card-hint">Przypisuj komponenty do zbiorów obliczeniowych (np. tylko płat nośny bez podwozia dla VSPAERO lub pełna bryła dla eksportu CAD).</p>
+                    </div>
+                </div>
+                <div class="vsp-sets-table-wrap">
+                    <table class="vsp-table" id="vspSetsMatrixTable">
+                        <thead id="vspSetsMatrixHead"></thead>
+                        <tbody id="vspSetsMatrixBody"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Zmienne Projektowe (DesignVars) oraz Miarki i Sondy 3D (Rulers & Probes) -->
+            <div class="vsp-card">
+                <div class="vsp-card-header">
+                    <div>
+                        <h3>Zmienne Projektowe (`DesignVar`) oraz Sondy Pomiarowe (`Probe` / `Ruler`)</h3>
+                        <p class="vsp-card-hint">Rejestruj parametry w pliku `.des` / `.xddm` do optymalizacji wielodyscyplinarnej MDO oraz dodawaj wirtualne linijki i sondy powierzchniowe 3D.</p>
+                    </div>
+                </div>
+
+                <div class="vsp-dv-form-row">
+                    <select id="vspDvParmSelect" class="vsp-select"></select>
+                    <button type="button" class="btn-secondary" id="vspAddDesignVarBtn">+ Dodaj DesignVar</button>
+                    <button type="button" class="btn-chip btn-danger-chip" id="vspClearDesignVarsBtn">Wyczyść DesignVars</button>
+                </div>
+
+                <table class="vsp-table">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>ID Parametru</th>
+                            <th>Nazwa</th>
+                            <th>Grupa</th>
+                            <th>Aktualna wartość</th>
+                        </tr>
+                    </thead>
+                    <tbody id="vspDesignVarsBody">
+                        <tr><td colspan="5" class="vsp-empty-cell">Brak zarejestrowanych zmiennych projektowych.</td></tr>
+                    </tbody>
+                </table>
+
+                <hr class="vsp-divider">
+
+                <h4>Sondy i Linijki Pomiarowe 3D (`AddRuler` / `AddProbe`)</h4>
+                <div class="vsp-dv-form-row">
+                    <input type="text" id="vspRulerNameInput" class="vsp-input" placeholder="Nazwa pomiaru" value="Rozpietosc_Kontrolna">
+                    <button type="button" class="btn-secondary" id="vspAddRulerBtn">+ Dodaj Miarkę 3D (`AddRuler`)</button>
+                    <button type="button" class="btn-secondary" id="vspAddProbeBtn">+ Dodaj Sondę (`AddProbe`)</button>
+                    <button type="button" class="btn-chip btn-danger-chip" id="vspClearMeasuresBtn">Usuń pomiary</button>
+                </div>
+                <div id="vspMeasuresList" class="vsp-measures-list"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- =====================================================================
+         POD-ZAKŁADKA 5: EKSPORT I IMPORT CAD / CFD / FEA
+         ===================================================================== -->
+    <div id="vsp-sub-export" class="vsp-subpanel">
+        <div class="vsp-export-grid">
+            <div class="vsp-card">
+                <div class="vsp-card-header">
+                    <div>
+                        <h3>Eksport Bryły CAD, Siatek CFD/FEA i Profili (`ExportFile` / `WriteVSPFile`)</h3>
+                        <p class="vsp-card-hint">Kliknij wybrany format, aby wygenerować plik bezpośrednio z aktywnego modelu 3D w OpenVSP i pobrać go na dysk.</p>
+                    </div>
+                </div>
+                <div class="vsp-export-options-row">
+                    <label for="vspExportBaseName">Nazwa bazowa pliku:</label>
+                    <input type="text" id="vspExportBaseName" class="vsp-input" value="bipol_samolot">
+                    <label for="vspExportSetSelect">Zbiór komponentów (`Set`):</label>
+                    <select id="vspExportSetSelect" class="vsp-select">
+                        <option value="SET_ALL">SET_ALL (Wszystkie komponenty)</option>
+                        <option value="SET_SHOWN">SET_SHOWN (Tylko widoczne)</option>
+                    </select>
+                </div>
+
+                <div class="vsp-export-cards-grid">
+                    <button type="button" class="vsp-export-format-btn" data-vsp-export="VSP3">
+                        <strong>Natywny model OpenVSP (`.vsp3`)</strong>
+                        <span>Pełne drzewo parametryczne do otwarcia w GUI OpenVSP</span>
+                    </button>
+                    <button type="button" class="vsp-export-format-btn" data-vsp-export="EXPORT_STEP">
+                        <strong>CAD STEP AP203/214 (`.stp`)</strong>
+                        <span>Powierzchnie NURBS B-Rep dla SolidWorks, CATIA, Fusion, NX</span>
+                    </button>
+                    <button type="button" class="vsp-export-format-btn" data-vsp-export="EXPORT_IGES">
+                        <strong>CAD IGES (`.igs`)</strong>
+                        <span>Klasyczny format wymiany płatów powierzchniowych NURBS</span>
+                    </button>
+                    <button type="button" class="vsp-export-format-btn" data-vsp-export="EXPORT_STL">
+                        <strong>Siatka Trójkątów STL (`.stl`)</strong>
+                        <span>Druk 3D, szybka wizualizacja i generatory siatek tunelowych</span>
+                    </button>
+                    <button type="button" class="vsp-export-format-btn" data-vsp-export="EXPORT_OBJ">
+                        <strong>Wavefront OBJ (`.obj`)</strong>
+                        <span>Wizualizacja 3D (Blender, Maya, silniki 3D)</span>
+                    </button>
+                    <button type="button" class="vsp-export-format-btn" data-vsp-export="EXPORT_X3D">
+                        <strong>Web 3D X3D (`.x3d`)</strong>
+                        <span>Interaktywny model 3D XML do prezentacji przeglądarkowych</span>
+                    </button>
+                    <button type="button" class="vsp-export-format-btn" data-vsp-export="EXPORT_DXF">
+                        <strong>Rysunek CAD AutoCAD DXF (`.dxf`)</strong>
+                        <span>Rzuty wektorowe 2D/3D do dokumentacji konstrukcyjnej</span>
+                    </button>
+                    <button type="button" class="vsp-export-format-btn" data-vsp-export="EXPORT_SVG">
+                        <strong>Grafika Wektorowa SVG (`.svg`)</strong>
+                        <span>Skalowalne rzuty geometryczne do raportów</span>
+                    </button>
+                    <button type="button" class="vsp-export-format-btn" data-vsp-export="EXPORT_GMSH">
+                        <strong>Siatka Obliczeniowa Gmsh (`.msh`)</strong>
+                        <span>Siatka dla solwerów CFD / MES (Gmsh / SU2 / OpenFOAM)</span>
+                    </button>
+                    <button type="button" class="vsp-export-format-btn" data-vsp-export="EXPORT_NASTRAN">
+                        <strong>MES Nastran (`.dat`)</strong>
+                        <span>Dane strukturalne i siatka dla MSC/NX Nastran</span>
+                    </button>
+                    <button type="button" class="vsp-export-format-btn" data-vsp-export="EXPORT_CALCULIX">
+                        <strong>MES CalculiX / Abaqus (`.inp`)</strong>
+                        <span>Wejście do analizy wytrzymałościowej MES (CalculiX)</span>
+                    </button>
+                    <button type="button" class="vsp-export-format-btn" data-vsp-export="EXPORT_CART3D">
+                        <strong>Siatka CFD Cart3D (`.tri`)</strong>
+                        <span>Triangulacja powierzchniowa dla solwerów Eulerowskich</span>
+                    </button>
+                    <button type="button" class="vsp-export-format-btn" data-vsp-export="EXPORT_VSPGEOM">
+                        <strong>Siatka VSPAERO (`.vspgeom`)</strong>
+                        <span>Natywny format geometrii dla solwera `vspaero.exe`</span>
+                    </button>
+                    <button type="button" class="vsp-export-format-btn" data-vsp-export="EXPORT_SELIG_AIRFOIL">
+                        <strong>Współrzędne Profili Selig (`.csv`)</strong>
+                        <span>Wyeksportowane punkty przekrojów lotniczych modelu</span>
+                    </button>
+                    <button type="button" class="vsp-export-format-btn" data-vsp-export="DES">
+                        <strong>Zmienne Projektowe (`.des`)</strong>
+                        <span>Wartości parametrów DesignVars do optymalizacji</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Lista wygenerowanych plików + Import .vsp3 / STL / DES -->
+            <div class="vsp-card">
+                <div class="vsp-card-header">
+                    <div>
+                        <h3>Menedżer Plików Roboczych (`work/openvsp`) i Import (`ReadVSPFile` / `ImportFile`)</h3>
+                        <p class="vsp-card-hint">Pobieraj wygenerowane pliki CAD lub wczytaj własny plik `.vsp3`, `.des`, `.xddm` albo `.stl` do sesji.</p>
+                    </div>
+                </div>
+
+                <div class="vsp-import-box">
+                    <input type="file" id="vspImportFileInput" class="vsp-input" accept=".vsp3,.des,.xddm,.stl,.tri">
+                    <button type="button" class="btn-secondary" id="vspUploadImportBtn">📂 Wczytaj plik do OpenVSP</button>
+                </div>
+
+                <div class="vsp-files-table-wrap">
+                    <table class="vsp-table">
+                        <thead>
+                            <tr>
+                                <th>Plik</th>
+                                <th>Rozmiar</th>
+                                <th>Zmodyfikowano</th>
+                                <th>Pobierz</th>
+                            </tr>
+                        </thead>
+                        <tbody id="vspWorkspaceFilesBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- =====================================================================
+         POD-ZAKŁADKA 6: KONSOLA SKRYPTOWA PYTHON OPENVSP & .VSPSCRIPT
+         ===================================================================== -->
+    <div id="vsp-sub-scripts" class="vsp-subpanel">
+        <div class="vsp-scripts-grid">
+            <div class="vsp-card">
+                <div class="vsp-card-header">
+                    <div>
+                        <h3>Edytor Skryptów Python `openvsp` oraz AngelScript `.vspscript`</h3>
+                        <p class="vsp-card-hint">W trybie Python masz bezpośredni dostęp do obiektu `vsp` (`openvsp`), `bipol_result` (pełne wyniki P1–P6), `np` oraz `math`. Zmiany geometrii natychmiast aktualizują podgląd 3D.</p>
+                    </div>
+                </div>
+                <div class="vsp-script-toolbar">
+                    <select id="vspScriptModeSelect" class="vsp-select">
+                        <option value="python">Tryb: Python 3.13 (`import openvsp as vsp` w procesie)</option>
+                        <option value="vspscript">Tryb: AngelScript (`OpenVSP-3.55.0/vspscript.exe -script`)</option>
+                    </select>
+                    <select id="vspScriptTemplateSelect" class="vsp-select">
+                        <option value="inspect_bipol">Szablon 1: Inspekcja modelu BiPOL i powierzchni omywanej CompGeom</option>
+                        <option value="parametric_wing">Szablon 2: Parametryczny przegląd wydłużenia i zbieżności płata</option>
+                        <option value="vspaero_polar">Szablon 3: Pełna symulacja VSPAERO (VLM) i odczyt biegunowej</option>
+                        <option value="batch_cad">Szablon 4: Eksport wsadowy CAD (STEP + IGES + STL + SVG)</option>
+                        <option value="vspscript_demo">Szablon 5: Skrypt natywny AngelScript (.vspscript)</option>
+                    </select>
+                    <button type="button" class="btn-primary" id="vspRunScriptBtn">▶ Uruchom skrypt</button>
+                </div>
+                <textarea id="vspScriptEditor" class="vsp-script-textarea" rows="18" spellcheck="false"></textarea>
+            </div>
+
+            <div class="vsp-card">
+                <div class="vsp-card-header">
+                    <div>
+                        <h3>Wyjście Konsoli Skryptowej (`stdout` / `result` / `ErrorMgr`)</h3>
+                        <p class="vsp-card-hint" id="vspScriptStatusMeta">Gotowy do wykonania skryptu.</p>
+                    </div>
+                </div>
+                <pre id="vspScriptOutputBox" class="vsp-code-output">Kliknij „Uruchom skrypt”, aby wykonać kod na żywym silniku OpenVSP 3.55.0.</pre>
+            </div>
+        </div>
+    </div>
+</section>

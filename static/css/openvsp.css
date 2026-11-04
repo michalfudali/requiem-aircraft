@@ -1,0 +1,731 @@
+/* ==========================================================================
+   OPENVSP 3D STUDIO & FULL API EXECUTOR (static/css/openvsp.css)
+   Spójny z paletą BiPOL Requiem (Dark & Light Mode)
+   ========================================================================== */
+
+#tab-openvsp {
+    padding: 0.25rem 0 2rem;
+}
+
+.vsp-studio-header {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 1.25rem;
+    padding: 1.25rem 1.5rem;
+    background: var(--bg-card, #111827);
+    border: 1px solid var(--border-color, rgba(148, 163, 184, 0.2));
+    border-radius: 12px;
+    margin-bottom: 1rem;
+}
+
+.vsp-studio-title-wrap {
+    max-width: 780px;
+}
+
+.vsp-studio-badge {
+    display: inline-block;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    padding: 0.2rem 0.65rem;
+    border-radius: 999px;
+    background: rgba(56, 189, 248, 0.14);
+    color: var(--accent-primary, #38bdf8);
+    border: 1px solid rgba(56, 189, 248, 0.32);
+    margin-bottom: 0.45rem;
+}
+
+.vsp-studio-title {
+    margin: 0 0 0.35rem;
+    font-size: 1.35rem;
+    font-weight: 700;
+    color: var(--text-main, #f8fafc);
+}
+
+.vsp-studio-subtitle {
+    margin: 0;
+    font-size: 0.86rem;
+    line-height: 1.5;
+    color: var(--text-muted, #94a3b8);
+}
+
+.vsp-studio-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+    align-items: center;
+}
+
+.vsp-download-vsp3 {
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+}
+
+/* Pasek KPI */
+.vsp-kpi-strip {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+}
+
+.vsp-kpi-card {
+    background: var(--bg-card, #111827);
+    border: 1px solid var(--border-color, rgba(148, 163, 184, 0.2));
+    border-radius: 10px;
+    padding: 0.85rem 1.1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+}
+
+.vsp-kpi-label {
+    font-size: 0.74rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--text-muted, #94a3b8);
+}
+
+.vsp-kpi-val {
+    font-size: 1.12rem;
+    font-weight: 700;
+    color: var(--text-main, #f8fafc);
+}
+
+.vsp-kpi-sub {
+    font-size: 0.78rem;
+    color: var(--accent-primary, #38bdf8);
+}
+
+/* Pod-zakładki */
+.vsp-subtabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    margin-bottom: 1rem;
+    padding: 0.35rem;
+    background: var(--bg-card, #111827);
+    border: 1px solid var(--border-color, rgba(148, 163, 184, 0.2));
+    border-radius: 10px;
+}
+
+.vsp-subtab {
+    background: transparent;
+    border: 1px solid transparent;
+    color: var(--text-muted, #94a3b8);
+    padding: 0.55rem 0.9rem;
+    border-radius: 7px;
+    font-size: 0.82rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.vsp-subtab:hover {
+    color: var(--text-main, #f8fafc);
+    background: rgba(148, 163, 184, 0.08);
+}
+
+.vsp-subtab.active {
+    background: rgba(56, 189, 248, 0.14);
+    color: var(--accent-primary, #38bdf8);
+    border-color: rgba(56, 189, 248, 0.35);
+}
+
+.vsp-subpanel {
+    display: none;
+}
+
+.vsp-subpanel.active {
+    display: block;
+}
+
+/* Karty i układy siatkowe */
+.vsp-card {
+    background: var(--bg-card, #111827);
+    border: 1px solid var(--border-color, rgba(148, 163, 184, 0.2));
+    border-radius: 12px;
+    padding: 1.15rem;
+}
+
+.vsp-card-header {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 0.75rem;
+    margin-bottom: 0.9rem;
+}
+
+.vsp-card-header h3 {
+    margin: 0 0 0.2rem;
+    font-size: 1.02rem;
+    color: var(--text-main, #f8fafc);
+}
+
+.vsp-card-hint {
+    margin: 0;
+    font-size: 0.8rem;
+    color: var(--text-muted, #94a3b8);
+}
+
+.vsp-model-grid {
+    display: grid;
+    grid-template-columns: minmax(420px, 1.15fr) minmax(380px, 1fr);
+    gap: 1rem;
+    align-items: start;
+}
+
+@media (max-width: 1180px) {
+    .vsp-model-grid,
+    .vsp-explorer-grid,
+    .vsp-analysis-workspace,
+    .vsp-dv-grid,
+    .vsp-export-grid,
+    .vsp-scripts-grid {
+        grid-template-columns: 1fr !important;
+    }
+}
+
+/* Kanwa 3D OpenVSP */
+.vsp-viewer-controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+    align-items: center;
+}
+
+.btn-chip {
+    background: rgba(148, 163, 184, 0.12);
+    border: 1px solid var(--border-color, rgba(148, 163, 184, 0.25));
+    color: var(--text-main, #f8fafc);
+    padding: 0.28rem 0.6rem;
+    border-radius: 6px;
+    font-size: 0.76rem;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.btn-chip:hover {
+    border-color: var(--accent-primary, #38bdf8);
+    color: var(--accent-primary, #38bdf8);
+}
+
+.btn-danger-chip {
+    color: #f87171;
+    border-color: rgba(248, 113, 113, 0.3);
+}
+
+.vsp-toggle-label {
+    font-size: 0.78rem;
+    color: var(--text-muted, #94a3b8);
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    margin-left: 0.35rem;
+    cursor: pointer;
+}
+
+.vsp-canvas-container {
+    position: relative;
+    background: radial-gradient(circle at 50% 35%, #1e293b 0%, #090d16 100%);
+    border: 1px solid rgba(148, 163, 184, 0.22);
+    border-radius: 10px;
+    overflow: hidden;
+    height: 430px;
+    margin-bottom: 0.9rem;
+}
+
+#vsp3dCanvas {
+    width: 100%;
+    height: 100%;
+    display: block;
+    cursor: grab;
+}
+
+#vsp3dCanvas:active {
+    cursor: grabbing;
+}
+
+.vsp-canvas-overlay {
+    position: absolute;
+    bottom: 0.6rem;
+    left: 0.75rem;
+    right: 0.75rem;
+    font-size: 0.76rem;
+    color: #cbd5e1;
+    background: rgba(15, 23, 42, 0.78);
+    padding: 0.35rem 0.65rem;
+    border-radius: 6px;
+    pointer-events: none;
+}
+
+.vsp-geom-toolbar {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+    padding-top: 0.5rem;
+    border-top: 1px solid var(--border-color, rgba(148, 163, 184, 0.16));
+}
+
+.vsp-toolbar-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.45rem;
+    align-items: center;
+}
+
+.vsp-toolbar-group label {
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--text-muted, #94a3b8);
+    min-width: 165px;
+}
+
+.vsp-select,
+.vsp-input {
+    background: var(--bg-input, #0f172a);
+    border: 1px solid var(--border-color, rgba(148, 163, 184, 0.28));
+    color: var(--text-main, #f8fafc);
+    padding: 0.42rem 0.65rem;
+    border-radius: 6px;
+    font-size: 0.82rem;
+}
+
+/* Drzewo Geometrii i Parametry */
+.vsp-geom-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.45rem;
+    margin-bottom: 0.75rem;
+}
+
+.vsp-geom-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.42rem 0.75rem;
+    border-radius: 8px;
+    background: rgba(148, 163, 184, 0.08);
+    border: 1px solid var(--border-color, rgba(148, 163, 184, 0.22));
+    color: var(--text-main, #f8fafc);
+    font-size: 0.81rem;
+    cursor: pointer;
+    transition: all 0.14s ease;
+}
+
+.vsp-geom-pill.active {
+    background: rgba(56, 189, 248, 0.16);
+    border-color: var(--accent-primary, #38bdf8);
+    color: var(--accent-primary, #38bdf8);
+    font-weight: 600;
+}
+
+.vsp-geom-type-tag {
+    font-size: 0.68rem;
+    padding: 0.1rem 0.38rem;
+    border-radius: 4px;
+    background: rgba(15, 23, 42, 0.65);
+    color: var(--text-muted, #94a3b8);
+}
+
+.vsp-selected-geom-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    padding: 0.55rem 0.75rem;
+    background: rgba(56, 189, 248, 0.07);
+    border: 1px solid rgba(56, 189, 248, 0.22);
+    border-radius: 8px;
+    margin-bottom: 0.7rem;
+    font-size: 0.82rem;
+    font-weight: 600;
+}
+
+.vsp-selected-geom-btns {
+    display: flex;
+    gap: 0.35rem;
+}
+
+.vsp-parm-filter-bar {
+    display: grid;
+    grid-template-columns: 200px 1fr;
+    gap: 0.5rem;
+    margin-bottom: 0.65rem;
+}
+
+.vsp-parm-table-wrap {
+    max-height: 390px;
+    overflow-y: auto;
+    border: 1px solid var(--border-color, rgba(148, 163, 184, 0.18));
+    border-radius: 8px;
+}
+
+.vsp-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.8rem;
+}
+
+.vsp-table th,
+.vsp-table td {
+    padding: 0.45rem 0.6rem;
+    border-bottom: 1px solid var(--border-color, rgba(148, 163, 184, 0.14));
+    text-align: left;
+}
+
+.vsp-table th {
+    position: sticky;
+    top: 0;
+    background: var(--bg-card, #111827);
+    color: var(--text-muted, #94a3b8);
+    font-weight: 600;
+    z-index: 1;
+}
+
+.vsp-parm-val-input {
+    width: 92px;
+    padding: 0.25rem 0.4rem;
+    background: var(--bg-input, #0f172a);
+    border: 1px solid rgba(148, 163, 184, 0.3);
+    color: var(--text-main, #f8fafc);
+    border-radius: 4px;
+    font-family: monospace;
+    font-size: 0.8rem;
+}
+
+/* Pod-zakładka 2: Analizy */
+.vsp-quick-analyses-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 0.85rem;
+    margin-bottom: 1rem;
+}
+
+.vsp-quick-card {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: 0.65rem;
+}
+
+.vsp-quick-card h4 {
+    margin: 0;
+    font-size: 0.95rem;
+    color: var(--text-main, #f8fafc);
+}
+
+.vsp-quick-card p {
+    margin: 0;
+    font-size: 0.8rem;
+    line-height: 1.45;
+    color: var(--text-muted, #94a3b8);
+}
+
+.vsp-quick-btn-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+}
+
+.vsp-analysis-workspace {
+    display: grid;
+    grid-template-columns: minmax(360px, 0.95fr) minmax(420px, 1.25fr);
+    gap: 1rem;
+    align-items: start;
+}
+
+.vsp-analysis-selector-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 0.75rem;
+}
+
+.vsp-analysis-selector-row select {
+    flex: 1;
+    min-width: 190px;
+}
+
+.vsp-analysis-inputs-wrap {
+    max-height: 440px;
+    overflow-y: auto;
+    border: 1px solid var(--border-color, rgba(148, 163, 184, 0.18));
+    border-radius: 8px;
+}
+
+.vsp-comparison-box {
+    margin-bottom: 1rem;
+}
+
+.vsp-code-output {
+    background: #090d16;
+    color: #e2e8f0;
+    border: 1px solid rgba(148, 163, 184, 0.22);
+    border-radius: 8px;
+    padding: 0.75rem;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 0.78rem;
+    max-height: 360px;
+    overflow: auto;
+    white-space: pre-wrap;
+    word-break: break-word;
+    margin: 0;
+}
+
+/* Pod-zakładka 3: Katalog i Wykonawca 1076 funkcji API */
+.vsp-explorer-grid {
+    display: grid;
+    grid-template-columns: minmax(360px, 0.9fr) minmax(460px, 1.3fr);
+    gap: 1rem;
+    align-items: start;
+}
+
+.vsp-explorer-filters {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.vsp-func-count-bar {
+    font-size: 0.76rem;
+    color: var(--text-muted, #94a3b8);
+    margin-bottom: 0.5rem;
+}
+
+.vsp-func-list {
+    max-height: 620px;
+    overflow-y: auto;
+    border: 1px solid var(--border-color, rgba(148, 163, 184, 0.18));
+    border-radius: 8px;
+    divide-y: 1px solid rgba(148, 163, 184, 0.1);
+}
+
+.vsp-func-item {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+    width: 100%;
+    text-align: left;
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid rgba(148, 163, 184, 0.12);
+    padding: 0.55rem 0.75rem;
+    cursor: pointer;
+    color: var(--text-main, #f8fafc);
+}
+
+.vsp-func-item:hover {
+    background: rgba(56, 189, 248, 0.08);
+}
+
+.vsp-func-item.active {
+    background: rgba(56, 189, 248, 0.16);
+    border-left: 3px solid var(--accent-primary, #38bdf8);
+}
+
+.vsp-func-item-name {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: var(--accent-primary, #38bdf8);
+}
+
+.vsp-func-item-cat {
+    font-size: 0.71rem;
+    color: var(--text-muted, #94a3b8);
+}
+
+.vsp-signature-badge {
+    display: inline-block;
+    font-size: 0.78rem;
+    padding: 0.22rem 0.55rem;
+    background: rgba(56, 189, 248, 0.1);
+    color: #38bdf8;
+    border-radius: 6px;
+    margin-top: 0.2rem;
+}
+
+.vsp-docstring-box {
+    background: rgba(15, 23, 42, 0.65);
+    border: 1px solid rgba(148, 163, 184, 0.18);
+    border-radius: 8px;
+    padding: 0.65rem 0.8rem;
+    font-size: 0.77rem;
+    color: var(--text-muted, #94a3b8);
+    max-height: 130px;
+    overflow-y: auto;
+    white-space: pre-wrap;
+    margin: 0 0 0.8rem;
+}
+
+.vsp-runner-args {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin-bottom: 0.85rem;
+}
+
+.vsp-arg-row {
+    display: grid;
+    grid-template-columns: 180px 1fr;
+    gap: 0.6rem;
+    align-items: center;
+}
+
+.vsp-arg-label {
+    font-size: 0.8rem;
+    font-family: monospace;
+    color: var(--text-main, #f8fafc);
+}
+
+.vsp-arg-type {
+    display: block;
+    font-size: 0.69rem;
+    color: var(--text-muted, #94a3b8);
+}
+
+.vsp-runner-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    align-items: center;
+    margin-bottom: 0.85rem;
+}
+
+.vsp-runner-hint {
+    font-size: 0.76rem;
+    color: var(--text-muted, #94a3b8);
+}
+
+.vsp-runner-output-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.8rem;
+    margin-bottom: 0.35rem;
+}
+
+.vsp-constants-section {
+    margin-top: 1.2rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--border-color, rgba(148, 163, 184, 0.2));
+}
+
+.vsp-constants-header {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.6rem;
+}
+
+.vsp-constants-header h4 {
+    margin: 0;
+    font-size: 0.9rem;
+}
+
+.vsp-constants-filters {
+    display: flex;
+    gap: 0.45rem;
+}
+
+.vsp-const-table-wrap {
+    max-height: 230px;
+    overflow-y: auto;
+    border: 1px solid var(--border-color, rgba(148, 163, 184, 0.18));
+    border-radius: 8px;
+}
+
+/* Pod-zakładki 4, 5, 6 */
+.vsp-dv-grid,
+.vsp-export-grid,
+.vsp-scripts-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    align-items: start;
+}
+
+.vsp-dv-form-row,
+.vsp-export-options-row,
+.vsp-import-box,
+.vsp-script-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    align-items: center;
+    margin-bottom: 0.8rem;
+}
+
+.vsp-export-cards-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(215px, 1fr));
+    gap: 0.6rem;
+}
+
+.vsp-export-format-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.25rem;
+    text-align: left;
+    padding: 0.7rem 0.85rem;
+    border-radius: 8px;
+    background: rgba(148, 163, 184, 0.06);
+    border: 1px solid var(--border-color, rgba(148, 163, 184, 0.22));
+    color: var(--text-main, #f8fafc);
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.vsp-export-format-btn:hover {
+    border-color: var(--accent-primary, #38bdf8);
+    background: rgba(56, 189, 248, 0.11);
+}
+
+.vsp-export-format-btn strong {
+    font-size: 0.83rem;
+    color: var(--accent-primary, #38bdf8);
+}
+
+.vsp-export-format-btn span {
+    font-size: 0.73rem;
+    color: var(--text-muted, #94a3b8);
+}
+
+.vsp-script-textarea {
+    width: 100%;
+    background: #090d16;
+    color: #f8fafc;
+    border: 1px solid rgba(148, 163, 184, 0.28);
+    border-radius: 8px;
+    padding: 0.8rem;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 0.82rem;
+    line-height: 1.48;
+    resize: vertical;
+}
+
+.vsp-empty-cell,
+.vsp-empty-state {
+    text-align: center;
+    color: var(--text-muted, #94a3b8);
+    padding: 1.2rem;
+    font-size: 0.82rem;
+}
+
+.vsp-divider {
+    border: none;
+    border-top: 1px solid var(--border-color, rgba(148, 163, 184, 0.18));
+    margin: 1rem 0;
+}
+

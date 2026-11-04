@@ -11,6 +11,7 @@ let currentResults = null;
 let topicsData = [];
 let categoriesData = {};
 let formBaseParams = {};
+window.formBaseParams = formBaseParams;
 let browserStorage = null;
 try { browserStorage = window.localStorage; } catch (_) {}
 const projectStore = BipolStudio.createStore(browserStorage, () => {
@@ -187,6 +188,7 @@ function syncAircraftClassAndEASAUI(isWizard = false, source = null) {
   const acEl = document.getElementById(pfx + 'aircraft_type');
   const catEl = document.getElementById(pfx + 'category');
   const crewEl = document.getElementById(pfx + 'n_crew');
+  const mCrewPersonEl = document.getElementById(pfx + 'm_crew_person');
   const paxEl = document.getElementById(pfx + 'n_pax');
   const mpaxEl = document.getElementById(pfx + 'm_pax');
 
@@ -262,21 +264,21 @@ function syncAircraftClassAndEASAUI(isWizard = false, source = null) {
   // 3. Widoczność pól ludzi na pokładzie dla UAV vs Manned
   if (isWizard) {
     const rowOcc1 = document.getElementById('wiz_row_occupants_1');
-    const groupMpax = document.getElementById('wiz_group_m_pax');
+    const rowOcc2 = document.getElementById('wiz_row_occupants_2');
     const labelCargo = document.getElementById('label_wiz_m_cargo');
     if (rowOcc1) rowOcc1.style.display = isUas ? 'none' : '';
-    if (groupMpax) groupMpax.style.display = isUas ? 'none' : '';
+    if (rowOcc2) rowOcc2.style.display = isUas ? 'none' : '';
     if (labelCargo) {
       labelCargo.textContent = isUas
         ? 'Masa wyposażenia zadaniowego / sensorów UAV [kg]:'
         : 'Dodatkowy ładunek handlowy cargo [kg]:';
     }
   } else {
-    const groupPax = document.getElementById('group_n_pax');
     const rowCrew = document.getElementById('row_main_crew');
+    const rowOcc = document.getElementById('row_main_occupants');
     const labelCargoText = document.getElementById('label_m_cargo_text');
-    if (groupPax) groupPax.style.display = isUas ? 'none' : '';
     if (rowCrew) rowCrew.style.display = isUas ? 'none' : '';
+    if (rowOcc) rowOcc.style.display = isUas ? 'none' : '';
     if (labelCargoText) {
       labelCargoText.firstChild.textContent = isUas
         ? 'Wyposażenie zadaniowe / sensory UAV [kg] '
@@ -288,12 +290,16 @@ function syncAircraftClassAndEASAUI(isWizard = false, source = null) {
   // 4. Ustawienie wartości numerycznych dla UAV vs Manned
   if (isUas) {
     if (crewEl) crewEl.value = '0';
+    if (mCrewPersonEl) mCrewPersonEl.value = '0';
     if (paxEl) paxEl.value = '0';
     if (mpaxEl) mpaxEl.value = '0';
 
   } else {
     if (crewEl && (parseFloat(crewEl.value) === 0 || isNaN(parseFloat(crewEl.value)))) {
       crewEl.value = (cat === 'cs25_transport') ? '2' : '1';
+    }
+    if (mCrewPersonEl && (parseFloat(mCrewPersonEl.value) === 0 || isNaN(parseFloat(mCrewPersonEl.value)))) {
+      mCrewPersonEl.value = '90';
     }
     if (mpaxEl && (parseFloat(mpaxEl.value) === 0 || isNaN(parseFloat(mpaxEl.value)))) {
       mpaxEl.value = '100';
@@ -2026,7 +2032,9 @@ function loadProjectIntoForm(project) {
   if (airfoilInput) airfoilInput.placeholder = 'np. NACA 23012';
   params.m_pax = (params.m_pax || 0) + (params.m_bag || 0);
   params.m_bag = 0;
+  if (params.m_crew_person == null) params.m_crew_person = 90;
   formBaseParams = { ...params };
+  window.formBaseParams = formBaseParams;
 
   for (const [key, val] of Object.entries(params)) {
     const el = document.getElementById(key);
@@ -2804,6 +2812,7 @@ function syncFormToWizard() {
     { formId: 'aircraft_type', wizId: 'wiz_aircraft_type' },
     { formId: 'category', wizId: 'wiz_category' },
     { formId: 'n_crew', wizId: 'wiz_n_crew' },
+    { formId: 'm_crew_person', wizId: 'wiz_m_crew_person' },
     { formId: 'n_pax', wizId: 'wiz_n_pax' },
     { formId: 'm_pax', wizId: 'wiz_m_pax' },
     { formId: 'm_cargo', wizId: 'wiz_m_cargo' },
@@ -4266,6 +4275,11 @@ function invalidateAirfoil200mm(note) {
 
 function renderAirfoil200mm(data) {
   airfoilProfile = data.svg ? { ...data, airfoil: data.airfoil || data.name, inputKey: airfoilInputKey() } : null;
+  const sidebarAf = document.getElementById('sidebar_airfoil_display');
+  if (sidebarAf) {
+    const afName = data.airfoil || data.name || document.getElementById('airfoil')?.value;
+    if (afName) sidebarAf.textContent = afName;
+  }
   const fmtMm = v => v == null ? '' : Number(v).toFixed(2).replace('.', ',');
   const afDescEl = document.getElementById('p3_airfoil_desc');
   if (afDescEl) {
