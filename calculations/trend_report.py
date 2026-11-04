@@ -37,26 +37,43 @@ def _scatter_x_positions(points, project_x, left, right):
 
 def trend_chart(analysis, mode, marks=()):
     """marks: odczyty z wykresu [(x, y, opis)] zaznaczane czarnymi punktami."""
+    similar = analysis.get('similar_aircraft', [])
+    ac_index = {}
+    for i, r in enumerate(similar, 1):
+        if r.get('id'):
+            ac_index[r['id']] = i
+        if r.get('model'):
+            ac_index[r['model']] = i
+
     if mode == 'mass':
-        points = [(r['m0'], r['empty_fraction'], r['model']) for r in analysis['similar_aircraft']
-                  if r['empty_fraction'] is not None and .15 < r['empty_fraction'] < .95]
-        fit = analysis['mass_fit']
+        points = []
+        for i, r in enumerate(similar, 1):
+            if r.get('empty_fraction') is not None and .15 < r['empty_fraction'] < .95:
+                num = r.get('position_num') or ac_index.get(r.get('id'), ac_index.get(r.get('model'), i))
+                points.append((r['m0'], r['empty_fraction'], r['model'], num))
+        fit = analysis.get('mass_fit')
         title, xlabel, ylabel = 'Korelacja masowa', 'MTOW [kg]', 'OEW / MTOW'
         forecast = None
     elif ':' in mode:
         xkey, ykey = mode.split(':', 1)
-        trend = next(t for t in analysis['relationships'] if t['x_key'] == xkey and t['y_key'] == ykey)
-        points = [(p['x'], p['y'], p['model']) for p in trend['points']]
-        fit = trend['fit']
+        trend = next(t for t in analysis.get('relationships', []) if t['x_key'] == xkey and t['y_key'] == ykey)
+        points = []
+        for i, p in enumerate(trend['points'], 1):
+            num = p.get('num') or ac_index.get(p.get('id'), ac_index.get(p.get('model'), i))
+            points.append((p['x'], p['y'], p['model'], num))
+        fit = trend.get('fit')
         title = f"{trend['y_label']} a {trend['x_label']}"
         xlabel, ylabel = f"{trend['x_label']} [{trend['x_unit']}]", f"{trend['y_label']} [{trend['y_unit']}]"
         forecast = None
     else:
-        trend = next(t for t in analysis['time_trends'] if t['key'] == mode)
-        points = [(p['x'], p['y'], p['model']) for p in trend['points']]
-        fit = trend['fit']
+        trend = next(t for t in analysis.get('time_trends', []) if t['key'] == mode)
+        points = []
+        for i, p in enumerate(trend['points'], 1):
+            num = p.get('num') or ac_index.get(p.get('id'), ac_index.get(p.get('model'), i))
+            points.append((p['x'], p['y'], p['model'], num))
+        fit = trend.get('fit')
         title, xlabel, ylabel = trend['label'], 'Rok certyfikacji', trend['unit']
-        forecast = (trend['forecast_year'], trend['forecast']) if trend['forecast_accepted'] else None
+        forecast = (trend['forecast_year'], trend['forecast']) if trend.get('forecast_accepted') else None
     if not points:
         return Markup('<p class="missing-chart">Brak kompletnych danych źródłowych do tej zależności. Wykres wymaga uzupełnienia próby.</p>')
     xmin, xmax = min(p[0] for p in points), max(p[0] for p in points)
@@ -83,8 +100,12 @@ def trend_chart(analysis, mode, marks=()):
         svg.append(f'<path d="{" ".join(path)}" fill="none" stroke="#168c83" stroke-width="2"/>')
         if forecast:
             svg.append(f'<path d="M{x(fit["x_max"]):.2f} {y(predict(fit,fit["x_max"])):.2f}L{x(forecast[0]):.2f} {y(forecast[1]):.2f}" stroke="#a86621" stroke-dasharray="5 3" fill="none"/>')
-    for (xv, yv, model), px in zip(points, positions):
-        svg.append(f'<circle cx="{px:.2f}" cy="{y(yv):.2f}" r="3.5" fill="#5478a9"><title>{html.escape(model)}: {xv:g}; {yv:g}</title></circle>')
+    for (xv, yv, model, num), px in zip(points, positions):
+        py_y = y(yv)
+        svg.append(f'<circle cx="{px:.2f}" cy="{py_y:.2f}" r="3.5" fill="#5478a9"><title>{html.escape(model)}: {xv:g}; {yv:g}</title></circle>')
+        anchor = "end" if px > 595 else "start"
+        tx = px - 5 if px > 595 else px + 5
+        svg.append(f'<text x="{tx:.2f}" y="{py_y - 4:.2f}" font-size="8.5" font-weight="bold" fill="#1e3a8a" stroke="#ffffff" stroke-width="2.5" paint-order="stroke" text-anchor="{anchor}" data-point-num="{num}">{num}</text>')
     for xv, yv, label in marks:
         at_right = x(xv) > 560
         svg.append(f'<circle cx="{x(xv):.2f}" cy="{y(yv):.2f}" r="5.5" fill="#1d1d1b" stroke="#fff" stroke-width="2"/>'

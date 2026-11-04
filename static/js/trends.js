@@ -51,28 +51,42 @@
       svg+=`<path d="${path}" stroke="#147f76" stroke-width="2.5" fill="none"/>`;
       if(forecast)svg+=`<path d="M${X(fit.x_max)},${Y(predict(fit.x_max))}L${X(forecast.x)},${Y(forecast.y)}" stroke="#a86621" stroke-width="2" stroke-dasharray="5 4"/>`;
     }
-    points.forEach((p,i)=>{svg+=`<circle cx="${positions[i]}" cy="${Y(p.y)}" r="4" fill="#5478a9" fill-opacity=".72"><title>${esc(p.model)}: ${fmt(p.x,2)}; ${fmt(p.y,3)}</title></circle>`;});
+    points.forEach((p,i)=>{
+      const num = p.num ?? (i + 1);
+      const px = positions[i];
+      const cy = Y(p.y);
+      const isRight = px > (W - r - 35);
+      const tx = isRight ? px - 5 : px + 5;
+      const anchor = isRight ? 'end' : 'start';
+      svg+=`<circle cx="${px}" cy="${cy}" r="4" fill="#5478a9" fill-opacity=".75" stroke="#fff" stroke-width="0.75"><title>[${num}] ${esc(p.model)}: ${fmt(p.x,2)}; ${fmt(p.y,3)}</title></circle>`;
+      svg+=`<text x="${tx}" y="${cy - 4}" font-size="9" font-weight="bold" fill="#1e3a8a" stroke="#ffffff" stroke-width="2.5" paint-order="stroke" text-anchor="${anchor}">${num}</text>`;
+    });
     for(const p of [project,forecast].filter(Boolean))svg+=`<circle cx="${X(p.x)}" cy="${Y(p.y)}" r="6" stroke="white" stroke-width="2" fill="${p===project?'#b5486a':'#a86621'}"><title>${esc(p.model)}: ${fmt(p.x,2)}; ${fmt(p.y,3)}</title></circle>`;
     svg+=`<text x="${(W+l-r)/2}" y="${H-8}" text-anchor="middle">${esc(xLabel)}</text><text transform="translate(17 ${(H+t-b)/2}) rotate(-90)" text-anchor="middle">${esc(yLabel)}</text>`;
     if(spread)svg+=`<text x="${(W+l-r)/2}" y="${H+14}" text-anchor="middle" style="font-size:9px;">${BipolTrendProvenance.scatterNote}</text>`;
     svg+='</svg>';
-    return `<div class="trend-chart">${svg}</div><p class="studio-fine-print">Niebieskie punkty: konstrukcje · zielona linia: regresja${forecast?' · brązowy: prognoza +5 lat':''}${project?' · różowy: projekt':''}. ${fitText(fit)}</p>`;
+    return `<div class="trend-chart">${svg}</div><p class="studio-fine-print">Niebieskie punkty: konstrukcje z numerem w zestawieniu (1, 2, ...) · zielona linia: regresja${forecast?' · brązowy: prognoza +5 lat':''}${project?' · różowy: projekt':''}. ${fitText(fit)}</p>`;
   }
 
   function renderPlots() {
     const a=result?.bipol_projects?.p1?.trend_analysis; if(!a)return;
+    const acIndex = new Map(a.similar_aircraft.map((r, i) => [r.id || r.model, r.position_num || (i + 1)]));
+    const getNum = p => (p && (p.num || acIndex.get(p.id) || acIndex.get(p.model))) || 1;
     const valid=a.similar_aircraft.filter(r=>r.empty_fraction>.15&&r.empty_fraction<.95);
     const t=a.time_trends.find(t=>t.key===$('trendTimeMetric').value);
     if(t) {
       const forecast=t.fit&&t.forecast_accepted?{x:t.forecast_year,y:t.forecast,model:'Prognoza +5 lat'}:null;
-      $('trendTimeChart').innerHTML=plot(t.points,t.fit,{title:`${t.label} — trend czasowy`,xLabel:a.year_basis,yLabel:`${t.label} [${t.unit}]`,forecast})+
+      const tPts = (t.points||[]).map((p, i) => ({...p, num: getNum(p) || (i + 1)}));
+      $('trendTimeChart').innerHTML=plot(tPts,t.fit,{title:`${t.label} — trend czasowy`,xLabel:a.year_basis,yLabel:`${t.label} [${t.unit}]`,forecast})+
         `<p>${t.fit?`Prognoza na ${t.forecast_year} (rok opracowania + 5 lat; ${fmt(t.extrapolation_years,0)} lat po ostatniej obserwacji): <strong>${fmt(t.forecast,3)} ${esc(t.unit)}</strong>${!t.forecast_accepted?' — nie przyjęto do doboru: '+esc(t.forecast_rejection)+'.':''}${t.provisional?' · próba poniżej 20 obserwacji.':''}`:'Wymagane co najmniej 3 kompletne daty i rozpiętość czasu ≥5 lat.'}</p>`;
     }
-    $('trendMassChart').innerHTML=plot(valid.map(r=>({x:r.m0,y:r.empty_fraction,model:r.model})),a.mass_fit,
+    const massPoints = valid.map((r, i) => ({x:r.m0,y:r.empty_fraction,model:r.model,id:r.id,num:r.position_num||getNum(r)||(i+1)}));
+    $('trendMassChart').innerHTML=plot(massPoints,a.mass_fit,
       {title:'Udział masy pustej a MTOW',xLabel:'MTOW [kg]',yLabel:'OEW / MTOW [−]',project:{x:result.mass.m0,y:a.we_wo_actual,model:'Projekt'}});
     const x=$('trendRelationX').value==='propulsion'?(result.params.engine_type==='jet'?'thrust_to_weight':'power_loading_kg_kw'):$('trendRelationX').value;
     const relation=a.relationships.find(r=>r.x_key===x&&r.y_key===$('trendRelationY').value);
-    $('trendRelationChart').innerHTML=relation?plot(relation.points,relation.fit,{title:`${relation.y_label} a ${relation.x_label}`,xLabel:`${relation.x_label} [${relation.x_unit}]`,yLabel:`${relation.y_label} [${relation.y_unit}]`}):'<p>Brak porównywalnego rodzaju napędu.</p>';
+    const relPts = relation ? (relation.points||[]).map((p, i) => ({...p, num: getNum(p) || (i + 1)})) : [];
+    $('trendRelationChart').innerHTML=relation?plot(relPts,relation.fit,{title:`${relation.y_label} a ${relation.x_label}`,xLabel:`${relation.x_label} [${relation.x_unit}]`,yLabel:`${relation.y_label} [${relation.y_unit}]`}):'<p>Brak porównywalnego rodzaju napędu.</p>';
   }
 
   // Suggestions come from the same comparison sample as the P1 analysis (BIPOL_1, s. 1–2).
@@ -186,7 +200,10 @@
     $('trendCatalogStatus').textContent=`${all.length} pozycji${$('trendCatalogScope')?.value==='all'?' w całej bazie':' w bieżącej klasie i źródle'}${$('trendSearch').value?' po wyszukaniu':''}. Otwórz „Parametry / edytuj”, aby sprawdzić dane. Dobór do próby obejmuje klasę i napęd projektu.`;
     $('trendAircraftRows').innerHTML=visible.map(r=>`<tr class="${selected.has(r.id)?'trend-selected':''}">
       <td><input type="checkbox" data-aircraft-id="${esc(r.id)}" aria-label="Dodaj ${esc(r.model)} do próby" ${selected.has(r.id)?'checked':''} ${r.aircraft_type!==result.params.aircraft_type||r.engine_type!==result.params.engine_type?'disabled title="Inna klasa lub napęd niż w projekcie"':''}></td>
-      <td><strong>${esc(r.model)}</strong><small>${esc(r.family||'')} · <a href="${esc(catalog.sources[r.source_id]?.url||'#')}" target="_blank" rel="noopener">${esc((r.source_id||'').toUpperCase())}</a></small><details><summary>Pochodzenie</summary><p>${esc(r.source_locator||'')}<br>${esc(r.source_references||'')}<br>${esc(r.empty_mass_definition||'')}</p>${(r.quality_notes||[]).length?`<p>${esc(r.quality_notes.join(' '))}</p>`:''}</details></td>
+      <td>${(()=>{
+        const sIdx = result?.bipol_projects?.p1?.trend_analysis?.similar_aircraft?.findIndex(s => s.id === r.id);
+        return sIdx != null && sIdx >= 0 ? `<span class="badge" style="background:#1e3a8a;color:#fff;border-radius:4px;padding:1px 5px;font-size:0.75rem;margin-right:4px;" title="Pozycja ${sIdx+1} w zestawieniu próby">#${sIdx + 1}</span>` : '';
+      })()}<strong>${esc(r.model)}</strong><small>${esc(r.family||'')} · <a href="${esc(catalog.sources[r.source_id]?.url||'#')}" target="_blank" rel="noopener">${esc((r.source_id||'').toUpperCase())}</a></small><details><summary>Pochodzenie</summary><p>${esc(r.source_locator||'')}<br>${esc(r.source_references||'')}<br>${esc(r.empty_mass_definition||'')}</p>${(r.quality_notes||[]).length?`<p>${esc(r.quality_notes.join(' '))}</p>`:''}</details></td>
       <td>${r.year??'—'}</td>
       <td>${fmt(r.m0,0)}</td>
       <td>${fmt(r.me,0)}</td>

@@ -667,6 +667,8 @@ def analyze_geometry_trends(params, geom_res=None, rows=None):
 
 def analyze_trends(params, m0, m_empty, geom_res=None):
     rows = select_references(params)
+    for idx, r in enumerate(rows, 1):
+        r['position_num'] = idx
     counts = Counter(r['family'] for r in rows)
     weighting = params.get('trend_weighting', 'family')
     weights = sample_weights(weighting)
@@ -697,7 +699,7 @@ def analyze_trends(params, m0, m_empty, geom_res=None):
         subset, fit, forecast = time_trend(time_rows, key, weights, forecast_year)
         rejection = forecast_rejection(fit, forecast, key, forecast_year)
         time_trends.append({'key': key, 'label': label, 'unit': unit, 'fit': fit,
-            'available_n': len(subset), 'points': [{'x': r['year'], 'y': r[key], 'model': r['model']} for r in subset],
+            'available_n': len(subset), 'points': [{'x': r['year'], 'y': r[key], 'model': r['model'], 'id': r.get('id'), 'num': r.get('position_num')} for r in subset],
             'forecast_year': forecast_year if fit else None, 'forecast': forecast,
             'extrapolation_years': forecast_year - fit['x_max'] if fit else None,
             'forecast_physical': forecast is not None and forecast > 0 and (key != 'empty_fraction' or forecast < 1),
@@ -730,7 +732,7 @@ def analyze_trends(params, m0, m_empty, geom_res=None):
             fit = fit_regression([(r[x_key], r[key]) for r in subset], weights(subset))
             relationships.append({'x_key': x_key, 'x_label': x_labels[x_key][0], 'x_unit': x_labels[x_key][1],
                 'y_key': key, 'y_label': METRICS[key][0], 'y_unit': METRICS[key][1], 'fit': fit,
-                'points': [{'x': r[x_key], 'y': r[key], 'model': r['model']} for r in subset]})
+                'points': [{'x': r[x_key], 'y': r[key], 'model': r['model'], 'id': r.get('id'), 'num': r.get('position_num')} for r in subset]})
     averages = {}
     for key in (*BIPOL_1_AVERAGES, 'ar', 'wing_loading_kg_m2', 'prop_diameter_m', 'h_tail_area', 'v_tail_area'):
         subset = [r for r in rows if valid_value(key, r)]
