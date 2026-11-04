@@ -1,4 +1,4 @@
-"""
+﻿"""
 Aplikacja Webowa BiPOL Requiem - Wstępne Projektowanie Samolotów
 Wydział Mechaniczny Energetyki i Lotnictwa Politechniki Warszawskiej (MEiL PW)
 Zakład Samolotów i Śmigłowców (ZSiS)
@@ -558,6 +558,78 @@ def project_report(p_id):
     sections = [] if p_id == 'folder_cover' else [p_id]
     context = document_context(results, sections, p_id == 'folder_cover')
     return (manual_gate(context) if sections else None) or finished(render_template('project_report.html', **context), results)
+
+@app.get('/api/openvsp/status')
+def openvsp_status():
+    """Sprawdza dostępność natywnego modułu Python API OpenVSP (openvsp)."""
+    from calculations.openvsp_integration import check_openvsp_availability
+    status_info = check_openvsp_availability()
+    return jsonify(status='ok', openvsp=status_info)
+
+
+@app.post('/api/openvsp/analyze')
+def openvsp_analyze():
+    """Buduje model 3D w API OpenVSP i uruchamia natywne analizy OpenVSP (CompGeom, MassProp, ParasiteDrag, VSPAERO)."""
+    from calculations.openvsp_integration import (
+        OpenVSPNotAvailableError,
+        OpenVSPAPIError,
+        run_full_vsp_pipeline,
+    )
+    payload = request.get_json(force=True, silent=True) or {}
+    params = manual_control.apply(payload.get('params') if isinstance(payload.get('params'), dict) else payload)
+    run_vspaero = bool(payload.get('run_vspaero', False))
+    results = run_bipol_project(params)
+    try:
+        vsp_out = run_full_vsp_pipeline(
+            results,
+            params=results.get('inputs', params),
+            run_vspaero=run_vspaero,
+            export_dir=None,
+        )
+        return jsonify(status='ok', openvsp=vsp_out)
+    except OpenVSPNotAvailableError as exc:
+        return jsonify(status='error', error_type='openvsp_not_available', message=str(exc)), 503
+    except OpenVSPAPIError as exc:
+        return jsonify(status='error', error_type='openvsp_api_error', message=str(exc)), 400
+
+
+@app.post('/api/openvsp/export/<fmt>')
+def openvsp_export(fmt):
+    """Buduje model samolotu w API OpenVSP i eksportuje plik .vsp3 / STL / STEP / IGES / OBJ / DXF."""
+    import tempfile
+    from calculations.openvsp_integration import (
+        OpenVSPNotAvailableError,
+        OpenVSPAPIError,
+        build_vsp_aircraft_model,
+        export_vsp_model,
+    )
+    fmt_clean = (fmt or 'vsp3').lower().lstrip('.')
+    if fmt_clean not in ('vsp3', 'stl', 'step', 'iges', 'obj', 'dxf', 'gmsh', 'xsec'):
+        return jsonify(status='error', message=f'Nieobsługiwany format eksportu OpenVSP: {fmt}'), 400
+
+    payload = request.get_json(force=True, silent=True) or {}
+    params = manual_control.apply(payload.get('params') if isinstance(payload.get('params'), dict) else payload)
+    results = run_bipol_project(params)
+    try:
+        model_info = build_vsp_aircraft_model(results, params=results.get('inputs', params))
+        tmp_dir = Path(tempfile.mkdtemp(prefix='bipol_openvsp_'))
+        exported = export_vsp_model(
+            output_dir=tmp_dir,
+            base_name=model_info['vehicle_name'],
+            formats=(fmt_clean,),
+        )
+        file_path = Path(exported[fmt_clean])
+        return send_file(
+            file_path,
+            as_attachment=True,
+            download_name=file_path.name,
+            mimetype='application/octet-stream',
+        )
+    except OpenVSPNotAvailableError as exc:
+        return jsonify(status='error', error_type='openvsp_not_available', message=str(exc)), 503
+    except OpenVSPAPIError as exc:
+        return jsonify(status='error', error_type='openvsp_api_error', message=str(exc)), 400
+
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
