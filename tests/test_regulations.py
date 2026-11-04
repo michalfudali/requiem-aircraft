@@ -144,3 +144,13 @@ def test_official_topic_outside_jar23_scope_is_redesigned_in_the_category_that_c
     law = check_compliance(r['params'], r['mass'], r['geometry'], r['performance'], r['envelope'])
     assert next(c for c in law['checks'] if c['name'] == 'Rodzaj napędu: turbinowy')['ok']
     assert resolve_category(topic['parameters']['category']) == 'jar23_normal'
+
+
+@pytest.mark.parametrize('category',['cs22_glider','cs22_motoglider'])
+def test_ui_crew_mass_depends_on_actual_number_of_occupants(category):
+    from calculations.polish_law import ui_limits, occupant_mass_minimum
+    limits=ui_limits(category)
+    for field in ['m_crew_person','m_pax']:
+        assert limits[field]['min_by_occupants']=={
+            str(n):occupant_mass_minimum(category,n)[0] for n in (1,2)}
+    assert limits['m_crew_person']['min_by_occupants']=={'1':110.0,'2':90.0}

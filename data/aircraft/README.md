@@ -1,15 +1,73 @@
 # Baza referencyjna do analiz P1
 
-Katalog jest bazą SQLite `aircraft.sqlite3` (895 rekordów): 428 wariantów z FAST,
-288 z CADO, 65 motoszybowców i 114 konstrukcji z zestawienia geometrii. To liczba
-rekordów, nie liczba niezależnych rodzin. Te same konstrukcje mogą występować w obu
-źródłach pod różnymi nazwami. Do analizy wrażliwości wybierz jedno źródło.
-Baza jest lokalną migawką; aplikacja nie pobiera danych w trakcie pracy.
+Katalog jest bazą SQLite `aircraft.sqlite3` (1016 rekordów): 428 wariantów z FAST,
+288 z CADO, 101 motoszybowców z wcześniejszego zestawienia, 114 konstrukcji
+geometrycznych oraz 85 wariantów ze szczegółowo opisanej dokumentacji pierwotnej.
+To liczba rekordów, nie liczba niezależnych rodzin. Wspólna próba wybiera jeden
+rzeczywisty wariant z każdej rodziny; nie łączy najlepszych parametrów różnych
+konfiguracji. Można także ograniczyć próbę do jednego źródła.
+Baza jest lokalną migawką; aplikacja nie pobiera danych w trakcie obliczeń.
+
+## Dokumentacja pierwotna — listopad 2026
+
+Dodano 55 lekkich samolotów, 29 motoszybowców i jeden szybowiec, łącznie 85
+wariantów z 47 nazwanych rodzin. 576 obserwacji liczbowych ma lokalizację w jednym
+z 54 dokumentów producentów lub władz lotniczych. Wśród źródeł są TCDS EASA,
+karty zatwierdzenia BMAA/CAA, instrukcje i broszury producentów. Reprezentowane są
+m.in. Bristell, Evektor, Tecnam, Flight Design, Van’s, Sling, Aeroprakt, TL-Ultralight,
+Blackwing, Skyleader, Zenith, RANS, Schleicher, Jonker, HpH, Lange, LAK,
+DG i Schempp-Hirth. Różne silniki, rozpiętości, masy dopuszczalne oraz odmiany
+wyposażenia zachowują oddzielne rekordy. Konfiguracje tej samej rodziny mają
+wspólny identyfikator rodziny do ograniczenia wielokrotnego ważenia.
+
+Wersjonowany [manifest odczytów](research/primary_aircraft.json) zawiera oryginalną
+wartość i jednostkę, dokument, stronę/sekcję, warunki oraz jawne przekształcenia.
+Adresy prowadzą do oryginalnych publikacji. Ich kopie nie są rozpowszechniane.
+Sumy SHA-256 opisują dokumenty faktycznie pobrane podczas badania, gdy były
+lokalnie dostępne. Warunki wykorzystania: [PRIMARY-RESEARCH.txt](licenses/PRIMARY-RESEARCH.txt).
+
+Zasady doboru wartości:
+
+- Maksymalna prędkość lotu poziomego nie jest limitem VNE. Limity szybowców
+  zachowano poza kolumną `v_max`.
+- Nie zastępowano przedziału masy pustej jego środkiem ani dowolnym końcem.
+  Masa bez silnika lub bez baterii napędowych nie jest masą kompletnego motoszybowca.
+- Osiągi przy podanej mniejszej masie są zachowane z warunkami poza próbą,
+  jeżeli nie można ich przypisać do katalogowego MTOW. Czyste VS1 Slingów nie
+  trafia do pola używanego do zadawania VS0 w kreatorze.
+- Rozbieg/dobieg, długość do przeszkody 15 m, długość do przeszkody 50 ft i
+  długość pola są rozróżnione. Nieopisanej podstawy nie zgaduje się z wielkości liczby.
+- Rok certyfikacji dotyczy wskazanego wariantu. Daty publikacji, dostępu lub
+  zmiany regulaminu nie zastępują nieznanego roku certyfikacji.
+- Wartości sprzeczne, zaokrąglone lub o nieokreślonej konfiguracji mają uwagi.
+  Nie korygowano samodzielnie opublikowanej geometrii do deklarowanego wydłużenia.
+- Moc jest łączną mocą zainstalowaną; dla P2006T NG jawnie obliczono 2 × 73,5 kW.
+  Moc startowa i ciągła nie są zamienne, a amerykańskie hp i metryczne PS mają
+  osobne współczynniki przeliczenia.
+
+W aplikacji wybierz źródło **Dokumentacja producentów i TCDS** w analizie trendów.
+W edytorze rekordu rozwiń **Dokumentacja źródłowa, warunki i ograniczenia danych**:
+można porównać odczyt z zapisem w bazie, przeczytać pominięte obserwacje i pobrać
+pełny manifest JSON. Lokalna edycja jest oznaczana jako różnica względem odczytu;
+zmiana liczby w edytorze nie zmienia dokumentu źródłowego.
+
+Odtworzenie i walidacja bez sieci:
+
+```sh
+python tools/import_primary_research.py --check
+python tools/import_primary_research.py
+python tools/aircraft_db.py check
+```
+
+Import jest transakcyjny, nie zmienia wierszy innych źródeł, odrzuca kolizję
+identyfikatora z cudzym źródłem i jest idempotentny (drugi import nie zmienia
+nawet rewizji katalogu). Manifest jest wejściem do importu oraz dokumentacją;
+wszystkie obliczenia nadal korzystają wyłącznie z SQLite.
 
 ## Struktura bazy
 
 - `sources`: pochodzenie każdego zbioru (nazwa, adres, licencja, plik licencji,
-  cytowanie, atrybucja): `fast`, `cado`, `motogliders`, `geometry_trends` oraz `user`
+  cytowanie, atrybucja): `fast`, `cado`, `motogliders`, `geometry_trends`, `primary_research` oraz `user`
   dla wpisów z edytora. Każdy samolot wskazuje źródło kluczem obcym `source_id`.
 - `aircraft`: jeden wiersz na konstrukcję lub wariant, w jednostkach SI
   (kg, m², m, kW, kN, km/h, km). Brak danej w źródle to `NULL`, nie zero.

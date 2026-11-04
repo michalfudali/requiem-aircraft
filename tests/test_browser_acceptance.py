@@ -23,7 +23,16 @@ def test_every_aircraft_class_calculates_in_browser_and_renders_offline_report(s
     if preset == 'transport':
         params.update(aircraft_type='jet_transport', category='cs25_transport', n_pax=120,
                       range_km=3500, cruise_speed_kmh=750, cruise_altitude_m=10000, v_stall_kmh=200)
-    # Set up a reproducible project, then use the same edit and calculate controls as a student.
+    # Presets and saved projects may predate the current design rules. Start from
+    # the API-normalized design (crew mass, take-off requirement and category),
+    # then use the actual edit/calculate controls with that valid baseline.
+    baseline = page.request.post(base + '/api/calculate', data=params)
+    assert baseline.ok, baseline.text()
+    params = baseline.json()['params']
+    from calculations.polish_law import resolve_category, ui_limits
+    takeoff_limit = ui_limits(resolve_category(params['category'])).get('takeoff_distance_m', {}).get('max')
+    if takeoff_limit is not None:
+        params['takeoff_distance_m'] = min(params.get('takeoff_distance_m', takeoff_limit), takeoff_limit)
     page.evaluate('params => loadProjectIntoForm({name:"CI acceptance",params})', params)
     field = edit_inputs(page, 'aspect_ratio')
     field.fill(str(params['aspect_ratio']))

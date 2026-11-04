@@ -1,0 +1,5254 @@
+{
+  "schema": 1,
+  "documents": {
+    "bristell_b23": {
+      "url": "https://www.bristell.com/aircraft/b23/",
+      "publisher": "BRM Aero",
+      "title": "Bristell B23 — technical specifications and engines",
+      "retrieved": "2026-11-04"
+    },
+    "bristell_b23_tcds": {
+      "url": "https://www.easa.europa.eu/en/downloads/119222/en",
+      "publisher": "EASA",
+      "title": "TCDS EASA.A.642, issue 09, 20 April 2026",
+      "retrieved": "2026-11-04",
+      "content_sha256": "346835f8586ba41092921dc68a9432b9942e0b88986ccfa71b09c3018467b147"
+    },
+    "evektor_rtc": {
+      "url": "https://www.evektor.com/aircraft-technical-specification/sportstar-rtc",
+      "publisher": "Evektor",
+      "title": "SportStar RTC — technical specifications / aircraft versions",
+      "retrieved": "2026-11-04"
+    },
+    "antares_21": {
+      "url": "https://www.lange-aviation.com/antares-serie/antares-21e/",
+      "publisher": "Lange Aviation",
+      "title": "Antares 21E — Technische Daten",
+      "retrieved": "2026-11-04"
+    },
+    "antares_23": {
+      "url": "https://www.lange-aviation.com/en/antares-series/antares-23e/",
+      "publisher": "Lange Aviation",
+      "title": "Antares 23E — Technical data",
+      "retrieved": "2026-11-04"
+    },
+    "ctls_2020": {
+      "url": "https://flightdesign.com/wp-content/uploads/2020/09/CTLS_2020_NEW.pdf",
+      "publisher": "Flight Design",
+      "title": "CTLS 2020 — technical information, printed pp. 18–19",
+      "retrieved": "2026-11-04"
+    },
+    "p92_mkii": {
+      "url": "https://www.tecnam.com/wp-content/uploads/2020/08/P92-MKII-200731-W.pdf",
+      "publisher": "Tecnam",
+      "title": "P92 Echo MkII — specification and description, Rev. 20200221",
+      "retrieved": "2026-11-04"
+    },
+    "vans-rv-12is": {
+      "url": "https://www.vansaircraft.com/rv-12is/",
+      "publisher": "Van's Aircraft",
+      "title": "RV-12IS — Aircraft Specs and Performance Details",
+      "retrieved": "2026-11-04",
+      "content_sha256": "387a424e689c5c500341717bdd66c04fc48b6227b19fb26b3d93745737edfdd6"
+    },
+    "vans-rv-14": {
+      "url": "https://www.vansaircraft.com/rv-14/",
+      "publisher": "Van's Aircraft",
+      "title": "RV-14 — Aircraft Specs and Performance Details",
+      "retrieved": "2026-11-04",
+      "content_sha256": "bdabe7531589c117cfa56680c081d212d80893afab28ade950703326a9ac13a2"
+    },
+    "vans-rv-10": {
+      "url": "https://www.vansaircraft.com/rv-10/",
+      "publisher": "Van's Aircraft",
+      "title": "RV-10 — Aircraft Specs and Performance Details",
+      "retrieved": "2026-11-04",
+      "content_sha256": "91e020f5cb90dad8badc492f74a9be932a5f0f9ceabfae8f6114be798df0aa52"
+    },
+    "vans-rv-9": {
+      "url": "https://www.vansaircraft.com/rv-9/",
+      "publisher": "Van's Aircraft",
+      "title": "RV-9 — Aircraft Specs and Performance Details",
+      "retrieved": "2026-11-04",
+      "content_sha256": "7e74b32efa6adf3d8a4fedffd0efd8bb918cfd6e7a889acc31699cdb419803ab"
+    },
+    "vans-rv-8": {
+      "url": "https://www.vansaircraft.com/rv-8/",
+      "publisher": "Van's Aircraft",
+      "title": "RV-8 — Aircraft Specs and Performance Details",
+      "retrieved": "2026-11-04",
+      "content_sha256": "7145ad29665ea768db5940b24c700adf837e75c4d9545904cd95f7be9c4f6f31"
+    },
+    "vans-rv-7": {
+      "url": "https://www.vansaircraft.com/rv-7/",
+      "publisher": "Van's Aircraft",
+      "title": "RV-7 — Aircraft Specs and Performance Details",
+      "retrieved": "2026-11-04",
+      "content_sha256": "d7d3a851298d9ca3fd184bb6738570c20d7763a3eb2149508e3082afd1e0eb09"
+    },
+    "sling-2": {
+      "url": "https://slingaircraft.com/aircraft/sling-2/",
+      "publisher": "Sling Aircraft",
+      "title": "Sling 2 — Specifications / Performance & Engine",
+      "retrieved": "2026-11-04",
+      "content_sha256": "6a47b3f1a25ad4f6492791faf27983c9eddd5807b08b47592955731ce74befd7"
+    },
+    "sling-lsa": {
+      "url": "https://slingaircraft.com/aircraft/sling-lsa/",
+      "publisher": "Sling Aircraft",
+      "title": "Sling LSA — Specifications / Performance & Engine",
+      "retrieved": "2026-11-04",
+      "content_sha256": "0dbbd09b96fdd7dd58f57a92ee09732b30cbfd61337c149a249f0c8f06b182f5"
+    },
+    "sling-tsi": {
+      "url": "https://slingaircraft.com/aircraft/sling-tsi/",
+      "publisher": "Sling Aircraft",
+      "title": "Sling TSI — Specifications / Performance & Engine",
+      "retrieved": "2026-11-04",
+      "content_sha256": "96120a8b41b4c4e8c9878208b17d4b12812303ea8d7e76d0c136160db9dfefae"
+    },
+    "sling-hw": {
+      "url": "https://slingaircraft.com/aircraft/sling-hw/",
+      "publisher": "Sling Aircraft",
+      "title": "Sling HW — Specifications / Performance & Engine",
+      "retrieved": "2026-11-04",
+      "content_sha256": "8feea6e9548bbdc8e9c5b45cd1475b053e59d40a35ea7162eb50e011b4ba0112"
+    },
+    "aeroprakt-a32": {
+      "url": "https://aeroprakt.kiev.ua/aircraft/a-32/",
+      "publisher": "Aeroprakt",
+      "title": "A-32 / A-22LS — Technical data and performance",
+      "retrieved": "2026-11-04",
+      "content_sha256": "93b4dea0894a53547001a3770779ebddacbd7c9a9acb5c507fadc04c03b4495b"
+    },
+    "a32_dimensions": {
+      "url": "https://aeroprakt.kiev.ua/wp-content/uploads/2020/03/a32.png",
+      "publisher": "Aeroprakt",
+      "title": "A-32 three-view dimensions diagram",
+      "retrieved": "2026-11-04"
+    },
+    "aeroprakt-a22": {
+      "url": "https://aeroprakt.kiev.ua/aircraft/a-22ls/",
+      "publisher": "Aeroprakt",
+      "title": "A-32 / A-22LS — Technical data and performance",
+      "retrieved": "2026-11-04",
+      "content_sha256": "0d3fc4ed1f4330381b1b08f9b1775f88d13819647f68fc8728677e2ce7bb8b48"
+    },
+    "schleicher-as-34-me": {
+      "url": "https://www.alexander-schleicher.de/en/flugzeuge/as-34-me/",
+      "publisher": "Alexander Schleicher",
+      "title": "AS 34 Me — Technical data / Powered flight performance",
+      "retrieved": "2026-11-04",
+      "content_sha256": "7ac3c3d5d9f0086cc555e8774a29d71f28e3d54bde436b609aa0af4f5ec2acfb"
+    },
+    "schleicher-as-35-mi": {
+      "url": "https://www.alexander-schleicher.de/en/flugzeuge/as-35-mi/",
+      "publisher": "Alexander Schleicher",
+      "title": "AS 35 Mi — Technical data",
+      "retrieved": "2026-11-04",
+      "content_sha256": "0df816e58625c72ed1acc330145a35dfa20100b95d988f36046005172128c9c8"
+    },
+    "schleicher-ash-30-mi": {
+      "url": "https://www.alexander-schleicher.de/en/flugzeuge/ash-30-mi/",
+      "publisher": "Alexander Schleicher",
+      "title": "ASH 30 Mi — Technical data",
+      "retrieved": "2026-11-04",
+      "content_sha256": "8ef3f6bb88610eb6665416a1c0454a46e6cbf77017af6f8a33e3b8f64d4f735a"
+    },
+    "schleicher-asg-32-mi": {
+      "url": "https://www.alexander-schleicher.de/en/flugzeuge/asg-32-mi/",
+      "publisher": "Alexander Schleicher",
+      "title": "ASG 32 Mi — Technical data / Engine system",
+      "retrieved": "2026-11-04",
+      "content_sha256": "af0b1607faedea61e82b47b2d00b9c387b4df0e08ef1f76122bf8e613d7d4490"
+    },
+    "js2": {
+      "url": "https://jonker-sailplanes.com/js2-revenant/",
+      "publisher": "Jonker Sailplanes",
+      "title": "JS2 Revenant — Specifications & 3-View / Performance",
+      "retrieved": "2026-11-04",
+      "content_sha256": "390d44afc560d698c44455acfeb80a1f6c4c6319f876062bd34e287842d7007b"
+    },
+    "js5": {
+      "url": "https://jonker-sailplanes.com/js5-rey/",
+      "publisher": "Jonker Sailplanes",
+      "title": "JS5 Rey — Specifications & 3-View",
+      "retrieved": "2026-11-04",
+      "content_sha256": "2b8cdefdcd3e79cafbe8894883f7f2bbb06f11fdecd0ac9cd695182029eb0143"
+    },
+    "lak17c": {
+      "url": "https://www.lak.lt/models/lak17c-fes/",
+      "publisher": "Sportinė Aviacija ir Ko",
+      "title": "LAK-17C FES — Technical data",
+      "retrieved": "2026-11-04",
+      "content_sha256": "844a310bfcc0d5967c185c96d6ad74438ea85f06478351db799faf5bf470fcec"
+    },
+    "hph3042025": {
+      "url": "https://hph.cz/wp-content/uploads/2025/04/304S_folder2025EN-web.pdf",
+      "publisher": "HpH Sailplanes",
+      "title": "Shark S / MS / JS — manufacturer folder, 2025",
+      "retrieved": "2026-11-04",
+      "content_sha256": "ea9fcca78ba984785d8575255014de1aaea8093d6f4b98ae9bae6542dad68712"
+    },
+    "dg-fes": {
+      "url": "https://www.dg-aviation.de/en/das-fes-system_en/",
+      "publisher": "DG Aviation",
+      "title": "The FES system — Technical details LS8e neo / DG1001E",
+      "retrieved": "2026-11-04",
+      "content_sha256": "757c05c2ac17295924c9a4fd1578ad11f50499fb2ba10f5074b48c290004f912"
+    },
+    "arcus": {
+      "url": "https://www.schempp-hirth.com/en/sailplanes/arcus",
+      "publisher": "Schempp-Hirth",
+      "title": "Arcus — Technical data / S, T, M configurations",
+      "retrieved": "2026-11-04",
+      "content_sha256": "29cdfdc7e27c58778abf3054baf3cec7621a2e4fa27d4e26d083c73135d4c86d"
+    },
+    "ventus": {
+      "url": "https://www.schempp-hirth.com/en/sailplanes/ventus",
+      "publisher": "Schempp-Hirth",
+      "title": "Ventus — Performance Edition / Sport Edition technical data",
+      "retrieved": "2026-11-04",
+      "content_sha256": "0c6526cc5fd37c897a180aca8a3dc3a952c1a54e5d54311be3ac8c73af0f1526"
+    },
+    "tecnam-pmentor": {
+      "url": "https://tecnam.com/aircraft/p-mentor/",
+      "publisher": "Tecnam",
+      "title": "P-Mentor — Technical specifications",
+      "retrieved": "2026-11-04",
+      "content_sha256": "1acb344f839885cae2556174509666e6ebd922030f5456e568827eaff88a5749"
+    },
+    "tecnam-p2008jc-ng": {
+      "url": "https://tecnam.com/aircraft/p2008-jc-ng/",
+      "publisher": "Tecnam",
+      "title": "P2008 JC NG — Technical specifications",
+      "retrieved": "2026-11-05",
+      "content_sha256": "a85be30b28e4df62649077112e3f395295acb36335ee74f127bbf14bf6c16cda"
+    },
+    "tecnam-p2008lsa": {
+      "url": "https://tecnam.com/aircraft/p2008-lsa/",
+      "publisher": "Tecnam",
+      "title": "P2008 LSA — Technical specifications",
+      "retrieved": "2026-11-05",
+      "content_sha256": "a6ad280c39d0ee02a867f621fffb12eba29e41713d2fd492dce645f03f6f7d3c"
+    },
+    "tecnam-p2002": {
+      "url": "https://tecnam.com/aircraft/p2002-sierra-mkii/",
+      "publisher": "Tecnam",
+      "title": "P2002 Sierra MkII — Technical specifications",
+      "retrieved": "2026-11-05",
+      "content_sha256": "2840dade6df636566ced1a10b55286213f8f12855da3add96e9e84fbb9ec9079"
+    },
+    "tecnam-p2010tdi": {
+      "url": "https://tecnam.com/aircraft/p2010-tdi/",
+      "publisher": "Tecnam",
+      "title": "P2010 TDI — Technical specifications",
+      "retrieved": "2026-11-05",
+      "content_sha256": "4cbdd10f06040e21a702877e116e54fed0c26b827135f4d3646601cd27ebb2b5"
+    },
+    "tecnam-p2006ng": {
+      "url": "https://tecnam.com/aircraft/p2006t-ng/",
+      "publisher": "Tecnam",
+      "title": "P2006T NG — Technical specifications",
+      "retrieved": "2026-11-05",
+      "content_sha256": "c7d202253b36feda4040ed43e41d83ca39d411317815d62698b9a0ff0e547aa5"
+    },
+    "bm108": {
+      "url": "https://www.bmaa.org/files/tads_bm108_JA-600_skyleader_600.pdf",
+      "publisher": "UK CAA / BMAA",
+      "title": "Aircraft Type Approval Data Sheet BM108 — Skyleader 600 (UK, 912 ULS)",
+      "retrieved": "2026-11-05",
+      "content_sha256": "8d17a8bd080ec52af0ac6e6c2a19129fb1d0953b2a262957cce1398f3ed1b182"
+    },
+    "bm107": {
+      "url": "https://www.bmaa.org/files/tads_bm107_Ellipse_Spirit.pdf",
+      "publisher": "UK CAA / BMAA",
+      "title": "Aircraft Type Approval Data Sheet BM107 — Ellipse Spirit (UK, 912iS / MTV-33)",
+      "retrieved": "2026-11-05",
+      "content_sha256": "5a0860b5de33dcd3fff2e88ee10ff7e37d77fe35f1438dd0c459e027a260fece"
+    },
+    "bm105": {
+      "url": "https://www.bmaa.org/files/tads_bm105_Savannah_SR.pdf",
+      "publisher": "UK CAA / BMAA",
+      "title": "Aircraft Type Approval Data Sheet BM105 — Savannah SR (UK)",
+      "retrieved": "2026-11-05",
+      "content_sha256": "f6e7f03f79362a05ea30e3f7df169e987cd1554ed76339f3d04616ce1db7217b"
+    },
+    "bm102": {
+      "url": "https://www.bmaa.org/files/tads_bm102_aeroprakt_a32_vixxen.pdf",
+      "publisher": "UK CAA / BMAA",
+      "title": "Aircraft Type Approval Data Sheet BM102 — Aeroprakt A32 Vixxen (UK)",
+      "retrieved": "2026-11-05",
+      "content_sha256": "7544f2e399665475b80e1d81f6cd58181ccb5a04f88e37dc4bc33f95c1e4303a"
+    },
+    "bm101": {
+      "url": "https://www.bmaa.org/files/tads_bm101_tl_2000_sting_S4.pdf",
+      "publisher": "UK CAA / BMAA",
+      "title": "Aircraft Type Approval Data Sheet BM101 — TL-2000 Sting S4 (UK)",
+      "retrieved": "2026-11-05",
+      "content_sha256": "e000b04ded2274422b596b50c3328f67c9a69c00806bcd5d859cfa5dfcc17ed1"
+    },
+    "bm100": {
+      "url": "https://www.bmaa.org/files/tads_bm100_Shark_600_UK.pdf",
+      "publisher": "UK CAA / BMAA",
+      "title": "Aircraft Type Approval Data Sheet BM100 — Shark 600 UK",
+      "retrieved": "2026-11-05",
+      "content_sha256": "5512eeb3dde2788a6cb3c3380aeebe608caada9f5db0b96060bb50a643f98c6a"
+    },
+    "bm99": {
+      "url": "https://www.bmaa.org/files/tads_bm99_wt9_dynamic_lsm.pdf",
+      "publisher": "UK CAA / BMAA",
+      "title": "Aircraft Type Approval Data Sheet BM99 — WT9 Dynamic LSM RG912iS (UK)",
+      "retrieved": "2026-11-05",
+      "content_sha256": "3e94b9e50b54a7a85895440c72aaf13f4a76ec8d92e4174055aab385caabf9dc"
+    },
+    "bm97": {
+      "url": "https://www.bmaa.org/files/tads_bm97_pipistel_virus_sw_121_bcar-s.pdf",
+      "publisher": "UK CAA / BMAA",
+      "title": "Aircraft Type Approval Data Sheet BM97 — Pipistrel Virus SW 127 BCAR-S",
+      "retrieved": "2026-11-05",
+      "content_sha256": "330c4bed51d2e8b40816c902fc4057e0cbe5edd935ae14c4b0661629a9c19284"
+    },
+    "sirius_tads": {
+      "url": "https://www.bmaa.org/files/tads_bm95_tl-3000_Sirius_600.pdf",
+      "publisher": "UK CAA / BMAA",
+      "title": "TADS BM95 Issue 2, 27 February 2026 — TL-3000 Sirius 600",
+      "retrieved": "2026-11-04",
+      "content_sha256": "34f67ae2dd38ad1042cb780bdecf54114e7fed4aea2c537a02fdbd546536a418"
+    },
+    "tl-stream": {
+      "url": "https://www.tl-ultralight.cz/en/ultralight-aircraft/stream",
+      "publisher": "TL-Ultralight",
+      "title": "TL Stream (472.5 kg) — Technical data",
+      "retrieved": "2026-11-04",
+      "content_sha256": "be375c8d8bdaff54442306bd5594fa3de67205c2133ad5123c40eff8cd4cf736"
+    },
+    "tl-sparker": {
+      "url": "https://www.tl-ultralight.cz/en/ultralight-aircraft/sparker",
+      "publisher": "TL-Ultralight",
+      "title": "TL Sparker (600 kg) — Technical data",
+      "retrieved": "2026-11-04",
+      "content_sha256": "e8a2bd8868b48762893deac146ad9dc80d56b4aa3d947eb8310f820be317713a"
+    },
+    "skyleader600": {
+      "url": "https://www.skyleader.cz/model-600-technicke-udaje?lang=en",
+      "publisher": "Air Operation Technologies / Skyleader",
+      "title": "Skyleader 600 — Technical data",
+      "retrieved": "2026-11-05",
+      "content_sha256": "a2108f9a6522ff928a7d3a68fd119d27a21da22af5beb13dd1cc1562b44fe695"
+    },
+    "blackwing2026": {
+      "url": "https://cdn.prod.website-files.com/67652ebd2306750adb3bf012/6ad89abe8cf081d6a0d50a17_26_04_01%20BW%20Broschyr%202026.pdf",
+      "publisher": "Blackwing",
+      "title": "Blackwing manufacturer brochure, April 2026",
+      "retrieved": "2026-11-04",
+      "content_sha256": "dedf9cb178cc7250d653a2de7217d664416bd726f7c945ac8fc1d69a8c4fa0ab"
+    },
+    "zenith750cruzer": {
+      "url": "https://zenithair.net/specifications-of-the-zenith-ch750-cruzer/",
+      "publisher": "Zenith Aircraft",
+      "title": "CH 750 Cruzer — Specifications and Performance",
+      "retrieved": "2026-11-04",
+      "content_sha256": "b6985b368dd4968121b8a9acc287b325206bbb6c645069db2ac461ab8bcff0dc"
+    },
+    "zenith750super": {
+      "url": "https://zenithair.net/zenith-ch-750-super-cruzer",
+      "publisher": "Zenith Aircraft",
+      "title": "CH 750 Super Cruzer (prototype) — Specifications and Performance",
+      "retrieved": "2026-11-04",
+      "content_sha256": "f557d42d13b539e78462b1995ed430f95fce59eda41e1b7f80b16f89b0554a94"
+    },
+    "rans21-2020": {
+      "url": "https://www.rans.com/_files/ugd/6e941e_e1e6f75b7e8d40df9794c7e22ae30719.pdf",
+      "publisher": "RANS Designs",
+      "title": "S-21 Outbound — Specs and Performance, updated 30 January 2020",
+      "retrieved": "2026-11-05",
+      "content_sha256": "67e3f00a13dacf22c5ab95594db020adb012f737011e8c6e33b537b708740ab3"
+    },
+    "rotax_e121": {
+      "url": "https://www.flyrotax.com/assets/files/TC-TCDS-EASA-E-121-912-915-916_2024-01-08-124855_agfv.pdf",
+      "publisher": "EASA / BRP-Rotax",
+      "title": "TCDS EASA.E.121 Issue 17, 18 December 2023 — Ratings",
+      "retrieved": "2026-11-05",
+      "content_sha256": "4f2d882b11ee638f7b89779793f61bef47c9a23b124749a9129de5b27bd068b9"
+    }
+  },
+  "records": [
+    {
+      "id": "pr-aeroprakt-a22",
+      "model": "Aeroprakt A-22LS",
+      "manufacturer": "Aeroprakt",
+      "family": "Aeroprakt A-22",
+      "aircraft_type": "piston_ga",
+      "engine_type": "prop",
+      "n_engines": 1,
+      "document": "aeroprakt-a22",
+      "observations": {
+        "m0": {
+          "value": 1323,
+          "unit": "lb",
+          "locator": "Technical Data & Performance / A-22LS / Maximum weight",
+          "conditions": "Published rounded imperial mass; approximately 600 kg."
+        },
+        "p_kw": {
+          "value": 73.5,
+          "unit": "kW",
+          "locator": "Technical Data & Performance / A-22LS / Power at 5800 rpm"
+        },
+        "v_max": {
+          "value": 99.0,
+          "unit": "kt",
+          "locator": "Technical Data & Performance / A-22LS / Top level speed"
+        },
+        "v_cruise_kmh": {
+          "value": 81.0,
+          "unit": "kt",
+          "locator": "Technical Data & Performance / A-22LS / Cruise at 4650 rpm"
+        },
+        "v_stall_kmh": {
+          "value": 32.0,
+          "unit": "kt",
+          "locator": "Technical Data & Performance / A-22LS / VS0 full flaps"
+        },
+        "takeoff_m": {
+          "value": 1099.0,
+          "unit": "ft",
+          "locator": "Technical Data & Performance / A-22LS / Take-off over 50 ft",
+          "conditions": "MTOW and ISA."
+        },
+        "landing_m": {
+          "value": 1444.0,
+          "unit": "ft",
+          "locator": "Technical Data & Performance / A-22LS / Landing from 50 ft",
+          "conditions": "MTOW and ISA."
+        }
+      },
+      "engine_model": "Rotax 912 ULS / 912 iS",
+      "takeoff_basis": "50ft",
+      "landing_basis": "50ft",
+      "excluded_observations": [
+        {
+          "quantity": "empty_mass_range",
+          "values": [
+            639,
+            761
+          ],
+          "unit": "lb",
+          "locator": "Technical Data & Performance / A-22LS / Empty weight",
+          "reason": "Przedział zależny od wyposażenia; nie określono jednej konfiguracji i odpowiadającej jej masy pustej."
+        },
+        {
+          "quantity": "range",
+          "value": 529.0,
+          "unit": "NM",
+          "locator": "Range with 2×24 US gal. tanks, 30 min. reserve at 1000 ft, ISA conditions, 4000 RPM (with wheels landing gear)",
+          "reason": "Wiersz zasięgu zakłada 2 × 24 US gal, choć łączną pojemność podano jako 24 (30) US gal. Dane zbiorników są sprzeczne."
+        }
+      ]
+    },
+    {
+      "id": "pr-aeroprakt-a32",
+      "model": "Aeroprakt A-32",
+      "manufacturer": "Aeroprakt",
+      "family": "Aeroprakt A-32",
+      "aircraft_type": "piston_ga",
+      "engine_type": "prop",
+      "n_engines": 1,
+      "document": "aeroprakt-a32",
+      "observations": {
+        "m0": {
+          "value": 1323,
+          "unit": "lb",
+          "locator": "Technical Data & Performance / A-32 / Maximum weight",
+          "conditions": "Published rounded imperial mass; approximately 600 kg."
+        },
+        "p_kw": {
+          "value": 73.5,
+          "unit": "kW",
+          "locator": "Technical Data & Performance / A-32 / Power at 5800 rpm"
+        },
+        "v_max": {
+          "value": 116.0,
+          "unit": "kt",
+          "locator": "Technical Data & Performance / A-32 / Top level speed"
+        },
+        "v_cruise_kmh": {
+          "value": 95.0,
+          "unit": "kt",
+          "locator": "Technical Data & Performance / A-32 / Cruise at 4650 rpm"
+        },
+        "v_stall_kmh": {
+          "value": 27.0,
+          "unit": "kt",
+          "locator": "Technical Data & Performance / A-32 / VS0 full flaps"
+        },
+        "takeoff_m": {
+          "value": 1047.0,
+          "unit": "ft",
+          "locator": "Technical Data & Performance / A-32 / Take-off over 50 ft",
+          "conditions": "MTOW and ISA."
+        },
+        "landing_m": {
+          "value": 1325.0,
+          "unit": "ft",
+          "locator": "Technical Data & Performance / A-32 / Landing from 50 ft",
+          "conditions": "MTOW and ISA."
+        },
+        "b": {
+          "value": 9450,
+          "unit": "mm",
+          "locator": "Front-view wingspan dimension 9450 [31 ft]",
+          "document": "a32_dimensions"
+        }
+      },
+      "engine_model": "Rotax 912 ULS / 912 iS",
+      "takeoff_basis": "50ft",
+      "landing_basis": "50ft",
+      "excluded_observations": [
+        {
+          "quantity": "empty_mass_range",
+          "values": [
+            639,
+            761
+          ],
+          "unit": "lb",
+          "locator": "Technical Data & Performance / A-32 / Empty weight",
+          "reason": "Przedział zależny od wyposażenia; nie określono jednej konfiguracji i odpowiadającej jej masy pustej."
+        },
+        {
+          "quantity": "range",
+          "value": 702.0,
+          "unit": "NM",
+          "locator": "Range with 2×24 US gal. tanks, 30 min. reserve at 1000 ft, ISA conditions, 3700 RPM",
+          "reason": "Wiersz zasięgu zakłada 2 × 24 US gal, choć łączną pojemność podano jako 24 (30) US gal. Dane zbiorników są sprzeczne."
+        }
+      ]
+    },
+    {
+      "id": "pr-arcus-m",
+      "model": "Arcus M",
+      "manufacturer": "Schempp-Hirth",
+      "family": "Arcus",
+      "aircraft_type": "motoglider",
+      "engine_type": "prop",
+      "n_engines": 1,
+      "document": "arcus",
+      "observations": {
+        "b": {
+          "value": 20,
+          "unit": "m",
+          "locator": "Technical Data / Arcus M / b"
+        },
+        "s": {
+          "value": 15.59,
+          "unit": "m2",
+          "locator": "Technical Data / Arcus M / s"
+        },
+        "m0": {
+          "value": 850,
+          "unit": "kg",
+          "locator": "Technical Data / Arcus M / m0"
+        },
+        "me": {
+          "value": 510,
+          "unit": "kg",
+          "locator": "Technical Data / Arcus M / me"
+        },
+        "p_kw": {
+          "value": 50,
+          "unit": "kW",
+          "locator": "Technical Data / Arcus M / p_kw"
+        }
+      },
+      "engine_model": "SOLO 2625-02i",
+      "empty_mass_definition": "Manufacturer approximate empty mass of the M configuration in the current technical table."
+    },
+    {
+      "id": "pr-arcus-t",
+      "model": "Arcus T",
+      "manufacturer": "Schempp-Hirth",
+      "family": "Arcus",
+      "aircraft_type": "motoglider",
+      "engine_type": "prop",
+      "n_engines": 1,
+      "document": "arcus",
+      "observations": {
+        "b": {
+          "value": 20,
+          "unit": "m",
+          "locator": "Technical Data / Arcus T / b"
+        },
+        "s": {
+          "value": 15.59,
+          "unit": "m2",
+          "locator": "Technical Data / Arcus T / s"
+        },
+        "m0": {
+          "value": 850,
+          "unit": "kg",
+          "locator": "Technical Data / Arcus T / m0"
+        },
+        "me": {
+          "value": 510,
+          "unit": "kg",
+          "locator": "Technical Data / Arcus T / me"
+        },
+        "p_kw": {
+          "value": 22,
+          "unit": "kW",
+          "locator": "Technical Data / Arcus T / p_kw"
+        }
+      },
+      "engine_model": "SOLO 2350 D",
+      "empty_mass_definition": "Manufacturer approximate empty mass of the T configuration in the current technical table."
+    },
+    {
+      "id": "pr-as34me-15",
+      "model": "AS 34 Me (15 m)",
+      "manufacturer": "Alexander Schleicher",
+      "family": "AS34",
+      "aircraft_type": "motoglider",
+      "engine_type": "prop",
+      "n_engines": 1,
+      "document": "schleicher-as-34-me",
+      "observations": {
+        "b": {
+          "value": 15,
+          "unit": "m",
+          "locator": "Technical Data / 15 m; EMRAX motor / max. power / b"
+        },
+        "s": {
+          "value": 10.5,
+          "unit": "m2",
+          "locator": "Technical Data / 15 m; EMRAX motor / max. power / s"
+        },
+        "me": {
+          "value": 390,
+          "unit": "kg",
+          "locator": "Technical Data / 15 m; EMRAX motor / max. power / me"
+        },
+        "m0": {
+          "value": 525,
+          "unit": "kg",
+          "locator": "Technical Data / 15 m; EMRAX motor / max. power / m0"
+        },
+        "ld_max": {
+          "value": 45,
+          "unit": "1",
+          "locator": "Technical Data / 15 m; EMRAX motor / max. power / ld_max"
+        },
+        "p_kw": {
+          "value": 35,
+          "unit": "kW",
+          "locator": "Technical Data / 15 m; EMRAX motor / max. power / p_kw"
+        }
+      },
+      "engine_model": "EMRAX air-cooled electric motor",
+      "empty_mass_definition": "Manufacturer empty mass of the electric self-launcher; battery strings described as 2 × approximately 33 kg.",
+      "excluded_observations": [
+        {
+          "quantity": "powered_performance",
+          "mass_kg": 477,
+          "values": {
+            "takeoff_ground_m": 270,
+            "takeoff_15m_m": 390,
+            "climb_35kw_ms": 3.7,
+            "climb_25kw_ms": 2.5
+          },
+          "locator": "Powered flight performance (18 m, 477 kg)",
+          "reason": "Osiągi dotyczą 18 m rozpiętości i masy 477 kg, a nie maksymalnej masy 575 kg. Zasięg 125 km dotyczy cyklu wznoszenia i szybowania."
+        }
+      ]
+    },
+    {
+      "id": "pr-as34me-18",
+      "model": "AS 34 Me (18 m)",
+      "manufacturer": "Alexander Schleicher",
+      "family": "AS34",
+      "aircraft_type": "motoglider",
+      "engine_type": "prop",
+      "n_engines": 1,
+      "document": "schleicher-as-34-me",
+      "observations": {
+        "b": {
+          "value": 18,
+          "unit": "m",
+          "locator": "Technical Data / 18 m; EMRAX motor / max. power / b"
+        },
+        "s": {
+          "value": 11.9,
+          "unit": "m2",
+          "locator": "Technical Data / 18 m; EMRAX motor / max. power / s"
+        },
+        "me": {
+          "value": 402,
+          "unit": "kg",
+          "locator": "Technical Data / 18 m; EMRAX motor / max. power / me"
+        },
+        "m0": {
+          "value": 575,
+          "unit": "kg",
+          "locator": "Technical Data / 18 m; EMRAX motor / max. power / m0"
+        },
+        "ld_max": {
+          "value": 48,
+          "unit": "1",
+          "locator": "Technical Data / 18 m; EMRAX motor / max. power / ld_max"
+        },
+        "p_kw": {
+          "value": 35,
+          "unit": "kW",
+          "locator": "Technical Data / 18 m; EMRAX motor / max. power / p_kw"
+        }
+      },
+      "engine_model": "EMRAX air-cooled electric motor",
+      "empty_mass_definition": "Manufacturer empty mass of the electric self-launcher; battery strings described as 2 × approximately 33 kg.",
+      "excluded_observations": [
+        {
+          "quantity": "powered_performance",
+          "mass_kg": 477,
+          "values": {
+            "takeoff_ground_m": 270,
+            "takeoff_15m_m": 390,
+            "climb_35kw_ms": 3.7,
+            "climb_25kw_ms": 2.5
+          },
+          "locator": "Powered flight performance (18 m, 477 kg)",
+          "reason": "Osiągi dotyczą 18 m rozpiętości i masy 477 kg, a nie maksymalnej masy 575 kg. Zasięg 125 km dotyczy cyklu wznoszenia i szybowania."
+        }
+      ]
+    },
+    {
+      "id": "pr-as35mi-18",
+      "model": "AS 35 Mi (18 m)",
+      "manufacturer": "Alexander Schleicher",
+      "family": "AS35",
+      "aircraft_type": "motoglider",
+      "engine_type": "prop",
+      "n_engines": 1,
+      "document": "schleicher-as-35-mi",
+      "observations": {
+        "b": {
+          "value": 18,
+          "unit": "m",
+          "locator": "Technical Data / 18 m / b"
+        },
+        "s": {
+          "value": 11,
+          "unit": "m2",
+          "locator": "Technical Data / 18 m / s"
+        },
+        "me": {
+          "value": 438,
+          "unit": "kg",
+          "locator": "Technical Data / 18 m / me"
+        },
+        "m0": {
+          "value": 685,
+          "unit": "kg",
+          "locator": "Technical Data / 18 m / m0"
+        }
+      },
+      "empty_mass_definition": "Manufacturer published empty mass for the indicated self-launching span configuration."
+    },
+    {
+      "id": "pr-as35mi-20",
+      "model": "AS 35 Mi (20 m)",
+      "manufacturer": "Alexander Schleicher",
+      "family": "AS35",
+      "aircraft_type": "motoglider",
+      "engine_type": "prop",
+      "n_engines": 1,
+      "document": "schleicher-as-35-mi",
+      "observations": {
+        "b": {
+          "value": 20,
+          "unit": "m",
+          "locator": "Technical Data / 20 m / b"
+        },
+        "s": {
+          "value": 11.75,
+          "unit": "m2",
+          "locator": "Technical Data / 20 m / s"
+        },
+        "me": {
+          "value": 448,
+          "unit": "kg",
+          "locator": "Technical Data / 20 m / me"
+        },
+        "m0": {
+          "value": 730,
+          "unit": "kg",
+          "locator": "Technical Data / 20 m / m0"
+        }
+      },
+      "empty_mass_definition": "Manufacturer published empty mass for the indicated self-launching span configuration."
+    },
+    {
+      "id": "pr-asg32mi",
+      "model": "ASG 32 Mi",
+      "manufacturer": "Alexander Schleicher",
+      "family": "ASG 32",
+      "aircraft_type": "motoglider",
+      "engine_type": "prop",
+      "n_engines": 1,
+      "document": "schleicher-asg-32-mi",
+      "observations": {
+        "b": {
+          "value": 20,
+          "unit": "m",
+          "locator": "ASG 32 Mi mass table (not the 490 kg unpowered ASG 32); engine system / b"
+        },
+        "s": {
+          "value": 15.7,
+          "unit": "m2",
+          "locator": "ASG 32 Mi mass table (not the 490 kg unpowered ASG 32); engine system / s"
+        },
+        "m0": {
+          "value": 850,
+          "unit": "kg",
+          "locator": "ASG 32 Mi mass table (not the 490 kg unpowered ASG 32); engine system / m0"
+        },
+        "me": {
+          "value": 570,
+          "unit": "kg",
+          "locator": "ASG 32 Mi mass table (not the 490 kg unpowered ASG 32); engine system / me"
+        },
+        "p_kw": {
+          "value": 41,
+          "unit": "kW",
+          "locator": "ASG 32 Mi mass table (not the 490 kg unpowered ASG 32); engine system / p_kw"
+        },
+        "prop_diameter_m": {
+          "value": 1.55,
+          "unit": "m",
+          "locator": "ASG 32 Mi mass table (not the 490 kg unpowered ASG 32); engine system / prop_diameter_m"
+        }
+      },
+      "engine_model": "IAE 50R-AA",
+      "empty_mass_definition": "Approximate manufacturer empty mass of the Mi self-launching configuration, approximately 570 kg."
+    },
+    {
+      "id": "pr-ash30mi",
+      "model": "ASH 30 Mi",
+      "manufacturer": "Alexander Schleicher",
+      "family": "ASH30",
+      "aircraft_type": "motoglider",
+      "engine_type": "prop",
+      "n_engines": 1,
+      "document": "schleicher-ash-30-mi",
+      "observations": {
+        "b": {
+          "value": 26.5,
+          "unit": "m",
+          "locator": "Technical Data / metric column; Engine system; Propeller / b"
+        },
+        "s": {
+          "value": 17.17,
+          "unit": "m2",
+          "locator": "Technical Data / metric column; Engine system; Propeller / s"
+        },
+        "me": {
+          "value": 630,
+          "unit": "kg",
+          "locator": "Technical Data / metric column; Engine system; Propeller / me"
+        },
+        "m0": {
+          "value": 850,
+          "unit": "kg",
+          "locator": "Technical Data / metric column; Engine system; Propeller / m0"
+        },
+        "p_kw": {
+          "value": 41,
+          "unit": "kW",
+          "locator": "Technical Data / metric column; Engine system; Propeller / p_kw"
+        },
+        "prop_diameter_m": {
+          "value": 1.55,
+          "unit": "m",
+          "locator": "Technical Data / metric column; Engine system; Propeller / prop_diameter_m"
+        }
+      },
+      "engine_model": "IAE 50R-AA",
+      "empty_mass_definition": "Published metric empty mass 630 kg; imperial column is inconsistent and is not used.",
+      "notes": [
+        "Manufacturer table prints 630 kg / 1874 lb empty and 850 kg / 1543 lb maximum, which are not unit equivalents; only explicit metric quantities are retained. Published useful load 200 kg also differs from 850−630=220 kg."
+      ],
+      "excluded_observations": [
+        {
+          "quantity": "best_glide_lower_bound",
+          "value": 60,
+          "unit": "1",
+          "locator": "Technical data / Best glide ratio >60",
+          "reason": "Dolna granica doskonałości nie jest dokładną wartością maksymalnej doskonałości."
+        },
+        {
+          "quantity": "speed_limit",
+          "value": 270,
+          "unit": "km/h",
+          "locator": "Technical data / Max. speed",
+          "reason": "Ograniczenie prędkości szybowca nie jest wykazaną maksymalną prędkością poziomego lotu silnikowego."
+        }
+      ]
+    },
+    {
+      "id": "pr-blackwing916-2026",
+      "model": "Blackwing (916 iS, 2026 brochure)",
+      "manufacturer": "Blackwing",
+      "family": "Blackwing",
+      "aircraft_type": "piston_ga",
+      "engine_type": "prop",
+      "n_engines": 1,
+      "document": "blackwing2026",
+      "observations": {
+        "m0": {
+          "value": 600,
+          "unit": "kg",
+          "locator": "PDF page 9 / Performance by design / MTOW"
+        },
+        "me": {
+          "value": 375,
+          "unit": "kg",
+          "locator": "PDF page 9 / Performance by design / empty mass"
+        },
+        "b": {
+          "value": 8.4,
+          "unit": "m",
+          "locator": "PDF page 9 / Performance by design / wingspan"
+        },
+        "v_cruise_kmh": {
+          "value": 190,
+          "unit": "kt",
+          "locator": "PDF page 9 / CRUISE SPEED 65% FL100",
+          "conditions": "TAS, 65% power at FL100."
+        },
+        "v_stall_kmh": {
+          "value": 38,
+          "unit": "kt",
+          "locator": "PDF page 9 / STALL SPEED",
+          "conditions": "Airspeed and flap basis not specified."
+        },
+        "climb_rate_ms": {
+          "value": 2500,
+          "unit": "ft/min",
+          "locator": "PDF page 9 / CLIMB RATE"
+        },
+        "landing_m": {
+          "value": 290,
+          "unit": "m",
+          "locator": "PDF page 9 / LANDING DISTANCE*",
+          "conditions": "Footnote * over 50 ft obstacle clearance."
+        }
+      },
+      "engine_model": "Rotax 916 iS",
+      "empty_mass_definition": "Manufacturer brochure empty weight of the 916 iS configuration.",
+      "landing_basis": "50ft",
+      "excluded_observations": [
+        {
+          "quantity": "speed_limits",
+          "values": [
+            173,
+            200
+          ],
+          "unit": "kt",
+          "locator": "PDF page 9 / VNE TAS SL and VNE TAS FL100",
+          "reason": "Granice VNE na różnych wysokościach nie są maksymalnymi prędkościami poziomego lotu silnikowego."
+        }
+      ]
+    },
+    {
+      "id": "pr-bm100",
+      "model": "Shark 600 UK",
+      "manufacturer": "Shark Aero / The Light Aircraft Company",
+      "family": "Shark",
+      "aircraft_type": "piston_ga",
+      "engine_type": "prop",
+      "n_engines": 1,
+      "document": "bm100",
+      "observations": {
+        "m0": {
+          "value": 600,
+          "unit": "kg",
+          "locator": "TADS printed page 1, section (5) / MTOW"
+        },
+        "me": {
+          "value": 366,
+          "unit": "kg",
+          "locator": "TADS printed page 1, section (5) / empty mass"
+        },
+        "v_stall_kmh": {
+          "value": 42,
+          "unit": "kt",
+          "locator": "TADS printed page 1, section (5)(d) VS0",
+          "conditions": "CAS, landing configuration at maximum take-off mass."
+        }
+      },
+      "engine_model": "Rotax 912 ULS",
+      "empty_mass_definition": "TADS typical empty weight (ZFW) for the indicated UK-approved configuration. Includes movable ballast, as explicitly stated by the TADS."
+    },
+    {
+      "id": "pr-bm101",
+      "model": "TL-2000 Sting S4 (UK)",
+      "manufacturer": "TL-Ultralight",
+      "family": "TL Sting",
+      "aircraft_type": "piston_ga",
+      "engine_type": "prop",
+      "n_engines": 1,
+      "document": "bm101",
+      "observations": {
+        "m0": {
+          "value": 600,
+          "unit": "kg",
+          "locator": "TADS printed page 1, section (5) / MTOW"
+        },
+        "me": {
+          "value": 380,
+          "unit": "kg",
+          "locator": "TADS printed page 1, section (5) / empty mass"
+        },
+        "v_stall_kmh": {
+          "value": 44,
+          "unit": "kt",
+          "locator": "TADS printed page 1, section (5)(d) VS0",
+          "conditions": "CAS, landing configuration at maximum take-off mass."
+        }
+      },
+      "engine_model": "Rotax 912 ULS",
+      "empty_mass_definition": "TADS typical empty weight (ZFW) for the indicated UK-approved configuration."
+    },
+    {
+      "id": "pr-bm102",
+      "model": "Aeroprakt A32 Vixxen (UK)",
+      "manufacturer": "Dragon Aviation Sport Aircraft",
+      "family": "Aeroprakt A-32",
+      "aircraft_type": "piston_ga",
+      "engine_type": "prop",
+      "n_engines": 1,
+      "document": "bm102",
+      "observations": {
+        "m0": {
+          "value": 600,
+          "unit": "kg",
+          "locator": "TADS printed page 1, section (5) / MTOW"
+        },
+        "me": {
+          "value": 315,
+          "unit": "kg",
+          "locator": "TADS printed page 1, section (5) / empty mass"
+        }
+      },
+      "engine_model": "Rotax 912 ULS / 912iS",
+      "empty_mass_definition": "TADS typical empty weight (ZFW) for the indicated UK-approved configuration."
+    },
+    {
+      "id": "pr-bm105",
+      "model": "Savannah SR (UK)",
+      "manufacturer": "ICP",
+      "family": "Savannah",
+      "aircraft_type": "piston_ga",
+      "engine_type": "prop",
+      "n_engines": 1,
+      "document": "bm105",
+      "observations": {
+        "m0": {
+          "value": 600,
+          "unit": "kg",
+          "locator": "TADS printed page 1, section (5) / MTOW"
+        },
+        "me": {
+          "value": 325,
+          "unit": "kg",
+          "locator": "TADS printed page 1, section (5) / empty mass"
+        },
+        "v_stall_kmh": {
+          "value": 34,
+          "unit": "kt",
+          "locator": "TADS printed page 1, section (5)(d) VS0",
+          "conditions": "CAS, landing configuration at maximum take-off mass."
+        }
+      },
+      "engine_model": "Rotax 912 ULS",
+      "empty_mass_definition": "TADS typical empty weight (ZFW) for the indicated UK-approved configuration."
+    },
+    {
+      "id": "pr-bm107",
+      "model": "Ellipse Spirit (UK, 912iS / MTV-33)",
+      "manufacturer": "Ellipse Aero",
+      "family": "Ellipse Spirit",
+      "aircraft_type": "piston_ga",
+      "engine_type": "prop",
+      "n_engines": 1,
+      "document": "bm107",
+      "observations": {
+        "m0": {
+          "value": 600,
+          "unit": "kg",
+          "locator": "TADS printed page 1, section (5) / MTOW"
+        },
+        "me": {
+          "value": 375,
+          "unit": "kg",
+          "locator": "TADS printed page 1, section (5) / empty mass"
+        },
+        "v_stall_kmh": {
+          "value": 39,
+          "unit": "kt",
+          "locator": "TADS printed page 1, section (5)(d) VS0",
+          "conditions": "CAS, landing configuration at maximum take-off mass."
+        }
+      },
+      "engine_model": "Rotax 912iS Sport",
+      "empty_mass_definition": "TADS typical empty weight (ZFW) for the indicated UK-approved configuration. Footnote 1: Rotax 912iS Sport with MTV-33."
+    },
+    {
+      "id": "pr-bm108",
+      "model": "Skyleader 600 (UK, 912 ULS)",
+      "manufacturer": "Air Operation Technologies",
+      "family": "Skyleader600",
+      "aircraft_type": "piston_ga",
+      "engine_type": "prop",
+      "n_engines": 1,
+      "document": "bm108",
+      "observations": {
+        "m0": {
+          "value": 600,
+          "unit": "kg",
+          "locator": "TADS printed page 1, section (5) / MTOW"
+        },
+        "me": {
+          "value": 373,
+          "unit": "kg",
+          "locator": "TADS printed page 1, section (5) / empty mass"
+        },
+        "v_stall_kmh": {
+          "value": 37,
+          "unit": "kt",
+          "locator": "TADS printed page 1, section (5)(d) VS0",
+          "conditions": "CAS, landing configuration at maximum take-off mass."
+        }
+      },
+      "engine_model": "Rotax 912 ULS",
+      "empty_mass_definition": "TADS typical empty weight (ZFW) for the indicated UK-approved configuration."
+    },
+    {
+      "id": "pr-bm97",
+      "model": "Pipistrel Virus SW 127 BCAR-S",
+      "manufacturer": "Pipistrel",
+      "family": "Virus",
+      "aircraft_type": "piston_ga",
+      "engine_type": "prop",
+      "n_engines": 1,
+      "document": "bm97",
+      "observations": {
+        "m0": {
+          "value": 600,
+          "unit": "kg",
+          "locator": "TADS printed page 1, section (5) / MTOW"
+        },
+        "me": {
+          "value": 349,
+          "unit": "kg",
+          "locator": "TADS printed page 1, section (5) / empty mass"
+        },
+        "v_stall_kmh": {
+          "value": 45,
+          "unit": "kt",
+          "locator": "TADS printed page 1, section (5)(d) VS0",
+          "conditions": "CAS, landing configuration at maximum take-off mass."
+        }
+      },
+      "engine_model": "Rotax 912 ULS-01",
+      "empty_mass_definition": "TADS typical empty weight (ZFW) for the indicated UK-approved configuration."
+    },
+    {
+      "id": "pr-bm99-fg914",
+      "model": "WT9 Dynamic LSM FG914 (UK)",
+      "manufacturer": "Aerospool",
+      "family": "WT9",
+      "aircraft_type": "piston_ga",
+      "engine_type": "prop",
+      "n_engines": 1,
+      "document": "bm99",
+      "observations": {
+        "m0": {
+          "value": 600,
+          "unit": "kg",
+          "locator": "TADS printed page 1, section (5) / MTOW"
+        },
+        "me": {
+          "value": 366,
+          "unit": "kg",
+          "locator": "TADS printed page 1, section (5) / empty mass"
+        },
+        "v_stall_kmh": {
+          "value": 40,
+          "unit": "kt",
+          "locator": "TADS printed page 1, section (5)(d) VS0",
+          "conditions": "CAS, landing configuration at maximum take-off mass."
+        }
+      },
+      "engine_model": "Rotax 914 UL",
+      "empty_mass_definition": "TADS typical empty weight (ZFW) for the indicated UK-approved configuration."
+    },
+    {
+      "id": "pr-bm99-rg912is",
+      "model": "WT9 Dynamic LSM RG912iS (UK)",
+      "manufacturer": "Aerospool",
+      "family": "WT9",
+      "aircraft_type": "piston_ga",
+      "engine_type": "prop",
+      "n_engines": 1,
+      "document": "bm99",
+      "observations": {
+        "m0": {
+          "value": 600,
+          "unit": "kg",
+          "locator": "TADS printed page 1, section (5) / MTOW"
+        },
+        "me": {
+          "value": 353,
+          "unit": "kg",
+          "locator": "TADS printed page 1, section (5) / empty mass"
+        },
+        "v_stall_kmh": {
+          "value": 41,
+          "unit": "kt",
+          "locator": "TADS printed page 1, section (5)(d) VS0",
+          "conditions": "CAS, landing configuration at maximum take-off mass."
+        }
+      },
+      "engine_model": "Rotax 912iS Sport",
+      "empty_mass_definition": "TADS typical empty weight (ZFW) for the indicated UK-approved configuration."
+    },
+    {
+      "id": "pr-bristell-b23-912",
+      "model": "Bristell B23-912",
+      "manufacturer": "BRM Aero",
+      "family": "Bristell B23",
+      "aircraft_type": "piston_ga",
+      "engine_type": "prop",
+      "n_engines": 1,
+      "document": "bristell_b23",
+      "observations": {
+        "m0": {
+          "value": 750,
+          "unit": "kg",
+          "locator": "Technical specifications / B23-912 / MTOW"
+        },
+        "me": {
+          "value": 450,
+          "unit": "kg",
+          "locator": "Technical specifications / B23-912 / MTOW and useful load",
+          "derivation": {
+            "formula": "MTOW - useful_load",
+            "mtow": 750,
+            "useful_load": 300
+          }
+        },
+        "b": {
+          "value": 9.274,
+          "unit": "m",
+          "locator": "Technical specifications / B23-912 / Wingspan"
+        },
+        "s": {
+          "value": 11.75,
+          "unit": "m2",
+          "locator": "Technical characteristics / Dimensions / Wing area",
+          "document": "bristell_b23_tcds",
+          "conditions": "Common B23 airframe; confirm AFM applicability for a particular serial number."
+        },
+        "v_max": {
+          "value": 217,
+          "unit": "km/h",
+          "locator": "Technical specifications / B23-912 / Max speed VH",
+          "conditions": "Manufacturer maximum horizontal true airspeed, not VNE."
+        },
+        "climb_rate_ms": {
+          "value": 3.6,
+          "unit": "m/s",
+          "locator": "Technical specifications / B23-912 / Rate of climb"
+        },
+        "p_kw": {
+          "value": 73.5,
+          "unit": "kW",
+          "document": "rotax_e121",
+          "locator": "TCDS E.121 Issue 17, printed page 16, III.6 Ratings / Rotax 912 S3",
+          "conditions": "Take-off rating at 5800 rpm, maximum 5 minutes; installed total, not maximum continuous power."
+        },
+        "year": {
+          "value": 2020,
+          "unit": "year",
+          "locator": "TCDS EASA.A.642, printed page 4, model-specific I.7 EASA Type Certification Date",
+          "document": "bristell_b23_tcds"
+        }
+      },
+      "engine_model": "Rotax 912 S3",
+      "empty_mass_definition": "Manufacturer advertised empty mass derived from MTOW minus useful load; standard configuration, not serial-specific weighing.",
+      "year_basis": "certification"
+    },
+    {
+      "id": "pr-bristell-b23-912is",
+      "model": "Bristell B23-912iS",
+      "manufacturer": "BRM Aero",
+      "family": "Bristell B23",
+      "aircraft_type": "piston_ga",
+      "engine_type": "prop",
+      "n_engines": 1,
+      "document": "bristell_b23",
+      "observations": {
+        "m0": {
+          "value": 750,
+          "unit": "kg",
+          "locator": "Technical specifications / B23-912iS / MTOW"
+        },
+        "me": {
+          "value": 450,
+          "unit": "kg",
+          "locator": "Technical specifications / B23-912iS / MTOW and useful load",
+          "derivation": {
+            "formula": "MTOW - useful_load",
+            "mtow": 750,
+            "useful_load": 300
+          }
+        },
+        "b": {
+          "value": 9.274,
+          "unit": "m",
+          "locator": "Technical specifications / B23-912iS / Wingspan"
+        },
+        "s": {
+          "value": 11.75,
+          "unit": "m2",
+          "locator": "Technical characteristics / Dimensions / Wing area",
+          "document": "bristell_b23_tcds",
+          "conditions": "Common B23 airframe; confirm AFM applicability for a particular serial number."
+        },
+        "v_max": {
+          "value": 206,
+          "unit": "km/h",
+          "locator": "Technical specifications / B23-912iS / Max speed VH",
+          "conditions": "Manufacturer maximum horizontal true airspeed, not VNE."
+        },
+        "climb_rate_ms": {
+          "value": 3.6,
+          "unit": "m/s",
+          "locator": "Technical specifications / B23-912iS / Rate of climb"
+        },
+        "v_cruise_kmh": {
+          "value": 196,
+          "unit": "km/h",
+          "locator": "Technical specifications / B23-912iS / Cruise (75%)",
+          "conditions": "75% power; KTAS equivalent, altitude not specified in the table."
+        },
+        "range_km": {
+          "value": 1445,
+          "unit": "km",
+          "locator": "Technical specifications / B23-912iS / Range (75%)",
+          "conditions": "75% power; reserve definition not specified in the table."
+        },
+        "year": {
+          "value": 2025,
+          "unit": "year",
+          "locator": "TCDS EASA.A.642, printed page 17, model-specific I.7 EASA Type Certification Date",
+          "document": "bristell_b23_tcds"
+        },
+        "p_kw": {
+          "value": 73.5,
+          "unit": "kW",
+          "document": "rotax_e121",
+          "locator": "TCDS E.121 Issue 17, printed page 16, III.6 Ratings / Rotax 912 iSc3 Sport",
+          "conditions": "Take-off rating at 5800 rpm, maximum 5 minutes; installed total, not maximum continuous power."
+        }
+      },
+      "engine_model": "Rotax 912 iSc3 Sport",
+      "empty_mass_definition": "Manufacturer advertised empty mass derived from MTOW minus useful load; standard configuration, not serial-specific weighing.",
+      "year_basis": "certification"
+    },
+    {
+      "id": "pr-bristell-b23-915ifr",
+      "model": "Bristell B23-915 IFR",
+      "manufacturer": "BRM Aero",
+      "family": "Bristell B23",
+      "aircraft_type": "piston_ga",
+      "engine_type": "prop",
+      "n_engines": 1,
+      "document": "bristell_b23",
+      "observations": {
+        "m0": {
+          "value": 750,
+          "unit": "kg",
+          "locator": "Technical specifications / B23-915 IFR / MTOW"
+        },
+        "me": {
+          "value": 465,
+          "unit": "kg",
+          "locator": "Technical specifications / B23-915 IFR / MTOW and useful load",
+          "derivation": {
+            "formula": "MTOW - useful_load",
+            "mtow": 750,
+            "useful_load": 285
+          }
+        },
+        "b": {
+          "value": 9.274,
+          "unit": "m",
+          "locator": "Technical specifications / B23-915 IFR / Wingspan"
+        },
+        "s": {
+          "value": 11.75,
+          "unit": "m2",
+          "locator": "Technical characteristics / Dimensions / Wing area",
+          "document": "bristell_b23_tcds",
+          "conditions": "Common B23 airframe; confirm AFM applicability for a particular serial number."
+        },
+        "v_max": {
+          "value": 278,
+          "unit": "km/h",
+          "locator": "Technical specifications / B23-915 IFR / Max speed VH",
+          "conditions": "Manufacturer maximum horizontal true airspeed, not VNE."
+        },
+        "climb_rate_ms": {
+          "value": 6.4,
+          "unit": "m/s",
+          "locator": "Technical specifications / B23-915 IFR / Rate of climb"
+        },
+        "v_cruise_kmh": {
+          "value": 232,
+          "unit": "km/h",
+          "locator": "Technical specifications / B23-915 IFR / Cruise (75%)",
+          "conditions": "75% power; KTAS equivalent, altitude not specified in the table."
+        },
+        "range_km": {
+          "value": 676,
+          "unit": "km",
+          "locator": "Technical specifications / B23-915 IFR / Range (75%)",
+          "conditions": "75% power; reserve definition not specified in the table."
+        },
+        "year": {
+          "value": 2024,
+          "unit": "year",
+          "locator": "TCDS EASA.A.642, printed page 12, model-specific I.7 EASA Type Certification Date",
+          "document": "bristell_b23_tcds"
+        },
+        "p_kw": {
+          "value": 104,
+          "unit": "kW",
+          "document": "rotax_e121",
+          "locator": "TCDS E.121 Issue 17, printed page 16, III.6 Ratings / Rotax 915iSc3 A",
+          "conditions": "Take-off rating at 5800 rpm, maximum 5 minutes; installed total, not maximum continuous power."
+        }
+      },
+      "engine_model": "Rotax 915iSc3 A",
+      "empty_mass_definition": "Manufacturer advertised empty mass derived from MTOW minus useful load; standard configuration, not serial-specific weighing.",
+      "year_basis": "certification"
+    },
+    {
+      "id": "pr-bristell-b23-915is",
+      "model": "Bristell B23-915iS",
+      "manufacturer": "BRM Aero",
+      "family": "Bristell B23",
+      "aircraft_type": "piston_ga",
+      "engine_type": "prop",
+      "n_engines": 1,
+      "document": "bristell_b23",
+      "observations": {
+        "m0": {
+          "value": 750,
+          "unit": "kg",
+          "locator": "Technical specifications / B23-915iS / MTOW"
+        },
+        "me": {
+          "value": 465,
+          "unit": "kg",
+          "locator": "Technical specifications / B23-915iS / MTOW and useful load",
+          "derivation": {
+            "formula": "MTOW - useful_load",
+            "mtow": 750,
+            "useful_load": 285
+          }
+        },
+        "b": {
+          "value": 9.274,
+          "unit": "m",
+          "locator": "Technical specifications / B23-915iS / Wingspan"
+        },
+        "s": {
+          "value": 11.75,
+          "unit": "m2",
+          "locator": "Technical characteristics / Dimensions / Wing area",
+          "document": "bristell_b23_tcds",
+          "conditions": "Common B23 airframe; confirm AFM applicability for a particular serial number."
+        },
+        "v_max": {
+          "value": 278,
+          "unit": "km/h",
+          "locator": "Technical specifications / B23-915iS / Max speed VH",
+          "conditions": "Manufacturer maximum horizontal true airspeed, not VNE."
+        },
+        "climb_rate_ms": {
+          "value": 6.4,
+          "unit": "m/s",
+          "locator": "Technical specifications / B23-915iS / Rate of climb"
+        },
+        "v_cruise_kmh": {
+          "value": 252,
+          "unit": "km/h",
+          "locator": "Technical specifications / B23-915iS / Cruise (75%)",
+          "conditions": "75% power; KTAS equivalent, altitude not specified in the table."
+        },
+        "range_km": {
+          "value": 630,
+          "unit": "km",
+          "locator": "Technical specifications / B23-915iS / Range (75%)",
+          "conditions": "75% power; reserve definition not specified in the table."
+        },
+        "year": {
+          "value": 2022,
+          "unit": "year",
+          "locator": "TCDS EASA.A.642, printed page 8, model-specific I.7 EASA Type Certification Date",
+          "document": "bristell_b23_tcds"
+        },
+        "p_kw": {
+          "value": 104,
+          "unit": "kW",
+          "document": "rotax_e121",
+          "locator": "TCDS E.121 Issue 17, printed page 16, III.6 Ratings / Rotax 915iSc3 A",
+          "conditions": "Take-off rating at 5800 rpm, maximum 5 minutes; installed total, not maximum continuous power."
+        }
+      },
+      "engine_model": "Rotax 915iSc3 A",
+      "empty_mass_definition": "Manufacturer advertised empty mass derived from MTOW minus useful load; standard configuration, not serial-specific weighing.",
+      "year_basis": "certification"
+    },
+    {
+      "id": "pr-bristell-b23-916is",
+      "model": "Bristell B23-916iS",
+      "manufacturer": "BRM Aero",
+      "family": "Bristell B23",
+      "aircraft_type": "piston_ga",
+      "engine_type": "prop",
+      "n_engines": 1,
+      "document": "bristell_b23",
+      "observations": {
+        "m0": {
+          "value": 750,
+          "unit": "kg",
+          "locator": "Technical specifications / B23-916iS / MTOW"
+        },
+        "me": {
+          "value": 490,
+          "unit": "kg",
+          "locator": "Technical specifications / B23-916iS / MTOW and useful load",
+          "derivation": {
+            "formula": "MTOW - useful_load",
+            "mtow": 750,
+            "useful_load": 260
+          }
+        },
+        "b": {
+          "value": 9.274,
+          "unit": "m",
+          "locator": "Technical specifications / B23-916iS / Wingspan"
+        },
+        "s": {
+          "value": 11.75,
+          "unit": "m2",
+          "locator": "Technical characteristics / Dimensions / Wing area",
+          "document": "bristell_b23_tcds",
+          "conditions": "Common B23 airframe; confirm AFM applicability for a particular serial number."
+        },
+        "v_max": {
+          "value": 278,
+          "unit": "km/h",
+          "locator": "Technical specifications / B23-916iS / Max speed VH",
+          "conditions": "Manufacturer maximum horizontal true airspeed, not VNE."
+        },
+        "climb_rate_ms": {
+          "value": 6.7,
+          "unit": "m/s",
+          "locator": "Technical specifications / B23-916iS / Rate of climb"
+        },
+        "v_cruise_kmh": {
+          "value": 241,
+          "unit": "km/h",
+          "locator": "Technical specifications / B23-916iS / Cruise (75%)",
+          "conditions": "75% power; KTAS equivalent, altitude not specified in the table."
+        },
+        "range_km": {
+          "value": 709,
+          "unit": "km",
+          "locator": "Technical specifications / B23-916iS / Range (75%)",
+          "conditions": "75% power; reserve definition not specified in the table."
+        },
+        "p_kw": {
+          "value": 117,
+          "unit": "kW",
+          "document": "rotax_e121",
+          "locator": "TCDS E.121 Issue 17, printed page 17, III.6 Ratings / Rotax 916 iSc3 A",
+          "conditions": "Take-off rating at 5800 rpm, maximum 5 minutes; installed total, not maximum continuous power."
+        },
+        "year": {
+          "value": 2025,
+          "unit": "year",
+          "locator": "TCDS EASA.A.642, printed page 21, model-specific I.7 EASA Type Certification Date",
+          "document": "bristell_b23_tcds"
+        }
+      },
+      "engine_model": "Rotax 916 iSc3 A",
+      "empty_mass_definition": "Manufacturer advertised empty mass derived from MTOW minus useful load; standard configuration, not serial-specific weighing.",
+      "year_basis": "certification",
+      "excluded_observations": [
+        {
+          "quantity": "manufacturer_power_figure",
+          "value": 117.6,
+          "unit": "kW",
+          "locator": "Engines / Rotax 916 iS rating",
+          "reason": "Moc certyfikowanego silnika przyjęto z TCDS EASA; strona płatowca podaje inną, zaokrągloną wartość."
+        }
+      ]
+    },
+    {
+      "id": "pr-dg1001e-17-2",
+      "model": "DG1001E neo (17.2 m)",
+      "manufacturer": "DG Aviation",
+      "family": "DG-1000",
+      "aircraft_type": "motoglider",
+      "engine_type": "prop",
+      "n_engines": 1,
+      "document": "dg-fes",
+      "observations": {
+        "b": {
+          "value": 17.2,
+          "unit": "m",
+          "locator": "Technical details DG1001E / 17.2 m / b"
+        },
+        "s": {
+          "value": 16.3,
+          "unit": "m2",
+          "locator": "Technical details DG1001E / 17.2 m / s"
+        },
+        "m0": {
+          "value": 750,
+          "unit": "kg",
+          "locator": "Technical details DG1001E / 17.2 m / m0"
+        }
+      },
+      "engine_model": "LZ Design brushless FES",
+      "excluded_observations": [
+        {
+          "quantity": "motor_power_range",
+          "values": [
+            25,
+            30
+          ],
+          "unit": "kW",
+          "locator": "DG1001E / FES system power approximately 25–30 kW",
+          "reason": "Przedział mocy nie określa jednej mocy zainstalowanej."
+        }
+      ]
+    },
+    {
+      "id": "pr-dg1001e-18",
+      "model": "DG1001E neo (18 m)",
+      "manufacturer": "DG Aviation",
+      "family": "DG-1000",
+      "aircraft_type": "motoglider",
+      "engine_type": "prop",
+      "n_engines": 1,
+      "document": "dg-fes",
+      "observations": {
+        "b": {
+          "value": 18,
+          "unit": "m",
+          "locator": "Technical details DG1001E / 18 m / b"
+        },
+        "s": {
+          "value": 16.72,
+          "unit": "m2",
+          "locator": "Technical details DG1001E / 18 m / s"
+        },
+        "m0": {
+          "value": 750,
+          "unit": "kg",
+          "locator": "Technical details DG1001E / 18 m / m0"
+        }
+      },
+      "engine_model": "LZ Design brushless FES",
+      "excluded_observations": [
+        {
+          "quantity": "motor_power_range",
+          "values": [
+            25,
+            30
+          ],
+          "unit": "kW",
+          "locator": "DG1001E / FES system power approximately 25–30 kW",
+          "reason": "Przedział mocy nie określa jednej mocy zainstalowanej."
+        }
+      ]
+    },
+    {
+      "id": "pr-dg1001e-20",
+      "model": "DG1001E neo (20 m)",
+      "manufacturer": "DG Aviation",
+      "family": "DG-1000",
+      "aircraft_type": "motoglider",
+      "engine_type": "prop",
+      "n_engines": 1,
+      "document": "dg-fes",
+      "observations": {
+        "b": {
+          "value": 20,
+          "unit": "m",
+          "locator": "Technical details DG1001E / 20 m / b"
+        },
+        "s": {
+          "value": 17.53,
+          "unit": "m2",
+          "locator": "Technical details DG1001E / 20 m / s"
+        },
+        "m0": {
+          "value": 790,
+          "unit": "kg",
+          "locator": "Technical details DG1001E / 20 m / m0"
+        }
+      },
+      "engine_model": "LZ Design brushless FES",
+      "excluded_observations": [
+        {
+          "quantity": "motor_power_range",
+          "values": [
+            25,
+            30
+          ],
+          "unit": "kW",
+          "locator": "DG1001E / FES system power approximately 25–30 kW",
+          "reason": "Przedział mocy nie określa jednej mocy zainstalowanej."
+        }
+      ]
+    },
+    {
+      "id": "pr-evektor-sportstar-rtc-g3x",
+      "model": "Evektor SportStar RTC (Garmin G3X Touch)",
+      "manufacturer": "Evektor",
+      "family": "Evektor SportStar",
+      "aircraft_type": "piston_ga",
+      "engine_type": "prop",
+      "n_engines": 1,
+      "document": "evektor_rtc",
+      "observations": {
+        "m0": {
+          "value": 600,
+          "unit": "kg",
+          "locator": "Aircraft versions / Garmin G3X Touch / MTOW"
+        },
+        "me": {
+          "value": 351,
+          "unit": "kg",
+          "locator": "Aircraft versions / Garmin G3X Touch / Empty weight"
+        },
+        "b": {
+          "value": 8.65,
+          "unit": "m",
+          "locator": "Technical specifications / Wing span"
+        },
+        "v_cruise_kmh": {
+          "value": 213,
+          "unit": "km/h",
+          "locator": "Aircraft versions / Garmin G3X Touch / Max. cruise speed"
+        },
+        "v_stall_kmh": {
+          "value": 78,
+          "unit": "km/h",
+          "locator": "Aircraft versions / Garmin G3X Touch / Stall speed",
+          "conditions": "Flap configuration and airspeed basis not specified on this product page."
+        },
+        "range_km": {
+          "value": 1300,
+          "unit": "km",
+          "locator": "Aircraft versions / Garmin G3X Touch / Standard range",
+          "conditions": "Reserve and power setting not specified."
+        },
+        "climb_rate_ms": {
+          "value": 4.5,
+          "unit": "m/s",
+          "locator": "Aircraft versions / Garmin G3X Touch / Rate of climb"
+        },
+        "takeoff_m": {
+          "value": 128,
+          "unit": "m",
+          "locator": "Aircraft versions / Garmin G3X Touch / Take-off",
+          "conditions": "Page does not state whether ground roll or obstacle distance."
+        },
+        "landing_m": {
+          "value": 169,
+          "unit": "m",
+          "locator": "Aircraft versions / Garmin G3X Touch / Landing",
+          "conditions": "Page does not state whether ground roll or obstacle distance."
+        },
+        "p_kw": {
+          "value": 73.5,
+          "unit": "kW",
+          "document": "rotax_e121",
+          "locator": "TCDS E.121 Issue 17, printed page 16, III.6 Ratings / Rotax 912 S",
+          "conditions": "Take-off rating at 5800 rpm, maximum 5 minutes; installed total, not maximum continuous power."
+        }
+      },
+      "engine_model": "Rotax 912 S",
+      "prop_type": "Woodcomp Klassic 1700/3/R, 3-blade ground-adjustable",
+      "takeoff_basis": "unknown",
+      "landing_basis": "unknown",
+      "empty_mass_definition": "Advertised empty weight for the stated Garmin equipment version.",
+      "excluded_observations": [
+        {
+          "quantity": "VNE",
+          "value": 270,
+          "unit": "km/h",
+          "locator": "Aircraft versions / Garmin G3X Touch / Never exceed speed",
+          "reason": "Ograniczenie konstrukcyjne prędkości nie jest maksymalną prędkością lotu poziomego."
+        }
+      ]
+    },
+    {
+      "id": "pr-evektor-sportstar-rtc-night",
+      "model": "Evektor SportStar RTC (Garmin G3X, Night VFR)",
+      "manufacturer": "Evektor",
+      "family": "Evektor SportStar",
+      "aircraft_type": "piston_ga",
+      "engine_type": "prop",
+      "n_engines": 1,
+      "document": "evektor_rtc",
+      "observations": {
+        "m0": {
+          "value": 600,
+          "unit": "kg",
+          "locator": "Aircraft versions / Garmin G3X, Night VFR / MTOW"
+        },
+        "me": {
+          "value": 355,
+          "unit": "kg",
+          "locator": "Aircraft versions / Garmin G3X, Night VFR / Empty weight"
+        },
+        "b": {
+          "value": 8.65,
+          "unit": "m",
+          "locator": "Technical specifications / Wing span"
+        },
+        "v_cruise_kmh": {
+          "value": 213,
+          "unit": "km/h",
+          "locator": "Aircraft versions / Garmin G3X, Night VFR / Max. cruise speed"
+        },
+        "v_stall_kmh": {
+          "value": 78,
+          "unit": "km/h",
+          "locator": "Aircraft versions / Garmin G3X, Night VFR / Stall speed",
+          "conditions": "Flap configuration and airspeed basis not specified on this product page."
+        },
+        "range_km": {
+          "value": 1300,
+          "unit": "km",
+          "locator": "Aircraft versions / Garmin G3X, Night VFR / Standard range",
+          "conditions": "Reserve and power setting not specified."
+        },
+        "climb_rate_ms": {
+          "value": 4.5,
+          "unit": "m/s",
+          "locator": "Aircraft versions / Garmin G3X, Night VFR / Rate of climb"
+        },
+        "takeoff_m": {
+          "value": 128,
+          "unit": "m",
+          "locator": "Aircraft versions / Garmin G3X, Night VFR / Take-off",
+          "conditions": "Page does not state whether ground roll or obstacle distance."
+        },
+        "landing_m": {
+          "value": 169,
+          "unit": "m",
+          "locator": "Aircraft versions / Garmin G3X, Night VFR / Landing",
+          "conditions": "Page does not state whether ground roll or obstacle distance."
+        },
+        "p_kw": {
+          "value": 73.5,
+          "unit": "kW",
+          "document": "rotax_e121",
+          "locator": "TCDS E.121 Issue 17, printed page 16, III.6 Ratings / Rotax 912 S",
+          "conditions": "Take-off rating at 5800 rpm, maximum 5 minutes; installed total, not maximum continuous power."
+        }
+      },
+      "engine_model": "Rotax 912 S",
+      "prop_type": "Woodcomp Klassic 1700/3/R, 3-blade ground-adjustable",
+      "takeoff_basis": "unknown",
+      "landing_basis": "unknown",
+      "empty_mass_definition": "Advertised empty weight for the stated Garmin equipment version.",
+      "excluded_observations": [
+        {
+          "quantity": "VNE",
+          "value": 270,
+          "unit": "km/h",
+          "locator": "Aircraft versions / Garmin G3X, Night VFR / Never exceed speed",
+          "reason": "Ograniczenie konstrukcyjne prędkości nie jest maksymalną prędkością lotu poziomego."
+        }
+      ]
+    },
+    {
+      "id": "pr-flightdesign-ctls-600",
+      "model": "Flight Design CTLS 2020 (600 kg)",
+      "manufacturer": "Flight Design",
+      "family": "Flight Design CT",
+      "aircraft_type": "piston_ga",
+      "engine_type": "prop",
+      "n_engines": 1,
+      "document": "ctls_2020",
+      "observations": {
+        "m0": {
+          "value": 600,
+          "unit": "kg",
+          "locator": "Technical information / Maximum take-off weight"
+        },
+        "me": {
+          "value": 326,
+          "unit": "kg",
+          "locator": "Technical information / Typical empty weight",
+          "conditions": "Equipped with rescue system."
+        },
+        "b": {
+          "value": 8594,
+          "unit": "mm",
+          "locator": "Technical information / Wing span"
+        },
+        "s": {
+          "value": 9.98,
+          "unit": "m2",
+          "locator": "Technical information / Areas / Wing"
+        },
+        "h_tail_area": {
+          "value": 1.6,
+          "unit": "m2",
+          "locator": "Technical information / Areas / Stabilator"
+        },
+        "v_tail_area": {
+          "value": 1.41,
+          "unit": "m2",
+          "locator": "Technical information / Areas / Vertical tail"
+        },
+        "v_max": {
+          "value": 240,
+          "unit": "km/h",
+          "locator": "Performance at MTOW / VH maximum horizontal speed / 600 kg column"
+        },
+        "range_km": {
+          "value": 1800,
+          "unit": "km",
+          "locator": "Performance at MTOW / Maximum range / 600 kg column",
+          "conditions": "30-minute reserve."
+        },
+        "takeoff_m": {
+          "value": 450,
+          "unit": "m",
+          "locator": "Performance at MTOW / Take-off over 15 m obstacle / 600 kg column",
+          "conditions": "Flaps +15 degrees."
+        }
+      },
+      "takeoff_basis": "15m",
+      "empty_mass_definition": "Typical manufacturer empty weight including the rescue system, 2020 configuration.",
+      "notes": [
+        "The brochure prints AR=7.29; its span 8.594 m and area 9.98 m² imply 7.40. Preserve the published dimensions and derive AR consistently."
+      ]
+    },
+    {
+      "id": "pr-hph304-js",
+      "model": "HpH 304 JS Shark",
+      "manufacturer": "HpH Sailplanes",
+      "family": "HpH304",
+      "aircraft_type": "motoglider",
+      "engine_type": "jet",
+      "n_engines": 1,
+      "document": "hph3042025",
+      "observations": {
+        "b": {
+          "value": 18,
+          "unit": "m",
+          "locator": "PDF page 1 / TECHNICAL DATA / SHARK JS / b"
+        },
+        "s": {
+          "value": 11.74,
+          "unit": "m2",
+          "locator": "PDF page 1 / TECHNICAL DATA / SHARK JS / s"
+        },
+        "m0": {
+          "value": 600,
+          "unit": "kg",
+          "locator": "PDF page 1 / TECHNICAL DATA / SHARK JS / m0"
+        },
+        "me": {
+          "value": 355,
+          "unit": "kg",
+          "locator": "PDF page 1 / TECHNICAL DATA / SHARK JS / me"
+        },
+        "ld_max": {
+          "value": 51,
+          "unit": "1",
+          "locator": "PDF page 1 / TECHNICAL DATA / SHARK JS / ld_max"
+        },
+        "v_stall_kmh": {
+          "value": 88,
+          "unit": "km/h",
+          "locator": "PDF page 1 / TECHNICAL DATA / SHARK JS / v_stall_kmh",
+          "conditions": "At maximum weight; source does not state IAS/CAS basis."
+        }
+      },
+      "empty_mass_definition": "Manufacturer published empty weight for the JS configuration.",
+      "excluded_observations": [
+        {
+          "quantity": "minimum_sink",
+          "value": 0.47,
+          "unit": "m/s",
+          "locator": "PDF page 1 / Min. sink rate (at min. weight)",
+          "reason": "Osiągi przy masie minimalnej nie są osiągami przy maksymalnej masie 600 kg."
+        }
+      ],
+      "engine_model": "Turbine Sustainer System (TSS)"
+    },
+    {
+      "id": "pr-hph304-ms",
+      "model": "HpH 304 MS Shark",
+      "manufacturer": "HpH Sailplanes",
+      "family": "HpH304",
+      "aircraft_type": "motoglider",
+      "engine_type": "prop",
+      "n_engines": 1,
+      "document": "hph3042025",
+      "observations": {
+        "b": {
+          "value": 18,
+          "unit": "m",
+          "locator": "PDF page 1 / TECHNICAL DATA / SHARK MS / b"
+        },
+        "s": {
+          "value": 11.74,
+          "unit": "m2",
+          "locator": "PDF page 1 / TECHNICAL DATA / SHARK MS / s"
+        },
+        "m0": {
+          "value": 600,
+          "unit": "kg",
+          "locator": "PDF page 1 / TECHNICAL DATA / SHARK MS / m0"
+        },
+        "me": {
+          "value": 395,
+          "unit": "kg",
+          "locator": "PDF page 1 / TECHNICAL DATA / SHARK MS / me"
+        },
+        "ld_max": {
+          "value": 51,
+          "unit": "1",
+          "locator": "PDF page 1 / TECHNICAL DATA / SHARK MS / ld_max"
+        },
+        "v_stall_kmh": {
+          "value": 88,
+          "unit": "km/h",
+          "locator": "PDF page 1 / TECHNICAL DATA / SHARK MS / v_stall_kmh",
+          "conditions": "At maximum weight; source does not state IAS/CAS basis."
+        },
+        "p_kw": {
+          "value": 38,
+          "unit": "kW",
+          "locator": "PDF page 2 / BINDER SOLO ENGINE SYSTEM / Maximum power"
+        }
+      },
+      "empty_mass_definition": "Manufacturer published empty weight for the MS configuration.",
+      "excluded_observations": [
+        {
+          "quantity": "minimum_sink",
+          "value": 0.49,
+          "unit": "m/s",
+          "locator": "PDF page 1 / Min. sink rate (at min. weight)",
+          "reason": "Osiągi przy masie minimalnej nie są osiągami przy maksymalnej masie 600 kg."
+        }
+      ],
+      "engine_model": "Binder SOLO self-launch system"
+    },
+    {
+      "id": "pr-hph304-s",
+      "model": "HpH 304 S Shark",
+      "manufacturer": "HpH Sailplanes",
+      "family": "HpH304",
+      "aircraft_type": "glider",
+      "engine_type": "none",
+      "n_engines": 0,
+      "document": "hph3042025",
+      "observations": {
+        "b": {
+          "value": 18,
+          "unit": "m",
+          "locator": "PDF page 1 / TECHNICAL DATA / SHARK S / b"
+        },
+        "s": {
+          "value": 11.74,
+          "unit": "m2",
+          "locator": "PDF page 1 / TECHNICAL DATA / SHARK S / s"
+        },
+        "m0": {
+          "value": 600,
+          "unit": "kg",
+          "locator": "PDF page 1 / TECHNICAL DATA / SHARK S / m0"
+        },
+        "me": {
+          "value": 325,
+          "unit": "kg",
+          "locator": "PDF page 1 / TECHNICAL DATA / SHARK S / me"
+        },
+        "ld_max": {
+          "value": 51,
+          "unit": "1",
+          "locator": "PDF page 1 / TECHNICAL DATA / SHARK S / ld_max"
+        },
+        "v_stall_kmh": {
+          "value": 88,
+          "unit": "km/h",
+          "locator": "PDF page 1 / TECHNICAL DATA / SHARK S / v_stall_kmh",
+          "conditions": "At maximum weight; source does not state IAS/CAS basis."
+        }
+      },
+      "empty_mass_definition": "Manufacturer published empty weight for the S configuration.",
+      "excluded_observations": [
+        {
+          "quantity": "minimum_sink",
+          "value": 0.45,
+          "unit": "m/s",
+          "locator": "PDF page 1 / Min. sink rate (at min. weight)",
+          "reason": "Osiągi przy masie minimalnej nie są osiągami przy maksymalnej masie 600 kg."
+        }
+      ]
+    },
+    {
+      "id": "pr-js2-18",
+      "model": "JS2 Revenant (18 m)",
+      "manufacturer": "Jonker Sailplanes",
+      "family": "JS2",
+      "aircraft_type": "motoglider",
+      "engine_type": "prop",
+      "n_engines": 1,
+      "document": "js2",
+      "observations": {
+        "b": {
+          "value": 18,
+          "unit": "m",
+          "locator": "Specifications and Performance / 18 m / b"
+        },
+        "s": {
+          "value": 11.21,
+          "unit": "m2",
+          "locator": "Specifications and Performance / 18 m / s"
+        },
+        "m0": {
+          "value": 630,
+          "unit": "kg",
+          "locator": "Specifications and Performance / 18 m / m0"
+        },
+        "me": {
+          "value": 428,
+          "unit": "kg",
+          "locator": "Specifications and Performance / 18 m / me"
+        },
+        "ld_max": {
+          "value": 53,
+          "unit": "1",
+          "locator": "Specifications and Performance / 18 m / ld_max"
+        }
+      },
+      "engine_model": "SOLO 2625-02i NEO Silent",
+      "empty_mass_definition": "Manufacturer approximate empty weight without fuel, including the self-launch engine; the separate without-engine figure is not used.",
+      "notes": [
+        "Power text conflicts: 50 kW / 64 hp in the engine section, 50 horsepower in the FAQ. No unique rating is imported until independently resolved."
+      ]
+    },
+    {
+      "id": "pr-js2-21",
+      "model": "JS2 Revenant (21 m)",
+      "manufacturer": "Jonker Sailplanes",
+      "family": "JS2",
+      "aircraft_type": "motoglider",
+      "engine_type": "prop",
+      "n_engines": 1,
+      "document": "js2",
+      "observations": {
+        "b": {
+          "value": 21,
+          "unit": "m",
+          "locator": "Specifications and Performance / 21 m / b"
+        },
+        "s": {
+          "value": 12.39,
+          "unit": "m2",
+          "locator": "Specifications and Performance / 21 m / s"
+        },
+        "m0": {
+          "value": 700,
+          "unit": "kg",
+          "locator": "Specifications and Performance / 21 m / m0"
+        },
+        "me": {
+          "value": 450,
+          "unit": "kg",
+          "locator": "Specifications and Performance / 21 m / me"
+        },
+        "ld_max": {
+          "value": 60,
+          "unit": "1",
+          "locator": "Specifications and Performance / 21 m / ld_max"
+        }
+      },
+      "engine_model": "SOLO 2625-02i NEO Silent",
+      "empty_mass_definition": "Manufacturer approximate empty weight without fuel, including the self-launch engine; the separate without-engine figure is not used.",
+      "notes": [
+        "Power text conflicts: 50 kW / 64 hp in the engine section, 50 horsepower in the FAQ. No unique rating is imported until independently resolved."
+      ]
+    },
+    {
+      "id": "pr-js5",
+      "model": "JS5 Rey (propulsion not weight-defined)",
+      "manufacturer": "Jonker Sailplanes",
+      "family": "JS5",
+      "aircraft_type": "motoglider",
+      "engine_type": "prop",
+      "n_engines": 1,
+      "document": "js5",
+      "observations": {
+        "b": {
+          "value": 24.2,
+          "unit": "m",
+          "locator": "Specifications / Performance / b"
+        },
+        "s": {
+          "value": 13.2,
+          "unit": "m2",
+          "locator": "Specifications / Performance / s"
+        },
+        "m0": {
+          "value": 800,
+          "unit": "kg",
+          "locator": "Specifications / Performance / m0"
+        },
+        "ld_max": {
+          "value": 69,
+          "unit": "1",
+          "locator": "Specifications / Performance / ld_max"
+        }
+      },
+      "excluded_observations": [
+        {
+          "quantity": "empty_mass_without_engine",
+          "value": 450,
+          "unit": "kg",
+          "locator": "Specifications / Empty weight (without engine)",
+          "reason": "Podana masa nie obejmuje napędu i nie jest masą pustą kompletnego motoszybowca."
+        }
+      ],
+      "notes": [
+        "The manufacturer offers propulsion options but does not identify a complete equipped empty mass in the technical table."
+      ]
+    },
+    {
+      "id": "pr-lak17c-15",
+      "model": "LAK-17C FES (15 m)",
+      "manufacturer": "Sportinė Aviacija ir Ko",
+      "family": "LAK17",
+      "aircraft_type": "motoglider",
+      "engine_type": "prop",
+      "n_engines": 1,
+      "document": "lak17c",
+      "observations": {
+        "b": {
+          "value": 15,
+          "unit": "m",
+          "locator": "Technical data / 15 m / b"
+        },
+        "s": {
+          "value": 9.18,
+          "unit": "m2",
+          "locator": "Technical data / 15 m / s"
+        },
+        "m0": {
+          "value": 550,
+          "unit": "kg",
+          "locator": "Technical data / 15 m / m0"
+        }
+      },
+      "engine_model": "FES-LAK-M100",
+      "excluded_observations": [
+        {
+          "quantity": "continuous_motor_power",
+          "value": 20,
+          "unit": "kW",
+          "locator": "Electric power system / continuous power",
+          "reason": "Moc ciągła nie została określona jako maksymalna moc startowa."
+        }
+      ]
+    },
+    {
+      "id": "pr-lak17c-18",
+      "model": "LAK-17C FES (18 m)",
+      "manufacturer": "Sportinė Aviacija ir Ko",
+      "family": "LAK17",
+      "aircraft_type": "motoglider",
+      "engine_type": "prop",
+      "n_engines": 1,
+      "document": "lak17c",
+      "observations": {
+        "b": {
+          "value": 18,
+          "unit": "m",
+          "locator": "Technical data / 18 m / b"
+        },
+        "s": {
+          "value": 10.32,
+          "unit": "m2",
+          "locator": "Technical data / 18 m / s"
+        },
+        "m0": {
+          "value": 600,
+          "unit": "kg",
+          "locator": "Technical data / 18 m / m0"
+        }
+      },
+      "engine_model": "FES-LAK-M100",
+      "excluded_observations": [
+        {
+          "quantity": "continuous_motor_power",
+          "value": 20,
+          "unit": "kW",
+          "locator": "Electric power system / continuous power",
+          "reason": "Moc ciągła nie została określona jako maksymalna moc startowa."
+        }
+      ]
+    },
+    {
+      "id": "pr-lange-antares-21e",
+      "model": "Antares 21E",
+      "manufacturer": "Lange Aviation",
+      "family": "Lange Antares",
+      "aircraft_type": "motoglider",
+      "engine_type": "prop",
+      "n_engines": 1,
+      "document": "antares_21",
+      "observations": {
+        "m0": {
+          "value": 710,
+          "unit": "kg",
+          "locator": "Technical data / Maximum take-off weight"
+        },
+        "me": {
+          "value": 490,
+          "unit": "kg",
+          "locator": "Technical data / Empty weight"
+        },
+        "b": {
+          "value": 21.5,
+          "unit": "m",
+          "locator": "Technical data / Wingspan"
+        },
+        "s": {
+          "value": 12.9,
+          "unit": "m2",
+          "locator": "Technical data / Wing area"
+        },
+        "p_kw": {
+          "value": 42,
+          "unit": "kW",
+          "locator": "Technical data / Motor power"
+        },
+        "ld_max": {
+          "value": 58,
+          "unit": "1",
+          "locator": "Technical data / Best glide ratio"
+        }
+      },
+      "engine_model": "Lange brushless electric motor",
+      "empty_mass_definition": "Manufacturer empty mass of the electric self-launching aircraft; exact standard/large battery mass split not published in this table.",
+      "excluded_observations": [
+        {
+          "quantity": "stall_speed",
+          "value": 73,
+          "unit": "km/h",
+          "mass_kg": 560,
+          "locator": "Gliding performance / stall speed at stated weight",
+          "reason": "Wynik nie dotyczy MTOW. Nie służy do zadania wymagania przeciągnięcia przy większej masie."
+        },
+        {
+          "quantity": "min_sink",
+          "value": 0.45,
+          "unit": "m/s",
+          "mass_kg": 560,
+          "locator": "Gliding performance / minimum sink",
+          "reason": "Wartość zachowano z rzeczywistą masą, dla której ją podano; nie jest bezwarunkowym osiągiem przy MTOW."
+        },
+        {
+          "quantity": "max_climb",
+          "value": 4.4,
+          "unit": "m/s",
+          "mass_kg": 560,
+          "locator": "Climb performance / pilot plus parachute 70 kg",
+          "reason": "Wznoszenia nie podano przy MTOW."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "id": "pr-lange-antares-23e",
+      "model": "Antares 23E",
+      "manufacturer": "Lange Aviation",
+      "family": "Lange Antares",
+      "aircraft_type": "motoglider",
+      "engine_type": "prop",
+      "n_engines": 1,
+      "document": "antares_23",
+      "observations": {
+        "m0": {
+          "value": 850,
+          "unit": "kg",
+          "locator": "Technical data / Maximum take-off weight"
+        },
+        "me": {
+          "value": 530,
+          "unit": "kg",
+          "locator": "Technical data / Empty weight"
+        },
+        "b": {
+          "value": 23,
+          "unit": "m",
+          "locator": "Technical data / Wingspan"
+        },
+        "s": {
+          "value": 14.75,
+          "unit": "m2",
+          "locator": "Technical data / Wing area"
+        },
+        "p_kw": {
+          "value": 42,
+          "unit": "kW",
+          "locator": "Technical data / Motor power"
+        },
+        "ld_max": {
+          "value": 60,
+          "unit": "1",
+          "locator": "Technical data / Best glide ratio"
+        }
+      },
+      "engine_model": "Lange brushless electric motor",
+      "empty_mass_definition": "Manufacturer empty mass of the electric self-launching aircraft; exact standard/large battery mass split not published in this table.",
+      "excluded_observations": [
+        {
+          "quantity": "stall_speed",
+          "value": 71,
+          "unit": "km/h",
+          "mass_kg": 600,
+          "locator": "Gliding performance / stall speed at stated weight",
+          "reason": "Wynik nie dotyczy MTOW. Nie służy do zadania wymagania przeciągnięcia przy większej masie."
+        },
+        {
+          "quantity": "min_sink",
+          "value": 0.47,
+          "unit": "m/s",
+          "mass_kg": 600,
+          "locator": "Gliding performance / minimum sink",
+          "reason": "Wartość zachowano z rzeczywistą masą, dla której ją podano; nie jest bezwarunkowym osiągiem przy MTOW."
+        },
+        {
+          "quantity": "max_climb",
+          "value": 4,
+          "unit": "m/s",
+          "mass_kg": 600,
+          "locator": "Climb performance / pilot plus parachute 70 kg",
+          "reason": "Wznoszenia nie podano przy MTOW."
+        }
+      ],
+      "notes": [
+        "For Antares 23E the printed aspect ratio 38.5 differs from b²/S = 35.86. The catalogue derives aspect ratio from the published span and wing area."
+      ]
+    },
+    {
+      "id": "pr-ls8e-neo-15",
+      "model": "LS8e neo (15 m)",
+      "manufacturer": "DG Aviation",
+      "family": "LS8",
+      "aircraft_type": "motoglider",
+      "engine_type": "prop",
+      "n_engines": 1,
+      "document": "dg-fes",
+      "observations": {
+        "b": {
+          "value": 15,
+          "unit": "m",
+          "locator": "Technical details LS8e neo / 15 m; FES Data / b"
+        },
+        "s": {
+          "value": 10.5,
+          "unit": "m2",
+          "locator": "Technical details LS8e neo / 15 m; FES Data / s"
+        },
+        "me": {
+          "value": 330,
+          "unit": "kg",
+          "locator": "Technical details LS8e neo / 15 m; FES Data / me"
+        },
+        "m0": {
+          "value": 525,
+          "unit": "kg",
+          "locator": "Technical details LS8e neo / 15 m; FES Data / m0"
+        },
+        "p_kw": {
+          "value": 22,
+          "unit": "kW",
+          "locator": "Technical details LS8e neo / 15 m; FES Data / p_kw"
+        }
+      },
+      "engine_model": "LZ Design brushless FES",
+      "empty_mass_definition": "Approximate manufacturer empty mass including basic instruments of the LS8e neo configuration.",
+      "excluded_observations": [
+        {
+          "quantity": "minimum_sink",
+          "value": 0.59,
+          "unit": "m/s",
+          "mass_kg": 420,
+          "locator": "Technical details LS8e neo / minimum sink (at 420 kg)",
+          "reason": "Wynik dotyczy masy 420 kg, a nie maksymalnej masy startowej."
+        }
+      ]
+    },
+    {
+      "id": "pr-ls8e-neo-18",
+      "model": "LS8e neo (18 m)",
+      "manufacturer": "DG Aviation",
+      "family": "LS8",
+      "aircraft_type": "motoglider",
+      "engine_type": "prop",
+      "n_engines": 1,
+      "document": "dg-fes",
+      "observations": {
+        "b": {
+          "value": 18,
+          "unit": "m",
+          "locator": "Technical details LS8e neo / 18 m; FES Data / b"
+        },
+        "s": {
+          "value": 11.4,
+          "unit": "m2",
+          "locator": "Technical details LS8e neo / 18 m; FES Data / s"
+        },
+        "me": {
+          "value": 340,
+          "unit": "kg",
+          "locator": "Technical details LS8e neo / 18 m; FES Data / me"
+        },
+        "m0": {
+          "value": 575,
+          "unit": "kg",
+          "locator": "Technical details LS8e neo / 18 m; FES Data / m0"
+        },
+        "p_kw": {
+          "value": 22,
+          "unit": "kW",
+          "locator": "Technical details LS8e neo / 18 m; FES Data / p_kw"
+        }
+      },
+      "engine_model": "LZ Design brushless FES",
+      "empty_mass_definition": "Approximate manufacturer empty mass including basic instruments of the LS8e neo configuration.",
+      "excluded_observations": [
+        {
+          "quantity": "minimum_sink",
+          "value": 0.51,
+          "unit": "m/s",
+          "mass_kg": 420,
+          "locator": "Technical details LS8e neo / minimum sink (at 420 kg)",
+          "reason": "Wynik dotyczy masy 420 kg, a nie maksymalnej masy startowej."
+        }
+      ]
+    },
+    {
+      "id": "pr-rans21-rotax-912-uls",
+      "model": "RANS S-21 Outbound (Rotax 912 ULS, EAB)",
+      "manufacturer": "RANS Designs",
+      "family": "RANS S21",
+      "aircraft_type": "piston_ga",
+      "engine_type": "prop",
+      "n_engines": 1,
+      "document": "rans21-2020",
+      "observations": {
+        "b": {
+          "value": 28,
+          "unit": "ft",
+          "locator": "PDF page 1 / Rotax 912 ULS column / EAB (asterisk) configuration / b"
+        },
+        "s": {
+          "value": 141,
+          "unit": "ft2",
+          "locator": "PDF page 1 / Rotax 912 ULS column / EAB (asterisk) configuration / s"
+        },
+        "me": {
+          "value": 820,
+          "unit": "lb",
+          "locator": "PDF page 1 / Rotax 912 ULS column / EAB (asterisk) configuration / me"
+        },
+        "m0": {
+          "value": 1600,
+          "unit": "lb",
+          "locator": "PDF page 1 / Rotax 912 ULS column / EAB (asterisk) configuration / m0"
+        }
+      },
+      "engine_model": "Rotax 912 ULS",
+      "empty_mass_definition": "Published empty weight for the indicated engine column; maximum mass uses the separately marked EAB figure.",
+      "excluded_observations": [
+        {
+          "quantity": "performance_mass_basis",
+          "locator": "PDF page 1 / PERFORMANCE",
+          "reason": "Podano masę SLSA 1320 lb i większe masy EAB, ale nie przypisano jednoznacznej masy do tabeli osiągów. Osiągów nie przypisano do większej masy."
+        }
+      ]
+    },
+    {
+      "id": "pr-rans21-rotax-915-is",
+      "model": "RANS S-21 Outbound (Rotax 915 iS, EAB)",
+      "manufacturer": "RANS Designs",
+      "family": "RANS S21",
+      "aircraft_type": "piston_ga",
+      "engine_type": "prop",
+      "n_engines": 1,
+      "document": "rans21-2020",
+      "observations": {
+        "b": {
+          "value": 28,
+          "unit": "ft",
+          "locator": "PDF page 1 / Rotax 915 iS column / EAB (asterisk) configuration / b"
+        },
+        "s": {
+          "value": 141,
+          "unit": "ft2",
+          "locator": "PDF page 1 / Rotax 915 iS column / EAB (asterisk) configuration / s"
+        },
+        "me": {
+          "value": 915,
+          "unit": "lb",
+          "locator": "PDF page 1 / Rotax 915 iS column / EAB (asterisk) configuration / me"
+        },
+        "m0": {
+          "value": 1800,
+          "unit": "lb",
+          "locator": "PDF page 1 / Rotax 915 iS column / EAB (asterisk) configuration / m0"
+        }
+      },
+      "engine_model": "Rotax 915 iS",
+      "empty_mass_definition": "Published empty weight for the indicated engine column; maximum mass uses the separately marked EAB figure.",
+      "excluded_observations": [
+        {
+          "quantity": "performance_mass_basis",
+          "locator": "PDF page 1 / PERFORMANCE",
+          "reason": "Podano masę SLSA 1320 lb i większe masy EAB, ale nie przypisano jednoznacznej masy do tabeli osiągów. Osiągów nie przypisano do większej masy."
+        }
+      ]
+    },
+    {
+      "id": "pr-rans21-titan-x-340",
+      "model": "RANS S-21 Outbound (Titan X-340, EAB)",
+      "manufacturer": "RANS Designs",
+      "family": "RANS S21",
+      "aircraft_type": "piston_ga",
+      "engine_type": "prop",
+      "n_engines": 1,
+      "document": "rans21-2020",
+      "observations": {
+        "b": {
+          "value": 28,
+          "unit": "ft",
+          "locator": "PDF page 1 / Titan X-340 column / EAB (asterisk) configuration / b"
+        },
+        "s": {
+          "value": 141,
+          "unit": "ft2",
+          "locator": "PDF page 1 / Titan X-340 column / EAB (asterisk) configuration / s"
+        },
+        "me": {
+          "value": 985,
+          "unit": "lb",
+          "locator": "PDF page 1 / Titan X-340 column / EAB (asterisk) configuration / me"
+        },
+        "m0": {
+          "value": 1800,
+          "unit": "lb",
+          "locator": "PDF page 1 / Titan X-340 column / EAB (asterisk) configuration / m0"
+        },
+        "p_kw": {
+          "value": 180,
+          "unit": "hp_mechanical",
+          "locator": "PDF page 1 / Titan X-340 column / EAB (asterisk) configuration / engine output"
+        }
+      },
+      "engine_model": "Titan X-340",
+      "empty_mass_definition": "Published empty weight for the indicated engine column; maximum mass uses the separately marked EAB figure.",
+      "excluded_observations": [
+        {
+          "quantity": "performance_mass_basis",
+          "locator": "PDF page 1 / PERFORMANCE",
+          "reason": "Podano masę SLSA 1320 lb i większe masy EAB, ale nie przypisano jednoznacznej masy do tabeli osiągów. Osiągów nie przypisano do większej masy."
+        }
+      ]
+    },
+    {
+      "id": "pr-sirius600-is",
+      "model": "TL-3000 Sirius 600 (Rotax 912iS Sport)",
+      "manufacturer": "TL-Ultralight",
+      "family": "TL Sirius",
+      "aircraft_type": "piston_ga",
+      "engine_type": "prop",
+      "n_engines": 1,
+      "document": "sirius_tads",
+      "observations": {
+        "m0": {
+          "value": 600,
+          "unit": "kg",
+          "locator": "TADS page 1, section (5) / MTOW"
+        },
+        "me": {
+          "value": 356,
+          "unit": "kg",
+          "locator": "TADS page 1, section (5) / empty mass"
+        },
+        "v_stall_kmh": {
+          "value": 40,
+          "unit": "kt",
+          "locator": "TADS page 1, section (5)(d) Vso",
+          "conditions": "CAS, landing configuration at 600 kg."
+        }
+      },
+      "engine_model": "Rotax 912iS Sport",
+      "empty_mass_definition": "TADS typical empty weight (ZFW), separately stated for the engine variant."
+    },
+    {
+      "id": "pr-sirius600-uls",
+      "model": "TL-3000 Sirius 600 (Rotax 912 ULS)",
+      "manufacturer": "TL-Ultralight",
+      "family": "TL Sirius",
+      "aircraft_type": "piston_ga",
+      "engine_type": "prop",
+      "n_engines": 1,
+      "document": "sirius_tads",
+      "observations": {
+        "m0": {
+          "value": 600,
+          "unit": "kg",
+          "locator": "TADS page 1, section (5) / MTOW"
+        },
+        "me": {
+          "value": 350,
+          "unit": "kg",
+          "locator": "TADS page 1, section (5) / empty mass"
+        },
+        "v_stall_kmh": {
+          "value": 40,
+          "unit": "kt",
+          "locator": "TADS page 1, section (5)(d) Vso",
+          "conditions": "CAS, landing configuration at 600 kg."
+        }
+      },
+      "engine_model": "Rotax 912 ULS",
+      "empty_mass_definition": "TADS typical empty weight (ZFW), separately stated for the engine variant."
+    },
+    {
+      "id": "pr-skyleader600",
+      "model": "Skyleader 600 (manufacturer standard)",
+      "manufacturer": "Air Operation Technologies",
+      "family": "Skyleader600",
+      "aircraft_type": "piston_ga",
+      "engine_type": "prop",
+      "n_engines": 1,
+      "document": "skyleader600",
+      "observations": {
+        "m0": {
+          "value": 600,
+          "unit": "kg",
+          "locator": "Technical specifications / MTOW"
+        },
+        "me": {
+          "value": 340,
+          "unit": "kg",
+          "locator": "Technical specifications / empty mass"
+        },
+        "b": {
+          "value": 9.9,
+          "unit": "m",
+          "locator": "Technical specifications / wingspan"
+        },
+        "s": {
+          "value": 11.85,
+          "unit": "m2",
+          "locator": "Technical specifications / wing area"
+        },
+        "v_cruise_kmh": {
+          "value": 220,
+          "unit": "km/h",
+          "locator": "Speeds / Cruise speed Vc"
+        },
+        "v_stall_kmh": {
+          "value": 61,
+          "unit": "km/h",
+          "locator": "Speeds / VS0 landing configuration"
+        },
+        "range_km": {
+          "value": 1300,
+          "unit": "km",
+          "locator": "Fuel / Range"
+        }
+      },
+      "empty_mass_definition": "Manufacturer listed 340 kg empty weight; installed engine variant not specified.",
+      "notes": [
+        "Published aspect ratio 7.78 conflicts with b²/S ≈ 8.27 from 9.9 m and 11.85 m². The catalogue derives aspect ratio from geometry.",
+        "The page labels 15 m and 50 ft as equivalent; those distances are not imported with a falsely exact obstacle basis."
+      ]
+    },
+    {
+      "id": "pr-sling-2",
+      "model": "Sling 2 (700 kg)",
+      "manufacturer": "Sling Aircraft",
+      "family": "Sling 2/LSA",
+      "aircraft_type": "piston_ga",
+      "engine_type": "prop",
+      "n_engines": 1,
+      "document": "sling-2",
+      "observations": {
+        "m0": {
+          "value": 700.0,
+          "unit": "kg",
+          "locator": "Specifications / 2 / Maximum weight"
+        },
+        "me": {
+          "value": 420.0,
+          "unit": "kg",
+          "locator": "Specifications / 2 / Standard empty weight"
+        },
+        "b": {
+          "value": 9.165,
+          "unit": "m",
+          "locator": "Specifications / 2 / Wingspan"
+        },
+        "v_cruise_kmh": {
+          "value": 117.0,
+          "unit": "kt",
+          "locator": "Performance & Engine / Typical cruise speed",
+          "conditions": "KTAS at 9500 ft ASL."
+        },
+        "range_km": {
+          "value": 830.0,
+          "unit": "NM",
+          "locator": "Performance & Engine / Range at best range cruise",
+          "conditions": "Best-range cruise; do not pair with the faster typical cruise as an identical operating point."
+        },
+        "climb_rate_ms": {
+          "value": 875.0,
+          "unit": "ft/min",
+          "locator": "Performance & Engine / Rate of climb",
+          "conditions": "Sea level."
+        },
+        "takeoff_m": {
+          "value": 330.0,
+          "unit": "m",
+          "locator": "Performance & Engine / Take-off over 50 ft"
+        },
+        "landing_m": {
+          "value": 260.0,
+          "unit": "m",
+          "locator": "Performance & Engine / Landing over 50 ft"
+        }
+      },
+      "engine_model": "ROTAX 912 iS",
+      "prop_type": "DUC FLASH 3-BLADE; Ground adjustable",
+      "empty_mass_definition": "Manufacturer standard empty weight for the current published configuration.",
+      "takeoff_basis": "50ft",
+      "landing_basis": "50ft",
+      "notes": [
+        "Manufacturer power is rounded to 75/119 kW; obtain the exact Rotax engine rating separately.",
+        "No wing area is specified by the product page; no area was inferred from appearance."
+      ],
+      "excluded_observations": [
+        {
+          "quantity": "clean_stall_VS1",
+          "value": 48.0,
+          "unit": "kt",
+          "locator": "Performance & Engine / Stall speed clean",
+          "conditions": "KIAS, clean configuration; not landing VS0.",
+          "reason": "Prędkość KIAS w konfiguracji gładkiej oznacza VS1, nie VS0 do lądowania. Nie służy do zadawania w kreatorze wymagania VS0."
+        }
+      ]
+    },
+    {
+      "id": "pr-sling-hw",
+      "model": "Sling High Wing (916 iS)",
+      "manufacturer": "Sling Aircraft",
+      "family": "Sling HW",
+      "aircraft_type": "piston_ga",
+      "engine_type": "prop",
+      "n_engines": 1,
+      "document": "sling-hw",
+      "observations": {
+        "m0": {
+          "value": 1120.0,
+          "unit": "kg",
+          "locator": "Specifications / HW / Maximum weight"
+        },
+        "me": {
+          "value": 630.0,
+          "unit": "kg",
+          "locator": "Specifications / HW / Standard empty weight"
+        },
+        "b": {
+          "value": 9.54,
+          "unit": "m",
+          "locator": "Specifications / HW / Wingspan"
+        },
+        "v_cruise_kmh": {
+          "value": 145.0,
+          "unit": "kt",
+          "locator": "Performance & Engine / Typical cruise speed",
+          "conditions": "KTAS at 9500 ft ASL."
+        },
+        "range_km": {
+          "value": 900.0,
+          "unit": "NM",
+          "locator": "Performance & Engine / Range at best range cruise",
+          "conditions": "Best-range cruise; do not pair with the faster typical cruise as an identical operating point."
+        },
+        "climb_rate_ms": {
+          "value": 679.0,
+          "unit": "ft/min",
+          "locator": "Performance & Engine / Rate of climb",
+          "conditions": "Sea level."
+        },
+        "takeoff_m": {
+          "value": 810.0,
+          "unit": "m",
+          "locator": "Performance & Engine / Take-off over 50 ft"
+        },
+        "landing_m": {
+          "value": 550.0,
+          "unit": "m",
+          "locator": "Performance & Engine / Landing over 50 ft"
+        }
+      },
+      "engine_model": "ROTAX 916 iS",
+      "prop_type": "DUC FLASHBLACK-3-R 4-BLADE; Constant Speed (Hydraulic)",
+      "empty_mass_definition": "Manufacturer standard empty weight for the current published configuration.",
+      "takeoff_basis": "50ft",
+      "landing_basis": "50ft",
+      "notes": [
+        "Manufacturer power is rounded to 75/119 kW; obtain the exact Rotax engine rating separately.",
+        "No wing area is specified by the product page; no area was inferred from appearance."
+      ],
+      "excluded_observations": [
+        {
+          "quantity": "clean_stall_VS1",
+          "value": 60.0,
+          "unit": "kt",
+          "locator": "Performance & Engine / Stall speed clean",
+          "conditions": "KIAS, clean configuration; not landing VS0.",
+          "reason": "Prędkość KIAS w konfiguracji gładkiej oznacza VS1, nie VS0 do lądowania. Nie służy do zadawania w kreatorze wymagania VS0."
+        }
+      ]
+    },
+    {
+      "id": "pr-sling-lsa",
+      "model": "Sling LSA (600 kg)",
+      "manufacturer": "Sling Aircraft",
+      "family": "Sling 2/LSA",
+      "aircraft_type": "piston_ga",
+      "engine_type": "prop",
+      "n_engines": 1,
+      "document": "sling-lsa",
+      "observations": {
+        "m0": {
+          "value": 600.0,
+          "unit": "kg",
+          "locator": "Specifications / LSA / Maximum weight"
+        },
+        "me": {
+          "value": 420.0,
+          "unit": "kg",
+          "locator": "Specifications / LSA / Standard empty weight"
+        },
+        "b": {
+          "value": 9.165,
+          "unit": "m",
+          "locator": "Specifications / LSA / Wingspan"
+        },
+        "v_cruise_kmh": {
+          "value": 120.0,
+          "unit": "kt",
+          "locator": "Performance & Engine / Typical cruise speed",
+          "conditions": "KTAS at 9500 ft ASL."
+        },
+        "range_km": {
+          "value": 850.0,
+          "unit": "NM",
+          "locator": "Performance & Engine / Range at best range cruise",
+          "conditions": "Best-range cruise; do not pair with the faster typical cruise as an identical operating point."
+        },
+        "climb_rate_ms": {
+          "value": 875.0,
+          "unit": "ft/min",
+          "locator": "Performance & Engine / Rate of climb",
+          "conditions": "Sea level."
+        },
+        "takeoff_m": {
+          "value": 270.0,
+          "unit": "m",
+          "locator": "Performance & Engine / Take-off over 50 ft"
+        },
+        "landing_m": {
+          "value": 250.0,
+          "unit": "m",
+          "locator": "Performance & Engine / Landing over 50 ft"
+        }
+      },
+      "engine_model": "ROTAX 912 iS",
+      "prop_type": "DUC FLASH 3-BLADE; Ground adjustable",
+      "empty_mass_definition": "Manufacturer standard empty weight for the current published configuration.",
+      "takeoff_basis": "50ft",
+      "landing_basis": "50ft",
+      "notes": [
+        "Manufacturer power is rounded to 75/119 kW; obtain the exact Rotax engine rating separately.",
+        "No wing area is specified by the product page; no area was inferred from appearance."
+      ],
+      "excluded_observations": [
+        {
+          "quantity": "clean_stall_VS1",
+          "value": 45.0,
+          "unit": "kt",
+          "locator": "Performance & Engine / Stall speed clean",
+          "conditions": "KIAS, clean configuration; not landing VS0.",
+          "reason": "Prędkość KIAS w konfiguracji gładkiej oznacza VS1, nie VS0 do lądowania. Nie służy do zadawania w kreatorze wymagania VS0."
+        }
+      ]
+    },
+    {
+      "id": "pr-sling-tsi",
+      "model": "Sling TSi (916 iS)",
+      "manufacturer": "Sling Aircraft",
+      "family": "Sling TSI",
+      "aircraft_type": "piston_ga",
+      "engine_type": "prop",
+      "n_engines": 1,
+      "document": "sling-tsi",
+      "observations": {
+        "m0": {
+          "value": 950.0,
+          "unit": "kg",
+          "locator": "Specifications / TSI / Maximum weight"
+        },
+        "me": {
+          "value": 520.0,
+          "unit": "kg",
+          "locator": "Specifications / TSI / Standard empty weight"
+        },
+        "b": {
+          "value": 9.54,
+          "unit": "m",
+          "locator": "Specifications / TSI / Wingspan"
+        },
+        "v_cruise_kmh": {
+          "value": 155.0,
+          "unit": "kt",
+          "locator": "Performance & Engine / Typical cruise speed",
+          "conditions": "KTAS at 9500 ft ASL."
+        },
+        "range_km": {
+          "value": 1000.0,
+          "unit": "NM",
+          "locator": "Performance & Engine / Range at best range cruise",
+          "conditions": "Best-range cruise; do not pair with the faster typical cruise as an identical operating point."
+        },
+        "climb_rate_ms": {
+          "value": 940.0,
+          "unit": "ft/min",
+          "locator": "Performance & Engine / Rate of climb",
+          "conditions": "Sea level."
+        },
+        "takeoff_m": {
+          "value": 330.0,
+          "unit": "m",
+          "locator": "Performance & Engine / Take-off over 50 ft"
+        },
+        "landing_m": {
+          "value": 350.0,
+          "unit": "m",
+          "locator": "Performance & Engine / Landing over 50 ft"
+        }
+      },
+      "engine_model": "ROTAX 916 iS",
+      "prop_type": "DUC FLASHBLACK-3-R 4-BLADE; Constant Speed (Hydraulic)",
+      "empty_mass_definition": "Manufacturer standard empty weight for the current published configuration.",
+      "takeoff_basis": "50ft",
+      "landing_basis": "50ft",
+      "notes": [
+        "Manufacturer power is rounded to 75/119 kW; obtain the exact Rotax engine rating separately.",
+        "No wing area is specified by the product page; no area was inferred from appearance."
+      ],
+      "excluded_observations": [
+        {
+          "quantity": "clean_stall_VS1",
+          "value": 56.0,
+          "unit": "kt",
+          "locator": "Performance & Engine / Stall speed clean",
+          "conditions": "KIAS, clean configuration; not landing VS0.",
+          "reason": "Prędkość KIAS w konfiguracji gładkiej oznacza VS1, nie VS0 do lądowania. Nie służy do zadawania w kreatorze wymagania VS0."
+        }
+      ]
+    },
+    {
+      "id": "pr-tecnam-p2002",
+      "model": "Tecnam P2002 Sierra MkII",
+      "manufacturer": "Tecnam",
+      "family": "Tecnam P2002",
+      "aircraft_type": "piston_ga",
+      "engine_type": "prop",
+      "n_engines": 1,
+      "document": "tecnam-p2002",
+      "observations": {
+        "m0": {
+          "value": 600,
+          "unit": "kg",
+          "locator": "Technical specifications / MTOW"
+        },
+        "me": {
+          "value": 377,
+          "unit": "kg",
+          "locator": "Technical specifications / empty mass"
+        },
+        "b": {
+          "value": 8.6,
+          "unit": "m",
+          "locator": "Technical specifications / wingspan"
+        },
+        "s": {
+          "value": 11.5,
+          "unit": "m2",
+          "locator": "Technical specifications / wing area"
+        },
+        "v_cruise_kmh": {
+          "value": 120,
+          "unit": "kt",
+          "locator": "Performance / maximum cruise speed",
+          "conditions": "Published cruise maximum; TAS where explicitly indicated, otherwise airspeed basis not stated."
+        },
+        "v_stall_kmh": {
+          "value": 40,
+          "unit": "kt",
+          "locator": "Performance / stall speed (flaps down, power off)",
+          "conditions": "Landing configuration, power off; KCAS explicitly identified on P-Mentor, otherwise basis unspecified."
+        },
+        "climb_rate_ms": {
+          "value": 4.6,
+          "unit": "m/s",
+          "locator": "Performance / rate of climb",
+          "conditions": "Manufacturer metric figure; not an exact conversion of the rounded imperial column."
+        },
+        "takeoff_m": {
+          "value": 189,
+          "unit": "m",
+          "locator": "Performance / take-off run"
+        },
+        "landing_m": {
+          "value": 149,
+          "unit": "m",
+          "locator": "Performance / landing run"
+        },
+        "range_km": {
+          "value": 900,
+          "unit": "NM",
+          "locator": "Performance / range",
+          "conditions": "Range cruise condition / reserve as published; no equality with maximum cruise is assumed."
+        }
+      },
+      "engine_model": "Rotax 912 ULS2 / 912iS",
+      "empty_mass_definition": "Manufacturer standard empty weight for this published variant.",
+      "takeoff_basis": "ground_roll",
+      "landing_basis": "ground_roll",
+      "notes": []
+    },
+    {
+      "id": "pr-tecnam-p2006ng",
+      "model": "Tecnam P2006T NG",
+      "manufacturer": "Tecnam",
+      "family": "Tecnam P2006",
+      "aircraft_type": "piston_ga",
+      "engine_type": "prop",
+      "n_engines": 2,
+      "document": "tecnam-p2006ng",
+      "observations": {
+        "m0": {
+          "value": 1290,
+          "unit": "kg",
+          "locator": "Technical specifications / MTOW"
+        },
+        "me": {
+          "value": 880,
+          "unit": "kg",
+          "locator": "Technical specifications / empty mass"
+        },
+        "b": {
+          "value": 11.4,
+          "unit": "m",
+          "locator": "Technical specifications / wingspan"
+        },
+        "s": {
+          "value": 14.8,
+          "unit": "m2",
+          "locator": "Technical specifications / wing area"
+        },
+        "v_cruise_kmh": {
+          "value": 148,
+          "unit": "kt",
+          "locator": "Performance / maximum cruise speed",
+          "conditions": "Published cruise maximum; TAS where explicitly indicated, otherwise airspeed basis not stated."
+        },
+        "v_stall_kmh": {
+          "value": 56,
+          "unit": "kt",
+          "locator": "Performance / stall speed (flaps down, power off)",
+          "conditions": "Landing configuration, power off; KCAS explicitly identified on P-Mentor, otherwise basis unspecified."
+        },
+        "climb_rate_ms": {
+          "value": 4.7,
+          "unit": "m/s",
+          "locator": "Performance / rate of climb",
+          "conditions": "Manufacturer metric figure; not an exact conversion of the rounded imperial column."
+        },
+        "takeoff_m": {
+          "value": 317,
+          "unit": "m",
+          "locator": "Performance / take-off run"
+        },
+        "landing_m": {
+          "value": 251,
+          "unit": "m",
+          "locator": "Performance / landing run"
+        },
+        "range_km": {
+          "value": 930,
+          "unit": "NM",
+          "locator": "Performance / range",
+          "conditions": "Range cruise condition / reserve as published; no equality with maximum cruise is assumed."
+        },
+        "p_kw": {
+          "value": 147.0,
+          "unit": "kW",
+          "document": "rotax_e121",
+          "locator": "TCDS E.121 Issue 17, printed page 16, III.6 Ratings / Rotax 912 iSc3",
+          "conditions": "Take-off rating at 5800 rpm, maximum 5 minutes; installed total, not maximum continuous power.",
+          "derivation": {
+            "formula": "n_engines * engine_power",
+            "n_engines": 2,
+            "engine_power": 73.5
+          }
+        }
+      },
+      "engine_model": "Rotax 912 iSc3",
+      "empty_mass_definition": "Manufacturer standard empty weight for this published variant.",
+      "takeoff_basis": "ground_roll",
+      "landing_basis": "ground_roll",
+      "notes": []
+    },
+    {
+      "id": "pr-tecnam-p2008jc-ng",
+      "model": "Tecnam P2008 JC NG",
+      "manufacturer": "Tecnam",
+      "family": "Tecnam P2008",
+      "aircraft_type": "piston_ga",
+      "engine_type": "prop",
+      "n_engines": 1,
+      "document": "tecnam-p2008jc-ng",
+      "observations": {
+        "m0": {
+          "value": 680,
+          "unit": "kg",
+          "locator": "Technical specifications / MTOW"
+        },
+        "me": {
+          "value": 440,
+          "unit": "kg",
+          "locator": "Technical specifications / empty mass"
+        },
+        "b": {
+          "value": 9,
+          "unit": "m",
+          "locator": "Technical specifications / wingspan"
+        },
+        "v_cruise_kmh": {
+          "value": 118,
+          "unit": "kt",
+          "locator": "Performance / maximum cruise speed",
+          "conditions": "Published cruise maximum; TAS where explicitly indicated, otherwise airspeed basis not stated."
+        },
+        "v_stall_kmh": {
+          "value": 45,
+          "unit": "kt",
+          "locator": "Performance / stall speed (flaps down, power off)",
+          "conditions": "Landing configuration, power off; KCAS explicitly identified on P-Mentor, otherwise basis unspecified."
+        },
+        "climb_rate_ms": {
+          "value": 3.86,
+          "unit": "m/s",
+          "locator": "Performance / rate of climb",
+          "conditions": "Manufacturer metric figure; not an exact conversion of the rounded imperial column."
+        },
+        "takeoff_m": {
+          "value": 220,
+          "unit": "m",
+          "locator": "Performance / take-off run"
+        },
+        "landing_m": {
+          "value": 170,
+          "unit": "m",
+          "locator": "Performance / landing run"
+        },
+        "range_km": {
+          "value": 800,
+          "unit": "NM",
+          "locator": "Performance / range",
+          "conditions": "Range cruise condition / reserve as published; no equality with maximum cruise is assumed."
+        },
+        "p_kw": {
+          "value": 73.5,
+          "unit": "kW",
+          "document": "rotax_e121",
+          "locator": "TCDS E.121 Issue 17, printed page 16, III.6 Ratings / Rotax 912 iSc",
+          "conditions": "Take-off rating at 5800 rpm, maximum 5 minutes; installed total, not maximum continuous power."
+        }
+      },
+      "engine_model": "Rotax 912 iSc",
+      "empty_mass_definition": "Manufacturer standard empty weight for this published variant.",
+      "takeoff_basis": "ground_roll",
+      "landing_basis": "ground_roll",
+      "notes": [
+        "The website incorrectly labels an area in m² as Cabin Volume. It is not imported as wing area without an unambiguous geometry source."
+      ]
+    },
+    {
+      "id": "pr-tecnam-p2008lsa",
+      "model": "Tecnam P2008 LSA",
+      "manufacturer": "Tecnam",
+      "family": "Tecnam P2008",
+      "aircraft_type": "piston_ga",
+      "engine_type": "prop",
+      "n_engines": 1,
+      "document": "tecnam-p2008lsa",
+      "observations": {
+        "m0": {
+          "value": 600,
+          "unit": "kg",
+          "locator": "Technical specifications / MTOW"
+        },
+        "me": {
+          "value": 388,
+          "unit": "kg",
+          "locator": "Technical specifications / empty mass"
+        },
+        "b": {
+          "value": 9,
+          "unit": "m",
+          "locator": "Technical specifications / wingspan"
+        },
+        "v_cruise_kmh": {
+          "value": 128,
+          "unit": "kt",
+          "locator": "Performance / maximum cruise speed",
+          "conditions": "Published cruise maximum; TAS where explicitly indicated, otherwise airspeed basis not stated."
+        },
+        "v_stall_kmh": {
+          "value": 39,
+          "unit": "kt",
+          "locator": "Performance / stall speed (flaps down, power off)",
+          "conditions": "Landing configuration, power off; KCAS explicitly identified on P-Mentor, otherwise basis unspecified."
+        },
+        "climb_rate_ms": {
+          "value": 4.06,
+          "unit": "m/s",
+          "locator": "Performance / rate of climb",
+          "conditions": "Manufacturer metric figure; not an exact conversion of the rounded imperial column."
+        },
+        "takeoff_m": {
+          "value": 183,
+          "unit": "m",
+          "locator": "Performance / take-off run"
+        },
+        "landing_m": {
+          "value": 173,
+          "unit": "m",
+          "locator": "Performance / landing run"
+        },
+        "range_km": {
+          "value": 960,
+          "unit": "NM",
+          "locator": "Performance / range",
+          "conditions": "Range cruise condition / reserve as published; no equality with maximum cruise is assumed."
+        }
+      },
+      "engine_model": "Rotax 912 ULS",
+      "empty_mass_definition": "Manufacturer standard empty weight for this published variant.",
+      "takeoff_basis": "ground_roll",
+      "landing_basis": "ground_roll",
+      "notes": [
+        "The website incorrectly labels an area in m² as Cabin Volume. It is not imported as wing area without an unambiguous geometry source."
+      ]
+    },
+    {
+      "id": "pr-tecnam-p2010tdi",
+      "model": "Tecnam P2010 TDI",
+      "manufacturer": "Tecnam",
+      "family": "Tecnam P2010",
+      "aircraft_type": "piston_ga",
+      "engine_type": "prop",
+      "n_engines": 1,
+      "document": "tecnam-p2010tdi",
+      "observations": {
+        "m0": {
+          "value": 1220,
+          "unit": "kg",
+          "locator": "Technical specifications / MTOW"
+        },
+        "me": {
+          "value": 815,
+          "unit": "kg",
+          "locator": "Technical specifications / empty mass"
+        },
+        "b": {
+          "value": 10.3,
+          "unit": "m",
+          "locator": "Technical specifications / wingspan"
+        },
+        "s": {
+          "value": 13.9,
+          "unit": "m2",
+          "locator": "Technical specifications / wing area"
+        },
+        "v_cruise_kmh": {
+          "value": 140,
+          "unit": "kt",
+          "locator": "Performance / maximum cruise speed",
+          "conditions": "Published cruise maximum; TAS where explicitly indicated, otherwise airspeed basis not stated."
+        },
+        "v_stall_kmh": {
+          "value": 53,
+          "unit": "kt",
+          "locator": "Performance / stall speed (flaps down, power off)",
+          "conditions": "Landing configuration, power off; KCAS explicitly identified on P-Mentor, otherwise basis unspecified."
+        },
+        "climb_rate_ms": {
+          "value": 3.3,
+          "unit": "m/s",
+          "locator": "Performance / rate of climb",
+          "conditions": "Manufacturer metric figure; not an exact conversion of the rounded imperial column."
+        },
+        "takeoff_m": {
+          "value": 444,
+          "unit": "m",
+          "locator": "Performance / take-off run"
+        },
+        "landing_m": {
+          "value": 275,
+          "unit": "m",
+          "locator": "Performance / landing run"
+        },
+        "range_km": {
+          "value": 1300,
+          "unit": "NM",
+          "locator": "Performance / range",
+          "conditions": "60% power; not the maximum cruise operating point."
+        }
+      },
+      "engine_model": "Continental CD-170",
+      "empty_mass_definition": "Manufacturer standard empty weight for this published variant.",
+      "takeoff_basis": "ground_roll",
+      "landing_basis": "ground_roll",
+      "notes": []
+    },
+    {
+      "id": "pr-tecnam-p92-mkii-472",
+      "model": "Tecnam P92 Echo MkII (472.5 kg, 2020)",
+      "manufacturer": "Tecnam",
+      "family": "Tecnam P92",
+      "aircraft_type": "piston_ga",
+      "engine_type": "prop",
+      "n_engines": 1,
+      "document": "p92_mkii",
+      "observations": {
+        "m0": {
+          "value": 472.5,
+          "unit": "kg",
+          "locator": "PDF p. 4 / Performance / 472.5 kg column / MTOW"
+        },
+        "me": {
+          "value": 293,
+          "unit": "kg",
+          "locator": "PDF p. 4 / Performance / 472.5 kg column / Empty weight",
+          "conditions": "Advertised estimate ±2%."
+        },
+        "p_kw": {
+          "value": 73.5,
+          "unit": "kW",
+          "locator": "PDF p. 5 / Rotax 912 S2 / 5800 rpm"
+        },
+        "v_cruise_kmh": {
+          "value": 213,
+          "unit": "km/h",
+          "locator": "PDF p. 4 / Performance / 472.5 kg column / Maximum cruise KTAS",
+          "conditions": "MTOW, standard atmosphere."
+        },
+        "v_stall_kmh": {
+          "value": 64,
+          "unit": "km/h",
+          "locator": "PDF p. 4 / Performance / 472.5 kg column / Stall KCAS",
+          "conditions": "Flaps down, power off, MTOW."
+        },
+        "takeoff_m": {
+          "value": 100,
+          "unit": "m",
+          "locator": "PDF p. 4 / Performance / 472.5 kg column / Take-off run",
+          "conditions": "MTOW; ISA; level hard dry runway; no wind."
+        },
+        "landing_m": {
+          "value": 100,
+          "unit": "m",
+          "locator": "PDF p. 4 / Performance / 472.5 kg column / Landing run",
+          "conditions": "MTOW; ISA; level hard dry runway; no wind."
+        }
+      },
+      "engine_model": "Rotax 912 S2",
+      "takeoff_basis": "ground_roll",
+      "landing_basis": "ground_roll",
+      "empty_mass_definition": "Manufacturer estimated standard empty weight for the stated MTOW configuration, ±2%; brochure Rev. 20200221.",
+      "notes": [
+        "The powerplant page identifies 912 S2 / 73.5 kW; the standard-equipment text has an inconsistent 912UL/100HP label. The explicit powerplant table is used."
+      ]
+    },
+    {
+      "id": "pr-tecnam-p92-mkii-600",
+      "model": "Tecnam P92 Echo MkII (600 kg, 2020)",
+      "manufacturer": "Tecnam",
+      "family": "Tecnam P92",
+      "aircraft_type": "piston_ga",
+      "engine_type": "prop",
+      "n_engines": 1,
+      "document": "p92_mkii",
+      "observations": {
+        "m0": {
+          "value": 600,
+          "unit": "kg",
+          "locator": "PDF p. 4 / Performance / 600 kg column / MTOW"
+        },
+        "me": {
+          "value": 340,
+          "unit": "kg",
+          "locator": "PDF p. 4 / Performance / 600 kg column / Empty weight",
+          "conditions": "Advertised estimate ±2%."
+        },
+        "p_kw": {
+          "value": 73.5,
+          "unit": "kW",
+          "locator": "PDF p. 5 / Rotax 912 S2 / 5800 rpm"
+        },
+        "v_cruise_kmh": {
+          "value": 213,
+          "unit": "km/h",
+          "locator": "PDF p. 4 / Performance / 600 kg column / Maximum cruise KTAS",
+          "conditions": "MTOW, standard atmosphere."
+        },
+        "v_stall_kmh": {
+          "value": 72,
+          "unit": "km/h",
+          "locator": "PDF p. 4 / Performance / 600 kg column / Stall KCAS",
+          "conditions": "Flaps down, power off, MTOW."
+        },
+        "takeoff_m": {
+          "value": 140,
+          "unit": "m",
+          "locator": "PDF p. 4 / Performance / 600 kg column / Take-off run",
+          "conditions": "MTOW; ISA; level hard dry runway; no wind."
+        },
+        "landing_m": {
+          "value": 120,
+          "unit": "m",
+          "locator": "PDF p. 4 / Performance / 600 kg column / Landing run",
+          "conditions": "MTOW; ISA; level hard dry runway; no wind."
+        }
+      },
+      "engine_model": "Rotax 912 S2",
+      "takeoff_basis": "ground_roll",
+      "landing_basis": "ground_roll",
+      "empty_mass_definition": "Manufacturer estimated standard empty weight for the stated MTOW configuration, ±2%; brochure Rev. 20200221.",
+      "notes": [
+        "The powerplant page identifies 912 S2 / 73.5 kW; the standard-equipment text has an inconsistent 912UL/100HP label. The explicit powerplant table is used."
+      ]
+    },
+    {
+      "id": "pr-tecnam-pmentor",
+      "model": "Tecnam P-Mentor",
+      "manufacturer": "Tecnam",
+      "family": "Tecnam P-Mentor",
+      "aircraft_type": "piston_ga",
+      "engine_type": "prop",
+      "n_engines": 1,
+      "document": "tecnam-pmentor",
+      "observations": {
+        "m0": {
+          "value": 720,
+          "unit": "kg",
+          "locator": "Technical specifications / MTOW"
+        },
+        "me": {
+          "value": 435,
+          "unit": "kg",
+          "locator": "Technical specifications / empty mass"
+        },
+        "b": {
+          "value": 9,
+          "unit": "m",
+          "locator": "Technical specifications / wingspan"
+        },
+        "v_cruise_kmh": {
+          "value": 117,
+          "unit": "kt",
+          "locator": "Performance / maximum cruise speed",
+          "conditions": "Published cruise maximum; TAS where explicitly indicated, otherwise airspeed basis not stated."
+        },
+        "v_stall_kmh": {
+          "value": 44,
+          "unit": "kt",
+          "locator": "Performance / stall speed (flaps down, power off)",
+          "conditions": "Landing configuration, power off; KCAS explicitly identified on P-Mentor, otherwise basis unspecified."
+        },
+        "climb_rate_ms": {
+          "value": 3.3,
+          "unit": "m/s",
+          "locator": "Performance / rate of climb",
+          "conditions": "Manufacturer metric figure; not an exact conversion of the rounded imperial column."
+        },
+        "takeoff_m": {
+          "value": 310,
+          "unit": "m",
+          "locator": "Performance / take-off run"
+        },
+        "landing_m": {
+          "value": 198,
+          "unit": "m",
+          "locator": "Performance / landing run"
+        },
+        "range_km": {
+          "value": 950,
+          "unit": "NM",
+          "locator": "Performance / range",
+          "conditions": "Range cruise condition / reserve as published; no equality with maximum cruise is assumed."
+        },
+        "p_kw": {
+          "value": 73.5,
+          "unit": "kW",
+          "document": "rotax_e121",
+          "locator": "TCDS E.121 Issue 17, printed page 16, III.6 Ratings / Rotax 912iSc3",
+          "conditions": "Take-off rating at 5800 rpm, maximum 5 minutes; installed total, not maximum continuous power."
+        }
+      },
+      "engine_model": "Rotax 912iSc3",
+      "empty_mass_definition": "Manufacturer standard empty weight for this published variant.",
+      "takeoff_basis": "ground_roll",
+      "landing_basis": "ground_roll",
+      "notes": []
+    },
+    {
+      "id": "pr-tl-sparker",
+      "model": "TL Sparker (600 kg)",
+      "manufacturer": "TL-Ultralight",
+      "family": "TL Sparker",
+      "aircraft_type": "piston_ga",
+      "engine_type": "prop",
+      "n_engines": 1,
+      "document": "tl-sparker",
+      "observations": {
+        "m0": {
+          "value": 600,
+          "unit": "kg",
+          "locator": "Technical specifications / MTOW"
+        },
+        "me": {
+          "value": 350,
+          "unit": "kg",
+          "locator": "Technical specifications / empty mass"
+        },
+        "b": {
+          "value": 9,
+          "unit": "m",
+          "locator": "Technical specifications / wingspan"
+        },
+        "s": {
+          "value": 9.962,
+          "unit": "m2",
+          "locator": "Technical specifications / wing area"
+        },
+        "h_tail_area": {
+          "value": 1.776,
+          "unit": "m2",
+          "locator": "Technical data / Horizontal tail area"
+        },
+        "v_tail_area": {
+          "value": 0.995,
+          "unit": "m2",
+          "locator": "Technical data / Vertical tail area"
+        }
+      },
+      "empty_mass_definition": "Manufacturer representative empty weight, described as depending on type/equipment; specific engine configuration not identified.",
+      "notes": [
+        "No unique engine rating or cruise speed is specified by the technical table. Stream lists both 472.5 kg UL and 600 kg LSA; this record uses the explicitly stated UL mass."
+      ]
+    },
+    {
+      "id": "pr-tl-stream",
+      "model": "TL Stream (472.5 kg)",
+      "manufacturer": "TL-Ultralight",
+      "family": "TL Stream",
+      "aircraft_type": "piston_ga",
+      "engine_type": "prop",
+      "n_engines": 1,
+      "document": "tl-stream",
+      "observations": {
+        "m0": {
+          "value": 472.5,
+          "unit": "kg",
+          "locator": "Technical specifications / MTOW"
+        },
+        "me": {
+          "value": 297,
+          "unit": "kg",
+          "locator": "Technical specifications / empty mass"
+        },
+        "b": {
+          "value": 9,
+          "unit": "m",
+          "locator": "Technical specifications / wingspan"
+        },
+        "s": {
+          "value": 9.962,
+          "unit": "m2",
+          "locator": "Technical specifications / wing area"
+        },
+        "h_tail_area": {
+          "value": 1.776,
+          "unit": "m2",
+          "locator": "Technical data / Horizontal tail area"
+        },
+        "v_tail_area": {
+          "value": 0.995,
+          "unit": "m2",
+          "locator": "Technical data / Vertical tail area"
+        }
+      },
+      "empty_mass_definition": "Manufacturer representative empty weight, described as depending on type/equipment; specific engine configuration not identified.",
+      "notes": [
+        "No unique engine rating or cruise speed is specified by the technical table. Stream lists both 472.5 kg UL and 600 kg LSA; this record uses the explicitly stated UL mass."
+      ]
+    },
+    {
+      "id": "pr-vans-rv-10-235-hp",
+      "model": "Van's RV-10 (235 hp)",
+      "manufacturer": "Van's Aircraft",
+      "family": "Van's RV-10",
+      "aircraft_type": "piston_ga",
+      "engine_type": "prop",
+      "n_engines": 1,
+      "document": "vans-rv-10",
+      "observations": {
+        "m0": {
+          "value": 2700.0,
+          "unit": "lb",
+          "locator": "Performance Details / Gross Weight 2700 lbs"
+        },
+        "s": {
+          "value": 148.0,
+          "unit": "ft2",
+          "locator": "Aircraft Specs / RV-10 / Wing area"
+        },
+        "b": {
+          "value": 31.75,
+          "unit": "ft",
+          "locator": "Aircraft Specs / RV-10 / Span",
+          "transcription": "31 ft 9 in"
+        },
+        "v_max": {
+          "value": 201.0,
+          "unit": "mph",
+          "locator": "Performance Details / Gross Weight 2700 lbs / 235 HP ** / Top speed"
+        },
+        "v_stall_kmh": {
+          "value": 63.0,
+          "unit": "mph",
+          "locator": "Performance Details / Gross Weight 2700 lbs / Stall speed",
+          "conditions": "63 mph"
+        },
+        "v_cruise_kmh": {
+          "value": 190.0,
+          "unit": "mph",
+          "locator": "Performance Details / Gross Weight 2700 lbs / Cruise [75% @ 8000 ft]",
+          "conditions": "Same engine column and gross-weight table; speeds in statute mph."
+        },
+        "range_km": {
+          "value": 883.0,
+          "unit": "mi",
+          "locator": "Performance Details / Gross Weight 2700 lbs / Range [75% @ 8000 ft]",
+          "conditions": "Statute miles; same engine column. Reserve definition as manufacturer table notes."
+        },
+        "climb_rate_ms": {
+          "value": 1221.0,
+          "unit": "ft/min",
+          "locator": "Performance Details / Gross Weight 2700 lbs / Rate of climb"
+        },
+        "takeoff_m": {
+          "value": 583.0,
+          "unit": "ft",
+          "locator": "Performance Details / Gross Weight 2700 lbs / Takeoff Distance",
+          "conditions": "Obstacle height / ground-roll basis not defined by this table."
+        },
+        "landing_m": {
+          "value": 650.0,
+          "unit": "ft",
+          "locator": "Performance Details / Gross Weight 2700 lbs / Landing Distance",
+          "conditions": "Obstacle height / ground-roll basis not defined by this table."
+        },
+        "p_kw": {
+          "value": 235,
+          "unit": "hp_mechanical",
+          "locator": "Performance Details / 235 HP **",
+          "conditions": "US engine rated mechanical horsepower."
+        }
+      },
+      "prop_type": "Constant-Speed",
+      "excluded_observations": [
+        {
+          "quantity": "empty_mass_range",
+          "values": [
+            1520.0,
+            1630.0
+          ],
+          "unit": "lb",
+          "locator": "Aircraft Specs / RV-10 / Empty weight",
+          "reason": "Kolumna tego silnika nie określa jednej masy pustej. Nie przyjęto dowolnego końca ani środka opublikowanego przedziału."
+        }
+      ],
+      "takeoff_basis": "unknown",
+      "landing_basis": "unknown"
+    },
+    {
+      "id": "pr-vans-rv-10-260-hp",
+      "model": "Van's RV-10 (260 hp)",
+      "manufacturer": "Van's Aircraft",
+      "family": "Van's RV-10",
+      "aircraft_type": "piston_ga",
+      "engine_type": "prop",
+      "n_engines": 1,
+      "document": "vans-rv-10",
+      "observations": {
+        "m0": {
+          "value": 2700.0,
+          "unit": "lb",
+          "locator": "Performance Details / Gross Weight 2700 lbs"
+        },
+        "s": {
+          "value": 148.0,
+          "unit": "ft2",
+          "locator": "Aircraft Specs / RV-10 / Wing area"
+        },
+        "b": {
+          "value": 31.75,
+          "unit": "ft",
+          "locator": "Aircraft Specs / RV-10 / Span",
+          "transcription": "31 ft 9 in"
+        },
+        "v_max": {
+          "value": 208.0,
+          "unit": "mph",
+          "locator": "Performance Details / Gross Weight 2700 lbs / 260 HP / Top speed"
+        },
+        "v_stall_kmh": {
+          "value": 63.0,
+          "unit": "mph",
+          "locator": "Performance Details / Gross Weight 2700 lbs / Stall speed",
+          "conditions": "63 mph"
+        },
+        "v_cruise_kmh": {
+          "value": 197.0,
+          "unit": "mph",
+          "locator": "Performance Details / Gross Weight 2700 lbs / Cruise [75% @ 8000 ft]",
+          "conditions": "Same engine column and gross-weight table; speeds in statute mph."
+        },
+        "range_km": {
+          "value": 825.0,
+          "unit": "mi",
+          "locator": "Performance Details / Gross Weight 2700 lbs / Range [75% @ 8000 ft]",
+          "conditions": "Statute miles; same engine column. Reserve definition as manufacturer table notes."
+        },
+        "climb_rate_ms": {
+          "value": 1450.0,
+          "unit": "ft/min",
+          "locator": "Performance Details / Gross Weight 2700 lbs / Rate of climb"
+        },
+        "takeoff_m": {
+          "value": 500.0,
+          "unit": "ft",
+          "locator": "Performance Details / Gross Weight 2700 lbs / Takeoff Distance",
+          "conditions": "Obstacle height / ground-roll basis not defined by this table."
+        },
+        "landing_m": {
+          "value": 650.0,
+          "unit": "ft",
+          "locator": "Performance Details / Gross Weight 2700 lbs / Landing Distance",
+          "conditions": "Obstacle height / ground-roll basis not defined by this table."
+        },
+        "p_kw": {
+          "value": 260,
+          "unit": "hp_mechanical",
+          "locator": "Performance Details / 260 HP",
+          "conditions": "US engine rated mechanical horsepower."
+        }
+      },
+      "prop_type": "Constant-Speed",
+      "excluded_observations": [
+        {
+          "quantity": "empty_mass_range",
+          "values": [
+            1520.0,
+            1630.0
+          ],
+          "unit": "lb",
+          "locator": "Aircraft Specs / RV-10 / Empty weight",
+          "reason": "Kolumna tego silnika nie określa jednej masy pustej. Nie przyjęto dowolnego końca ani środka opublikowanego przedziału."
+        }
+      ],
+      "takeoff_basis": "unknown",
+      "landing_basis": "unknown",
+      "engine_model": "Lycoming IO-540"
+    },
+    {
+      "id": "pr-vans-rv-12is-912-is",
+      "model": "Van's RV-12iS (912 iS)",
+      "manufacturer": "Van's Aircraft",
+      "family": "Van's RV-12iS",
+      "aircraft_type": "piston_ga",
+      "engine_type": "prop",
+      "n_engines": 1,
+      "document": "vans-rv-12is",
+      "observations": {
+        "m0": {
+          "value": 1320,
+          "unit": "lb",
+          "locator": "Performance Details / Engine"
+        },
+        "s": {
+          "value": 127.0,
+          "unit": "ft2",
+          "locator": "Aircraft Specs / RV-12iS / Wing area"
+        },
+        "b": {
+          "value": 26.75,
+          "unit": "ft",
+          "locator": "Aircraft Specs / RV-12iS / Span",
+          "transcription": "26 ft 9 in"
+        },
+        "me": {
+          "value": 775.0,
+          "unit": "lb",
+          "locator": "Aircraft Specs / RV-12iS / Empty weight",
+          "conditions": "Representative manufacturer figure; 775 lbs (w/options)"
+        },
+        "v_max": {
+          "value": 144.0,
+          "unit": "mph",
+          "locator": "Performance Details / Engine / Rotax 912 iS Sport / Top speed"
+        },
+        "v_stall_kmh": {
+          "value": 47.0,
+          "unit": "mph",
+          "locator": "Performance Details / Engine / Stall speed",
+          "conditions": "47 mph (w/flaps)"
+        },
+        "v_cruise_kmh": {
+          "value": 135.0,
+          "unit": "mph",
+          "locator": "Performance Details / Engine / Cruise [5500 rpm @ 7500 ft]",
+          "conditions": "Same engine column and gross-weight table; speeds in statute mph."
+        },
+        "range_km": {
+          "value": 581.0,
+          "unit": "mi",
+          "locator": "Performance Details / Engine / Range [5500 rpm @ 7500 ft]",
+          "conditions": "Statute miles; same engine column. Reserve definition as manufacturer table notes."
+        },
+        "climb_rate_ms": {
+          "value": 1000.0,
+          "unit": "ft/min",
+          "locator": "Performance Details / Engine / Rate of climb"
+        },
+        "takeoff_m": {
+          "value": 700.0,
+          "unit": "ft",
+          "locator": "Performance Details / Engine / Takeoff Distance",
+          "conditions": "Obstacle height / ground-roll basis not defined by this table."
+        },
+        "landing_m": {
+          "value": 525.0,
+          "unit": "ft",
+          "locator": "Performance Details / Engine / Landing Distance",
+          "conditions": "Obstacle height / ground-roll basis not defined by this table."
+        }
+      },
+      "prop_type": "Sensenich composite ground-adjustable",
+      "empty_mass_definition": "Manufacturer representative empty weight (775 lbs (w/options)); build/options and actual weighing may differ.",
+      "takeoff_basis": "unknown",
+      "landing_basis": "unknown",
+      "engine_model": "Rotax 912 iS Sport"
+    },
+    {
+      "id": "pr-vans-rv-12is-912-uls",
+      "model": "Van's RV-12iS (912 ULS)",
+      "manufacturer": "Van's Aircraft",
+      "family": "Van's RV-12iS",
+      "aircraft_type": "piston_ga",
+      "engine_type": "prop",
+      "n_engines": 1,
+      "document": "vans-rv-12is",
+      "observations": {
+        "m0": {
+          "value": 1320,
+          "unit": "lb",
+          "locator": "Performance Details / Engine"
+        },
+        "s": {
+          "value": 127.0,
+          "unit": "ft2",
+          "locator": "Aircraft Specs / RV-12iS / Wing area"
+        },
+        "b": {
+          "value": 26.75,
+          "unit": "ft",
+          "locator": "Aircraft Specs / RV-12iS / Span",
+          "transcription": "26 ft 9 in"
+        },
+        "me": {
+          "value": 775.0,
+          "unit": "lb",
+          "locator": "Aircraft Specs / RV-12iS / Empty weight",
+          "conditions": "Representative manufacturer figure; 775 lbs (w/options)"
+        },
+        "v_max": {
+          "value": 139.0,
+          "unit": "mph",
+          "locator": "Performance Details / Engine / Rotax 912 ULS / Top speed"
+        },
+        "v_stall_kmh": {
+          "value": 47.0,
+          "unit": "mph",
+          "locator": "Performance Details / Engine / Stall speed",
+          "conditions": "47 mph"
+        },
+        "v_cruise_kmh": {
+          "value": 136.0,
+          "unit": "mph",
+          "locator": "Performance Details / Engine / Cruise [5500 rpm @ 7500 ft]",
+          "conditions": "Same engine column and gross-weight table; speeds in statute mph."
+        },
+        "range_km": {
+          "value": 555.0,
+          "unit": "mi",
+          "locator": "Performance Details / Engine / Range [5500 rpm @ 7500 ft]",
+          "conditions": "Statute miles; same engine column. Reserve definition as manufacturer table notes."
+        },
+        "climb_rate_ms": {
+          "value": 900.0,
+          "unit": "ft/min",
+          "locator": "Performance Details / Engine / Rate of climb"
+        },
+        "takeoff_m": {
+          "value": 700.0,
+          "unit": "ft",
+          "locator": "Performance Details / Engine / Takeoff Distance",
+          "conditions": "Obstacle height / ground-roll basis not defined by this table."
+        },
+        "landing_m": {
+          "value": 525.0,
+          "unit": "ft",
+          "locator": "Performance Details / Engine / Landing Distance",
+          "conditions": "Obstacle height / ground-roll basis not defined by this table."
+        }
+      },
+      "prop_type": "Sensenich composite ground-adjustable",
+      "empty_mass_definition": "Manufacturer representative empty weight (775 lbs (w/options)); build/options and actual weighing may differ.",
+      "takeoff_basis": "unknown",
+      "landing_basis": "unknown",
+      "engine_model": "Rotax 912 ULS"
+    },
+    {
+      "id": "pr-vans-rv-14-io-360-200-hp",
+      "model": "Van's RV-14 (IO-360, 200 hp)",
+      "manufacturer": "Van's Aircraft",
+      "family": "Van's RV-14",
+      "aircraft_type": "piston_ga",
+      "engine_type": "prop",
+      "n_engines": 1,
+      "document": "vans-rv-14",
+      "observations": {
+        "m0": {
+          "value": 2050.0,
+          "unit": "lb",
+          "locator": "Performance Details / Gross Weight 2050 lbs"
+        },
+        "s": {
+          "value": 126.1,
+          "unit": "ft2",
+          "locator": "Aircraft Specs / RV-14 / Wing area"
+        },
+        "b": {
+          "value": 27.0,
+          "unit": "ft",
+          "locator": "Aircraft Specs / RV-14 / Span",
+          "transcription": "27 ft"
+        },
+        "me": {
+          "value": 1225.0,
+          "unit": "lb",
+          "locator": "Aircraft Specs / RV-14 / Empty weight",
+          "conditions": "Representative manufacturer figure; 1225 lbs"
+        },
+        "v_max": {
+          "value": 205.0,
+          "unit": "mph",
+          "locator": "Performance Details / Gross Weight 2050 lbs / 200 hp IO-360 / Top speed"
+        },
+        "v_stall_kmh": {
+          "value": 59.0,
+          "unit": "mph",
+          "locator": "Performance Details / Gross Weight 2050 lbs / Stall speed",
+          "conditions": "59 mph"
+        },
+        "v_cruise_kmh": {
+          "value": 195.0,
+          "unit": "mph",
+          "locator": "Performance Details / Gross Weight 2050 lbs / Cruise [75% @ 8000 ft]",
+          "conditions": "Same engine column and gross-weight table; speeds in statute mph."
+        },
+        "climb_rate_ms": {
+          "value": 1500.0,
+          "unit": "ft/min",
+          "locator": "Performance Details / Gross Weight 2050 lbs / Rate of climb"
+        },
+        "takeoff_m": {
+          "value": 512.0,
+          "unit": "ft",
+          "locator": "Performance Details / Gross Weight 2050 lbs / Takeoff Distance",
+          "conditions": "Obstacle height / ground-roll basis not defined by this table."
+        },
+        "landing_m": {
+          "value": 550.0,
+          "unit": "ft",
+          "locator": "Performance Details / Gross Weight 2050 lbs / Landing Distance",
+          "conditions": "Obstacle height / ground-roll basis not defined by this table."
+        },
+        "p_kw": {
+          "value": 200,
+          "unit": "hp_mechanical",
+          "locator": "Performance Details / 200 hp IO-360",
+          "conditions": "US engine rated mechanical horsepower."
+        }
+      },
+      "prop_type": "Constant-Speed",
+      "empty_mass_definition": "Manufacturer representative empty weight (1225 lbs); build/options and actual weighing may differ.",
+      "takeoff_basis": "unknown",
+      "landing_basis": "unknown",
+      "engine_model": "Lycoming IO-360"
+    },
+    {
+      "id": "pr-vans-rv-14a-io-390-exp119-215-hp",
+      "model": "Van's RV-14A (IO-390-EXP119, 215 hp)",
+      "manufacturer": "Van's Aircraft",
+      "family": "Van's RV-14",
+      "aircraft_type": "piston_ga",
+      "engine_type": "prop",
+      "n_engines": 1,
+      "document": "vans-rv-14",
+      "observations": {
+        "m0": {
+          "value": 2050.0,
+          "unit": "lb",
+          "locator": "Performance Details / Gross Weight 2050 lbs"
+        },
+        "s": {
+          "value": 126.1,
+          "unit": "ft2",
+          "locator": "Aircraft Specs / RV-14A / Wing area"
+        },
+        "b": {
+          "value": 27.0,
+          "unit": "ft",
+          "locator": "Aircraft Specs / RV-14A / Span",
+          "transcription": "27 ft"
+        },
+        "me": {
+          "value": 1240.0,
+          "unit": "lb",
+          "locator": "Aircraft Specs / RV-14A / Empty weight",
+          "conditions": "Representative manufacturer figure; 1240 lbs"
+        },
+        "v_max": {
+          "value": 216.0,
+          "unit": "mph",
+          "locator": "Performance Details / Gross Weight 2050 lbs / 215HP IO-390-EXP119 / Top speed"
+        },
+        "v_stall_kmh": {
+          "value": 59.0,
+          "unit": "mph",
+          "locator": "Performance Details / Gross Weight 2050 lbs / Stall speed",
+          "conditions": "59 mph"
+        },
+        "v_cruise_kmh": {
+          "value": 203.0,
+          "unit": "mph",
+          "locator": "Performance Details / Gross Weight 2050 lbs / Cruise [75% @ 8000 ft]",
+          "conditions": "Same engine column and gross-weight table; speeds in statute mph."
+        },
+        "range_km": {
+          "value": 911.0,
+          "unit": "mi",
+          "locator": "Performance Details / Gross Weight 2050 lbs / Range [75% @ 8000 ft]",
+          "conditions": "Statute miles; same engine column. Reserve definition as manufacturer table notes."
+        },
+        "climb_rate_ms": {
+          "value": 1680.0,
+          "unit": "ft/min",
+          "locator": "Performance Details / Gross Weight 2050 lbs / Rate of climb"
+        },
+        "takeoff_m": {
+          "value": 375.0,
+          "unit": "ft",
+          "locator": "Performance Details / Gross Weight 2050 lbs / Takeoff Distance",
+          "conditions": "Obstacle height / ground-roll basis not defined by this table."
+        },
+        "landing_m": {
+          "value": 340.0,
+          "unit": "ft",
+          "locator": "Performance Details / Gross Weight 2050 lbs / Landing Distance",
+          "conditions": "Obstacle height / ground-roll basis not defined by this table."
+        },
+        "p_kw": {
+          "value": 215,
+          "unit": "hp_mechanical",
+          "locator": "Performance Details / 215HP IO-390-EXP119",
+          "conditions": "US engine rated mechanical horsepower."
+        }
+      },
+      "prop_type": "Constant-Speed",
+      "empty_mass_definition": "Manufacturer representative empty weight (1240 lbs); build/options and actual weighing may differ.",
+      "takeoff_basis": "unknown",
+      "landing_basis": "unknown",
+      "engine_model": "Lycoming IO-390-EXP119"
+    },
+    {
+      "id": "pr-vans-rv-14a-io-390a-210-hp",
+      "model": "Van's RV-14A (IO-390A, 210 hp)",
+      "manufacturer": "Van's Aircraft",
+      "family": "Van's RV-14",
+      "aircraft_type": "piston_ga",
+      "engine_type": "prop",
+      "n_engines": 1,
+      "document": "vans-rv-14",
+      "observations": {
+        "m0": {
+          "value": 2050.0,
+          "unit": "lb",
+          "locator": "Performance Details / Gross Weight 2050 lbs"
+        },
+        "s": {
+          "value": 126.1,
+          "unit": "ft2",
+          "locator": "Aircraft Specs / RV-14A / Wing area"
+        },
+        "b": {
+          "value": 27.0,
+          "unit": "ft",
+          "locator": "Aircraft Specs / RV-14A / Span",
+          "transcription": "27 ft"
+        },
+        "me": {
+          "value": 1240.0,
+          "unit": "lb",
+          "locator": "Aircraft Specs / RV-14A / Empty weight",
+          "conditions": "Representative manufacturer figure; 1240 lbs"
+        },
+        "v_max": {
+          "value": 203.0,
+          "unit": "mph",
+          "locator": "Performance Details / Gross Weight 2050 lbs / 210 hp IO-390A / Top speed"
+        },
+        "v_stall_kmh": {
+          "value": 59.0,
+          "unit": "mph",
+          "locator": "Performance Details / Gross Weight 2050 lbs / Stall speed",
+          "conditions": "59 mph"
+        },
+        "v_cruise_kmh": {
+          "value": 193.0,
+          "unit": "mph",
+          "locator": "Performance Details / Gross Weight 2050 lbs / Cruise [75% @ 8000 ft]",
+          "conditions": "Same engine column and gross-weight table; speeds in statute mph."
+        },
+        "range_km": {
+          "value": 814.0,
+          "unit": "mi",
+          "locator": "Performance Details / Gross Weight 2050 lbs / Range [75% @ 8000 ft]",
+          "conditions": "Statute miles; same engine column. Reserve definition as manufacturer table notes."
+        },
+        "climb_rate_ms": {
+          "value": 1500.0,
+          "unit": "ft/min",
+          "locator": "Performance Details / Gross Weight 2050 lbs / Rate of climb"
+        },
+        "takeoff_m": {
+          "value": 406.0,
+          "unit": "ft",
+          "locator": "Performance Details / Gross Weight 2050 lbs / Takeoff Distance",
+          "conditions": "Obstacle height / ground-roll basis not defined by this table."
+        },
+        "landing_m": {
+          "value": 340.0,
+          "unit": "ft",
+          "locator": "Performance Details / Gross Weight 2050 lbs / Landing Distance",
+          "conditions": "Obstacle height / ground-roll basis not defined by this table."
+        },
+        "p_kw": {
+          "value": 210,
+          "unit": "hp_mechanical",
+          "locator": "Performance Details / 210 hp IO-390A",
+          "conditions": "US engine rated mechanical horsepower."
+        }
+      },
+      "prop_type": "Constant-Speed",
+      "empty_mass_definition": "Manufacturer representative empty weight (1240 lbs); build/options and actual weighing may differ.",
+      "takeoff_basis": "unknown",
+      "landing_basis": "unknown",
+      "engine_model": "Lycoming IO-390A"
+    },
+    {
+      "id": "pr-vans-rv-7-180-hp",
+      "model": "Van's RV-7 (180 hp)",
+      "manufacturer": "Van's Aircraft",
+      "family": "RV7",
+      "aircraft_type": "piston_ga",
+      "engine_type": "prop",
+      "n_engines": 1,
+      "document": "vans-rv-7",
+      "observations": {
+        "m0": {
+          "value": 1800.0,
+          "unit": "lb",
+          "locator": "Performance Details / Gross Weight 1800 lbs"
+        },
+        "s": {
+          "value": 121.0,
+          "unit": "ft2",
+          "locator": "Aircraft Specs / RV-7 / Wing area"
+        },
+        "b": {
+          "value": 25.0,
+          "unit": "ft",
+          "locator": "Aircraft Specs / RV-7 / Span",
+          "transcription": "25 ft"
+        },
+        "v_max": {
+          "value": 209.0,
+          "unit": "mph",
+          "locator": "Performance Details / Gross Weight 1800 lbs / 180 hp / Top speed"
+        },
+        "v_stall_kmh": {
+          "value": 58.0,
+          "unit": "mph",
+          "locator": "Performance Details / Gross Weight 1800 lbs / Stall speed",
+          "conditions": "58 mph"
+        },
+        "v_cruise_kmh": {
+          "value": 199.0,
+          "unit": "mph",
+          "locator": "Performance Details / Gross Weight 1800 lbs / Cruise [75% @ 8000 ft]",
+          "conditions": "Same engine column and gross-weight table; speeds in statute mph."
+        },
+        "range_km": {
+          "value": 775.0,
+          "unit": "mi",
+          "locator": "Performance Details / Gross Weight 1800 lbs / Range [75% @ 8000 ft]",
+          "conditions": "Statute miles; same engine column. Reserve definition as manufacturer table notes."
+        },
+        "climb_rate_ms": {
+          "value": 1650.0,
+          "unit": "ft/min",
+          "locator": "Performance Details / Gross Weight 1800 lbs / Rate of climb"
+        },
+        "takeoff_m": {
+          "value": 575.0,
+          "unit": "ft",
+          "locator": "Performance Details / Gross Weight 1800 lbs / Takeoff Distance",
+          "conditions": "Obstacle height / ground-roll basis not defined by this table."
+        },
+        "landing_m": {
+          "value": 500.0,
+          "unit": "ft",
+          "locator": "Performance Details / Gross Weight 1800 lbs / Landing Distance",
+          "conditions": "Obstacle height / ground-roll basis not defined by this table."
+        },
+        "p_kw": {
+          "value": 180,
+          "unit": "hp_mechanical",
+          "locator": "Performance Details / 180 hp",
+          "conditions": "US engine rated mechanical horsepower."
+        }
+      },
+      "prop_type": "Fixed or Constant-Speed",
+      "excluded_observations": [
+        {
+          "quantity": "empty_mass_range",
+          "values": [
+            1061.0,
+            1114.0
+          ],
+          "unit": "lb",
+          "locator": "Aircraft Specs / RV-7 / Empty weight",
+          "reason": "Kolumna tego silnika nie określa jednej masy pustej. Nie przyjęto dowolnego końca ani środka opublikowanego przedziału."
+        }
+      ],
+      "takeoff_basis": "unknown",
+      "landing_basis": "unknown"
+    },
+    {
+      "id": "pr-vans-rv-7a-180-hp",
+      "model": "Van's RV-7A (180 hp)",
+      "manufacturer": "Van's Aircraft",
+      "family": "RV7",
+      "aircraft_type": "piston_ga",
+      "engine_type": "prop",
+      "n_engines": 1,
+      "document": "vans-rv-7",
+      "observations": {
+        "m0": {
+          "value": 1800.0,
+          "unit": "lb",
+          "locator": "Performance Details / Gross Weight 1800 lbs"
+        },
+        "s": {
+          "value": 121.0,
+          "unit": "ft2",
+          "locator": "Aircraft Specs / RV-7A / Wing area"
+        },
+        "b": {
+          "value": 25.0,
+          "unit": "ft",
+          "locator": "Aircraft Specs / RV-7A / Span",
+          "transcription": "25 ft"
+        },
+        "v_max": {
+          "value": 207.0,
+          "unit": "mph",
+          "locator": "Performance Details / Gross Weight 1800 lbs / 180 hp / Top speed"
+        },
+        "v_stall_kmh": {
+          "value": 58.0,
+          "unit": "mph",
+          "locator": "Performance Details / Gross Weight 1800 lbs / Stall speed",
+          "conditions": "58 mph"
+        },
+        "v_cruise_kmh": {
+          "value": 197.0,
+          "unit": "mph",
+          "locator": "Performance Details / Gross Weight 1800 lbs / Cruise [75% @ 8000 ft]",
+          "conditions": "Same engine column and gross-weight table; speeds in statute mph."
+        },
+        "range_km": {
+          "value": 765.0,
+          "unit": "mi",
+          "locator": "Performance Details / Gross Weight 1800 lbs / Range [75% @ 8000 ft]",
+          "conditions": "Statute miles; same engine column. Reserve definition as manufacturer table notes."
+        },
+        "climb_rate_ms": {
+          "value": 1600.0,
+          "unit": "ft/min",
+          "locator": "Performance Details / Gross Weight 1800 lbs / Rate of climb"
+        },
+        "takeoff_m": {
+          "value": 575.0,
+          "unit": "ft",
+          "locator": "Performance Details / Gross Weight 1800 lbs / Takeoff Distance",
+          "conditions": "Obstacle height / ground-roll basis not defined by this table."
+        },
+        "landing_m": {
+          "value": 500.0,
+          "unit": "ft",
+          "locator": "Performance Details / Gross Weight 1800 lbs / Landing Distance",
+          "conditions": "Obstacle height / ground-roll basis not defined by this table."
+        },
+        "p_kw": {
+          "value": 180,
+          "unit": "hp_mechanical",
+          "locator": "Performance Details / 180 hp",
+          "conditions": "US engine rated mechanical horsepower."
+        }
+      },
+      "prop_type": "Fixed or Constant-Speed",
+      "excluded_observations": [
+        {
+          "quantity": "empty_mass_range",
+          "values": [
+            1077.0,
+            1130.0
+          ],
+          "unit": "lb",
+          "locator": "Aircraft Specs / RV-7A / Empty weight",
+          "reason": "Kolumna tego silnika nie określa jednej masy pustej. Nie przyjęto dowolnego końca ani środka opublikowanego przedziału."
+        }
+      ],
+      "takeoff_basis": "unknown",
+      "landing_basis": "unknown"
+    },
+    {
+      "id": "pr-vans-rv-8-180-hp",
+      "model": "Van's RV-8 (180 hp)",
+      "manufacturer": "Van's Aircraft",
+      "family": "Van's RV-8",
+      "aircraft_type": "piston_ga",
+      "engine_type": "prop",
+      "n_engines": 1,
+      "document": "vans-rv-8",
+      "observations": {
+        "m0": {
+          "value": 1800.0,
+          "unit": "lb",
+          "locator": "Performance Details / Gross Weight 1800 lbs"
+        },
+        "s": {
+          "value": 116.0,
+          "unit": "ft2",
+          "locator": "Aircraft Specs / RV-8 / Wing area"
+        },
+        "b": {
+          "value": 24.0,
+          "unit": "ft",
+          "locator": "Aircraft Specs / RV-8 / Span",
+          "transcription": "24 ft"
+        },
+        "v_max": {
+          "value": 213.0,
+          "unit": "mph",
+          "locator": "Performance Details / Gross Weight 1800 lbs / 180 hp / Top speed"
+        },
+        "v_stall_kmh": {
+          "value": 58.0,
+          "unit": "mph",
+          "locator": "Performance Details / Gross Weight 1800 lbs / Stall speed",
+          "conditions": "58 mph"
+        },
+        "v_cruise_kmh": {
+          "value": 203.0,
+          "unit": "mph",
+          "locator": "Performance Details / Gross Weight 1800 lbs / Cruise [75% @ 8000 ft]",
+          "conditions": "Same engine column and gross-weight table; speeds in statute mph."
+        },
+        "range_km": {
+          "value": 790.0,
+          "unit": "mi",
+          "locator": "Performance Details / Gross Weight 1800 lbs / Range [75% @ 8000 ft]",
+          "conditions": "Statute miles; same engine column. Reserve definition as manufacturer table notes."
+        },
+        "climb_rate_ms": {
+          "value": 1650.0,
+          "unit": "ft/min",
+          "locator": "Performance Details / Gross Weight 1800 lbs / Rate of climb"
+        },
+        "takeoff_m": {
+          "value": 575.0,
+          "unit": "ft",
+          "locator": "Performance Details / Gross Weight 1800 lbs / Takeoff Distance",
+          "conditions": "Obstacle height / ground-roll basis not defined by this table."
+        },
+        "landing_m": {
+          "value": 500.0,
+          "unit": "ft",
+          "locator": "Performance Details / Gross Weight 1800 lbs / Landing Distance",
+          "conditions": "Obstacle height / ground-roll basis not defined by this table."
+        },
+        "p_kw": {
+          "value": 180,
+          "unit": "hp_mechanical",
+          "locator": "Performance Details / 180 hp",
+          "conditions": "US engine rated mechanical horsepower."
+        }
+      },
+      "prop_type": "Fixed or Constant-Speed",
+      "excluded_observations": [
+        {
+          "quantity": "empty_mass_range",
+          "values": [
+            1067.0,
+            1120.0
+          ],
+          "unit": "lb",
+          "locator": "Aircraft Specs / RV-8 / Empty weight",
+          "reason": "Kolumna tego silnika nie określa jednej masy pustej. Nie przyjęto dowolnego końca ani środka opublikowanego przedziału."
+        }
+      ],
+      "takeoff_basis": "unknown",
+      "landing_basis": "unknown"
+    },
+    {
+      "id": "pr-vans-rv-8a-180-hp",
+      "model": "Van's RV-8A (180 hp)",
+      "manufacturer": "Van's Aircraft",
+      "family": "Van's RV-8",
+      "aircraft_type": "piston_ga",
+      "engine_type": "prop",
+      "n_engines": 1,
+      "document": "vans-rv-8",
+      "observations": {
+        "m0": {
+          "value": 1800.0,
+          "unit": "lb",
+          "locator": "Performance Details / Gross Weight 1800 lbs"
+        },
+        "s": {
+          "value": 116.0,
+          "unit": "ft2",
+          "locator": "Aircraft Specs / RV-8A / Wing area"
+        },
+        "b": {
+          "value": 24.0,
+          "unit": "ft",
+          "locator": "Aircraft Specs / RV-8A / Span",
+          "transcription": "24 ft"
+        },
+        "v_max": {
+          "value": 211.0,
+          "unit": "mph",
+          "locator": "Performance Details / Gross Weight 1800 lbs / 180 hp / Top speed"
+        },
+        "v_stall_kmh": {
+          "value": 58.0,
+          "unit": "mph",
+          "locator": "Performance Details / Gross Weight 1800 lbs / Stall speed",
+          "conditions": "58 mph"
+        },
+        "v_cruise_kmh": {
+          "value": 201.0,
+          "unit": "mph",
+          "locator": "Performance Details / Gross Weight 1800 lbs / Cruise [75% @ 8000 ft]",
+          "conditions": "Same engine column and gross-weight table; speeds in statute mph."
+        },
+        "range_km": {
+          "value": 780.0,
+          "unit": "mi",
+          "locator": "Performance Details / Gross Weight 1800 lbs / Range [75% @ 8000 ft]",
+          "conditions": "Statute miles; same engine column. Reserve definition as manufacturer table notes."
+        },
+        "climb_rate_ms": {
+          "value": 1600.0,
+          "unit": "ft/min",
+          "locator": "Performance Details / Gross Weight 1800 lbs / Rate of climb"
+        },
+        "takeoff_m": {
+          "value": 575.0,
+          "unit": "ft",
+          "locator": "Performance Details / Gross Weight 1800 lbs / Takeoff Distance",
+          "conditions": "Obstacle height / ground-roll basis not defined by this table."
+        },
+        "landing_m": {
+          "value": 500.0,
+          "unit": "ft",
+          "locator": "Performance Details / Gross Weight 1800 lbs / Landing Distance",
+          "conditions": "Obstacle height / ground-roll basis not defined by this table."
+        },
+        "p_kw": {
+          "value": 180,
+          "unit": "hp_mechanical",
+          "locator": "Performance Details / 180 hp",
+          "conditions": "US engine rated mechanical horsepower."
+        }
+      },
+      "prop_type": "Fixed or Constant-Speed",
+      "excluded_observations": [
+        {
+          "quantity": "empty_mass_range",
+          "values": [
+            1067.0,
+            1120.0
+          ],
+          "unit": "lb",
+          "locator": "Aircraft Specs / RV-8A / Empty weight",
+          "reason": "Kolumna tego silnika nie określa jednej masy pustej. Nie przyjęto dowolnego końca ani środka opublikowanego przedziału."
+        }
+      ],
+      "takeoff_basis": "unknown",
+      "landing_basis": "unknown"
+    },
+    {
+      "id": "pr-vans-rv-9-160-hp",
+      "model": "Van's RV-9 (160 hp)",
+      "manufacturer": "Van's Aircraft",
+      "family": "Van's RV-9",
+      "aircraft_type": "piston_ga",
+      "engine_type": "prop",
+      "n_engines": 1,
+      "document": "vans-rv-9",
+      "observations": {
+        "m0": {
+          "value": 1750.0,
+          "unit": "lb",
+          "locator": "Performance Details / Gross Weight 1750 lbs"
+        },
+        "s": {
+          "value": 124.0,
+          "unit": "ft2",
+          "locator": "Aircraft Specs / RV-9 / Wing area"
+        },
+        "b": {
+          "value": 28.0,
+          "unit": "ft",
+          "locator": "Aircraft Specs / RV-9 / Span",
+          "transcription": "28 ft"
+        },
+        "v_max": {
+          "value": 196.0,
+          "unit": "mph",
+          "locator": "Performance Details / Gross Weight 1750 lbs / 160 HP / Top speed"
+        },
+        "v_stall_kmh": {
+          "value": 50.0,
+          "unit": "mph",
+          "locator": "Performance Details / Gross Weight 1750 lbs / Stall speed",
+          "conditions": "50 mph"
+        },
+        "v_cruise_kmh": {
+          "value": 188.0,
+          "unit": "mph",
+          "locator": "Performance Details / Gross Weight 1750 lbs / Cruise [75% @ 8000 ft]",
+          "conditions": "Same engine column and gross-weight table; speeds in statute mph."
+        },
+        "range_km": {
+          "value": 710.0,
+          "unit": "mi",
+          "locator": "Performance Details / Gross Weight 1750 lbs / Range [75% @ 8000 ft]",
+          "conditions": "Statute miles; same engine column. Reserve definition as manufacturer table notes."
+        },
+        "climb_rate_ms": {
+          "value": 1400.0,
+          "unit": "ft/min",
+          "locator": "Performance Details / Gross Weight 1750 lbs / Rate of climb"
+        },
+        "takeoff_m": {
+          "value": 475.0,
+          "unit": "ft",
+          "locator": "Performance Details / Gross Weight 1750 lbs / Takeoff Distance",
+          "conditions": "Obstacle height / ground-roll basis not defined by this table."
+        },
+        "landing_m": {
+          "value": 450.0,
+          "unit": "ft",
+          "locator": "Performance Details / Gross Weight 1750 lbs / Landing Distance",
+          "conditions": "Obstacle height / ground-roll basis not defined by this table."
+        },
+        "p_kw": {
+          "value": 160,
+          "unit": "hp_mechanical",
+          "locator": "Performance Details / 160 HP",
+          "conditions": "US engine rated mechanical horsepower."
+        }
+      },
+      "prop_type": "Fixed or Constant-Speed",
+      "excluded_observations": [
+        {
+          "quantity": "empty_mass_range",
+          "values": [
+            1015.0,
+            1057.0
+          ],
+          "unit": "lb",
+          "locator": "Aircraft Specs / RV-9 / Empty weight",
+          "reason": "Kolumna tego silnika nie określa jednej masy pustej. Nie przyjęto dowolnego końca ani środka opublikowanego przedziału."
+        }
+      ],
+      "takeoff_basis": "unknown",
+      "landing_basis": "unknown",
+      "engine_model": "Lycoming O-320"
+    },
+    {
+      "id": "pr-vans-rv-9a-160-hp",
+      "model": "Van's RV-9A (160 hp)",
+      "manufacturer": "Van's Aircraft",
+      "family": "Van's RV-9",
+      "aircraft_type": "piston_ga",
+      "engine_type": "prop",
+      "n_engines": 1,
+      "document": "vans-rv-9",
+      "observations": {
+        "m0": {
+          "value": 1750.0,
+          "unit": "lb",
+          "locator": "Performance Details / Gross Weight 1750 lbs"
+        },
+        "s": {
+          "value": 124.0,
+          "unit": "ft2",
+          "locator": "Aircraft Specs / RV-9A / Wing area"
+        },
+        "b": {
+          "value": 28.0,
+          "unit": "ft",
+          "locator": "Aircraft Specs / RV-9A / Span",
+          "transcription": "28 ft"
+        },
+        "v_max": {
+          "value": 194.0,
+          "unit": "mph",
+          "locator": "Performance Details / Gross Weight 1750 lbs / 160 HP / Top speed"
+        },
+        "v_stall_kmh": {
+          "value": 50.0,
+          "unit": "mph",
+          "locator": "Performance Details / Gross Weight 1750 lbs / Stall speed",
+          "conditions": "50 mph"
+        },
+        "v_cruise_kmh": {
+          "value": 186.0,
+          "unit": "mph",
+          "locator": "Performance Details / Gross Weight 1750 lbs / Cruise [75% @ 8000 ft]",
+          "conditions": "Same engine column and gross-weight table; speeds in statute mph."
+        },
+        "range_km": {
+          "value": 700.0,
+          "unit": "mi",
+          "locator": "Performance Details / Gross Weight 1750 lbs / Range [75% @ 8000 ft]",
+          "conditions": "Statute miles; same engine column. Reserve definition as manufacturer table notes."
+        },
+        "climb_rate_ms": {
+          "value": 1400.0,
+          "unit": "ft/min",
+          "locator": "Performance Details / Gross Weight 1750 lbs / Rate of climb"
+        },
+        "takeoff_m": {
+          "value": 475.0,
+          "unit": "ft",
+          "locator": "Performance Details / Gross Weight 1750 lbs / Takeoff Distance",
+          "conditions": "Obstacle height / ground-roll basis not defined by this table."
+        },
+        "landing_m": {
+          "value": 450.0,
+          "unit": "ft",
+          "locator": "Performance Details / Gross Weight 1750 lbs / Landing Distance",
+          "conditions": "Obstacle height / ground-roll basis not defined by this table."
+        },
+        "p_kw": {
+          "value": 160,
+          "unit": "hp_mechanical",
+          "locator": "Performance Details / 160 HP",
+          "conditions": "US engine rated mechanical horsepower."
+        }
+      },
+      "prop_type": "Fixed or Constant-Speed",
+      "excluded_observations": [
+        {
+          "quantity": "empty_mass_range",
+          "values": [
+            1028.0,
+            1075.0
+          ],
+          "unit": "lb",
+          "locator": "Aircraft Specs / RV-9A / Empty weight",
+          "reason": "Kolumna tego silnika nie określa jednej masy pustej. Nie przyjęto dowolnego końca ani środka opublikowanego przedziału."
+        }
+      ],
+      "takeoff_basis": "unknown",
+      "landing_basis": "unknown",
+      "engine_model": "Lycoming O-320"
+    },
+    {
+      "id": "pr-ventus3-performance-15-t",
+      "model": "Ventus-3 Performance T (15 m)",
+      "manufacturer": "Schempp-Hirth",
+      "family": "Ventus",
+      "aircraft_type": "motoglider",
+      "engine_type": "prop",
+      "n_engines": 1,
+      "document": "ventus",
+      "observations": {
+        "b": {
+          "value": 15,
+          "unit": "m",
+          "locator": "Technical data / Performance Edition / 15 m / T / b"
+        },
+        "s": {
+          "value": 9.53,
+          "unit": "m2",
+          "locator": "Technical data / Performance Edition / 15 m / T / s"
+        },
+        "me": {
+          "value": 350,
+          "unit": "kg",
+          "locator": "Technical data / Performance Edition / 15 m / T / me"
+        },
+        "m0": {
+          "value": 525,
+          "unit": "kg",
+          "locator": "Technical data / Performance Edition / 15 m / T / m0"
+        }
+      },
+      "empty_mass_definition": "Approximate complete empty mass from the indicated edition and propulsion row; the separate without-engine row is not used."
+    },
+    {
+      "id": "pr-ventus3-performance-18-m",
+      "model": "Ventus-3 Performance M (18 m)",
+      "manufacturer": "Schempp-Hirth",
+      "family": "Ventus",
+      "aircraft_type": "motoglider",
+      "engine_type": "prop",
+      "n_engines": 1,
+      "document": "ventus",
+      "observations": {
+        "b": {
+          "value": 18,
+          "unit": "m",
+          "locator": "Technical data / Performance Edition / 18 m / M / b"
+        },
+        "s": {
+          "value": 10.84,
+          "unit": "m2",
+          "locator": "Technical data / Performance Edition / 18 m / M / s"
+        },
+        "me": {
+          "value": 400,
+          "unit": "kg",
+          "locator": "Technical data / Performance Edition / 18 m / M / me"
+        },
+        "m0": {
+          "value": 600,
+          "unit": "kg",
+          "locator": "Technical data / Performance Edition / 18 m / M / m0"
+        }
+      },
+      "empty_mass_definition": "Approximate complete empty mass from the indicated edition and propulsion row; the separate without-engine row is not used."
+    },
+    {
+      "id": "pr-ventus3-performance-18-t",
+      "model": "Ventus-3 Performance T (18 m)",
+      "manufacturer": "Schempp-Hirth",
+      "family": "Ventus",
+      "aircraft_type": "motoglider",
+      "engine_type": "prop",
+      "n_engines": 1,
+      "document": "ventus",
+      "observations": {
+        "b": {
+          "value": 18,
+          "unit": "m",
+          "locator": "Technical data / Performance Edition / 18 m / T / b"
+        },
+        "s": {
+          "value": 10.84,
+          "unit": "m2",
+          "locator": "Technical data / Performance Edition / 18 m / T / s"
+        },
+        "me": {
+          "value": 360,
+          "unit": "kg",
+          "locator": "Technical data / Performance Edition / 18 m / T / me"
+        },
+        "m0": {
+          "value": 600,
+          "unit": "kg",
+          "locator": "Technical data / Performance Edition / 18 m / T / m0"
+        }
+      },
+      "empty_mass_definition": "Approximate complete empty mass from the indicated edition and propulsion row; the separate without-engine row is not used."
+    },
+    {
+      "id": "pr-ventus3-sport-15-fes",
+      "model": "Ventus-3 Sport FES (15 m)",
+      "manufacturer": "Schempp-Hirth",
+      "family": "Ventus",
+      "aircraft_type": "motoglider",
+      "engine_type": "prop",
+      "n_engines": 1,
+      "document": "ventus",
+      "observations": {
+        "b": {
+          "value": 15,
+          "unit": "m",
+          "locator": "Technical data / Sport Edition / 15 m / FES / b"
+        },
+        "s": {
+          "value": 9.53,
+          "unit": "m2",
+          "locator": "Technical data / Sport Edition / 15 m / FES / s"
+        },
+        "me": {
+          "value": 350,
+          "unit": "kg",
+          "locator": "Technical data / Sport Edition / 15 m / FES / me"
+        },
+        "m0": {
+          "value": 525,
+          "unit": "kg",
+          "locator": "Technical data / Sport Edition / 15 m / FES / m0"
+        }
+      },
+      "empty_mass_definition": "Approximate complete empty mass from the indicated edition and propulsion row; the separate without-engine row is not used."
+    },
+    {
+      "id": "pr-ventus3-sport-15-t",
+      "model": "Ventus-3 Sport T (15 m)",
+      "manufacturer": "Schempp-Hirth",
+      "family": "Ventus",
+      "aircraft_type": "motoglider",
+      "engine_type": "prop",
+      "n_engines": 1,
+      "document": "ventus",
+      "observations": {
+        "b": {
+          "value": 15,
+          "unit": "m",
+          "locator": "Technical data / Sport Edition / 15 m / T / b"
+        },
+        "s": {
+          "value": 9.53,
+          "unit": "m2",
+          "locator": "Technical data / Sport Edition / 15 m / T / s"
+        },
+        "me": {
+          "value": 340,
+          "unit": "kg",
+          "locator": "Technical data / Sport Edition / 15 m / T / me"
+        },
+        "m0": {
+          "value": 525,
+          "unit": "kg",
+          "locator": "Technical data / Sport Edition / 15 m / T / m0"
+        }
+      },
+      "empty_mass_definition": "Approximate complete empty mass from the indicated edition and propulsion row; the separate without-engine row is not used."
+    },
+    {
+      "id": "pr-ventus3-sport-18-fes",
+      "model": "Ventus-3 Sport FES (18 m)",
+      "manufacturer": "Schempp-Hirth",
+      "family": "Ventus",
+      "aircraft_type": "motoglider",
+      "engine_type": "prop",
+      "n_engines": 1,
+      "document": "ventus",
+      "observations": {
+        "b": {
+          "value": 18,
+          "unit": "m",
+          "locator": "Technical data / Sport Edition / 18 m / FES / b"
+        },
+        "s": {
+          "value": 10.84,
+          "unit": "m2",
+          "locator": "Technical data / Sport Edition / 18 m / FES / s"
+        },
+        "me": {
+          "value": 360,
+          "unit": "kg",
+          "locator": "Technical data / Sport Edition / 18 m / FES / me"
+        },
+        "m0": {
+          "value": 600,
+          "unit": "kg",
+          "locator": "Technical data / Sport Edition / 18 m / FES / m0"
+        }
+      },
+      "empty_mass_definition": "Approximate complete empty mass from the indicated edition and propulsion row; the separate without-engine row is not used."
+    },
+    {
+      "id": "pr-ventus3-sport-18-t",
+      "model": "Ventus-3 Sport T (18 m)",
+      "manufacturer": "Schempp-Hirth",
+      "family": "Ventus",
+      "aircraft_type": "motoglider",
+      "engine_type": "prop",
+      "n_engines": 1,
+      "document": "ventus",
+      "observations": {
+        "b": {
+          "value": 18,
+          "unit": "m",
+          "locator": "Technical data / Sport Edition / 18 m / T / b"
+        },
+        "s": {
+          "value": 10.84,
+          "unit": "m2",
+          "locator": "Technical data / Sport Edition / 18 m / T / s"
+        },
+        "me": {
+          "value": 350,
+          "unit": "kg",
+          "locator": "Technical data / Sport Edition / 18 m / T / me"
+        },
+        "m0": {
+          "value": 600,
+          "unit": "kg",
+          "locator": "Technical data / Sport Edition / 18 m / T / m0"
+        }
+      },
+      "empty_mass_definition": "Approximate complete empty mass from the indicated edition and propulsion row; the separate without-engine row is not used."
+    },
+    {
+      "id": "pr-zenith750cruzer",
+      "model": "Zenith CH 750 Cruzer",
+      "manufacturer": "Zenith Aircraft",
+      "family": "CH 750 Cruzer",
+      "aircraft_type": "piston_ga",
+      "engine_type": "prop",
+      "n_engines": 1,
+      "document": "zenith750cruzer",
+      "observations": {
+        "b": {
+          "value": 29.75,
+          "unit": "ft",
+          "locator": "Specifications / LSA gross weight / b"
+        },
+        "s": {
+          "value": 144,
+          "unit": "ft2",
+          "locator": "Specifications / LSA gross weight / s"
+        },
+        "me": {
+          "value": 780,
+          "unit": "lb",
+          "locator": "Specifications / LSA gross weight / me"
+        },
+        "m0": {
+          "value": 1320,
+          "unit": "lb",
+          "locator": "Specifications / LSA gross weight / m0"
+        },
+        "p_kw": {
+          "value": 100,
+          "unit": "hp_mechanical",
+          "locator": "Specifications / LSA gross weight / p_kw"
+        },
+        "v_cruise_kmh": {
+          "value": 118,
+          "unit": "mph",
+          "locator": "Specifications / LSA gross weight / v_cruise_kmh"
+        },
+        "v_stall_kmh": {
+          "value": 39,
+          "unit": "mph",
+          "locator": "Specifications / LSA gross weight / v_stall_kmh"
+        },
+        "climb_rate_ms": {
+          "value": 1200,
+          "unit": "ft/min",
+          "locator": "Specifications / LSA gross weight / climb_rate_ms"
+        },
+        "takeoff_m": {
+          "value": 350,
+          "unit": "ft",
+          "locator": "Specifications / LSA gross weight / takeoff_m"
+        },
+        "landing_m": {
+          "value": 350,
+          "unit": "ft",
+          "locator": "Specifications / LSA gross weight / landing_m"
+        },
+        "range_km": {
+          "value": 520,
+          "unit": "mi",
+          "locator": "Specifications / LSA gross weight / range_km",
+          "conditions": "Statute miles; no fuel reserve for Cruzer as explicitly stated. Prototype Super Cruzer uses the manufacturer Gross performance column."
+        }
+      },
+      "engine_model": "Continental O-200",
+      "empty_mass_definition": "Manufacturer representative empty weight; Super Cruzer figures explicitly describe the prototype.",
+      "takeoff_basis": "ground_roll",
+      "landing_basis": "ground_roll"
+    },
+    {
+      "id": "pr-zenith750super",
+      "model": "Zenith CH 750 Super Cruzer (prototype)",
+      "manufacturer": "Zenith Aircraft",
+      "family": "CH 750 Super Cruzer",
+      "aircraft_type": "piston_ga",
+      "engine_type": "prop",
+      "n_engines": 1,
+      "document": "zenith750super",
+      "observations": {
+        "b": {
+          "value": 33.416666666666664,
+          "unit": "ft",
+          "locator": "Prototype specifications / Performance Gross column / b"
+        },
+        "s": {
+          "value": 164,
+          "unit": "ft2",
+          "locator": "Prototype specifications / Performance Gross column / s"
+        },
+        "me": {
+          "value": 1100,
+          "unit": "lb",
+          "locator": "Prototype specifications / Performance Gross column / me"
+        },
+        "m0": {
+          "value": 1900,
+          "unit": "lb",
+          "locator": "Prototype specifications / Performance Gross column / m0"
+        },
+        "p_kw": {
+          "value": 180,
+          "unit": "hp_mechanical",
+          "locator": "Prototype specifications / Performance Gross column / p_kw"
+        },
+        "v_cruise_kmh": {
+          "value": 125,
+          "unit": "mph",
+          "locator": "Prototype specifications / Performance Gross column / v_cruise_kmh"
+        },
+        "v_stall_kmh": {
+          "value": 44,
+          "unit": "mph",
+          "locator": "Prototype specifications / Performance Gross column / v_stall_kmh"
+        },
+        "climb_rate_ms": {
+          "value": 1200,
+          "unit": "ft/min",
+          "locator": "Prototype specifications / Performance Gross column / climb_rate_ms"
+        },
+        "takeoff_m": {
+          "value": 400,
+          "unit": "ft",
+          "locator": "Prototype specifications / Performance Gross column / takeoff_m"
+        },
+        "landing_m": {
+          "value": 450,
+          "unit": "ft",
+          "locator": "Prototype specifications / Performance Gross column / landing_m"
+        },
+        "range_km": {
+          "value": 650,
+          "unit": "mi",
+          "locator": "Prototype specifications / Performance Gross column / range_km",
+          "conditions": "Statute miles; no fuel reserve for Cruzer as explicitly stated. Prototype Super Cruzer uses the manufacturer Gross performance column."
+        }
+      },
+      "engine_model": "Lycoming O-360",
+      "empty_mass_definition": "Manufacturer representative empty weight; Super Cruzer figures explicitly describe the prototype.",
+      "takeoff_basis": "ground_roll",
+      "landing_basis": "ground_roll"
+    }
+  ]
+}

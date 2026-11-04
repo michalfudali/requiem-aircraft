@@ -850,6 +850,12 @@ def ui_limits(key):
                 if sub["regulation"] == "JAR-22" else f"≥ {minimum:g} kg na osobę")
         add("m_crew_person", rule_id, min=minimum, text=text)
         add("m_pax", rule_id, min=occupant_mass_minimum(key, 2)[0], text=text)
+        if sub["regulation"] == "JAR-22":
+            # The same seat-count policy must reach both the solver and the UI.
+            for param in ("m_crew_person", "m_pax"):
+                out[param]["min_by_occupants"] = {
+                    str(seats): occupant_mass_minimum(key, seats)[0] for seats in (1, 2)
+                }
     limit, rule_id = stall_limit(key, 1)
     if limit:
         add("v_stall_kmh", rule_id, max=round(limit, 1),

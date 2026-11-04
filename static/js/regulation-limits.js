@@ -60,7 +60,11 @@
     for (const key of LIMITED) {
       const input = $(prefix + key);
       if (!input) continue;
-      const limit = sub.limits?.[key];
+      const configured = sub.limits?.[key];
+      const occupants = Math.max(1, Number($(prefix + 'n_crew')?.value || 0) + Number($(prefix + 'n_pax')?.value || 0));
+      const limit = configured?.min_by_occupants
+        ? {...configured, min:configured.min_by_occupants[String(occupants)] ?? configured.min}
+        : configured;
       if (input.tagName === 'SELECT') {
         for (const option of input.options) option.disabled = !!(limit?.allowed && !limit.allowed.includes(option.value));
         if (limit?.allowed && !limit.allowed.includes(input.value)) {
@@ -126,7 +130,8 @@
     if (pax) setVisible(pax, f.passengers);
     const paxMass = $(prefix + 'm_pax');
     if (paxMass) {
-      setVisible(paxMass, f.passengers && Number(pax?.value || 0) > 0);
+      paxMass.disabled = !f.passengers || Number(pax?.value || 0) <= 0;
+      setVisible(paxMass, !paxMass.disabled);
       const label = paxMass.closest('.input-group')?.querySelector('label');
       if (label && prefix) label.textContent = f.parachute ? 'Masa drugiej osoby ze spadochronem [kg]:' : 'Masa 1 osoby z bagażem [kg]:';
     }

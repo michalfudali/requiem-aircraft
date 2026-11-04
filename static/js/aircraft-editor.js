@@ -125,19 +125,55 @@
         else {dialog.close();document.dispatchEvent(new CustomEvent('bipol:catalog-updated',{detail:answer.aircraft}));}
       }catch(err){error(err.message);}finally{setBusy(false);if(checkedMessage)$('aircraftEditorChecks').textContent=checkedMessage;}
     }
+    function renderEvidence(evidence) {
+      const section = $('aircraftEvidence');
+      section.hidden = !evidence;
+      section.open = false;
+      if (!evidence) { $('aircraftEvidenceBody').replaceChildren(); return; }
+      const number = value => value == null ? '—' : new Intl.NumberFormat('pl-PL',{maximumFractionDigits:6}).format(value);
+      const unit = value => ({'1':'','m2':'m²','ft2':'ft²','hp_mechanical':'hp (US)','year':'rok'}[value] ?? value ?? '');
+      const quantities = {powered_performance:'Osiągi lotu silnikowego',minimum_sink:'Minimalne opadanie',
+        empty_mass_range:'Przedział masy pustej',empty_mass_without_engine:'Masa bez napędu',
+        clean_stall_VS1:'Prędkość przeciągnięcia w konfiguracji gładkiej VS1',
+        speed_limit:'Ograniczenie prędkości',speed_limits:'Ograniczenia prędkości',
+        best_glide_lower_bound:'Dolna granica doskonałości',motor_power_range:'Przedział mocy silnika',
+        continuous_motor_power:'Moc ciągła silnika',manufacturer_power_figure:'Moc podana przez producenta płatowca',
+        performance_mass_basis:'Masa przyjęta do osiągów',range:'Zasięg',climb_rate:'Wznoszenie',stall_speed:'Przeciągnięcie'};
+      const conditionLabels = {takeoff_ground_m:'Rozbieg [m]',takeoff_15m_m:'Start do 15 m [m]',
+        climb_35kw_ms:'Wznoszenie przy 35 kW [m/s]',climb_25kw_ms:'Wznoszenie przy 25 kW [m/s]'};
+      const rows = evidence.observations.map(e => {
+        const label = fields.find(f => f.key === e.field)?.label || ({v_max:'Maksymalna prędkość lotu poziomego',h_tail_area:'Powierzchnia usterzenia poziomego',v_tail_area:'Powierzchnia usterzenia pionowego',w_z_min_ms:'Minimalne opadanie',engine_model:'Model silnika'}[e.field] || e.field);
+        return `<tr><th scope="row">${esc(label)}</th><td>${esc(number(e.value))} ${esc(unit(e.unit))}</td><td>${esc(number(e.catalogue_value))} ${esc(unit(e.catalogue_unit))}</td><td><a href="${esc(e.publication.url)}" target="_blank" rel="noopener">${esc(e.publication.title)}</a><br>${esc(e.locator)}${e.conditions?`<p>${esc(e.conditions)}</p>`:''}${e.derivation?`<p>${esc(e.derivation.formula)}: ${e.derivation.formula === "n_engines * engine_power" ? `${esc(e.derivation.n_engines)} × ${esc(e.derivation.engine_power)} kW` : `${esc(e.derivation.mtow)} − ${esc(e.derivation.useful_load)} kg`}</p>`:''}</td></tr>`;
+      });
+      const excluded = evidence.excluded_observations.map(e => {
+        const raw = e.value ?? e.values;
+        const display = Array.isArray(raw) ? esc(raw.map(number).join(' – ')) : raw && typeof raw === 'object'
+          ? `<dl>${Object.entries(raw).map(([key,value])=>`<dt>${esc(conditionLabels[key] || key)}</dt><dd>${esc(number(value))}</dd>`).join('')}</dl>`
+          : raw == null ? '' : esc(number(raw));
+        return `<li><strong>${esc(quantities[e.quantity] || e.quantity)}</strong>${e.mass_kg?` · ${esc(number(e.mass_kg))} kg`:''}${display?`: ${display} ${esc(unit(e.unit))}`:''}<p>${esc(e.reason)}</p><small>${esc(e.locator)}</small></li>`;
+      }).join('');
+      $('aircraftEvidenceBody').innerHTML = `<p>${evidence.matches_catalogue?'Zapis w bazie odpowiada odczytom źródłowym.':'Wpis w bazie został zmieniony względem zestawienia źródłowego. Porównaj wartości i sprawdź uzasadnienie edycji.'}</p>
+        <p>Odczyt zachowuje oryginalne jednostki. Kolumna „W bazie” przedstawia zapisane wartości po przeliczeniu jednostek. Warunki dotyczą wskazanego wariantu i punktu pracy.</p>
+        <div class="table-responsive"><table class="b-table"><thead><tr><th>Parametr</th><th>Odczyt</th><th>W bazie</th><th>Dokument i warunki</th></tr></thead><tbody>${rows.join('')}</tbody></table></div>
+        ${evidence.notes.length?`<ul>${evidence.notes.map(n=>`<li>${esc(n)}</li>`).join('')}</ul>`:''}
+        ${excluded?`<h4>Dane zachowane poza próbą obliczeniową</h4><ul>${excluded}</ul>`:''}`;
+    }
     async function open(record = null, sources = {}) {
       if(busy)return;
       const sequence=++openSequence;
       opener=document.activeElement;
+      let evidence = null;
       if(record){
         try {
           const response=await fetch(`/api/aircraft/${encodeURIComponent(record.id)}`);
           const answer=await response.json();if(!response.ok)throw Error(answer.message||'Nie udało się pobrać danych.');
           if(sequence!==openSequence)return;
           record=answer.aircraft;
+          evidence=answer.evidence;
         }catch(err){$('trendStatus').textContent=err.message;return;}
       }
       original=record?structuredClone(record):null;error('');
+      renderEvidence(evidence);
       $('trendModalTitle').textContent=original?`Parametry: ${original.model}`:'Dodaj statek powietrzny';
       fill(record||{aircraft_type:'piston_ga',engine_type:'prop',n_engines:1});
       const source=sources[record?.source_id];

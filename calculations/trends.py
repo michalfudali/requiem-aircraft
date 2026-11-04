@@ -112,7 +112,7 @@ def reference_catalog():
 SAMPLE_KEYS = ('trend_source', 'trend_nearest_count', 'trend_engine_count', 'trend_year_min', 'trend_year_max',
                'trend_weighting', 'trend_year_basis', 'trend_aircraft_ids', 'trend_observations',
                'variable_sweep', 'trend_mass_enforce_decreasing')
-SAMPLE_CHOICES = {'trend_source': ('all', 'fast', 'cado', 'motogliders', 'geometry_trends', 'user'),
+SAMPLE_CHOICES = {'trend_source': ('all', 'fast', 'cado', 'motogliders', 'geometry_trends', 'primary_research', 'user'),
                   'trend_weighting': ('family', 'variant'), 'trend_year_basis': ('production', 'certification'),
                   'trend_mass_enforce_decreasing': ('true', 'false')}
 

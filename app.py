@@ -255,6 +255,8 @@ def aircraft_item(aircraft_id):
         resp['status'] = 'ok'
         resp['aircraft'] = record
         resp['record'] = record
+        from calculations.primary_research import evidence_for
+        resp['evidence'] = evidence_for(record)
         return jsonify(resp), 200
 
     elif request.method == 'PUT':
@@ -348,6 +350,8 @@ def import_trend_observations():
 
 @app.route('/download/aircraft/<source>/<kind>')
 def aircraft_source_download(source, kind):
+    if source == 'primary_research' and kind == 'evidence' and source in SOURCES:
+        return send_from_directory(DATA / 'research', 'primary_aircraft.json', as_attachment=True)
     if source not in SOURCES or kind not in ('data', 'license'):
         abort(404)
     if kind == 'license':

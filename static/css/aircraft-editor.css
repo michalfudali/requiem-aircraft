@@ -38,3 +38,10 @@
   .aircraft-catalog-filters { grid-template-columns:1fr; }
 }
 @media(max-width:430px) { .aircraft-editor-fields { grid-template-columns:1fr; } .aircraft-editor-footer .btn { flex:1 1 40%; } }
+
+.aircraft-evidence { margin-top:18px; overflow-wrap:anywhere; }
+.aircraft-evidence summary { cursor:pointer; font-weight:650; padding:12px 0; }
+.aircraft-evidence table { min-width:650px; }
+.aircraft-evidence th, .aircraft-evidence td { white-space:normal; vertical-align:top; }
+.aircraft-evidence p, .aircraft-evidence li { font-size:12px; line-height:1.6; }
+.aircraft-evidence small { display:block; }

@@ -49,6 +49,11 @@ Puste pole oznacza brak danych; opcjonalne wartości można wyczyścić.
 **Sprawdź dane** waliduje rekord bez zapisu. **Zapisz we wspólnej bazie** zapisuje
 zmiany lokalnie, dla wszystkich projektów, i odświeża analizę trendów.
 
+Dla zbioru **Dokumentacja producentów i TCDS** edytor udostępnia odczyty z oryginalnymi
+jednostkami, wartości przeliczone w bazie, odnośniki do publikacji, warunki i pominięte
+obserwacje. Zmiana rekordu w bazie jest oznaczana jako różnica względem zestawienia
+źródłowego. Pełne zestawienie można pobrać jako JSON.
+
 **Użyj jako punkt startowy projektu** otwiera kreator z dostępnymi danymi
 katalogowymi. Brakujące założenia pochodzą z profilu klasy i wymagają przeglądu.
 Katalogowe MTOW i OEW pozostają danymi porównawczymi; projekt jest zapisywany

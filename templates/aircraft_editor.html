@@ -7,7 +7,12 @@
   <form id="trendAircraftForm">
     <div class="aircraft-editor-body">
       <div><p class="studio-fine-print">Pola z * są wymagane. Puste pole oznacza brak danych. Wielkości pochodne przeliczają się automatycznie.</p>
-        <div id="aircraftEditorFields"></div></div>
+        <div id="aircraftEditorFields"></div>
+        <details id="aircraftEvidence" class="aircraft-evidence" hidden>
+          <summary>Dokumentacja źródłowa, warunki i ograniczenia danych</summary>
+          <div id="aircraftEvidenceBody"></div>
+          <p><a href="/download/aircraft/primary_research/evidence" download>Pobierz pełne zestawienie odczytów i źródeł (JSON)</a></p>
+        </details></div>
       <aside class="aircraft-editor-preview" aria-label="Kontrola parametrów">
         <h3>Podgląd i kontrola</h3><dl id="aircraftEditorDerived" aria-live="polite"></dl>
         <p id="aircraftEditorChecks" role="status" aria-live="polite"></p>

@@ -200,7 +200,7 @@ NUMERIC_STEPS = {
 COUNT_KEYS = ("cost_year", "cost_n_production", "cost_n_amortization", "cost_n_prototypes")
 
 ENUM_CHOICES = {
-    'trend_source': ('all', 'fast', 'cado', 'motogliders', 'geometry_trends', 'user'),
+    'trend_source': ('all', 'fast', 'cado', 'motogliders', 'geometry_trends', 'primary_research', 'user'),
     'matching_design_mode': ('wing_limit', 'minimum_power', 'range'),
     'design_iteration_mode': ('preliminary', 'coupled'),
     'wing_input_mode': ('loading', 'span_aspect', 'span_area', 'area_aspect'),
