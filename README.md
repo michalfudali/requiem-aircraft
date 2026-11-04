@@ -59,6 +59,11 @@ Interfejs otwiera od razu zapisany projekt. Założenia mają osobny widok, anal
 pokazują szczegóły na żądanie, a w trendach widoczny jest jeden wybrany wykres.
 Układ, dostępność i testy opisuje [`docs/INTERFEJS.md`](docs/INTERFEJS.md).
 
+**Studium wykonalności P2** w analizach szczegółowych udostępnia wybór profilu,
+import rzędnych, wybór punktu A/B i dodatkowe założenia lotniska, misji oraz kosztów.
+Mapa wymagań przewodnika do kontrolek i zakres danych aerodynamicznych:
+[`docs/STUDIUM_WYKONALNOSCI_UI.md`](docs/STUDIUM_WYKONALNOSCI_UI.md).
+
 Kreator pozwala wybrać temat i niezależne założenia: rozpiętość, powierzchnię lub
 wydłużenie skrzydła, masę płatną, liczbę pasażerów i dostępną moc. Parametry
 zależne są tylko do odczytu. Motoszybowce powyżej 20 m otrzymują spójną geometrię.

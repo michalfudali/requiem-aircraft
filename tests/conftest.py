@@ -6,6 +6,8 @@ import sqlite3
 
 import pytest
 
+pytest_plugins = ['browser_fixtures']
+
 from database_sandbox import DatabaseSandbox
 
 # This must precede *all* calculations/app imports, including in xdist workers.

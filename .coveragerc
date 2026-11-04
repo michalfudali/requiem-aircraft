@@ -1,7 +1,9 @@
 [run]
 source = calculations,app
 relative_files = True
-omit = tests/*
+omit =
+    tests/*
+    calculations/openvsp_bridge.py
 
 [report]
 show_missing = True

@@ -187,6 +187,9 @@
       return header;
     }
     function reveal(control) {
+      if (control.closest('#p2DesignDecisions, #p2AirfoilEditor, #panel-p2')) {
+        window.BipolP2?.focus(control.id); return;
+      }
       if (control.closest('.advanced-only')) setSidebarMode('advanced');
       const module = control.closest('.module-accordion');
       if (module) openSection(module.id.replace('accordion_',''));
@@ -219,12 +222,12 @@
       const rank = (name, info) => normalize(name).includes(query) ? 0
         : info && (normalize(info.title).includes(query) || (symbol && compact(info.symbol).includes(symbol))) ? 1
         : info && normalize(info.plain || info.short_desc || '').includes(query) ? 2 : -1;
-      const fields = [...$('designForm').querySelectorAll('.input-group label[for]')].map(label => {
+      const fields = [...document.querySelectorAll('#designForm .input-group label[for], #p2DesignDecisions label[for], #p2AirfoilEditor label[for], #panel-p2 label[for]')].map(label => {
         const control = $(label.htmlFor), copy = label.cloneNode(true);
         copy.querySelectorAll('button,.info-circle-icon').forEach(node=>node.remove());
         const name = copy.textContent.replace(/\s+/g,' ').trim();
         const info = control && cards[window.BipolDidactic?.keyFor(control.id) ?? control.id];
-        return {control,name,module:control?.closest('.module-accordion'),rank:rank(name,info)};
+        return {control,name,module:control?.closest('.module-accordion, #p2DesignDecisions, #panel-p2, #p2AirfoilEditor'),rank:rank(name,info)};
       }).filter(field => field.control && field.module && field.module.id!=='accordion_mod0'
         && !field.control.closest('[hidden]') && field.rank>=0).sort((a,b)=>a.rank-b.rank);
       status.textContent = fields.length ? `Znalezione parametry: ${fields.length}. Wybierz pole poniżej.` : 'Nie znaleziono parametru. Spróbuj krótszej nazwy, np. „masa” lub „skrzydło”.';

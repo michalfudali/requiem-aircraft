@@ -4,6 +4,11 @@ from calculations.instructor import (CRUISE_LD_FACTOR, PASSENGER_WITH_BAG_KG,
                                      FLAP_TAKEOFF_DEFLECTION_DEG, FLAP_LANDING_DEFLECTION_DEG)
 
 NUMERIC_LIMITS = {
+    'airfield_elevation_m': (-500, 6000), 'airfield_delta_t_k': (-60, 60),
+    'service_ceiling_m': (0, 20000), 'ceiling_climb_rate_ms': (0, 20),
+    'turbine_inlet_temp_k': (300, 3000),
+    'cost_rate_rdte_per_month': (0.000001, 100000),
+    'cost_rate_production_per_month': (0.000001, 100000),
     'fuel_density_kg_l': (.5, 1.0), 'engine_custom_power_kw': (0, 100000),
     'engine_custom_thrust_kn': (0, 10000), 'engine_static_thrust_kn': (0, 10000),
     "n_pax": (0, 1000), "n_crew": (0, 20), "m_pax": (0, 500),
@@ -62,6 +67,28 @@ NUMERIC_LIMITS = {
 }
 COUNT_KEYS = ("cost_year", "cost_n_production", "cost_n_amortization", "cost_n_prototypes")
 
+ENUM_CHOICES = {
+    'trend_source': ('all', 'fast', 'cado', 'motogliders', 'geometry_trends', 'user'),
+    'matching_design_mode': ('wing_limit', 'minimum_power', 'range'),
+    'design_iteration_mode': ('preliminary', 'coupled'),
+    'wing_input_mode': ('loading', 'span_aspect', 'span_area', 'area_aspect'),
+    'payload_input_mode': ('seats', 'total'),
+    'airfoil_criterion': ('auto', 'cruise', 'lift'),
+    'power_input_mode': ('sized', 'fixed'),
+    'gear_attachment': ('fuselage', 'wing'),
+    'runway_surface': ('paved', 'grass'),
+    'cs22_gust_model': ('amendment3', 'pratt'),
+    'profile_thickness_mode': ('auto', 'assumed'),
+    'gear_retraction': ('auto', 'fixed', 'retractable'),
+    'trend_weighting': ('family', 'variant'),
+    'mission_phase_model': ('standard', 'galinski'),
+    'flap_type': ('none', 'plain', 'split', 'junkers', 'single_slotted', 'fowler', 'double_slotted', 'flaperon'),
+    'aileron_type': ('differential', 'frise', 'slotted', 'plain', 'flaperon'),
+    'slat_type': ('none', 'fixed_slot', 'slats_auto', 'krueger'),
+    'wing_planform': ('trapezoidal', 'rectangular', 'compound_trapezoid', 'elliptical', 'swept_trapezoidal')
+}
+
+
 DEFAULTS = {
     "aircraft_type": "piston_ga", "engine_type": "prop", "engine_location": "nose",
     "category": "cs23_level2", "n_pax": 4, "n_crew": 1, "m_pax": PASSENGER_WITH_BAG_KG,
@@ -94,6 +121,8 @@ def validate_parameters(data):
     if not isinstance(data, dict):
         raise ValueError("Parametry projektu muszą być obiektem JSON.")
     p = {**DEFAULTS, **data}
+    if 'airfoil_source' in p and (not isinstance(p['airfoil_source'], str) or len(p['airfoil_source']) > 4000):
+        raise ValueError('Źródło profilu: podaj tekst do 4000 znaków.')
     # One comparison sample: the aircraft nearest in MTOW to the design (BIPOL_1, s. 1).
     for key in ('trend_reference_mode', 'mass_initial_guess'):
         p.pop(key, None)
@@ -193,22 +222,7 @@ def validate_parameters(data):
     for key in ('trend_count', 'trend_nearest_count', 'trend_engine_count', 'trend_year_min', 'trend_year_max'):
         if key in p and not float(p[key]).is_integer():
             raise ValueError(f'Pole {key}: wymagana liczba całkowita.')
-    for key, allowed in {'trend_source': ('all', 'fast', 'cado', 'motogliders', 'geometry_trends', 'user'),
-                         'wing_input_mode': ('loading', 'span_aspect', 'span_area', 'area_aspect'),
-                         'payload_input_mode': ('seats', 'total'),
-                         'airfoil_criterion': ('auto', 'cruise', 'lift'),
-                         'power_input_mode': ('sized', 'fixed'),
-                         'gear_attachment': ('fuselage', 'wing'),
-                         'runway_surface': ('paved', 'grass'),
-                         'cs22_gust_model': ('amendment3', 'pratt'),
-                         'profile_thickness_mode': ('auto', 'assumed'),
-                         'gear_retraction': ('auto', 'fixed', 'retractable'),
-                         'trend_weighting': ('family', 'variant'),
-                         'mission_phase_model': ('standard', 'galinski'),
-                         'flap_type': ('none', 'plain', 'split', 'junkers', 'single_slotted', 'fowler', 'double_slotted', 'flaperon'),
-                         'aileron_type': ('differential', 'frise', 'slotted', 'plain', 'flaperon'),
-                         'slat_type': ('none', 'fixed_slot', 'slats_auto', 'krueger'),
-                          'wing_planform': ('trapezoidal', 'rectangular', 'compound_trapezoid', 'elliptical', 'swept_trapezoidal')}.items():
+    for key, allowed in ENUM_CHOICES.items():
         if key in p and p[key] not in allowed:
             raise ValueError(f'Nieznana opcja: {key}.')
     if p.get('gear_retraction', 'auto') != 'auto':

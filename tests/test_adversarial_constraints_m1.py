@@ -132,11 +132,14 @@ class TestTakeoffHotAndHigh:
             assert t_sigmas[i] > t_sigmas[i + 1]
 
     def test_negative_airfield_elevation_handling(self):
-        """Below sea level elevation (e.g. -400 m Dead Sea) falls back to sigma=1.0 when delta_t=0."""
+        """Below-sea-level airfields follow the tropospheric law, with sigma > 1."""
         p_dead_sea = dict(AIRCRAFT_PRESETS["ga_trainer"], airfield_elevation_m=-400, airfield_delta_t_k=0)
         s = calculate_matching_chart(p_dead_sea)
-        # Current implementation handles h_airfield > 0, so negative elevation defaults to SIGMA_AIRFIELD
-        assert s["terms"]["sigma_airfield"] == SIGMA_AIRFIELD
+        temperature = 288.15 - .0065 * -400
+        pressure = 101325 * (temperature / 288.15) ** (9.80665 / (.0065 * 287.05287))
+        expected = pressure / (287.05287 * temperature) / 1.225
+        assert s["terms"]["sigma_airfield"] == pytest.approx(expected, rel=1e-9)
+        assert s["terms"]["sigma_airfield"] > 1
 
 
 # ==============================================================================

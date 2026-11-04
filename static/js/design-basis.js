@@ -14,6 +14,17 @@
   const number = (prefix, key) => Number(value(prefix,key) || 0);
   const set = (prefix, key, val) => { if ($(prefix+key) && val != null) $(prefix+key).value = val; };
   const defaultEngines = (prefix='') => value(prefix,'engine_type')==='none' ? 0 : (value(prefix,'engine_location')==='wing' || value(prefix,'engine_type')==='jet' ? 2 : 1);
+  function wettedVisibility() {
+    const own = value('wiz_','wetted_example') === 'sketch';
+    $('wizWettedRatioGroup').hidden = !own;
+    $('wiz_sketch_swet_ratio').disabled = !own;
+  }
+  function restoreWizardWetted() {
+    const legacySketch = !wizardBase.wetted_example && ['raymer','reading'].includes(wizardBase.preliminary_polar_mode) && wizardBase.sketch_swet_ratio;
+    set('wiz_','wetted_example',wizardBase.wetted_example || (legacySketch ? 'sketch' : ''));
+    set('wiz_','sketch_swet_ratio',wizardBase.sketch_swet_ratio ?? 4);
+    wettedVisibility();
+  }
   function derived(prefix, key, isDerived, formula='', result) {
     const input=$(prefix+key); if (!input) return;
     input.readOnly=isDerived;
@@ -26,6 +37,7 @@
     if (!prefix && button) {button.disabled=isDerived;button.title=isDerived?formula:'Przypnij jako założenie';}
   }
   function sync(prefix='') {
+    if (prefix === 'wiz_') wettedVisibility();
     document.querySelectorAll(`[data-water-scope="${prefix}"]`).forEach(el=>el.hidden=value(prefix,'operating_surface')!=='water');
     document.querySelectorAll(`[data-cargo-scope="${prefix}"]`).forEach(el=>el.hidden=number(prefix,'m_cargo')<=0);
     const mode=value(prefix,'wing_input_mode') || 'loading';
@@ -107,7 +119,7 @@
   function restore(params) {
     const p=infer(params);window.userLockedParams=new Set(p.locked_params||[]);
     set('','operating_surface',p.operating_surface||'land');
-    set('','design_iteration_mode','coupled');
+    set('','design_iteration_mode',p.design_iteration_mode||'coupled');
     set('','water_displacement_volume_m3',p.water_displacement_volume_m3||0);
     for(const key of ['cargo_bay_length_m','cargo_bay_width_m','cargo_bay_height_m'])set('',key,p[key]||0);
     for (const key of extraKeys) if(key in p)set('',key,p[key]);
@@ -124,6 +136,7 @@
     if ($('wizardCatalogSource')) $('wizardCatalogSource').hidden = true;
     wizardBase=infer(collectFormData());
     for(const [key,val] of Object.entries(wizardBase))set('wiz_',key,val);
+    restoreWizardWetted();
     const topic=topicsData.find(t=>t.num===Number(wizardBase.topic_id));
     set('wiz_','topic',wizardBase.topic_origin==='official'&&topic?topic.id:'');
     document.querySelectorAll('[data-wizard-assumption]').forEach(input=>input.checked=window.userLockedParams.has(input.dataset.wizardAssumption));
@@ -147,6 +160,7 @@
     syncAircraftClassAndEASAUI(true);propulsion('wiz_');renderWizardStep4Mechanics();
     for(const [key,val] of Object.entries(wizardBase))set('wiz_',key,val);
     for(const key of ['range_km','cruise_speed_kmh','v_stall_kmh'])set('wiz_basis_',key,wizardBase[key]);
+    restoreWizardWetted();
     sync('wiz_');topicNote();
     window.BipolTrendProvenance?.previewInWizard?.();
     const note=$('wizardCatalogSource');
@@ -163,6 +177,7 @@
     if(!topic){delete wizardBase.topic_id;delete wizardBase.topic_origin;topicNote();return;}
     if($('wizardCatalogSource'))$('wizardCatalogSource').hidden=true;
     wizardBase=structuredClone(topic.parameters);
+    restoreWizardWetted();
     set('wiz_','water_displacement_volume_m3',0);
     for(const key of ['cargo_bay_length_m','cargo_bay_width_m','cargo_bay_height_m'])set('wiz_',key,0);
     for(const [key,val] of Object.entries(wizardBase))set('wiz_',key,val);
@@ -188,6 +203,12 @@
     const p={...wizardBase};
     const keys=new Set([...Object.keys(collectFormData()),...extraKeys]);
     keys.forEach(key=>{const input=$('wiz_'+key);if(!input)return;p[key]=input.type==='number'?Number(input.value):input.value;});
+    p.wetted_example = value('wiz_','wetted_example');
+    if (p.wetted_example === 'sketch') {
+      p.sketch_swet_ratio = number('wiz_','sketch_swet_ratio');
+      if (!['raymer','reading'].includes(p.preliminary_polar_mode)) p.preliminary_polar_mode = 'raymer';
+      delete p.preliminary_polar_includes_configuration;
+    } else delete p.sketch_swet_ratio;
     if($('wiz_basis_range_km')){const bR=Number($('wiz_basis_range_km').value);if(!isNaN(bR)&&bR>=0)p['range_km']=bR;}
     if($('wiz_basis_cruise_speed_kmh')){const bV=Number($('wiz_basis_cruise_speed_kmh').value);if(!isNaN(bV)&&bV>0)p['cruise_speed_kmh']=bV;}
     if($('wiz_basis_v_stall_kmh')){const bVs=Number($('wiz_basis_v_stall_kmh').value);if(!isNaN(bVs)&&bVs>0)p['v_stall_kmh']=bVs;}
@@ -246,6 +267,7 @@
   const wizardValue=key=>$('wiz_'+key)?Number($('wiz_'+key).value):wizardBase[key]!=null?Number(wizardBase[key]):formBaseParams[key]!=null?Number(formBaseParams[key]):$(key)?Number($(key).value):Number(window.currentResults?.params?.[key]??classPresets[value('wiz_','aircraft_type')]?.[key]);
   window.BipolDesignBasis={sync,propulsion,restore,openWizard,seed,snapshot,collect,loadTopic,applyResult,classDefaults,wizardValue,wizardBase:()=>wizardBase};
   document.addEventListener('DOMContentLoaded',async()=>{
+    $('wiz_wetted_example')?.addEventListener('change',wettedVisibility);
     $('wiz_topic')?.addEventListener('change',chooseTopic);
     const syncAssumption = (basisId, step2Id, assumptionKey) => {
       const bEl = $(basisId), s2El = $(step2Id);

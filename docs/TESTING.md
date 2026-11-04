@@ -63,7 +63,7 @@ plików; nowy runner uwzględni także przyszłe pliki bez edycji workflow.
 ```text
 python -m pip install -r requirements-browser.txt -c requirements-test-constraints.txt
 python -m playwright install chromium
-python -m pytest tests/test_browser_acceptance.py --browser -q --junitxml=work/browser.xml
+python -m pytest tests/test_browser_acceptance.py tests/test_browser_p2.py tests/test_browser_wizard_wetted.py --browser -q --junitxml=work/browser.xml
 ```
 
 Na Linux instalacja przeglądarki w CI używa `--with-deps`. Przy jawnym
@@ -108,6 +108,21 @@ uruchamiać z pokryciem bez tej bramki, pomijając `--cov-fail-under=90`.
 Po testach CI sprawdza, czy obie dostarczone bazy pozostały niezmienione.
 Przekroczenie czasu zadania, nieznany marker lub niespodziewany XPASS powodują błąd.
 Awaria zaimplementowanego CRUD/suggestions jest asercją, a nie `pytest.skip`.
+
+Natywna integracja OpenVSP jest osobnym zakresem: bez zgodnego pakietu `openvsp`
+testy jego solverów są jawnie pomijane. Testy obecności panelu, startu aplikacji
+i odpowiedzi o niedostępności działają również bez silnika. Standardowy pomiar
+pokrycia wyłącza wyłącznie `calculations/openvsp_bridge.py`; nie zastępuje to
+testu natywnego adaptera. Pełny zestaw adaptera uruchamia
+`python -m pytest tests/test_openvsp.py` w środowisku z zainstalowanym API.
+Jeśli programy OpenVSP są poza worktree, ustaw `BIPOL_OPENVSP_DIR` na katalog
+z `vspscript.exe` (Windows) lub `vspscript` (Linux). Pliki wynikowe nadal
+powstają w `work/openvsp` bieżącego worktree.
+Wersja Pythona musi odpowiadać kompilacji OpenVSP:
+[oficjalne instrukcje API](https://openvsp.org/pyapi_docs/latest/).
+Skrypty AngelScript powinny używać `int main()` i jawnego `return 0` przy sukcesie,
+jak [oficjalne przykłady OpenVSP](https://github.com/OpenVSP/OpenVSP/blob/main/examples/scripts/TestSaveLoad.vspscript).
+Adapter zachowuje rzeczywisty kod procesu, zamiast maskować błędy kodem zero.
 
 Macierz Windows ujawniła również wyścig w dawnym teście równoległych odczytów:
 po 15 sekundach zatrzymywał czytelników, czasem z licznikami `[7, 7, 5, 6]`,

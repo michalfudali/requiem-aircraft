@@ -11,7 +11,15 @@ Sprawdzają:
 """
 
 import io
+import pytest
 from app import app
+from calculations.openvsp_bridge import vsp
+
+
+@pytest.fixture(autouse=True)
+def native_openvsp(request):
+    if vsp is None and request.node.name != 'test_openvsp_ui_tab_present_in_index':
+        pytest.skip('Native OpenVSP API is not installed for this interpreter; UI and unavailable-mode tests still run.')
 
 
 def test_openvsp_ui_tab_present_in_index():
@@ -226,11 +234,14 @@ def test_openvsp_cad_export_import_and_scripts():
         "/api/openvsp/script",
         json={
             "mode": "vspscript",
-            "code": 'void main() {\n    Print("Hello from vspscript");\n}\n',
+            "code": 'int main() {\n    Print("Hello from vspscript");\n    return 0;\n}\n',
         },
     )
     assert as_res.status_code == 200
     as_data = as_res.get_json()
     assert as_data["returncode"] == 0
     assert "Hello from vspscript" in as_data["stdout"]
+    failed = client.post('/api/openvsp/script', json={'mode':'vspscript','code':'int main() { return 7; }'})
+    assert failed.status_code == 200
+    assert failed.json['status'] == 'error' and failed.json['returncode'] == 7
 

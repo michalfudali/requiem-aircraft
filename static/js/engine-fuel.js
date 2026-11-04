@@ -52,7 +52,7 @@
 
   function sync(params) {
     if (!params || Object.keys(params).length === 0) {
-      params = window.formBaseParams;
+      params = typeof formBaseParams === 'object' ? formBaseParams : null;
       if (!params || Object.keys(params).length === 0) {
         try {
           if (typeof getActiveProject === 'function') {
@@ -63,8 +63,8 @@
     }
     params = params || {};
     if (!$('engineFuelPanel')) return;
-    if ($('engine_fuel_mode') && params.engine_fuel_mode) $('engine_fuel_mode').value = params.engine_fuel_mode;
-    const previous = params.engine_model_id || $('engine_model_id')?.value || '';
+    if ($('engine_fuel_mode')) $('engine_fuel_mode').value = params.engine_fuel_mode || 'unselected';
+    const previous = params.engine_model_id || '';
     if ($('engine_model_id')) {
       $('engine_model_id').innerHTML = '<option value="">Wybierz model z katalogu</option>' + engines.filter(e => e.engine_type === kind()).map(e => `<option value="${esc(e.id)}">${esc(e.model)}</option>`).join('');
       if (previous) $('engine_model_id').value = previous;
@@ -73,7 +73,7 @@
       const el = $(key);
       if (el && params[key] !== undefined) {
         el.value = params[key];
-      } else if (el && !el.value) {
+      } else if (el) {
         el.value = key === 'fuel_density_kg_l' ? 0.72 : key.includes('_power_') || key.includes('_thrust_') ? 0 : '';
       }
     }

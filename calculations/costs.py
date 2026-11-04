@@ -62,8 +62,11 @@ def engine_price(params, year, thrust_kn, power_kw, mach_max):
         theta_r = 1.8 * tit_k
         c1970 = ENGINE_C1_1970[kind] * t_lb ** 0.836
         c1986 = 1548.0 * (0.043 * t_lb + 243.25 * mach_max + 0.969 * theta_r - 2228.0)
+        estimate = _extrapolate(c1970, c1986, year)
+        if estimate <= 0:
+            raise ValueError('Cena silnika ze wzoru (15) jest niedodatnia: dane są poza zakresem modelu kosztów. Podaj cenę z oferty producenta.')
         label = "turboodrzutowy" if kind == "turbojet" else "turbowentylatorowy"
-        return (_extrapolate(c1970, c1986, year),
+        return (estimate,
                 f"wzór (15): {label}, T = {t_lb:.0f} lb, M = {mach_max:.2f}, Θ = {theta_r:.0f} °R ({tit_k:.0f} K)")
     per_engine_kw = (power_kw or 0.0) / n
     turboprop = params.get("aircraft_type") == "turboprop_regional"

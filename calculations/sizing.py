@@ -105,7 +105,7 @@ def calculate_matching_chart(params: dict, m0: float = None, mass: dict = None):
     # Warunki na lotnisku (hot-and-high)
     h_airfield = float(params.get("airfield_elevation_m", 0.0) or 0.0)
     delta_t_airfield = float(params.get("airfield_delta_t_k", 0.0) or params.get("airfield_temperature_delta_c", 0.0) or 0.0)
-    if h_airfield > 0 or delta_t_airfield != 0.0:
+    if h_airfield != 0 or delta_t_airfield != 0.0:
         isa_af = isa_atmosphere(h_airfield)
         if delta_t_airfield != 0.0:
             t_act = isa_af["T"] + delta_t_airfield
@@ -224,6 +224,47 @@ def calculate_matching_chart(params: dict, m0: float = None, mass: dict = None):
         pw_ceil = None if tw_ceil is None else tw_ceil * v_md_ceil / eta_p
         return (pw_to, pw_cl, pw_cr, pw_ceil)
 
+    selection_mode = params.get('matching_design_mode', 'wing_limit')
+    selection_note = 'Największe dopuszczalne W/S z warunków prędkości minimalnej i lądowania.'
+    optimum_a = None
+    if engine_type != 'none' and selection_mode == 'minimum_power' and not fixed_area:
+        def objective(ws):
+            values = requirements(ws) + extra_requirements(ws)
+            if values[0] is None:
+                return math.inf
+            return max(v for v in values if v is not None)
+
+        # The envelope may have corners where the governing requirement changes.
+        # Bracket on a grid, then minimize the continuous envelope in that bracket.
+        grid = [ws_limit * (0.000001 + (1 - 0.000001) * i / 200) for i in range(201)]
+        best = min(range(len(grid)), key=lambda i: objective(grid[i]))
+        left, right = grid[max(0, best - 1)], grid[min(200, best + 1)]
+        phi = (math.sqrt(5) - 1) / 2
+        for _ in range(60):
+            a, b = right - phi * (right - left), left + phi * (right - left)
+            if objective(a) <= objective(b):
+                right = b
+            else:
+                left = a
+        optimum_a = min((grid[best], left, right, (left + right) / 2), key=objective)
+        if not math.isfinite(objective(optimum_a)):
+            raise ValueError('Brak wykonalnego punktu A: zmień wymagania startu, prędkości lub mechanizację.')
+        ws_design, limit_by = optimum_a, 'minimum obwiedni P/W lub T/W (punkt A)'
+        selection_note = 'Punkt A minimalizuje wymaganą obwiednię P/W lub T/W wykresu P2; zachowano ograniczenia W/S.'
+    elif engine_type != 'none' and selection_mode == 'range' and not fixed_area:
+        ws_design = min(ws_max_range, ws_limit)
+        limit_by = 'optimum zasięgu (punkt B)' if ws_max_range <= ws_limit else limit_by
+        selection_note = ('Punkt B: optimum zasięgu w połowie przelotu, przeliczone na masę startową.'
+                          if ws_max_range <= ws_limit else
+                          'Punkt B przekracza dopuszczalne W/S. Wybrano granicę ograniczeń; wymaganie zasięgu pozostaje do oceny.')
+    if fixed_area:
+        selection_note = 'W/S wynika z niezależnie zadanej geometrii skrzydła. Wybór A/B wymaga doboru skrzydła z obciążenia powierzchni.'
+    elif engine_type == 'none':
+        selection_note = 'Szybowiec: dobór W/S bez obciążenia mocy i ciągu; oceniaj doskonałość oraz opadanie.'
+    if ws_design != (float(m0) * G0 / fixed_area if fixed_area and m0 else ws_limit):
+        ws_min = min(ws_min, .7 * ws_design)
+        ws_values = [ws_min + i * (ws_max - ws_min) / steps for i in range(steps + 1)]
+
     curve_takeoff, curve_climb, curve_cruise, curve_ceiling, curve_vmax, curve_tow = [], [], [], [], [], []
     for ws in ws_values:
         if engine_type == "none":
@@ -324,10 +365,15 @@ def calculate_matching_chart(params: dict, m0: float = None, mass: dict = None):
             "v_climb_kmh": round(v_climb_ms * 3.6, 1),
             "climb_gradient": round(gradient, 4),
             "v_max_kmh": v_cr_kmh,
-            "note": "Vmax przyjęto równą prędkości przelotowej (brak osobnego wymagania). "
-                    "Punkt projektowy leży na granicy W/S; linia największego zasięgu jest punktem odniesienia „B”.",
+            "note": "Vmax we wzorze prędkości wznoszenia przyjęto równą prędkości przelotowej. " +
+                    selection_note,
         },
         "design_point": {
+            "selection_mode": selection_mode,
+            "selection_applied": ('fixed_geometry' if fixed_area else 'unpowered' if engine_type == 'none'
+                                  else 'range_limited' if selection_mode == 'range' and ws_max_range > ws_limit
+                                  else selection_mode),
+            "selection_note": selection_note,
             "ws": ws_design,
             "ws_N_m2": ws_design,
             "limit_by": limit_by,
@@ -346,7 +392,8 @@ def calculate_matching_chart(params: dict, m0: float = None, mass: dict = None):
                 "tw": tw_design,
                 "pw": pw_design,
                 "power_kw": power_kw,
-                "description": "Punkt A: minimalna moc / najmniejsza powierzchnia skrzydła (kompromis masy)"
+                "description": ("Punkt A: minimum wymaganej obwiedni napędu" if selection_mode == 'minimum_power' and optimum_a
+                                else "Przyjęty punkt projektowy; wybierz tryb A, aby minimalizować obciążenie napędu")
             },
             "point_b": {
                 "ws": ws_max_range,

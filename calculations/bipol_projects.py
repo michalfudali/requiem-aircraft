@@ -270,6 +270,7 @@ def calculate_all_bipol_projects(mass_res: dict, sizing_res: dict, geom_res: dic
     p2_data = {
         "mission_profile": mission_profile,
         "airfoil_selection": {
+            "source": str(params.get('airfoil_source') or ''),
             "reynolds_cruise": re_proj,
             "mach_max": m_max_mach,
             "recommended_catalog": recommended_catalog,
