@@ -169,3 +169,28 @@ def test_previous_wizard_response_cannot_save_into_a_new_session(studio):
     assert page.evaluate('getProjectsList().map(p => ({id:p.id, name:p.name}))') == before
     expect(page.locator('#tab-wizard')).to_be_visible()
     assert page.evaluate('wizardProjectMode') == 'create'
+
+
+@pytest.mark.parametrize('width', [1440, 390])
+def test_stage_navigation_reveals_heading_and_moves_keyboard_focus(studio, width):
+    page, _, _ = studio
+    page.set_viewport_size({'width':width, 'height':850})
+
+    def assert_heading_visible(number):
+        heading = page.locator(f'#wizardPane{number} h4')
+        expect(heading).to_be_focused()
+        heading_box = heading.bounding_box()
+        navbar_box = page.locator('.bipol-navbar').bounding_box()
+        assert heading_box and navbar_box
+        # A stage can be shorter than the viewport and stop at the document end.
+        assert navbar_box['y'] + navbar_box['height'] <= heading_box['y'] < 400
+
+    for number in range(2, 6):
+        page.locator('#wizNextBtn').click()
+        assert_heading_visible(number)
+    page.locator('#wizBackBtn').click()
+    assert_heading_visible(4)
+    stage = page.locator('.wizard-step-tab[data-step="2"]')
+    assert stage.evaluate('el => el.tagName') == 'BUTTON'
+    stage.focus(); page.keyboard.press('Space')
+    assert_heading_visible(2)

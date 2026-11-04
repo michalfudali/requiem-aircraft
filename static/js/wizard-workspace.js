@@ -53,7 +53,7 @@
       BipolDesignBasis.sync('wiz_');
       $('wizardWorkspaceTitle').textContent = wizardProjectMode === 'create' ? 'Nowy projekt' : 'Edytuj założenia projektu';
       dirty = true;
-      goToWizardStep(Math.max(1, Math.min(5, Number(draft.step) || 1)));
+      goToWizardStep(Math.max(1, Math.min(5, Number(draft.step) || 1)), {focus:false});
       $('wizardDraftStatus').textContent = 'Przywrócono niezastosowany szkic';
     }
     refresh();
@@ -136,7 +136,7 @@
       if (ready && !dirty && !applying) {
         const step = currentWizardStep;
         ready = false;
-        if ($('tab-wizard').classList.contains('active')) { ensure(); goToWizardStep(step); }
+        if ($('tab-wizard').classList.contains('active')) { ensure(); goToWizardStep(step, {focus:false}); }
       }
       queueMicrotask(syncRecalculate);
     });

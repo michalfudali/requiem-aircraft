@@ -2773,7 +2773,7 @@ function openWizard(mode = 'create') {
 
   // Zacznij od kroku 1
   currentWizardStep = 1;
-  goToWizardStep(1);
+  goToWizardStep(1, {focus:false});
 
   window.BipolWizardWorkspace?.started(mode);
   const backdrop = document.getElementById('projectWizardBackdrop');
@@ -2843,7 +2843,7 @@ function syncFormToWizard() {
   window.BipolDesignBasis?.openWizard();
 }
 
-function goToWizardStep(step) {
+function goToWizardStep(step, {focus = true} = {}) {
   if (step < 1) step = 1;
   if (step > 5) step = 5;
   currentWizardStep = step;
@@ -2904,10 +2904,19 @@ function goToWizardStep(step) {
     }
   }
 
-  // Przewiń ciało modala na górę
-  const body = document.querySelector('.wizard-body');
-  if (body) body.scrollTop = 0;
   window.BipolWizardWorkspace?.stepChanged();
+  // The workspace scrolls with the document. Bring the new stage into view
+  // after a user action, while restoring drafts leaves the reading position alone.
+  if (focus && document.getElementById('tab-wizard')?.classList.contains('active')) {
+    const heading = document.querySelector(`#wizardPane${currentWizardStep} h4`);
+    if (heading) {
+      const navbar = document.querySelector('.bipol-navbar');
+      heading.tabIndex = -1;
+      heading.style.scrollMarginTop = `${(navbar?.getBoundingClientRect().height || 0) + 24}px`;
+      heading.focus({preventScroll:true});
+      heading.scrollIntoView({block:'start', behavior:'instant'});
+    }
+  }
 }
 
 function suggestStepDefaults(step) {
@@ -4545,6 +4554,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (event.currentTarget.getAttribute('aria-disabled') === 'true') event.preventDefault();
   });
   document.querySelectorAll('.semester-project-pill, .wizard-step-tab, .module-header').forEach(el => {
+    if (el.matches('button')) return;
     el.tabIndex = 0;
     el.setAttribute('role', 'button');
     el.addEventListener('keydown', event => {

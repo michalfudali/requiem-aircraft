@@ -5,8 +5,20 @@ bazę geometryczną, motoszybowce i metodykę Paturskiego.
 
 ## Widoki
 
-- Przegląd otwiera zapisany projekt bez obowiązkowego okna startowego.
-  Pokazuje cztery główne wskaźniki, rysunek i bilans masy.
+- Kreator projektu jest główną, domyślnie otwieraną zakładką. Ma pięć etapów:
+  temat i założenia, misję, napęd, aerodynamikę oraz weryfikację przed obliczeniem.
+  Można swobodnie przechodzić między etapami. Nawigacja przyciskami i klawiaturą
+  przewija do nagłówka nowego etapu, z uwzględnieniem górnego paska.
+  Niezastosowany szkic jest przechowywany osobno dla każdego projektu i przetrwa
+  zmianę zakładki oraz ponowne otwarcie strony. Projekt i jego wyniki zmieniają się
+  po udanym przeliczeniu; można też wczytać zapisane założenia.
+- W etapie aerodynamiki wybiera się podanie C_D0 całego samolotu albo S_wet/S
+  z własnego pomiaru lub przykładowego układu. Druga metoda pozwala wyznaczyć
+  doskonałość z wykresu Raymera lub podać własny odczyt. Podgląd pokazuje drogę
+  obliczeń i wynik biegunowej. Nieaktywne pola nie blokują zapisu. Współczynnik
+  Oswalda i opis źródła danych są wspólne dla obu metod; zapis i ponowna edycja
+  zachowują wybraną metodę.
+- Przegląd pokazuje cztery główne wskaźniki, rysunek i bilans masy.
 - Drzewo obliczeń prowadzi od niezależnych założeń przez kolejne poziomy wyników.
   Pokazuje wartości, wzory i główne zależności bieżącego projektu. Uwzględnia wybrany
   tryb skrzydła, masy płatnej i napędu; nawigacja po poprzednikach otwiera również
