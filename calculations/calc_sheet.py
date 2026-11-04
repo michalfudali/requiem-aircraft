@@ -464,8 +464,7 @@ def _p1_polar(s, r):
     s.given('e_1', 'e', pp['oswald_e'], '', 3, 'Współczynnik Oswalda', SOURCES['B1'] + ': e ≈ 0,8')
     ar = '[[' + ar_key + ']]'
     if pp['mode'] == 'input':
-        # Next design iteration: the P4 polar replaces the graph estimate of project 1.
-        s.given('Cx0_1', r'C_{x0}', pp['cx0'], '', 4, 'Opór zerowy z biegunowej poprzedniej iteracji projektu', 'Biegunowa P4')
+        s.given('Cx0_1', r'C_{x0}', pp['cx0'], '', 4, 'Przyjęty opór zerowy całego samolotu w konfiguracji gładkiej', pp['source'])
         s.calc('Kmax_1', r'K_{max}', r'\frac{1}{2}\sqrt{\frac{\pi\Lambda e}{C_{x0}}}',
                r'\frac{1}{2}\sqrt{\frac{\pi\cdot' + ar + r'\cdot[[e_1]]}{[[Cx0_1]]}}', pp['kmax'], '', 3,
                'Maksymalna doskonałość szacunkowa', SOURCES['B1'] + ', wzór (3)',

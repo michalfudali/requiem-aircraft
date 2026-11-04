@@ -15,11 +15,28 @@
   const set = (prefix, key, val) => { if ($(prefix+key) && val != null) $(prefix+key).value = val; };
   const defaultEngines = (prefix='') => value(prefix,'engine_type')==='none' ? 0 : (value(prefix,'engine_location')==='wing' || value(prefix,'engine_type')==='jet' ? 2 : 1);
   function wettedVisibility() {
-    const own = value('wiz_','wetted_example') === 'sketch';
+    const direct = document.querySelector('[name="wiz_drag_basis"]:checked')?.value === 'input';
+    const own = !direct && value('wiz_','wetted_example') === 'sketch';
+    $('wizDragCd0Fields').hidden = !direct;
+    $('wiz_cx0').disabled = !direct;
+    $('wizDragWettedFields').hidden = direct;
+    $('wiz_wetted_example').disabled = direct;
+    $('wizRaymerMethodGroup').hidden = direct;
+    $('wiz_raymer_reading').disabled = direct;
+    const reading = !direct && value('wiz_','raymer_reading') === 'reading';
+    $('wizRaymerKmaxGroup').hidden = !reading;
+    $('wiz_raymer_kmax').disabled = !reading;
     $('wizWettedRatioGroup').hidden = !own;
     $('wiz_sketch_swet_ratio').disabled = !own;
   }
   function restoreWizardWetted() {
+    const mode = wizardBase.preliminary_polar_mode || 'raymer';
+    document.querySelectorAll('[name="wiz_drag_basis"]').forEach(input => input.checked = input.value === (mode === 'input' ? 'input' : 'raymer'));
+    set('wiz_','raymer_reading',mode === 'reading' ? 'reading' : 'raymer');
+    set('wiz_','raymer_kmax',wizardBase.raymer_kmax ?? 15);
+    set('wiz_','cx0',wizardBase.cx0 ?? .025);
+    set('wiz_','oswald_e',wizardBase.oswald_e ?? .8);
+    set('wiz_','graph_source',wizardBase.graph_source ?? '');
     const legacySketch = !wizardBase.wetted_example && ['raymer','reading'].includes(wizardBase.preliminary_polar_mode) && wizardBase.sketch_swet_ratio;
     set('wiz_','wetted_example',wizardBase.wetted_example || (legacySketch ? 'sketch' : ''));
     set('wiz_','sketch_swet_ratio',wizardBase.sketch_swet_ratio ?? 4);
@@ -164,7 +181,7 @@
     sync('wiz_');topicNote();
     window.BipolTrendProvenance?.previewInWizard?.();
     const note=$('wizardCatalogSource');
-    if(note){note.hidden=false;note.textContent=`Dane początkowe: ${params.reference_aircraft.model}. Przeniesiono dostępne parametry katalogowe. Pozostałe pola pochodzą z profilu klasy — sprawdź misję, załogę i ładunek przed zapisaniem projektu. Katalogowe MTOW i OEW służą do porównania.`;}
+    if(note && params.reference_aircraft){note.hidden=false;note.textContent=`Dane początkowe: ${params.reference_aircraft.model}. Przeniesiono dostępne parametry katalogowe. Pozostałe pola pochodzą z profilu klasy — sprawdź misję, załogę i ładunek przed zapisaniem projektu. Katalogowe MTOW i OEW służą do porównania.`;}
   }
   function topicNote() {
     const topic=topicsData.find(t=>t.id===value('wiz_','topic'));
@@ -203,12 +220,27 @@
     const p={...wizardBase};
     const keys=new Set([...Object.keys(collectFormData()),...extraKeys]);
     keys.forEach(key=>{const input=$('wiz_'+key);if(!input)return;p[key]=input.type==='number'?Number(input.value):input.value;});
+    const direct = document.querySelector('[name="wiz_drag_basis"]:checked')?.value === 'input';
+    p.preliminary_polar_mode = direct ? 'input' : value('wiz_','raymer_reading');
+    p.cx0 = direct ? number('wiz_','cx0') : (wizardBase.cx0 ?? .025);
+    p.oswald_e = number('wiz_','oswald_e');
+    p.graph_source = value('wiz_','graph_source');
     p.wetted_example = value('wiz_','wetted_example');
-    if (p.wetted_example === 'sketch') {
+    if (direct) {
+      p.preliminary_polar_includes_configuration = true;
+      delete p.sketch_swet_ratio;
+      delete p.wetted_example;
+      delete p.raymer_kmax;
+    } else if (p.wetted_example === 'sketch') {
       p.sketch_swet_ratio = number('wiz_','sketch_swet_ratio');
       if (!['raymer','reading'].includes(p.preliminary_polar_mode)) p.preliminary_polar_mode = 'raymer';
       delete p.preliminary_polar_includes_configuration;
     } else delete p.sketch_swet_ratio;
+    if (!direct) {
+      delete p.preliminary_polar_includes_configuration;
+      if (p.preliminary_polar_mode === 'reading') p.raymer_kmax = number('wiz_','raymer_kmax');
+      else delete p.raymer_kmax;
+    }
     if($('wiz_basis_range_km')){const bR=Number($('wiz_basis_range_km').value);if(!isNaN(bR)&&bR>=0)p['range_km']=bR;}
     if($('wiz_basis_cruise_speed_kmh')){const bV=Number($('wiz_basis_cruise_speed_kmh').value);if(!isNaN(bV)&&bV>0)p['cruise_speed_kmh']=bV;}
     if($('wiz_basis_v_stall_kmh')){const bVs=Number($('wiz_basis_v_stall_kmh').value);if(!isNaN(bVs)&&bVs>0)p['v_stall_kmh']=bVs;}

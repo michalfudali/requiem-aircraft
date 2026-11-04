@@ -185,7 +185,8 @@ def preliminary_polar(p):
                 raymer_range=[curve[0][0], curve[-1][0]] if curve else None, extrapolated=extrapolated,
                 cx0_class=cx0_class, cx0_bounds=list(bounds), cx0_in_range=bounds[0] <= cx0 <= bounds[1],
                 cx0_deviation=(cx0 - bounds[0]) / bounds[0] if cx0 < bounds[0] else (cx0 - bounds[1]) / bounds[1] if cx0 > bounds[1] else 0.,
-                source='BIPOL_1.pdf, s. 2–3, rys. 1–2 i wzór (3)',
+                source=(p.get('graph_source') or 'Podany C_D0 całego samolotu w konfiguracji gładkiej') if mode == 'input'
+                       else 'BIPOL_1.pdf, s. 2–3, rys. 1–2 i wzór (3)',
                 reading_note=('Odczyt poza narysowaną krzywą: K ∝ √Λ_wet od końca krzywej.' if extrapolated else
                               'Przybliżony odczyt graficzny; interpolacja odcinkowa.') if mode == 'raymer' else p.get('graph_source', ''))
 
@@ -377,18 +378,27 @@ def solve_mass(p, payload, crew):
         inferred = flight['landing_mass']-(payload-drop)-crew-flight['reserve']
         residual = inferred-me if mission['method']=='iterative' else m-me-useful-flight['fuel']
         return residual, me, inferred, flight
+    # Numerical model domain, not an airworthiness limit: do not seek a new
+    # aircraft class many orders of magnitude beyond the calibration sample.
+    # Even one decade of extrapolation needs independent engineering evidence.
+    maximum_search_mass = min(1e9, 10 * law['valid_range'][1])
+    domain_error = ('Równanie (1) nie daje fizycznego rozwiązania bilansu w zakresie modelu; '
+                    'poszukiwanie ograniczono do dziesięciokrotności górnej masy próby. '
+                    'Zmień misję lub dobierz reprezentatywne konstrukcje; nie ekstrapoluj prawa masy do innej klasy samolotu.')
+    if useful >= maximum_search_mass:
+        raise ValueError(domain_error)
     # First physical sign crossing: do not clamp invalid extrapolated mass laws.
     low = useful
     previous = evaluate(low)[0]
     high = low
     for _ in range(500):
-        high *= 1.08
+        high = min(high * 1.08, maximum_search_mass)
         residual, me, inferred, flight = evaluate(high)
         if previous <= 0 <= residual and 0 < me < high and all(s['mass_end_kg'] > 0 for s in flight['phases']):
             break
         low, previous = high, residual
-        if high > 1e9:
-            raise ValueError('Równanie (1) nie daje fizycznego rozwiązania bilansu; sprawdź dobór próby (oczekiwane C < 0), zakres mas i misję.')
+        if high >= maximum_search_mass:
+            raise ValueError(domain_error)
     else:
         raise ValueError('Nie znaleziono przedziału rozwiązania bilansu masy.')
     history = []

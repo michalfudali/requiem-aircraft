@@ -103,10 +103,13 @@ def test_empirical_estimation_correctness(ac_class):
     assert s['me_m0']['n'] == n_me_catalog
     assert 0.15 < s['me_m0']['suggested_value'] < 0.95
 
-    # R2 bounds when present
+    # A constrained slope can fit worse than the mean: R² may be negative.
+    # Keep that diagnostic; clipping it to zero would hide poor agreement.
     for k, item in s.items():
         if item['r2'] is not None:
-            assert 0.0 <= item['r2'] <= 1.0, f"R2 out of [0, 1] for {ac_class}.{k}: {item['r2']}"
+            assert math.isfinite(item['r2']) and item['r2'] <= 1.0
+            if item['r2'] < 0:
+                assert k == 'me_m0' and item['provenance']['fit']['physically_constrained']
 
         # Stats bounds when present
         if item['stats'] is not None:

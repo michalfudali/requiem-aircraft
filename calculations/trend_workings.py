@@ -22,12 +22,16 @@ def regression_working(points, weights, fit, forecast_year=None):
     syy = sum(w * (y - ym) ** 2 for (x, y), w in zip(xy, weights))
     residual = sum(w * (y - fit['intercept'] - fit['slope'] * x) ** 2 for (x, y), w in zip(xy, weights))
     f = tex_number
+    constrained = bool(fit.get('physically_constrained'))
+    slope_line = (rf'a_{{MNK}}=\frac{{S_{{xy}}}}{{S_{{xx}}}}={f(sxy/sxx, 8)},\qquad '
+                  rf'a=C_{{przyj}}={f(fit["slope"], 8)}') if constrained else (
+                  rf'a=\frac{{S_{{xy}}}}{{S_{{xx}}}}=\frac{{{f(sxy, 6)}}}{{{f(sxx, 6)}}}={f(fit["slope"], 8)}')
     lines = [
         rf'\bar x=\frac{{\sum w_i x_i}}{{\sum w_i}}=\frac{{{f(sx, 5)}}}{{{f(total, 5)}}}={f(xm, 6)}',
         rf'\bar y=\frac{{\sum w_i y_i}}{{\sum w_i}}=\frac{{{f(sy, 5)}}}{{{f(total, 5)}}}={f(ym, 6)}',
         rf'S_{{xx}}=\sum w_i(x_i-\bar x)^2={f(sxx, 6)}',
         rf'S_{{xy}}=\sum w_i(x_i-\bar x)(y_i-\bar y)={f(sxy, 6)}',
-        rf'a=\frac{{S_{{xy}}}}{{S_{{xx}}}}=\frac{{{f(sxy, 6)}}}{{{f(sxx, 6)}}}={f(fit["slope"], 8)}',
+        slope_line,
         rf'b=\bar y-a\bar x={f(ym, 6)}-({f(fit["slope"], 8)})\cdot {f(xm, 6)}={f(fit["intercept"], 8)}',
     ]
     if fit['r2'] is not None:
@@ -39,7 +43,8 @@ def regression_working(points, weights, fit, forecast_year=None):
         value = fit['intercept'] + fit['slope'] * forecast_year
         lines += [rf'\hat y({forecast_year})=\bar y+a({forecast_year}-\bar x)'
                   rf'={f(ym, 6)}+({f(fit["slope"], 8)})\cdot({forecast_year}-{f(xm, 6)})={f(value, 4)}']
-    return {'lines': lines, 'slope': sxy / sxx, 'intercept': ym - sxy / sxx * xm,
+    return {'lines': lines, 'slope': fit['slope'], 'intercept': fit['intercept'],
+            'unconstrained_slope': sxy/sxx, 'constrained': constrained,
             'sum_weights': total, 'n': len(points), 'power': power}
 
 

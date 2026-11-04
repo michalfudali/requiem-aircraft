@@ -12,8 +12,8 @@
   </div>
   <p class="studio-sidebar-caption">TWÓJ PROJEKT</p>
   <nav aria-label="Projekt">
-    {% for target, icon, label in [('tab-overview','grid','Podsumowanie'),('tab-inputs','settings','Założenia projektu'),('tab-trends','chart','Samoloty i trendy'),('tab-cad','layers','Rysunek samolotu'),('tab-variants','compare','Porównaj warianty'),('tab-reports','file','Raport i eksport')] %}
-    <button type="button" class="studio-nav-item{% if target == 'tab-overview' %} active{% endif %}" data-studio-nav="{{ target }}"><span data-studio-icon="{{ icon }}"></span><span>{{ label }}</span></button>
+    {% for target, icon, label in [('tab-wizard','plane','Kreator projektu'),('tab-overview','grid','Podsumowanie'),('tab-inputs','settings','Założenia projektu'),('tab-trends','chart','Samoloty i trendy'),('tab-cad','layers','Rysunek samolotu'),('tab-variants','compare','Porównaj warianty'),('tab-reports','file','Raport i eksport')] %}
+    <button type="button" class="studio-nav-item{% if target == 'tab-wizard' %} active{% endif %}" data-studio-nav="{{ target }}"><span data-studio-icon="{{ icon }}"></span><span>{{ label }}</span></button>
     {% endfor %}
     <button type="button" class="studio-nav-item" data-studio-nav="tab-calculation-tree"><span data-studio-icon="layers"></span><span>Drzewo obliczeń</span></button>
     <details class="quiet-nav-group" id="analysisNavigation"><summary>Analizy szczegółowe</summary>

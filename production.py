@@ -1,14 +1,16 @@
 """Initialize persistent storage, then replace this process with Gunicorn."""
 from contextlib import closing
 import os
+import json
 from pathlib import Path
 import sqlite3
 import sys
 import tempfile
+import runpy
 
 ROOT = Path(__file__).resolve().parent
 SEED_DATABASE = ROOT / 'data' / 'aircraft' / 'aircraft.sqlite3'
-SEED_PROJECTS = ROOT / 'data' / 'projects' / 'projects.sqlite3'
+SEED_PROJECTS = ROOT / 'data' / 'projects' / 'course_seed.json'
 # Older schema versions are upgraded in place by calculations.aircraft_store on first use.
 AIRCRAFT_SCHEMA_VERSIONS = (1, 2, 3)
 
@@ -60,18 +62,29 @@ def check_projects(path, readonly=False):
 
 def initialize_projects(target=None, seed=SEED_PROJECTS):
     """The projects database (presets, topics, user projects) is seeded once like the catalogue."""
-    target = Path(target or os.environ.get('BIPOL_PROJECTS_DB') or seed)
+    target = Path(target or os.environ.get('BIPOL_PROJECTS_DB') or ROOT / 'data/projects/projects.sqlite3')
     if target.exists():
         check_projects(target)
         return target
-    check_projects(seed, readonly=True)
+    seed = Path(seed)
+    if seed.suffix != '.json':
+        check_projects(seed, readonly=True)
     target.parent.mkdir(parents=True, exist_ok=True)
     fd, temporary = tempfile.mkstemp(prefix='.projects-', suffix='.sqlite3', dir=target.parent)
     os.close(fd)
     try:
-        with closing(sqlite3.connect(Path(seed).resolve().as_uri() + '?mode=ro', uri=True)) as source:
-            with closing(sqlite3.connect(temporary)) as destination:
-                source.backup(destination)
+        if seed.suffix == '.json':
+            data = json.loads(seed.read_text(encoding='utf-8'))
+            if data.get('schema') != 1 or set(data) != {'schema', 'presets', 'categories', 'topics'}:
+                raise ValueError('Nieprawidłowy katalog początkowy tematów i przykładów.')
+            definition = runpy.run_path(str(ROOT / 'calculations/project_store.py'))
+            Path(temporary).unlink()
+            definition['create_database'](temporary, data['presets'], data['categories'], data['topics'])
+        else:
+            with closing(sqlite3.connect(seed.resolve().as_uri() + '?mode=ro', uri=True)) as source:
+                with closing(sqlite3.connect(temporary)) as destination:
+                    source.backup(destination)
+        check_projects(temporary)
         try:
             os.link(temporary, target)
         except FileExistsError:

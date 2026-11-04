@@ -41,6 +41,11 @@ def main():
     parser.add_argument('--aircraft-db', type=Path, default=ROOT / 'data/aircraft/aircraft.sqlite3')
     parser.add_argument('--projects-db', type=Path, default=ROOT / 'data/projects/projects.sqlite3')
     args = parser.parse_args()
+    if not args.projects_db.exists() and args.projects_db == ROOT / 'data/projects/projects.sqlite3':
+        # The private SQLite store is generated from public course data on a fresh checkout.
+        sys.path.insert(0, str(ROOT))
+        from production import initialize_projects
+        initialize_projects(args.projects_db)
     errors = []
     for store, path in (('aircraft', args.aircraft_db), ('project', args.projects_db)):
         try:

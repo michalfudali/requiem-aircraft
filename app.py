@@ -166,6 +166,20 @@ def delete_user_project(project_id):
 def get_presets():
     return jsonify(AIRCRAFT_PRESETS)
 
+
+@app.post('/api/preliminary-polar')
+def preview_preliminary_polar():
+    """Preview the same P1 polar as the solver, without calculating or saving a project."""
+    from calculations.validation import validate_parameters
+    from calculations.bipol1 import preliminary_polar
+    data = request.get_json(silent=True)
+    if not isinstance(data, dict):
+        return jsonify(status='error', message='Oczekiwano obiektu JSON z założeniami.'), 400
+    try:
+        return jsonify(polar=preliminary_polar(validate_parameters(data)))
+    except (ValueError, TypeError) as error:
+        return jsonify(status='error', message=str(error)), 400
+
 @app.route('/api/aircraft-classification', methods=['GET'])
 def get_aircraft_classification():
     """Klasyfikacja statków powietrznych wg rozporządzenia MI (t.j. Dz. U. z 2025 r. poz. 1137), tabele nr 1-3."""

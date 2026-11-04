@@ -19,6 +19,7 @@
   <link rel="stylesheet" href="/static/css/manual-control.css?v=1">
   <link rel="stylesheet" href="/static/css/feasibility.css?v=1">
   <link rel="stylesheet" href="/static/css/openvsp.css?v=1">
+  <link rel="stylesheet" href="/static/css/wizard.css?v=1">
   <script>
     (function () {
       try {
@@ -158,7 +159,7 @@
           <span aria-hidden="true">＋</span> Nowy projekt
         </button>
         <details class="quiet-project-menu"><summary>Opcje projektu</summary><div class="quiet-project-menu-items">
-        <button type="button" id="btnEditProjectWizard" class="btn btn-outline" onclick="openWizard('edit')">Edytuj w kreatorze</button>
+        <button type="button" id="btnEditProjectWizard" class="btn btn-outline" onclick="document.querySelector('[data-studio-nav=tab-wizard]').click()">Edytuj w kreatorze</button>
         <button type="button" id="btnOpenProjectManager" class="btn btn-outline" style="font-weight:700; font-size:0.82rem;" title="Przeglądaj wszystkie projekty, zmieniaj nazwy, duplikuj lub eksportuj">
           Projekty (<span id="projectCountBadge">1</span>)
         </button>
@@ -181,8 +182,9 @@
         <div id="holisticWorkspace">
           <!-- Navigation Tabs (Moduły BIPOL I & ZPK CAD1 MEiL PW) -->
           <div class="bipol-tabs">
+          <button class="bipol-tab active" data-target="tab-wizard">Kreator projektu</button>
           <button class="bipol-tab" data-target="tab-inputs">Założenia</button>
-          <button class="bipol-tab active" data-target="tab-overview">Przegląd</button>
+          <button class="bipol-tab" data-target="tab-overview">Przegląd</button>
           <button class="bipol-tab" data-target="tab-calculation-tree">Drzewo obliczeń</button>
           <button class="bipol-tab" data-target="tab-variants">Warianty</button>
           <button class="bipol-tab" data-target="tab-reports">Raporty</button>
@@ -199,6 +201,7 @@
           <button class="bipol-tab" data-target="tab-compliance">✅ Weryfikacja Założeń</button>
         </div>
 
+        {% include "project_wizard.html" %}
         {% include "inputs_panel.html" %}
         {% include "studio_panels.html" %}
         {% include "openvsp_panel.html" %}
@@ -2073,470 +2076,6 @@
     </div>
   </div>
 
-  <!-- WIZARD / KONFIGURATOR KROK PO KROKU (BIPOL I) -->
-  <div id="projectWizardBackdrop" class="wizard-backdrop" role="dialog" aria-modal="true" aria-hidden="true">
-    <div class="wizard-modal">
-
-      <!-- Wizard Header -->
-      <div class="wizard-header">
-        <div>
-          <h3>🪄 Kreator Nowego Projektu Samolotu (BIPOL I Wizard)</h3>
-          <div class="wizard-subtitle">Skonfiguruj krok po kroku kluczowe założenia taktyczno-techniczne wg metodyki MEiL PW</div>
-        </div>
-        <button type="button" class="wizard-close-btn" id="closeWizardBtn" title="Zamknij kreator">&times;</button>
-      </div>
-
-      <!-- Stepper Tabs -->
-      <div class="wizard-stepper">
-        <div class="wizard-step-tab active" data-step="1">
-          <div class="step-circle">1</div>
-          <span class="step-title">Temat i założenia</span>
-        </div>
-        <div class="wizard-step-tab" data-step="2">
-          <div class="step-circle">2</div>
-          <span class="step-title">Misja & Osiągi</span>
-        </div>
-        <div class="wizard-step-tab" data-step="3">
-          <div class="step-circle">3</div>
-          <span class="step-title">Napęd & SFC</span>
-        </div>
-        <div class="wizard-step-tab" data-step="4">
-          <div class="step-circle">4</div>
-          <span class="step-title">Płat & Mechanizacja</span>
-        </div>
-        <div class="wizard-step-tab" data-step="5">
-          <div class="step-circle">5</div>
-          <span class="step-title">Podsumowanie & Start</span>
-        </div>
-      </div>
-
-      <!-- Wizard Body with Step Panes -->
-      <div class="wizard-body">
-
-        <!-- KROK 1: Przeznaczenie, Klasa i Kategoria Zdatności -->
-        <div class="wizard-pane active" id="wizardPane1">
-          <div class="wizard-pane-header">
-            <h4>Krok 1: Temat i założenia projektu</h4>
-            <p>Wybierz temat, niezależne wielkości wejściowe i liczbę osób na pokładzie.</p>
-          </div>
-
-          {% include 'wizard_basis.html' %}
-
-          <details class="wizard-author"><summary>Dane autora do raportu</summary>
-          <div style="background:#f0f9ff; border:1px solid #bae6fd; border-radius:8px; padding:0.75rem; margin-bottom:0.85rem;">
-            <div class="input-row">
-              <div class="input-group">
-                <label for="wiz_student_name">Imię i Nazwisko projektanta:</label>
-                <input type="text" id="wiz_student_name" value="{{ designer_defaults.student_name }}" oninput="syncStudentDesignerFields('wizard')" style="font-weight:700;">
-              </div>
-              <div class="input-group">
-                <label for="wiz_album_no">Nr Albumu:</label>
-                <input type="text" id="wiz_album_no" value="{{ designer_defaults.album_no }}" oninput="syncStudentDesignerFields('wizard')" style="font-weight:700;">
-              </div>
-            </div>
-            <div class="input-row" style="margin-top:0.35rem;">
-              <div class="input-group">
-                <label for="wiz_group_no">Grupa (np. A – czwartek 8:15-9:00):</label>
-                <input type="text" id="wiz_group_no" value="{{ designer_defaults.group_no }}" oninput="syncStudentDesignerFields('wizard')">
-              </div>
-              <div class="input-group">
-                <label for="wiz_supervisor">Prowadzący (np. M.Figat):</label>
-                <input type="text" id="wiz_supervisor" value="{{ designer_defaults.supervisor }}" oninput="syncStudentDesignerFields('wizard')">
-              </div>
-            </div>
-          </div>
-
-          </details>
-
-          <div class="input-group" style="margin-bottom:0.75rem;">
-            <label for="wiz_name"><strong>Nazwa Twojego Projektu / Płatowca:</strong></label>
-            <input type="text" id="wiz_name" value="Mój Projekt Samolotu BIPOL" style="font-weight:700;">
-          </div>
-
-          <div class="input-row">
-            <div class="input-group">
-              <label for="wiz_aircraft_type">Klasa konstrukcyjna samolotu:</label>
-              <select id="wiz_aircraft_type">
-                <option value="piston_ga" selected>Tłokowy GA (EASA CS-23 L1-L2 / CS-VLA / CS-LSA / ULM)</option>
-                <option value="motoglider">Motoszybowiec (EASA CS-22 TMG / Klasa MG • silnik pomocniczy/ciągnący)</option>
-                <option value="glider">Szybowiec (EASA CS-22 / Klasa S • bez napędu / hol / wyciągarka)</option>
-                <option value="turboprop_regional">Turbośmigłowy Commuter (EASA CS-23 L3-L4 / Commuter)</option>
-                <option value="jet_business">Odrzutowy Dyspozycyjny (EASA CS-23 High Speed / VLJ / CS-25)</option>
-                <option value="jet_transport">Odrzutowy Komunikacyjny (EASA CS-25 Large Aeroplane)</option>
-                <option value="uav">Bezzałogowy Statek Powietrzny EASA UAS (Specific / Certified • 0 osób)</option>
-              </select>
-            </div>
-            <div class="input-group">
-              <label for="wiz_category">Przepisy zdatności EASA:</label>
-              <select id="wiz_category">
-                <optgroup label="EASA CS-23 Amdt 5 (Normal Category ≤ 19 pax / 8618 kg)">
-                  <option value="cs23_level1" selected>EASA CS-23 Level 1 (Normal • 0–1 pasażer • Szkolny / Treningowy)</option>
-                  <option value="cs23_level2">EASA CS-23 Level 2 (Normal • 2–6 pasażerów • Turystyczny / GA)</option>
-                  <option value="cs23_level3">EASA CS-23 Level 3 (Normal • 7–9 pasażerów • Użytkowy / Dyspozycyjny)</option>
-                  <option value="cs23_commuter">EASA CS-23 Level 4 / Commuter (10–19 pasażerów • MTOM ≤ 8618 kg)</option>
-                  <option value="cs23_aerobatic">EASA CS-23 Akrobacyjny (Certified for Aerobatics • n = +6.0 / -3.0)</option>
-                </optgroup>
-                <optgroup label="EASA Lekkie, Szybowce i Motoszybowce (CS-22 / VLA / LSA)">
-                  <option value="cs_vla">EASA CS-VLA (Bardzo lekki • MTOM ≤ 750 kg, max 2 os., przeciągnięcie ≤ 45 kt)</option>
-                  <option value="cs_lsa">EASA CS-LSA (Lekki sportowy • MTOM ≤ 600/650 kg, max 2 os., przeciągnięcie ≤ 45 kt)</option>
-                  <option value="cs22_motoglider">EASA CS-22 (Motoszybowiec turystyczny TMG • MTOM ≤ 850 kg, m/b² ≤ 3.0 kg/m²)</option>
-                  <option value="cs22_glider">EASA CS-22 (Szybowiec czysty • MTOM ≤ 850 kg, max 2 os., bez napędu)</option>
-                </optgroup>
-                <optgroup label="EASA CS-25 (Duże samoloty komunikacyjne)">
-                  <option value="cs25_transport">EASA CS-25 (Large Aeroplanes • podstawa certyfikacji)</option>
-                </optgroup>
-                <optgroup label="EASA Załącznik I (Opt-out krajowy / Ultralekkie 600 kg wg art. 2 ust. 8)">
-                  <option value="easa_optout_ul">EASA Annex I Opt-Out / UL-A (Ultralekki • MTOM ≤ 600/650 kg, max 2 os.)</option>
-                  <option value="easa_optout_ul115">EASA Annex I / UL-115 (Jednoosobowy mikrolot • masa własna ≤ 115 kg)</option>
-                </optgroup>
-                <optgroup label="EASA Bezzałogowe Statki Powietrzne UAS (UE 2019/947 & 2019/945 • 0 osób na pokładzie)">
-                  <option value="easa_uas_specific">EASA UAS Specific (kategoria operacji wg ryzyka)</option>
-                  <option value="easa_uas_certified">EASA UAS Certified (kategoria operacji wg ryzyka)</option>
-                </optgroup>
-              </select>
-            </div>
-          </div>
-
-          <!-- Alert bezzałogowca EASA UAS w kreatorze -->
-          <div id="wiz_uav_easa_banner" style="display:none; background:#eff6ff; border:1px solid #93c5fd; border-radius:6px; padding:6px 10px; margin-bottom:10px; font-size:0.75rem; color:#1e40af;">
-            🤖 <strong>EASA UAS (UE 2019/947 & 2019/945):</strong> Model bezzałogowy – <strong>0 osób na pokładzie</strong>. Kategoria operacji wymaga oceny ryzyka; nie wynika z masy 600 kg. Sterowanie ze stacji naziemnej (GCS). Masa wyposażenia zadaniowego (sensory, głowica optoelektroniczna, łącze C2).
-          </div>
-
-          <div class="input-row" id="wiz_row_occupants_1">
-            <div class="input-group" id="wiz_group_n_crew">
-              <label for="wiz_n_crew">Liczba załogi (pilotów) [os.]:</label>
-              <input type="number" id="wiz_n_crew" min="0" max="6" value="1">
-            </div>
-            <div class="input-group" id="wiz_group_m_crew_person">
-              <label for="wiz_m_crew_person">Masa 1 członka załogi (pilot) [kg]:</label>
-              <input step="any" required type="number" id="wiz_m_crew_person" min="55" max="150" value="90">
-            </div>
-          </div>
-
-          <div class="input-row" id="wiz_row_occupants_2">
-            <div class="input-group" id="wiz_group_n_pax">
-              <label for="wiz_n_pax">Liczba pasażerów [os.]:</label>
-              <input type="number" id="wiz_n_pax" min="0" max="300" value="1">
-            </div>
-            <div class="input-group" id="wiz_group_m_pax">
-              <label for="wiz_m_pax">Masa 1 pasażera z bagażem [kg]:</label>
-              <input step="any" required type="number" id="wiz_m_pax" min="0" max="150" value="115">
-            </div>
-          </div>
-
-          <div class="input-row" id="wiz_row_occupants_3">
-            <div class="input-group" id="wiz_group_m_cargo">
-              <label for="wiz_m_cargo" id="label_wiz_m_cargo">Dodatkowy ładunek handlowy cargo [kg]:</label>
-              <input step="any" required type="number" id="wiz_m_cargo" min="0" max="50000" value="0">
-              <div class="derived-badge" id="wiz_derived_badge_m_cargo" hidden></div>
-            </div>
-          </div>
-
-          <div class="input-group" data-basis-param="m_payload">
-            <label for="wiz_m_payload">Łączna masa płatna, bez załogi [kg]</label>
-            <input type="number" step="any" required id="wiz_m_payload" min="0" max="500000" value="100">
-            <div class="derived-badge" id="wiz_derived_badge_m_payload" hidden></div>
-          </div>
-          <div class="formula-box" style="margin-top:0.75rem;">
-            <div class="formula-legend">
-              <strong>💡 Wytyczne EASA (CS-23 Amdt 5 & CS-25):</strong> EASA dzieli samoloty normalne na poziomy certyfikacji (Level 1–4) zależne od liczby pasażerów (Level 1: 0–1 pax, Level 2: 2–6 pax, Level 3: 7–9 pax, Level 4: 10–19 pax). Dla małych samolotów sportowych obowiązuje CS-LSA (MTOM ≤ 600 kg) lub CS-VLA (MTOM ≤ 750 kg) z limitem prędkości lądowania \(V_{S0} \le 45\text{ kt}\).
-            </div>
-          </div>
-        </div>
-
-        <!-- KROK 2: Profil Misji i Wymagania Osiągowe -->
-        <div class="wizard-pane" id="wizardPane2">
-          <div class="wizard-pane-header">
-            <h4>Krok 2: Profil Misji i Wymagania Osiągowe (Projekt P1 / P2 / P5)</h4>
-            <p>Określ parametry lotu: zasięg przelotowy, pułap roboczy, prędkości przelotu i lądowania oraz długości pasów.</p>
-          </div>
-
-          <div class="wizard-suggest-banner">
-            <span>💡 Chcesz dopasować prędkości do wybranej klasy samolotu?</span>
-            <button type="button" class="btn btn-outline" id="wizSuggestSpeedsBtn" style="padding:0.25rem 0.65rem; font-size:0.75rem; background:#ffffff;">
-              Automatycznie zasugeruj typowe osiągi
-            </button>
-          </div>
-
-          <details class="wizard-trend-chart-box" id="wizTrendChartDetailsMission" open>
-            <summary class="wizard-trend-chart-summary">
-              <span>📈 Wykres z analizy trendów osiągów i zasięgu</span>
-              <small id="wizTrendSampleBadgeMission"></small>
-            </summary>
-            <div class="wizard-trend-chart-body">
-              <div class="wizard-trend-chart-toolbar">
-                <label for="wizTrendChartSelectMission">Wykres:</label>
-                <select id="wizTrendChartSelectMission" aria-label="Wybierz wykres z analizy trendów (Krok 2)"></select>
-              </div>
-              <div class="wizard-trend-chart-stage" id="wizTrendChartStageMission"></div>
-            </div>
-          </details>
-
-          <div class="input-row">
-            <div class="input-group">
-              <label for="wiz_range_km">Zasięg obliczeniowy R [km]:</label>
-              <input step="any" required type="number" id="wiz_range_km" min="0" max="30000" value="640">
-            </div>
-            <div class="input-group">
-              <label for="wiz_cruise_altitude_m">Wysokość przelotowa H [m]:</label>
-              <input step="any" required type="number" id="wiz_cruise_altitude_m" min="500" max="15000" value="2000">
-            </div>
-          </div>
-
-          <div class="input-row">
-            <div class="input-group">
-              <label for="wiz_cruise_speed_kmh">Prędkość przelotowa Vcr [km/h]:</label>
-              <input step="any" required type="number" id="wiz_cruise_speed_kmh" min="80" max="950" value="174">
-            </div>
-            <div class="input-group">
-              <label for="wiz_v_stall_kmh">Maks. prędkość przeciągnięcia VS0 [km/h]:</label>
-              <input step="any" required type="number" id="wiz_v_stall_kmh" min="45" max="250" value="84">
-            </div>
-          </div>
-
-          <div class="input-row">
-            <div class="input-group" data-param="takeoff_distance_m"><label for="wiz_takeoff_distance_m">Maks. całkowita długość startu [m]</label><input type="number" id="wiz_takeoff_distance_m" min="0" max="20000" step="any" value="600"><small>Przeszkoda 15 m; 0 = nie określono.</small></div><div class="input-group" data-param="landing_distance_m"><label for="wiz_landing_distance_m">Maks. całkowita długość lądowania [m]</label><input type="number" id="wiz_landing_distance_m" min="0" max="20000" step="any" value="600"><small>Przeszkoda 15 m; 0 = nie określono.</small></div><details class="legacy-runway"><summary>Dodatkowe ograniczenie rozbiegu</summary><div class="input-group">
-              <label for="wiz_takeoff_run_m">Wymagana droga rozbiegu S_to [m]:</label>
-              <input step="any" required type="number" id="wiz_takeoff_run_m" min="60" max="3000" value="210">
-            </div></details>
-            <div class="input-group">
-              <label for="wiz_climb_rate_ms">Min. wznoszenie przy ziemi w_y [m/s]:</label>
-              <input step="any" required type="number" id="wiz_climb_rate_ms" min="1.5" max="30" value="4.1">
-            </div>
-          </div>
-
-          <div class="formula-box">
-            <div class="formula-legend">
-              <strong>⚠️ Zasada dopasowania parametrów:</strong> Zbyt mała prędkość lądowania Vs0 przy dużej prędkości przelotowej Vcr wymusza bardzo dużą powierzchnię skrzydła lub zaawansowaną mechanizację spływu (klapy szczelinowe lub Fowlera).
-            </div>
-          </div>
-        </div>
-
-        <!-- KROK 3: Zespół Napędowy i Sprawność -->
-        <div class="wizard-pane" id="wizardPane3">
-          <div class="wizard-pane-header">
-            <h4 id="wiz_pane3_title">Krok 3: Zespół Napędowy i Sprawność Propulsywna (Projekt P2 / P4)</h4>
-            <p>Wybierz typ silnika, rozmieszczenie napędu na płatowcu oraz parametry jednostkowego zużycia paliwa.</p>
-          </div>
-
-          <details class="wizard-trend-chart-box" id="wizTrendChartDetailsPropulsion" open>
-            <summary class="wizard-trend-chart-summary">
-              <span>📈 Wykres z analizy trendów obciążenia napędu</span>
-              <small id="wizTrendSampleBadgePropulsion"></small>
-            </summary>
-            <div class="wizard-trend-chart-body">
-              <div class="wizard-trend-chart-toolbar">
-                <label for="wizTrendChartSelectPropulsion">Wykres:</label>
-                <select id="wizTrendChartSelectPropulsion" aria-label="Wybierz wykres z analizy trendów (Krok 3)"></select>
-              </div>
-              <div class="wizard-trend-chart-stage" id="wizTrendChartStagePropulsion"></div>
-            </div>
-          </details>
-
-          <div class="input-row" data-power-basis>
-            <div class="input-group"><label for="wiz_power_input_mode">Dobór mocy</label><select id="wiz_power_input_mode" data-basis-selector><option value="sized">Oblicz wymaganą moc</option><option value="fixed">Znam dostępną moc silnika</option></select></div>
-            <div class="input-group"><label for="wiz_engine_power_kw">Moc silnika [kW]</label><input type="number" id="wiz_engine_power_kw" min="0" max="100000" step="any" value="0"><div class="derived-badge" id="wiz_derived_badge_engine_power_kw" hidden></div></div>
-          </div>
-          <div class="input-row">
-            <div class="input-group">
-              <label for="wiz_engine_type">Rodzaj zespołu napędowego:</label>
-              <select id="wiz_engine_type">
-                <option value="prop">Śmigłowy (Tłokowy / Turboprop)</option>
-                <option value="jet">Odrzutowy (Turbofan / Turbojet)</option>
-
-                <option value="none">Bez napędu (szybowiec)</option>
-                      </select>
-            </div>
-            <div class="input-group">
-              <label for="wiz_engine_location">Lokalizacja silnika na płatowcu:</label>
-              <select id="wiz_engine_location">
-                <option value="nose">Nos kadłuba (1 silnik ciągnący - klasyk GA)</option>
-                <option value="wing">Gondole podskrzydłowe / naskrzydłowe (wielosilnikowy)</option>
-                <option value="rear">Tył kadłuba / gondole boczne lub ogonowe</option>
-                <option value="retractable">Napęd chowany — motoszybowiec</option>
-                <option value="none" hidden>Nie dotyczy — bez napędu</option>
-              </select>
-            </div>
-            <div class="input-group" id="wiz_group_n_engines">
-              <label for="wiz_n_engines">Liczba silników [szt.]:</label>
-              <input type="number" id="wiz_n_engines" min="1" max="8" step="1" value="1">
-            </div>
-          </div>
-
-          <div class="input-row">
-            <div class="input-group" id="wiz_group_sfc">
-              <label for="wiz_sfc" id="label_wiz_sfc">Jednostkowe zużycie paliwa SFC c_p [g/(kW&bull;h)]:</label>
-              <input step="any" required type="number" id="wiz_sfc" min="150" max="450" value="265">
-            </div>
-            <div class="input-group" id="wiz_group_prop_efficiency">
-              <label for="wiz_prop_efficiency">Sprawność śmigła w przelocie &eta;_p [-]:</label>
-              <input step="any" required type="number" id="wiz_prop_efficiency" min="0.65" max="0.90" value="0.80">
-            </div>
-          </div>
-
-          <div class="formula-box">
-            <div class="formula-legend" id="wiz_propulsion_hint_box">
-              <strong>💡 Wytyczne prof. C. Galińskiego:</strong>
-              <ul style="margin:4px 0 0 16px; padding:0;">
-                <li><em>Silnik tłokowy:</em> Najwyższa sprawność poniżej 300 km/h, małe zużycie paliwa (SFC c_p &asymp; 240&ndash;285 g/(kW&bull;h), &eta;_p &asymp; 0.78&ndash;0.83).</li>
-                <li><em>Silnik turbośmigłowy:</em> Doskonały dla prędkości 350&ndash;550 km/h i wysokości 4000&ndash;8000 m (SFC c_p &asymp; 270&ndash;310 g/(kW&bull;h), &eta;_p &asymp; 0.82&ndash;0.86).</li>
-                <li><em>Silnik odrzutowy (Turbofan):</em> Stosowany powyżej 600 km/h i pułapu &gt; 9000 m (TSFC c_j &asymp; 0.52&ndash;0.75 1/h [kg/(daN&bull;h)], brak śmigła).</li>
-              </ul>
-            </div>
-          </div>
-        </div>
-
-        <!-- KROK 4: Geometria Skrzydła i Mechanizacja Płata -->
-        <div class="wizard-pane" id="wizardPane4">
-          <div class="wizard-pane-header">
-            <h4>Krok 4: Konfiguracja Skrzydła i Mechanizacja Płata (Projekt P3 / P4)</h4>
-            <p>Dobierz układ płata, obrys i mechanizację. Wielkości wynikające z założeń są obliczane automatycznie.</p>
-          </div>
-
-          <div class="input-row">
-            <div class="input-group">
-              <label for="wiz_wetted_example">Stosunek powierzchni omywanej do powierzchni skrzydła S<sub>wet</sub>/S</label>
-              <select id="wiz_wetted_example" aria-controls="wizWettedRatioGroup">
-                <option value="">Automatycznie według klasy samolotu</option>
-                {% for key, row in wetted_examples.items() %}<option value="{{ key }}">{{ row.label[:1]|upper }}{{ row.label[1:] }} — {{ row.swet_ratio|reportnum(2) }}</option>{% endfor %}
-                <option value="sketch">Wpiszę własny stosunek S_wet/S</option>
-              </select>
-              <small>Całkowita powierzchnia omywana samolotu podzielona przez powierzchnię odniesienia skrzydła. Parametr do wstępnego oszacowania doskonałości z wykresu Raymera (P1).</small>
-            </div>
-            <div class="input-group" id="wizWettedRatioGroup" hidden>
-              <label for="wiz_sketch_swet_ratio">Własny stosunek S<sub>wet</sub>/S [–]</label>
-              <input id="wiz_sketch_swet_ratio" type="number" min="1" max="20" step="any" value="4" required disabled>
-              <small>Wartość bezwymiarowa, np. 4,2. Podaj pomiar ze szkicu lub udokumentowane oszacowanie.</small>
-            </div>
-          </div>
-
-          <div class="wizard-suggest-banner" style="margin-bottom:12px; background:#f0f9ff; border:1px solid #bae6fd; padding:6px 12px; border-radius:6px; display:flex; justify-content:space-between; align-items:center; gap:8px; flex-wrap:wrap;">
-            <span style="font-size:0.78rem; color:#0369a1;">📊 <strong>Analiza trendów (BIPOL_1):</strong> AR z trendu oraz średnie V_H, V_V, lotek, sterów i wzniosu z podobnych samolotów<span id="wizTrendPreviewGeometry"></span></span>
-            <button type="button" class="btn btn-outline" id="wizSuggestTrendsBtn" style="padding:2px 8px; font-size:0.75rem; background:#ffffff; font-weight:700; color:#0284c7;">
-              Zastosuj z trendów
-            </button>
-          </div>
-          <div class="trend-provenance-box" id="wizTrendProvenanceGeometry" hidden></div>
-
-          <details class="wizard-trend-chart-box" id="wizTrendChartDetailsGeometry" open>
-            <summary class="wizard-trend-chart-summary">
-              <span>📈 Wykres z analizy trendów geometrii i usterzenia</span>
-              <small id="wizTrendSampleBadgeGeometry"></small>
-            </summary>
-            <div class="wizard-trend-chart-body">
-              <div class="wizard-trend-chart-toolbar">
-                <label for="wizTrendChartSelectGeometry">Wykres:</label>
-                <select id="wizTrendChartSelectGeometry" aria-label="Wybierz wykres z analizy trendów (Krok 4)"></select>
-              </div>
-              <div class="wizard-trend-chart-stage" id="wizTrendChartStageGeometry"></div>
-            </div>
-          </details>
-
-          <div class="input-group"><label for="wiz_wing_planform">Obrys skrzydła</label><select id="wiz_wing_planform"><option value="trapezoidal">Trapezowy</option><option value="rectangular">Prostokątny</option><option value="compound_trapezoid">Prostokątno-trapezowy</option><option value="elliptical">Eliptyczny</option><option value="swept_trapezoidal">Skośny trapezowy</option></select></div>
-          <div class="input-row">
-            <div class="input-group"><label for="wiz_gear_attachment">Mocowanie podwozia głównego</label><select id="wiz_gear_attachment"><option value="fuselage">Do kadłuba</option><option value="wing">Do skrzydła</option></select></div><div class="input-group"><label for="wiz_gear_retraction">Podwozie</label><select id="wiz_gear_retraction" title="Automatycznie: stałe dla szybowców i motoszybowców oraz dla tłokowych GA i UAV o Vmax ≤ 270 km/h; chowane dla pozostałych."><option value="auto">Automatycznie wg klasy</option><option value="fixed">Stałe</option><option value="retractable">Chowane</option></select></div><div class="input-group">
-              <label for="wiz_wing_config">Układ pionowy skrzydła:</label>
-              <select id="wiz_wing_config">
-                <option value="low">Dolnopłat wolnonośny (łatwe chowanie podwozia, bezpieczeństwo)</option>
-                <option value="high">Górnopłat wolnonośny (doskonała widoczność w dół, STOL)</option>
-                <option value="braced_high">Górnopłat zastrzałowy (lekka struktura, np. {{ model_examples.wing_config.braced_high }})</option>
-                <option value="mid">Średniopłat (motoszybowce / akrobacyjne)</option>
-              </select>
-            </div>
-
-          </div>
-
-          <div class="input-row">
-            <div class="input-group">
-              <label for="wiz_taper_ratio">Zbieżność skrzydła &eta; = c_t/c_r [-]:</label>
-              <input step="any" required type="number" id="wiz_taper_ratio" min="0" max="1.0" value="0.60">
-            </div>
-            <div class="input-group">
-              <label for="wiz_sweep_quarter_deg">Skos skrzydła &chi;₂₅% [&deg;]:</label>
-              <input step="any" required type="number" id="wiz_sweep_quarter_deg" min="0" max="45" value="0">
-            </div>
-          </div>
-
-          <div class="input-row">
-            <div class="input-group">
-              <label for="wiz_flap_type">Mechanizacja spływu (Klapa wewnętrzna):</label>
-              <select id="wiz_flap_type">
-                <option value="plain">Klapa zwykła (Plain Flap, przyrost wsp. siły nośnej +0.45)</option>
-                <option value="split">Klapa krokodylowa (Split Flap, przyrost wsp. siły nośnej +0.55)</option>
-                <option value="single_slotted" selected>Klapa szczelinowa (Single Slotted, przyrost wsp. siły nośnej +0.85)</option>
-                <option value="fowler">Klapa Fowlera (Fowler Flap, przyrost wsp. siły nośnej +1.35)</option>
-                <option value="junkers">Klapa zewnętrzna Junkersa (STOL, przyrost wsp. siły nośnej +0.95)</option>
-                <option value="flaperon">Klapolotka (Flaperon, Motoszybowce, przyrost wsp. siły nośnej +0.50)</option>
-              </select><p class="basis-note">Wychylenia według wytycznych: start 20°, lądowanie 40°.</p>
-            </div>
-            <div class="input-group">
-              <label for="wiz_aileron_type">Sterowanie poprzeczne (Lotka zewnętrzna):</label>
-              <select id="wiz_aileron_type">
-                <option value="differential" selected>Lotka różnicowa (Differential - standard GA)</option>
-                <option value="frise">Lotka Frise ze ściętym noskiem</option>
-                <option value="slotted">Lotka szczelinowa</option>
-                <option value="plain">Lotka zwykła</option>
-                <option value="flaperon">Klapolotka (Flaperon z mikserem)</option>
-              </select>
-            </div>
-          </div>
-          <div class="input-row">
-            <div class="input-group">
-              <label for="wiz_slat_type">Mechanizacja natarcia (Przedskrzydło / Slot):</label>
-              <select id="wiz_slat_type">
-                <option value="none">Brak przedskrzydła (Gładkie natarcie)</option>
-                <option value="fixed_slot">Stały slot (Fixed Slat, STOL/Rolnicze, przyrost wsp. siły nośnej +0.40)</option>
-                <option value="slats_auto">Automatyczny slot ruchomy (Handley-Page / Szynowy, przyrost wsp. siły nośnej +0.55)</option>
-              </select>
-            </div>
-          </div>
-
-          <div id="wizFlapDidacticCard" class="flap-didactic-card" style="margin-top:0.75rem;"></div>
-        </div>
-
-        <!-- KROK 5: Podsumowanie, Audyt i Start Obliczeń -->
-        <div class="wizard-pane" id="wizardPane5">
-          <div class="wizard-pane-header">
-            <h4>Krok 5: Weryfikacja Spójności i Podsumowanie Konfiguracji</h4>
-            <p>Sprawdź wprowadzone założenia projektowe przed uruchomieniem pełnego ciągu obliczeń BIPOL I.</p>
-          </div>
-
-          <div class="table-responsive">
-            <table class="b-table">
-              <thead>
-                <tr><th>Zespół / Obszar</th><th>Parametr</th><th>Skonfigurowana wartość</th><th>Status merytoryczny</th></tr>
-              </thead>
-              <tbody id="wizardSummaryTableBody"></tbody>
-            </table>
-          </div>
-
-          <div id="wizardAuditBox" class="wizard-audit-box"></div>
-        </div>
-
-      </div>
-
-      <!-- Wizard Footer Controls -->
-      <div id="wizardValidationStatus" class="wizard-validation-status" role="alert"></div>
-      <div class="wizard-footer">
-        <button type="button" class="btn btn-outline" id="wizBackBtn" style="visibility:hidden;">
-          ⬅️ Wstecz
-        </button>
-        <div style="display:flex; gap:0.6rem; align-items:center;">
-          <button type="button" class="btn btn-outline" id="wizCancelBtn">
-            Anuluj
-          </button>
-          <button type="button" class="btn btn-primary" id="wizNextBtn">
-            Dalej ➡️
-          </button>
-          <button type="button" class="btn btn-success" id="wizFinishBtn" style="display:none; font-weight:800; padding:0.6rem 1.25rem;">
-            🚀 Zastosuj i Wykonaj Obliczenia BIPOL (P1–P6)
-          </button>
-        </div>
-      </div>
-
-    </div>
-  </div>
-
   <!-- Floating Didactic Popover (wyświetlany po najechaniu na okrągłą ikonkę informacyjną 'i' przy nazwie parametru) -->
   <div id="didacticPopover" class="didactic-popover" role="dialog" aria-labelledby="popTitle" aria-hidden="true">
     <div class="didactic-popover-header">
@@ -2571,18 +2110,19 @@
   <script src="/static/js/studio-visuals.js?v=3"></script>
   <script src="/static/js/didactic_data.js?v=14"></script>
   <script src="/static/js/charts.js?v=p2-ui-20261104"></script>
-  <script src="/static/js/app.js?v=wizard-swet-20261104"></script>
+  <script src="/static/js/app.js?v=wizard-workspace-20261104"></script>
   <script src="/static/js/didactic_modes.js?v=merge-20261104"></script>
   <script src="/static/js/constraints-ui.js?v=7"></script>
-  <script src="/static/js/design-basis.js?v=wizard-swet-20261104"></script>
+  <script src="/static/js/design-basis.js?v=wizard-workspace-20261104"></script>
+  <script src="/static/js/wizard-workspace.js?v=1"></script>
   <script src="/static/js/parameter-report.js?v=1"></script>
-  <script src="/static/js/studio.js?v=p2-ui-20261104"></script>
+  <script src="/static/js/studio.js?v=wizard-workspace-20261104"></script>
   <script src="/static/js/aircraft-project.js?v=1"></script>
   <script src="/static/js/aircraft-editor.js?v=2"></script>
   <script src="/static/js/trend-inputs.js?v=merge-20261104"></script>
   <script src="/static/js/trend-provenance.js?v=families-20261104"></script>
   <script src="/static/js/trends.js?v=families-20261104"></script>
-  <script src="/static/js/bipol1.js?v=merge-20261104"></script>
+  <script src="/static/js/bipol1.js?v=wizard-workspace-20261104"></script>
   <script src="/static/js/workspace.js?v=p2-ui-20261104"></script>
   <script src="/static/js/calculation-graph.js?v=1"></script>
   <script src="/static/js/calculation-tree.js?v=4"></script>
@@ -2590,7 +2130,7 @@
   <script src="/static/js/pilot-loading.js?v=3"></script>
   <script src="/static/js/ballast-ui.js?v=1"></script>
   <script src="/static/js/coursework.js?v=7"></script>
-  <script src="/static/js/modern-ui.js?v=3"></script>
+  <script src="/static/js/modern-ui.js?v=wizard-workspace-20261104"></script>
   <script src="/static/js/manual-control.js?v=1"></script>
   <script src="/static/js/engine-fuel.js?v=p2-ui-20261104"></script>
   <script src="/static/js/feasibility.js?v=p2-ui-20261104"></script>

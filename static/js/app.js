@@ -1885,6 +1885,11 @@ function setupTabs() {
       const targetId = tab.getAttribute('data-target');
       const targetEl = document.getElementById(targetId);
       if (targetEl) targetEl.classList.add('active');
+      const wizard = document.getElementById('projectWizardBackdrop');
+      if (targetId === 'tab-wizard') window.BipolWizardWorkspace?.ensure();
+      else window.BipolWizardWorkspace?.suspend();
+      wizard?.classList.toggle('active', targetId === 'tab-wizard');
+      wizard?.setAttribute('aria-hidden', String(targetId !== 'tab-wizard'));
 
       renderTabVisuals(targetId);
       document.dispatchEvent(new CustomEvent('bipol:tab'));
@@ -1914,6 +1919,7 @@ function setupTabs() {
    WIZARD / KONFIGURATOR PROJEKTU KROK PO KROKU
    ======================================================== */
 let currentWizardStep = 1;
+let wizardSessionSequence = 0;
 
 // ==========================================
 // BIPOL STUDIO - SYSTEM ZARZĄDZANIA PROJEKTAMI (PROJECT SYSTEM)
@@ -2405,7 +2411,7 @@ function initProjectSystem() {
   }
   renderProjectSwitcher();
 
-  // Open the saved workspace directly; the wizard remains available under project options.
+  window.BipolWizardWorkspace?.ensure();
   closeSessionStarterModal();
   performCalculation();
 
@@ -2641,18 +2647,6 @@ function initWizardSystem() {
   if (closeBtn) closeBtn.addEventListener('click', closeWizard);
   if (cancelBtn) cancelBtn.addEventListener('click', closeWizard);
 
-  if (backdrop) {
-    backdrop.addEventListener('click', (e) => {
-      if (e.target === backdrop) closeWizard();
-    });
-  }
-
-  document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape' && backdrop && backdrop.classList.contains('active')) {
-      closeWizard();
-    }
-  });
-
   // Przełączanie kroków przyciskami
   if (nextBtn) {
     nextBtn.addEventListener('click', () => {
@@ -2759,6 +2753,7 @@ function initWizardSystem() {
 }
 
 function openWizard(mode = 'create') {
+  wizardSessionSequence++;
   wizardProjectMode = mode;
   const wizardModalTitle = document.querySelector('.wizard-header h3');
 
@@ -2789,22 +2784,25 @@ function openWizard(mode = 'create') {
   currentWizardStep = 1;
   goToWizardStep(1);
 
-  // Pokaż modal
+  window.BipolWizardWorkspace?.started(mode);
   const backdrop = document.getElementById('projectWizardBackdrop');
   if (backdrop) {
     backdrop.classList.add('active');
     backdrop.setAttribute('aria-hidden', 'false');
-    document.body.style.overflow = 'hidden';
   }
+  setPortalMode('holistic');
+  document.querySelector('.bipol-tab[data-target="tab-wizard"]')?.click();
+  document.querySelector('.quiet-project-menu')?.removeAttribute('open');
 }
 
 function closeWizard() {
+  window.BipolWizardWorkspace?.suspend();
   const backdrop = document.getElementById('projectWizardBackdrop');
   if (backdrop) {
     backdrop.classList.remove('active');
     backdrop.setAttribute('aria-hidden', 'true');
-    document.body.style.overflow = '';
   }
+  document.querySelector('.bipol-tab[data-target="tab-overview"]')?.click();
 }
 
 function syncFormToWizard() {
@@ -2866,10 +2864,10 @@ function goToWizardStep(step) {
   document.querySelectorAll('.wizard-step-tab').forEach(tab => {
     const s = parseInt(tab.getAttribute('data-step') || '1', 10);
     tab.classList.remove('active', 'completed');
+    tab.setAttribute('aria-current', s === currentWizardStep ? 'step' : 'false');
     if (s < currentWizardStep) {
-      tab.classList.add('completed');
       const circle = tab.querySelector('.step-circle');
-      if (circle) circle.textContent = '✓';
+      if (circle) circle.textContent = s;
     } else if (s === currentWizardStep) {
       tab.classList.add('active');
       const circle = tab.querySelector('.step-circle');
@@ -2918,6 +2916,7 @@ function goToWizardStep(step) {
   // Przewiń ciało modala na górę
   const body = document.querySelector('.wizard-body');
   if (body) body.scrollTop = 0;
+  window.BipolWizardWorkspace?.stepChanged();
 }
 
 function suggestStepDefaults(step) {
@@ -3141,9 +3140,19 @@ function renderWizardStep5Summary() {
     <tr><td><b>Osiągi lotniskowe</b></td><td>Całkowity start do 15 m / Wznoszenie w_y</td><td class="num"><b>${runwaySummaryVal}</b></td><td>Długość pasa i odejście na 2. krąg</td></tr>
     <tr><td><b>Zespół Napędowy</b></td><td>Rodzaj, zabudowa i zużycie paliwa</td><td class="num"><b>${propSummaryText}</b></td><td>Zespół napędowy</td></tr>
     <tr><td><b>Założenia skrzydła</b></td><td>${escapeHtml(document.getElementById('wiz_wing_input_mode').selectedOptions[0].textContent)}</td><td class="num"><b>${wingSummaryVal}</b></td><td>Wielkości zależne są obliczane</td></tr>
-    <tr><td><b>Powierzchnia omywana</b></td><td>Stosunek S_wet/S</td><td class="num"><b>${getV('wiz_wetted_example') === 'sketch' ? escapeHtml(getV('wiz_sketch_swet_ratio')) : escapeHtml(document.getElementById('wiz_wetted_example').selectedOptions[0].textContent)}</b></td><td>Wstępne oszacowanie doskonałości P1</td></tr>
+    <tr><td><b>Biegunowa wstępna</b></td><td>${document.querySelector('[name="wiz_drag_basis"]:checked')?.value === 'input' ? 'Podany C_D0 całego samolotu' : 'Stosunek S_wet/S'}</td><td class="num"><b>${document.querySelector('[name="wiz_drag_basis"]:checked')?.value === 'input' ? 'C_D0 = ' + escapeHtml(getV('wiz_cx0')) : getV('wiz_wetted_example') === 'sketch' ? escapeHtml(getV('wiz_sketch_swet_ratio')) : escapeHtml(document.getElementById('wiz_wetted_example').selectedOptions[0].textContent)}; e = ${escapeHtml(getV('wiz_oswald_e'))}</b></td><td>Założenie P1/P2 <button type="button" class="wizard-edit-link" onclick="goToWizardStep(4)">Zmień</button></td></tr>
     <tr><td><b>Mechanizacja</b></td><td>Klapy spływu i sloty natarcia</td><td class="num"><b>${escapeHtml(flapLabel)} &bull; ${escapeHtml(slatLabel)}</b></td><td>Zapewnienie wymaganego Vs0</td></tr>
   `;
+
+  const rowSteps = [1, 1, 1, 2, 2, 2, 3, 1, 4, 4];
+  [...tbody.rows].forEach((row, index) => {
+    if (row.querySelector('button')) return;
+    const edit = document.createElement('button');
+    edit.type = 'button'; edit.className = 'wizard-edit-link'; edit.textContent = 'Zmień';
+    edit.setAttribute('aria-label', `Zmień: ${row.cells[0].textContent}`);
+    edit.addEventListener('click', () => goToWizardStep(rowSteps[index]));
+    row.cells[3].append(' ', edit);
+  });
 
   // Audyt spójności
   const issues = [];
@@ -3211,6 +3220,7 @@ function showWizardError(message) {
 }
 
 async function commitWizardToForm() {
+  if (document.getElementById('wizFinishBtn')?.disabled) return;
   syncAircraftClassAndEASAUI(true);
   syncWizardPropulsionUI(false);
   BipolDesignBasis.sync('wiz_');
@@ -3219,6 +3229,9 @@ async function commitWizardToForm() {
     catch (err) { goToWizardStep(step); showWizardError(err.message); return; }
   }
   const params = BipolDesignBasis.snapshot();
+  const sourceProjectId = getActiveProjectId();
+  const sourceWizardSession = wizardSessionSequence;
+  const sourceWizardMode = wizardProjectMode;
   const finish = document.getElementById('wizFinishBtn');
   const originalText = finish.textContent;
   finish.disabled = true; finish.textContent = 'Sprawdzanie projektu…';
@@ -3229,18 +3242,21 @@ async function commitWizardToForm() {
     });
     const result = await response.json();
     if (!response.ok) throw new Error(result.message || 'Nie udało się obliczyć projektu.');
-    if (!document.getElementById('projectWizardBackdrop').classList.contains('active')) return;
+    if (!document.getElementById('projectWizardBackdrop').classList.contains('active')
+        || getActiveProjectId() !== sourceProjectId || wizardSessionSequence !== sourceWizardSession) return;
     if (JSON.stringify(params) !== JSON.stringify(BipolDesignBasis.snapshot())) {
       throw new Error('Założenia zmieniły się podczas obliczeń. Zatwierdź je ponownie.');
     }
+    window.BipolWizardWorkspace?.beginApply();
     calculationSequence++; calculationController?.abort();
-    const active = wizardProjectMode === 'edit' ? getActiveProject() : null;
+    const active = sourceWizardMode === 'edit' ? getActiveProject() : null;
     const project = active || {id:'proj_'+Date.now(), createdAt:new Date().toISOString()};
     Object.assign(project, {name:params.name, aircraft_type:result.params.aircraft_type,
       category:result.params.category, params:result.params, summary:{}});
     saveProject(project); setActiveProjectId(project.id); loadProjectIntoForm(project);
     currentResults = result; updateUI(result); updateDerivedUI(result.constraints.parameter_states);
     autoSaveActiveProject(result); renderProjectSwitcher();
+    window.BipolWizardWorkspace?.committed();
     showCalculationStatus('Wyniki i zapis projektu są aktualne.');
     document.getElementById('openReportBtn')?.setAttribute('data-results-stale','false');
     document.dispatchEvent(new CustomEvent('bipol:results', {detail:result}));
@@ -3249,7 +3265,7 @@ async function commitWizardToForm() {
       document.querySelector('.bipol-tab[data-target="tab-overview"]')?.click();
     }
   } catch (error) { showWizardError(error.message); }
-  finally { finish.disabled = false; finish.textContent = originalText; }
+  finally { window.BipolWizardWorkspace?.endApply(); finish.disabled = false; finish.textContent = originalText; }
 }
 
 // =========================================================================

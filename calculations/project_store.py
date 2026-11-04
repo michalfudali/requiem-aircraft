@@ -59,7 +59,11 @@ def database_path():
 
 @contextmanager
 def connect(path=None, create=False):
+    implicit_path = path is None
     path = Path(path or database_path())
+    if implicit_path and not create and not path.is_file():
+        from production import initialize_projects
+        initialize_projects(path)
     if not create and not path.is_file():
         raise FileNotFoundError(f'Brak bazy projektów: {path}')
     con = sqlite3.connect(f'{path.resolve().as_uri()}?mode={"rwc" if create else "rw"}', uri=True,

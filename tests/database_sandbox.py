@@ -29,6 +29,9 @@ class DatabaseSandbox:
         self.paths = {}
         self.pristine = {}
         for key, source in STORES.items():
+            if key == 'BIPOL_PROJECTS_DB' and not source.is_file():
+                from production import initialize_projects
+                initialize_projects(source)
             self.paths[key] = Path(self.directory.name) / source.name
             self.pristine[key] = Path(self.directory.name) / ('pristine-' + source.name)
             backup(source, self.pristine[key])

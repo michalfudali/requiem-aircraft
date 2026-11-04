@@ -259,11 +259,10 @@ def validate_parameters(data):
     p['mission_phase_model'] = 'galinski'
     p['flap_takeoff_deg'] = FLAP_TAKEOFF_DEFLECTION_DEG
     p['flap_landing_deg'] = FLAP_LANDING_DEFLECTION_DEG
-    # BIPOL_1, s. 2–3: C_x0 of project 1 comes from S_wet/S, Fig. 2 and equation (3). A typed C_x0
-    # remains only for the next iteration with the P4 polar (preliminary_polar_includes_configuration).
-    if p['preliminary_polar_mode'] == 'input' and not p.get('preliminary_polar_includes_configuration'):
-        p['preliminary_polar_mode'] = 'raymer'
-        p.pop('wetted_example', None)
+    # A supplied C_D0 describes the complete clean aircraft, referenced to wing area.
+    # Preserve the author's explicit starting method; do not silently replace it with Fig. 2.
+    if p['preliminary_polar_mode'] == 'input':
+        p['preliminary_polar_includes_configuration'] = True
     elif p['preliminary_polar_mode'] in ('raymer', 'reading') and 'wetted_example' not in data and 'sketch_swet_ratio' in data:
         # Earlier projects measured S_wet/S on the sketch.
         p['wetted_example'] = 'sketch'

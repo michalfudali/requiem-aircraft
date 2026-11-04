@@ -106,9 +106,10 @@ def test_cx0_of_project_one_follows_the_handout_chain_by_default():
     assert polar['cx0']==pytest.approx(math.pi*p['aspect_ratio']*p['oswald_e']/(4*polar['kmax']**2))
     low,high=polar['cx0_bounds']
     assert polar['cx0_in_range']==(low<=polar['cx0']<=high)
-    # A typed C_x0 of an earlier project is replaced by the chart method.
-    legacy=validate_parameters(dict(AIRCRAFT_PRESETS['ga_trainer'],preliminary_polar_mode='input',sketch_swet_ratio=4))
-    assert legacy['preliminary_polar_mode']=='raymer' and preliminary_polar(legacy)['wetted_example']=='light_single'
+    # The graph remains the default; an explicitly selected aircraft C_D0 is respected.
+    direct=validate_parameters(dict(AIRCRAFT_PRESETS['ga_trainer'],preliminary_polar_mode='input',cx0=.03))
+    assert direct['preliminary_polar_mode']=='input'
+    assert preliminary_polar(direct)['cx0']==.03
 
 
 def test_reading_beyond_the_printed_curve_follows_its_square_root_shape():

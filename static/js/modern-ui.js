@@ -70,6 +70,7 @@
   const SEARCH_INDEX = [
     // Tabs & Workspaces
     { type: 'tab', target: 'tab-overview', icon: '📊', title: 'Podsumowanie projektu', tag: 'Widok główny' },
+    { type: 'tab', target: 'tab-wizard', icon: '✈️', title: 'Kreator projektu — misja, napęd, C_D0 i powierzchnia omywana', tag: 'Projektowanie' },
     { type: 'tab', target: 'tab-inputs', icon: '⚙️', title: 'Założenia i wymagania taktyczno-techniczne', tag: 'Dane wejściowe' },
     { type: 'tab', target: 'tab-trends', icon: '📈', title: 'Baza samolotów i trendy statystyczne', tag: 'Statystyka' },
     { type: 'tab', target: 'tab-cad', icon: '📐', title: 'Rysunek zestawieniowy CAD A3Z (3 rzuty)', tag: 'Geometria' },
@@ -370,6 +371,11 @@
   }
 
   function triggerRecalculate() {
+    if (document.getElementById('tab-wizard')?.classList.contains('active')) {
+      if (document.getElementById('wizFinishBtn')?.disabled) return;
+      goToWizardStep(5);
+      return commitWizardToForm();
+    }
     // The calculation function handles validation, rejected/stale responses and
     // failures internally. Resolving its promise does not prove fresh results.
     if (typeof window.performCalculation === 'function') return window.performCalculation();

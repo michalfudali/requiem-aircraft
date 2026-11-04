@@ -5,7 +5,7 @@ import sqlite3
 
 import pytest
 
-from production import check_database, initialize_database
+from production import check_database, initialize_database, initialize_projects, check_projects
 
 
 def test_new_volume_is_seeded_and_later_startup_preserves_user_edits(tmp_path):
@@ -35,6 +35,36 @@ def test_damaged_existing_database_is_never_replaced_by_seed(tmp_path):
     with pytest.raises(sqlite3.DatabaseError):
         initialize_database(path)
     assert path.read_bytes() == b'uszkodzona baza do odzyskania'
+
+
+def test_public_course_seed_bootstraps_without_private_projects_and_preserves_later_changes(tmp_path):
+    path = tmp_path / 'private/projects.sqlite3'
+    initialize_projects(path)
+    assert check_projects(path) == 110
+    with closing(sqlite3.connect(path)) as con:
+        assert con.execute('SELECT COUNT(*) FROM presets').fetchone()[0] == 10
+        assert con.execute('SELECT COUNT(*) FROM projects').fetchone()[0] == 0
+        con.execute("INSERT INTO projects VALUES ('private', 'Projekt prywatny', '', '', '{}')")
+        con.commit()
+    before = path.read_bytes()
+    initialize_projects(path)
+    assert path.read_bytes() == before
+
+
+def test_concurrent_project_initialization_is_atomic(tmp_path):
+    path = tmp_path / 'projects.sqlite3'
+    with ThreadPoolExecutor(max_workers=2) as pool:
+        assert list(pool.map(lambda _: initialize_projects(path), range(2))) == [path, path]
+    assert check_projects(path) == 110
+    assert not list(tmp_path.glob('.projects-*'))
+
+
+def test_damaged_existing_projects_are_not_overwritten(tmp_path):
+    path = tmp_path / 'projects.sqlite3'
+    path.write_bytes(b'uszkodzona baza projektow')
+    with pytest.raises(sqlite3.DatabaseError):
+        initialize_projects(path)
+    assert path.read_bytes() == b'uszkodzona baza projektow'
 
 
 def test_database_location_is_explicit_and_independent_of_working_directory(tmp_path, monkeypatch):

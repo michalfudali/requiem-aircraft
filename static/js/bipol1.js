@@ -22,8 +22,7 @@
   }
   function sync(p=formBaseParams) {
     document.querySelectorAll('[data-bipol1]').forEach(el=>el.value=p[el.id]??defaults[el.id]??'');
-    // C_x0 of project 1 always comes from Fig. 2; earlier projects measured S_wet/S on the sketch.
-    if(!['raymer','reading'].includes($('preliminary_polar_mode').value)) $('preliminary_polar_mode').value='raymer';
+    if(!['raymer','reading','input'].includes($('preliminary_polar_mode').value)) $('preliminary_polar_mode').value='raymer';
     if(!['trend','two_point'].includes($('empty_mass_model').value)) $('empty_mass_model').value='trend';
     if(!p.wetted_example&&['raymer','reading'].includes(p.preliminary_polar_mode)&&p.sketch_swet_ratio) $('wetted_example').value='sketch';
     visibility();
@@ -37,6 +36,8 @@
       data[el.id]=el.type==='number'?Number(el.value):el.value;
     }
     if(data.wetted_example!=='sketch') delete data.sketch_swet_ratio;
+    if(data.preliminary_polar_mode==='input') data.preliminary_polar_includes_configuration=true;
+    else delete data.preliminary_polar_includes_configuration;
     delete data.raymer_family;
     // BIPOL_1, wzór (1): A i C zawsze z linii trendu (programu albo własnego odczytu dwóch punktów).
     for(const key of ['empty_mass_trend_A','empty_mass_trend_C','empty_mass_fraction','empty_mass_a','empty_mass_c']) delete data[key];

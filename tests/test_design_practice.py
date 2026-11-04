@@ -44,12 +44,12 @@ def test_refined_variant_api_reports_its_iterations():
 
 
 def test_horizontal_tail_is_sized_for_the_minimum_static_margin():
-    r = run_bipol_project(topic(23, design_iteration_mode='preliminary'))
-    assert r['params']['v_h'] > .7
+    r = run_bipol_project(topic(23, design_iteration_mode='preliminary', v_h=.1))
+    assert r['params']['v_h'] > .1
     assert r['balance']['stability']['static_margin_aft_pct'] >= 5
     assert r['constraints']['parameter_states']['v_h']['state'] == 'derived'
-    fixed = run_bipol_project(topic(23, design_iteration_mode='preliminary', locked_params=['n_pax', 'range_km', 'v_h']))
-    assert fixed['params']['v_h'] == .7 and not fixed['balance']['stability']['is_stable']
+    fixed = run_bipol_project(topic(23, design_iteration_mode='preliminary', v_h=.1, locked_params=['n_pax', 'range_km', 'v_h']))
+    assert fixed['params']['v_h'] == .1 and not fixed['balance']['stability']['is_stable']
 
 
 def test_two_seat_ultralight_fits_the_ul_mass_limit():

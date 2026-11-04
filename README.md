@@ -55,7 +55,7 @@ wariantów, eksport CSV/SVG, raport z wyborem etapów P1–P6, dane i wnioski au
 oraz dokładną biegunową lotu szybowego. Raport można pobrać jako samodzielny HTML.
 Szczegóły integracji i testów są w `docs/INTEGRACJA_STUDIO.md`.
 
-Interfejs otwiera od razu zapisany projekt. Założenia mają osobny widok, analizy
+Interfejs otwiera kreator jako główną zakładkę zapisanego projektu. Założenia mają osobny widok, analizy
 pokazują szczegóły na żądanie, a w trendach widoczny jest jeden wybrany wykres.
 Układ, dostępność i testy opisuje [`docs/INTERFEJS.md`](docs/INTERFEJS.md).
 
@@ -63,6 +63,13 @@ Układ, dostępność i testy opisuje [`docs/INTERFEJS.md`](docs/INTERFEJS.md).
 import rzędnych, wybór punktu A/B i dodatkowe założenia lotniska, misji oraz kosztów.
 Mapa wymagań przewodnika do kontrolek i zakres danych aerodynamicznych:
 [`docs/STUDIUM_WYKONALNOSCI_UI.md`](docs/STUDIUM_WYKONALNOSCI_UI.md).
+
+Kreator działa w zakładce, z nawigacją etapów i szkicem zachowywanym w przeglądarce
+przy przejściu do wyników lub odświeżeniu strony. Szkic staje się projektem po
+poprawnym przeliczeniu. Biegunową wstępną można rozpocząć od podanego oporu
+zerowego całego samolotu C_D0 albo od S_wet/S (pomiar własny lub układ z katalogu).
+Podgląd pokazuje drogę obliczeń i wynik K_max oraz C_D0. Tryb domknięcia P2–P4
+następnie sprawdza bilans misji z oporem obliczonym z geometrii.
 
 Kreator pozwala wybrać temat i niezależne założenia: rozpiętość, powierzchnię lub
 wydłużenie skrzydła, masę płatną, liczbę pasażerów i dostępną moc. Parametry
