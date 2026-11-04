@@ -542,6 +542,10 @@
                       <small>0,12 oznacza 12% cięciwy. Oznaczenie i rzędne wybierz w P3.</small>
                     </div>
                   </div>
+                  <div id="sidebar_airfoil_box" style="margin:-0.2rem 0 0.6rem 0;padding:0.35rem 0.6rem;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:4px;font-size:0.8rem;display:flex;justify-content:space-between;align-items:center;">
+                    <span>Profil aerodynamiczny skrzydła: <strong id="sidebar_airfoil_display">NACA 64-412</strong></span>
+                    <button type="button" class="btn btn-xs btn-outline" onclick="selectTab('tab-p4')" style="padding:0.15rem 0.45rem;font-size:0.75rem;">Wybierz w P4 ↗</button>
+                  </div>
                   <p data-profile-thickness-summary role="status" class="table-note"></p>
                   <div class="input-row">
                     <div class="input-group" data-param="cx0">
@@ -620,6 +624,9 @@
                       <div class="param-didactic-hint" id="hint_engine_location"></div></div><div class="input-group" data-param="n_engines" id="group_n_engines"><label for="n_engines"><span class="label-text">Liczba silników [szt.]</span></label><input type="number" id="n_engines" min="1" max="8" step="1" value="1">
                     </div>
                   </div>
+
+                  <!-- Pełna konfiguracja rzeczywistego silnika, dokumentacji i SFC -->
+                  {% include "engine_fuel_panel.html" %}
 
                   <div class="input-row">
                     <div class="input-group" data-power-basis><label for="power_input_mode">Dobór mocy</label><select id="power_input_mode" data-basis-selector><option value="sized">Oblicz wymaganą moc</option><option value="fixed">Znam dostępną moc silnika</option></select></div>

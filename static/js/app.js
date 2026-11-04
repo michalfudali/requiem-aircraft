@@ -11,6 +11,7 @@ let currentResults = null;
 let topicsData = [];
 let categoriesData = {};
 let formBaseParams = {};
+window.formBaseParams = formBaseParams;
 let browserStorage = null;
 try { browserStorage = window.localStorage; } catch (_) {}
 const projectStore = BipolStudio.createStore(browserStorage, () => {
@@ -2024,6 +2025,7 @@ function loadProjectIntoForm(project) {
   params.m_pax = (params.m_pax || 0) + (params.m_bag || 0);
   params.m_bag = 0;
   formBaseParams = { ...params };
+  window.formBaseParams = formBaseParams;
 
   for (const [key, val] of Object.entries(params)) {
     const el = document.getElementById(key);
@@ -4261,6 +4263,11 @@ function invalidateAirfoil200mm(note) {
 
 function renderAirfoil200mm(data) {
   airfoilProfile = data.svg ? { ...data, airfoil: data.airfoil || data.name, inputKey: airfoilInputKey() } : null;
+  const sidebarAf = document.getElementById('sidebar_airfoil_display');
+  if (sidebarAf) {
+    const afName = data.airfoil || data.name || document.getElementById('airfoil')?.value;
+    if (afName) sidebarAf.textContent = afName;
+  }
   const fmtMm = v => v == null ? '' : Number(v).toFixed(2).replace('.', ',');
   const afDescEl = document.getElementById('p3_airfoil_desc');
   if (afDescEl) {

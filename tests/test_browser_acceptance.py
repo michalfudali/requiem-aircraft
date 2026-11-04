@@ -223,7 +223,7 @@ def test_engine_proposal_drives_fuel_and_survives_reload(studio):
     page, _, _ = studio
     page.evaluate('async params => {loadProjectIntoForm({name:"Engine acceptance",params}); await performCalculation();}',
                   AIRCRAFT_PRESETS['motoglider_aos'])
-    navigate(page, 'tab-p1-p2')
+    navigate(page, 'tab-inputs')
     reveal_details(page.locator('#engineFuelPanel'))
     page.locator('#engine_fuel_mode').select_option('catalog')
     page.locator('#engine_model_id').select_option('rotax_912_ul')

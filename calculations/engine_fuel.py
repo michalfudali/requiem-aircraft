@@ -88,6 +88,8 @@ def apply_engine_inputs(p):
                         model=_text(p, 'engine_custom_model', 'model i wariant silnika'),
                         source=_text(p, 'engine_fuel_source', 'dokument producenta i stronę', 5),
                         locator='', source_url='', rating_basis='continuous', rating_note='Dane i odniesienie do dokumentu podane przez autora.')
+        if 'sfc' not in p and 'engine_custom_sfc' in p:
+            p['sfc'] = p['engine_custom_sfc']
         if 'sfc' not in p:
             raise ValueError('Dane silnika: podaj SFC z dokumentacji producenta.')
         conditions = _text(p, 'engine_fuel_conditions', 'warunki punktu pracy (moc/ciąg, obroty, H/M)', 5)
@@ -95,6 +97,8 @@ def apply_engine_inputs(p):
         evidence['point'] = dict(id='custom', value=float(p['sfc']), unit=unit, conditions=conditions)
         key = 'engine_custom_thrust_kn' if engine == 'jet' else 'engine_custom_power_kw'
         rating = float(p.get(key, 0))
+        if rating <= 0 and engine == 'prop':
+            rating = float(p.get('engine_power_kw', 0)) / count
         if not math.isfinite(rating) or rating <= 0:
             raise ValueError('Dane silnika: podaj dodatnią moc ciągłą na silnik [kW] lub ciąg na silnik [kN].')
         evidence['rating_kn' if engine == 'jet' else 'rating_kw'] = rating

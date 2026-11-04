@@ -13,6 +13,8 @@ def launch_chromium(playwright, **options):
 
 
 def reveal_details(locator):
+    for body in locator.locator('xpath=ancestor::div[contains(@class,"module-body") and contains(@class,"collapsed")]').all():
+        body.locator('xpath=preceding-sibling::*[1]').click()
     for details in locator.locator('xpath=ancestor::details').all():
         if details.get_attribute('open') is None:
             details.locator(':scope > summary').click()
