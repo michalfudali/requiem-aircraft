@@ -9,7 +9,10 @@ DB defaults to BIPOL_AIRCRAFT_DB or data/aircraft/aircraft.sqlite3. Readable git
   git config diff.sqlite3.textconv "python tools/aircraft_db.py dump"
 """
 import argparse
+from contextlib import closing
 import json
+import os
+import sqlite3
 import sys
 from pathlib import Path
 
@@ -17,10 +20,8 @@ ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-from calculations import aircraft_store  # noqa: E402
-
-
 def check(path):
+    from calculations import aircraft_store
     with aircraft_store.connect(path) as con:
         integrity = con.execute('PRAGMA integrity_check').fetchone()[0]
         foreign_keys = con.execute('PRAGMA foreign_key_check').fetchall()
@@ -34,13 +35,18 @@ def check(path):
 
 
 def dump(path):
-    with aircraft_store.connect(path) as con:
+    # Git textconv applies to *both* stores and historical schema versions.
+    # Never import the app or run migrations just to display a diff.
+    with closing(sqlite3.connect(f'{Path(path).resolve().as_uri()}?mode=ro', uri=True)) as con:
+        con.execute('BEGIN')
+        print(f'PRAGMA user_version = {con.execute("PRAGMA user_version").fetchone()[0]};')
         for line in con.iterdump():
             print(line)
     return True
 
 
 def export(source_id, path):
+    from calculations import aircraft_store
     if source_id not in aircraft_store.load_sources(path):
         print(f'Nieznane źródło: {source_id}', file=sys.stderr)
         return False
@@ -58,6 +64,7 @@ def main():
     exporter.add_argument('source')
     exporter.add_argument('db', nargs='?', type=Path)
     args = parser.parse_args()
+    args.db = args.db or Path(os.environ.get('BIPOL_AIRCRAFT_DB') or ROOT / 'data/aircraft/aircraft.sqlite3')
     sys.stdout.reconfigure(encoding='utf-8')
     ok = export(args.source, args.db) if args.command == 'export' else {'check': check, 'dump': dump}[args.command](args.db)
     sys.exit(0 if ok else 1)

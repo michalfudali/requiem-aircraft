@@ -125,3 +125,21 @@ def test_next_case_sees_pristine_state():
     assert failure is not None and 'intentional isolation probe' in failure.get('message', ''), result.stdout
     assert cases[1].find('failure') is None, result.stdout
     assert cases[1].find('error') is None, result.stdout
+
+
+@pytest.mark.parametrize('store', [aircraft_store, project_store], ids=['aircraft', 'projects'])
+@pytest.mark.parametrize('version', [1, 3, 99])
+def test_git_textconv_reads_any_sqlite_store_without_migration_or_app_import(tmp_path, store, version):
+    path = tmp_path / 'git-snapshot.sqlite3'
+    backup(store.DEFAULT_PATH, path)
+    with closing(sqlite3.connect(path)) as con:
+        con.execute(f'PRAGMA user_version={version}')
+    before = path.read_bytes()
+    # Dumping a snapshot must even work when the application cannot import.
+    env = dict(os.environ, BIPOL_PROJECTS_DB=str(tmp_path / 'missing.sqlite3'), PYTHONUTF8='1')
+    result = subprocess.run([sys.executable, str(ROOT / 'tools/aircraft_db.py'), 'dump', str(path)],
+                            cwd=tmp_path, env=env, capture_output=True, text=True, encoding='utf-8')
+    assert result.returncode == 0, result.stderr
+    assert f'PRAGMA user_version = {version};' in result.stdout
+    assert ('CREATE TABLE aircraft' if store is aircraft_store else 'CREATE TABLE projects') in result.stdout
+    assert path.read_bytes() == before

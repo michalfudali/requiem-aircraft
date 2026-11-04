@@ -16,6 +16,13 @@ wersję 1, zachowując projekt użytkownika, 10 presetów, 13 kategorii i 110 te
 Katalog nadal ma swój schemat 3. Migracja katalogu teraz sprawdza tożsamość bazy
 przed wykonaniem jakiegokolwiek DDL.
 
+Lokalny `diff.sqlite3.textconv` był ustawiony na `python tools/aircraft_db.py dump`
+dla wszystkich plików SQLite. Ten eksport otwierał bazę przez migrator katalogu,
+co pozwalało uszkodzić schemat bazy projektów nawet przy zwykłym `git diff`.
+`dump` używa teraz bezpośrednio SQLite w `mode=ro`, bez importu aplikacji,
+obsługuje obie bazy i zachowuje `user_version` w eksporcie. Regresja sprawdza
+niezmienność pliku także dla historycznej wersji schematu i brakującej bazy aplikacji.
+
 ## Powtarzalne środowisko
 
 Polecenia wykonujemy w osobnym worktree. Python 3.11 jest wspólną wersją lokalną
