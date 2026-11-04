@@ -572,14 +572,6 @@ def project_report(p_id):
     context = document_context(results, sections, p_id == 'folder_cover')
     return (manual_gate(context) if sections else None) or finished(render_template('project_report.html', **context), results)
 
-@app.get('/api/openvsp/status')
-def openvsp_status():
-    """Sprawdza dostępność natywnego modułu Python API OpenVSP (openvsp)."""
-    from calculations.openvsp_integration import check_openvsp_availability
-    status_info = check_openvsp_availability()
-    return jsonify(status='ok', openvsp=status_info)
-
-
 @app.post('/api/openvsp/analyze')
 def openvsp_analyze():
     """Buduje model 3D w API OpenVSP i uruchamia natywne analizy OpenVSP (CompGeom, MassProp, ParasiteDrag, VSPAERO)."""
