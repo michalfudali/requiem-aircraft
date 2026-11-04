@@ -385,6 +385,8 @@ def solve_mass(p, payload, crew):
     domain_error = ('Równanie (1) nie daje fizycznego rozwiązania bilansu w zakresie modelu; '
                     'poszukiwanie ograniczono do dziesięciokrotności górnej masy próby. '
                     'Zmień misję lub dobierz reprezentatywne konstrukcje; nie ekstrapoluj prawa masy do innej klasy samolotu.')
+    if law['C'] >= 0:
+        domain_error += ' Sprawdź również założenie malejącego udziału masy pustej (C < 0).'
     if useful >= maximum_search_mass:
         raise ValueError(domain_error)
     # First physical sign crossing: do not clamp invalid extrapolated mass laws.
