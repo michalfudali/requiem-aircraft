@@ -4,6 +4,11 @@ from calculations.instructor import (CRUISE_LD_FACTOR, PASSENGER_WITH_BAG_KG,
                                      FLAP_TAKEOFF_DEFLECTION_DEG, FLAP_LANDING_DEFLECTION_DEG)
 
 NUMERIC_LIMITS = {
+    'airfield_elevation_m': (-500, 6000), 'airfield_delta_t_k': (-60, 60),
+    'service_ceiling_m': (0, 20000), 'ceiling_climb_rate_ms': (0, 20),
+    'turbine_inlet_temp_k': (300, 3000),
+    'cost_rate_rdte_per_month': (0.000001, 100000),
+    'cost_rate_production_per_month': (0.000001, 100000),
     'fuel_density_kg_l': (.5, 1.0), 'engine_custom_power_kw': (0, 100000),
     'engine_custom_thrust_kn': (0, 10000), 'engine_static_thrust_kn': (0, 10000),
     "n_pax": (0, 1000), "n_crew": (0, 20), "m_pax": (0, 500),
@@ -94,6 +99,8 @@ def validate_parameters(data):
     if not isinstance(data, dict):
         raise ValueError("Parametry projektu muszą być obiektem JSON.")
     p = {**DEFAULTS, **data}
+    if 'airfoil_source' in p and (not isinstance(p['airfoil_source'], str) or len(p['airfoil_source']) > 4000):
+        raise ValueError('Źródło profilu: podaj tekst do 4000 znaków.')
     # One comparison sample: the aircraft nearest in MTOW to the design (BIPOL_1, s. 1).
     for key in ('trend_reference_mode', 'mass_initial_guess'):
         p.pop(key, None)
@@ -194,6 +201,8 @@ def validate_parameters(data):
         if key in p and not float(p[key]).is_integer():
             raise ValueError(f'Pole {key}: wymagana liczba całkowita.')
     for key, allowed in {'trend_source': ('all', 'fast', 'cado', 'motogliders', 'geometry_trends', 'user'),
+                         'matching_design_mode': ('wing_limit', 'minimum_power', 'range'),
+                         'design_iteration_mode': ('preliminary', 'coupled'),
                          'wing_input_mode': ('loading', 'span_aspect', 'span_area', 'area_aspect'),
                          'payload_input_mode': ('seats', 'total'),
                          'airfoil_criterion': ('auto', 'cruise', 'lift'),

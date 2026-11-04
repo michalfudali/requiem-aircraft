@@ -812,9 +812,10 @@ def _p2_matching(s, r):
            'Ograniczenie z prędkości minimalnej', SOURCES['B2'] + ', wzór (10)',
            check=lambda v: .5 * v.rho0 * v.V_min ** 2 * v.Cz_L_2 / 1.1)
     candidates = [r'[[WS_Vmin]]']
+    s.given('sigma_lot', r'\sigma_{lot}', t['sigma_airfield'], '', 4,
+            'Gęstość względna na lotnisku z wysokości i odchyłki temperatury od ISA', 'ISA, założenia lotniska')
     if t['ws_landing'] is not None:
         s.given('s_L', 's_L', t['s_l'], M, 0, 'Długość lądowania znad przeszkody 15 m', 'Wymagania tematu')
-        s.given('sigma_lot', r'\sigma', 1.0, '', 1, 'Gęstość względna na lotnisku', SOURCES['B2'])
         s.calc('WS_L_lnd', r'\left(\tfrac{W}{S}\right)_{L,ląd}', r'\frac{\sigma C_{z\,max,L}\,(s_L-122)}{0{,}75}',
                r'\frac{[[sigma_lot]]\cdot[[Cz_L_2]]\cdot([[s_L]]-122)}{0{,}75}', t['ws_landing_l'], NM2, 1,
                'Ograniczenie z długości lądowania (dla masy do lądowania)', SOURCES['B2'] + ', wzór (3)',
@@ -837,7 +838,22 @@ def _p2_matching(s, r):
         s.calc('WS', r'\frac{W}{S}', r'\frac{m_0 g}{S}', r'\frac{[[m0]]\cdot[[g]]}{[[S]]}', dp['ws'], NM2, 1,
                'Obciążenie powierzchni dla zadanej powierzchni', check=lambda v: v.m0 * v.g / v.S)
     else:
-        if len(candidates) > 1:
+        mode = dp.get('selection_mode', 'wing_limit') if _powered(r) else 'wing_limit'
+        if mode == 'minimum_power':
+            ratio = r'T/W' if p['engine_type'] == 'jet' else r'P/W'
+            s.solve('WS', r'\frac{W}{S}',
+                    rf'\underset{{0<w\leq w_{{lim}}}}{{\arg\min}}\;\max_i\left({ratio}\right)_i(w)',
+                    dp['ws'], NM2, 1, 'Punkt A: minimum obwiedni wymagań napędu', SOURCES['B2'],
+                    note='Siatka 201 punktów i 60 kroków złotego podziału w otoczeniu najlepszego punktu. '
+                         'Ograniczenia W/S: prędkość minimalna i lądowanie; obwiednia zawiera aktywne wymagania misji. '
+                         'Wynik dotyczy wykresu wstępnego, przed uściśleniem osiągów.',
+                    deps=['WS_Vmin'] + (['WS_L'] if t['ws_landing'] is not None else []))
+        elif mode == 'range':
+            s.calc('WS', r'\frac{W}{S}', r'\min\{(W/S)_R;(W/S)_{lim}\}',
+                   r'\min\left\{[[WS_R]];' + ';'.join(candidates) + r'\right\}', dp['ws'], NM2, 1,
+                   'Punkt B z ograniczeniami prędkości minimalnej i lądowania', SOURCES['B2'],
+                   check=lambda v: min(v.WS_R, v.WS_Vmin, v.WS_L if t['ws_landing'] is not None else math.inf), tolerance=.11)
+        elif len(candidates) > 1:
             s.calc('WS', r'\frac{W}{S}', r'\min\left\{\left(\tfrac{W}{S}\right)_{V_{min}};\left(\tfrac{W}{S}\right)_{L}\right\}',
                    r'\min\left\{' + ';\\;'.join(candidates) + r'\right\}', dp['ws'], NM2, 1,
                    'Obciążenie powierzchni w punkcie projektowym', SOURCES['B2'],
@@ -881,8 +897,8 @@ def _p2_matching(s, r):
                 'Ograniczenie startu lądowego wyłączone; operacji wodnych nie wyznaczono', 'Zakres modelu')
     elif t['s_to']:
         s.given('s_TO', r's_{TO}', t['s_to'], M, 0, 'Długość startu do wysokości 15 m', 'Wymagania tematu')
-        s.calc('TOP', 'TOP', r'\frac{W/S}{C_{z\,max,TO}\,\sigma}', r'\frac{[[WS]]}{[[Cz_TO_2]]\cdot1}', dp['ws'] / t['cz_max_to'], NM2, 1,
-               'Parametr startu', SOURCES['B2'] + ', wzór (2)', check=lambda v: v.WS / v.Cz_TO_2)
+        s.calc('TOP', 'TOP', r'\frac{W/S}{C_{z\,max,TO}\,\sigma}', r'\frac{[[WS]]}{[[Cz_TO_2]]\cdot[[sigma_lot]]}', dp['ws'] / (t['cz_max_to'] * t['sigma_airfield']), NM2, 1,
+               'Parametr startu', SOURCES['B2'] + ', wzór (2)', check=lambda v: v.WS / (v.Cz_TO_2 * v.sigma_lot))
         tw_to = 0.133 * s.entries['TOP']['value'] / (t['s_to'] - 3.834 * math.sqrt(s.entries['TOP']['value']))
         s.calc('TW_TO', r'\left(\tfrac{T}{W}\right)_{TO}', r'\frac{0{,}133\,TOP}{s_{TO}-3{,}834\sqrt{TOP}}',
                r'\frac{0{,}133\cdot[[TOP]]}{[[s_TO]]-3{,}834\sqrt{[[TOP]]}}', tw_to, '', 4,
@@ -890,11 +906,11 @@ def _p2_matching(s, r):
                check=lambda v: .133 * v.TOP / (v.s_TO - 3.834 * math.sqrt(v.TOP)))
     else:
         s.given('s_roz', r's_{roz}', max(30.0, t['s_run']), M, 0, 'Długość rozbiegu', 'Wymagania tematu')
-        tw_to = 1.21 * dp['ws'] / (G0 * RHO0 * t['cz_max_to'] * max(30.0, t['s_run'])) + .04
-        s.calc('TW_TO', r'\left(\tfrac{T}{W}\right)_{TO}', r'\frac{1{,}21\,W/S}{g\rho_0C_{z\,max,TO}s_{roz}}+\mu',
-               r'\frac{1{,}21\cdot[[WS]]}{[[g]]\cdot[[rho0]]\cdot[[Cz_TO_2]]\cdot[[s_roz]]}+0{,}04', tw_to, '', 4,
+        tw_to = 1.21 * dp['ws'] / (G0 * RHO0 * t['sigma_airfield'] * t['cz_max_to'] * max(30.0, t['s_run'])) + .04
+        s.calc('TW_TO', r'\left(\tfrac{T}{W}\right)_{TO}', r'\frac{1{,}21\,W/S}{g\rho_0\sigma_{lot}C_{z\,max,TO}s_{roz}}+\mu',
+               r'\frac{1{,}21\cdot[[WS]]}{[[g]]\cdot[[rho0]]\cdot[[sigma_lot]]\cdot[[Cz_TO_2]]\cdot[[s_roz]]}+0{,}04', tw_to, '', 4,
                'Ciąg względny do rozbiegu (wzór zastępczy, μ = 0,04)',
-               check=lambda v: 1.21 * v.WS / (v.g * v.rho0 * v.Cz_TO_2 * v.s_roz) + .04)
+               check=lambda v: 1.21 * v.WS / (v.g * v.rho0 * v.sigma_lot * v.Cz_TO_2 * v.s_roz) + .04)
     tw_cl = t['q_climb'] * t['cx0'] / dp['ws'] + dp['ws'] * t['k_ind'] / t['q_climb'] + t['gradient']
     s.calc('TW_wzn', r'\left(\tfrac{T}{W}\right)_{wzn}', r'\frac{q_{wzn}C_{x0}}{W/S}+\frac{W/S}{q_{wzn}\pi\Lambda e}+G',
            rf'\frac{{[[q_wzn]]\cdot{cx0}}}{{[[WS]]}}+[[WS]]\cdot\frac{{[[k_1]]}}{{[[q_wzn]]}}+[[G_wzn]]', tw_cl, '', 4,

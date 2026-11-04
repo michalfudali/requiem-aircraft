@@ -1,0 +1,16 @@
+.p2-steps,.p2-actions {display:flex;flex-wrap:wrap;gap:.65rem;margin:1rem 0;}
+.p2-steps button {border:1px solid var(--border-color,#cbd5e1);border-radius:.6rem;background:var(--card-bg,#fff);color:inherit;padding:.65rem .9rem;cursor:pointer;}
+.p2-decisions .b-card-body {padding:1.1rem;}
+.p2-option-group {margin:.7rem 0;border:1px solid var(--border-color,#cbd5e1);border-radius:.5rem;padding:.8rem;}
+.p2-option-group summary {font-weight:600;cursor:pointer;}
+.p2-option-group .cost-controls {margin-top:.75rem;}
+#tab-feasibility .project-hero-header {border-radius:.8rem;}
+#tab-feasibility .cost-controls,#p2AirfoilEditor .cost-controls {grid-template-columns:repeat(auto-fit,minmax(min(100%,250px),1fr));}
+#panel-p2 .cost-controls {grid-template-columns:repeat(auto-fit,minmax(min(100%,250px),1fr));}
+#panel-p2 .cost-controls .studio-field {min-width:0;}
+#panel-p2 .cost-controls .cost-qc {grid-column:1 / -1;}
+#p2AirfoilEditor {padding:1rem 0;}
+.p2-profile-note {font-size:.88rem;color:var(--text-secondary,#475569);}
+.p2-profile-preview svg {max-width:100%;height:auto;}
+#p2ProfileStatus {min-height:1.5em;}
+@media(max-width:600px){#tab-feasibility .subpoint-body,#tab-feasibility .project-hero-header{padding:.8rem;}#tab-feasibility .project-workstation>div:last-child{padding:.5rem!important;}.p2-actions .btn,.p2-steps button{width:100%;}}

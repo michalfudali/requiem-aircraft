@@ -130,7 +130,8 @@ def user_projects():
 
 def index_page(**extra):
     """Main page: course data from the projects database, examples from the aircraft database."""
-    return render_template('index.html', presets=AIRCRAFT_PRESETS, categories=OFFICIAL_CATEGORIES, topics=ALL_TOPICS,
+    from calculations.design_controls import controls
+    return render_template('index.html', design_controls=controls(), presets=AIRCRAFT_PRESETS, categories=OFFICIAL_CATEGORIES, topics=ALL_TOPICS,
                            projects=user_projects(), wetted_examples=aircraft_store.wetted_area_examples(),
                            model_examples=aircraft_store.model_examples(), **extra)
 

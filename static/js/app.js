@@ -955,6 +955,8 @@ function collectFormData() {
   inputs.forEach(input => {
     if (!input.id || input.type === 'checkbox') return;
     const val = input.value;
+    if (input.hasAttribute('data-optional-param') && val.trim() === '') { delete data[input.id]; return; }
+    if (input.hasAttribute('data-boolean-param')) { data[input.id] = val === 'true'; return; }
     if (input.type === 'number') {
       data[input.id] = parseFloat(val);
     } else {
@@ -978,6 +980,7 @@ function collectFormData() {
   data['locked_params'] = Array.from(window.userLockedParams || []);
   const basis = window.BipolDesignBasis ? BipolDesignBasis.collect(data) : data;
   const mission = window.Bipol1 ? Bipol1.collect(basis) : basis;
+  window.BipolP2?.validate();
   return window.BipolEngineFuel ? BipolEngineFuel.collect(mission) : mission;
 }
 
@@ -2033,6 +2036,7 @@ function loadProjectIntoForm(project) {
   }
 
   window.BipolDesignBasis?.restore(params);
+  window.BipolP2?.restore(params);
 
   const pnd = document.getElementById('projectNameDisplay');
   if (pnd) pnd.textContent = project.name;
@@ -3419,6 +3423,7 @@ function selectSemesterProject(pId) {
   if (currentResults) {
     renderSemesterProjectCharts(pId, currentResults);
   }
+  document.dispatchEvent(new CustomEvent('bipol:semester', {detail: pId}));
 }
 
 function renderSemesterProjectCharts(pId, res) {

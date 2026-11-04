@@ -17,6 +17,7 @@
   <link rel="stylesheet" href="/static/css/coursework.css?v=8">
   <link rel="stylesheet" href="/static/css/modern-ui.css?v=1">
   <link rel="stylesheet" href="/static/css/manual-control.css?v=1">
+  <link rel="stylesheet" href="/static/css/feasibility.css?v=1">
   <script>
     (function () {
       try {
@@ -187,6 +188,7 @@
           <button class="bipol-tab" data-target="tab-glide">Lot szybowy</button>
           <button class="bipol-tab" data-target="tab-trends">Baza i trendy</button>
           <button class="bipol-tab" data-target="tab-cad">📐 CAD A3Z</button>
+          <button class="bipol-tab" data-target="tab-feasibility">Studium wykonalności P2</button>
           <button class="bipol-tab" data-target="tab-p1-p2">📦 P1/P2: MTOW & Matching</button>
           <button class="bipol-tab" data-target="tab-p3">📐 P3: Wymiarowanie & Schrenk</button>
           <button class="bipol-tab" data-target="tab-p4">🦅 P4: Biegunowe & Mechanizacja</button>
@@ -199,6 +201,7 @@
         {% include "studio_panels.html" %}
         {% include "coursework_panel.html" %}
         {% include "calculation_tree.html" %}
+        {% include "feasibility_panel.html" %}
 
         <!-- MODUŁ CAD: RYSUNEK ZESTAWIENIOWY WG POLSKICH NORM CAD (ZPK MEiL PW / PN-EN ISO) -->
         <div id="tab-cad" class="tab-content">
@@ -1295,6 +1298,7 @@
                   <p style="font-size:0.86rem; color:#475569; margin-bottom:0.6rem;">
                     Re w przelocie: <strong id="p2_re_val">---</strong> &bull; M_max: <strong id="p2_mach_val">---</strong> &bull; Rekomendowany katalog: <strong id="p2_catalog_val">---</strong> &bull; Cz_proj = <strong id="p2_czproj_val">---</strong>.
                   </p>
+                  <div id="p2AirfoilEditorHost">{% include "p2_airfoil_editor.html" %}</div>
                   <details class="airfoil-paste" id="p2AirfoilControls"><summary>Wpisz dane 3–4 profili z katalogu (BIPOL_3, kroki 7–9)</summary>
                     <label class="studio-field" for="airfoil_comparison">Jeden profil w wierszu: nazwa; C<sub>x,min</sub>; C<sub>x</sub>(C<sub>z,proj</sub>); C<sub>z,max</sub>; przeciągnięcie — średnik lub tabulator, przecinek dziesiętny dozwolony (zapisywane w projekcie)<textarea id="airfoil_comparison" data-analysis-param rows="5" spellcheck="false" maxlength="4000" placeholder="NACA 23012; 0,0062; 0,0071; 1,55; umiarkowane, ostrzeżenie drganiami"></textarea></label>
                     <div class="cost-controls">
@@ -1442,14 +1446,7 @@
                     <div style="background:#f8fafc; padding:0.75rem; border-radius:6px; border:1px solid #e2e8f0; font-size:0.84rem;">
                       <strong>Rysunek wybranego profilu skrzydła (c = 200 mm):</strong>
                       <p id="p3_airfoil_desc" style="margin:4px 0;">Profil do wykreślenia na arkuszu z rysunkiem samolotu, w skali 1:1.</p>
-                      <div class="airfoil-controls">
-                        <label class="studio-field" for="airfoil">Oznaczenie profilu (zapisywane w projekcie)<input id="airfoil" data-analysis-param type="text" maxlength="80" placeholder="np. NACA 23012" autocomplete="off"></label>
-                        <button type="button" class="btn btn-outline-sm" id="btn_fetch_airfoil" onclick="fetchAirfoil200mm()">📐 Wyznacz rzędne</button>
-                      </div>
-                      <details class="airfoil-paste"><summary>Wklej rzędne z katalogu (Wortmann, NASA SC(2), Clark Y i inne)</summary>
-                        <label class="studio-field" for="airfoil_coordinates">Plik .dat w formacie Seliga lub Lednicera: nazwa w pierwszym wierszu, dalej pary x y (zapisywane w projekcie)<textarea id="airfoil_coordinates" data-analysis-param rows="6" spellcheck="false" maxlength="60000"></textarea></label>
-                        <button type="button" class="btn btn-outline-sm" onclick="fetchAirfoil200mm(true)">Przeskaluj do 200 mm</button>
-                      </details>
+                      <div id="p3AirfoilEditorHost"></div>
                       <div id="p3_airfoil_svg_container" style="margin:10px 0;"></div>
                       <p data-profile-thickness-summary class="table-note"></p>
                       <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin-top:8px;">
@@ -2550,5 +2547,6 @@
   <script src="/static/js/modern-ui.js?v=3"></script>
   <script src="/static/js/manual-control.js?v=1"></script>
   <script src="/static/js/engine-fuel.js?v=1"></script>
+  <script src="/static/js/feasibility.js?v=1"></script>
 </body>
 </html>

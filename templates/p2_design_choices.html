@@ -1,0 +1,26 @@
+<section class="b-card p2-decisions" id="p2DesignDecisions" aria-labelledby="p2DecisionsTitle">
+  <div class="b-card-header"><h2 id="p2DecisionsTitle">Decyzje projektowe</h2></div>
+  <div class="b-card-body">
+    <p>Start i lądowanie odnoszą się do wysokości 15 m. Masa do lądowania i masa w połowie przelotu pochodzą z bilansu misji. Wymagania prędkości i wznoszenia zmienisz w założeniach podstawowych.</p>
+    <div class="cost-controls">
+      <label class="studio-field" for="matching_design_mode">Wybór punktu na wykresie P2<select id="matching_design_mode" data-analysis-param><option value="wing_limit">Granica dopuszczalnego W/S — najmniejsza powierzchnia</option><option value="minimum_power">Punkt A — najmniejsze wymagane P/W lub T/W</option><option value="range">Punkt B — optimum zasięgu z ograniczeniami W/S</option></select></label>
+      <label class="studio-field" for="turbocharged">Wysokościowa charakterystyka silnika tłokowego<select id="turbocharged" data-analysis-param data-boolean-param><option value="false">Bez doładowania</option><option value="true">Doładowany — model do 4500 m</option></select></label>
+    </div>
+    <p id="p2DecisionStatus" class="table-note" role="status"></p>
+    <button type="button" class="btn btn-outline-sm" data-p2-focus="design_iteration_mode">Wybierz bilans wstępny lub uściślony P2 ↔ P4</button>
+    <details id="extraDesignControls"><summary>Pozostałe założenia: lotnisko, holowanie, usterzenie, ładownia i koszty</summary>
+      <p class="table-note">Puste pole pozostawia założenie stosowane przez wybraną metodę. Własne wartości są zapisywane w projekcie. Wymiary ładowni podaj wszystkie trzy albo wszystkie pozostaw równe zero.</p>
+      {% for group in design_controls %}
+      <details class="p2-option-group" id="design-group-{{ group.id }}"><summary>{{ group.title }}</summary>
+        <div class="cost-controls">
+        {% for field in group.fields %}
+          <label class="studio-field" for="{{ field.id }}">{{ field.label }}<input id="{{ field.id }}" data-analysis-param data-optional-param type="number" min="{{ field.min }}" max="{{ field.max }}" step="any" placeholder="Wartość wg metody"></label>
+        {% endfor %}
+        </div>
+      </details>
+      {% endfor %}
+    </details>
+    <div class="p2-actions"><button type="button" class="btn btn-primary" data-p2-calculate>Przelicz studium wykonalności</button><button type="button" class="btn btn-outline" data-studio-target="tab-p1-p2">Wybierz silnik i dane zużycia paliwa</button><button type="button" class="btn btn-outline" data-p2-focus="wing_input_mode">Geometria skrzydła i mechanizacja</button><button type="button" class="btn btn-outline" data-p2-focus="operating_surface">Start z wody / lądu</button><button type="button" class="btn btn-outline" data-p2-focus="cargo_bay_length_m">Wymiary ładowni</button></div>
+    <p class="table-note">BIPOL_2: wykres ograniczeń, wzory (1)–(12); koszty i tempo obu faz, wzory (13)–(21). Ustawienia usterzenia i ładowni są wspólne z P3.</p>
+  </div>
+</section>

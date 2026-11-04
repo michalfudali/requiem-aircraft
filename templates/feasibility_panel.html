@@ -1,0 +1,10 @@
+<section id="tab-feasibility" class="tab-content studio-panel">
+  <div class="studio-heading"><div><h1>Studium wykonalności · P2</h1><p>Dobierz skrzydło, profil i napęd, sprawdź wymagania, a następnie koszty rozwoju i produkcji.</p></div><button type="button" class="btn btn-outline" data-studio-target="tab-inputs">Założenia podstawowe</button></div>
+  <nav class="p2-steps" aria-label="Etapy studium wykonalności">
+    <button type="button" data-p2-focus="p2DesignDecisions">1. Wymagania i punkt projektowy</button>
+    <button type="button" data-p2-focus="airfoil">2. Profil i mechanizacja</button>
+    <button type="button" data-p2-focus="p2CostControls">3. Koszty</button>
+  </nav>
+  <div id="p2DecisionsHost">{% include 'p2_design_choices.html' %}</div>
+  <div id="p2StudioHost"></div>
+</section>

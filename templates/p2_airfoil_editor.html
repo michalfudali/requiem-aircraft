@@ -1,0 +1,17 @@
+<div id="p2AirfoilEditor">
+  <label class="studio-field" for="p2AirfoilSelect">Wybierz profil<select id="p2AirfoilSelect"><option value="">Wstępny kandydat wg Re i Macha</option><option value="NACA 0012">NACA 0012 — geometria analityczna</option><option value="NACA 2412">NACA 2412 — geometria analityczna</option><option value="NACA 2415">NACA 2415 — geometria analityczna</option><option value="NACA 23012">NACA 23012 — geometria analityczna</option><option value="NACA 4412">NACA 4412 — geometria analityczna</option><option value="__custom__">Inny profil / własne oznaczenie</option></select></label>
+  <p class="p2-profile-note">Wybór oznaczenia określa geometrię profilu. Do oceny oporu i przeciągnięcia potrzebujesz biegunowych dla projektowych Re i Macha. NACA 4- i 5-cyfrowe mają rzędne analityczne; inne profile wymagają pliku .dat.</p>
+                      <div class="airfoil-controls">
+                        <label class="studio-field" for="airfoil">Oznaczenie profilu (zapisywane w projekcie)<input id="airfoil" data-analysis-param type="text" maxlength="80" placeholder="np. NACA 23012" autocomplete="off"></label>
+                        <button type="button" class="btn btn-outline-sm" id="btn_fetch_airfoil" onclick="fetchAirfoil200mm()">📐 Wyznacz rzędne</button>
+                      </div>
+                      <details class="airfoil-paste"><summary>Wklej rzędne z katalogu (Wortmann, NASA SC(2), Clark Y i inne)</summary>
+                        <label class="studio-field" for="airfoil_coordinates">Plik .dat w formacie Seliga lub Lednicera: nazwa w pierwszym wierszu, dalej pary x y (zapisywane w projekcie)<textarea id="airfoil_coordinates" data-analysis-param rows="6" spellcheck="false" maxlength="60000"></textarea></label>
+                        <button type="button" class="btn btn-outline-sm" onclick="fetchAirfoil200mm(true)">Przeskaluj do 200 mm</button>
+                      </details>
+
+  <label class="studio-field" for="airfoil_source">Źródło rzędnych i charakterystyk profilu<input id="airfoil_source" data-analysis-param type="text" maxlength="4000" placeholder="Katalog, strona, Re, Mach, warunki pomiaru"></label>
+  <label class="studio-field" for="p2AirfoilFile">Importuj rzędne .dat / .txt<input id="p2AirfoilFile" type="file" accept=".dat,.txt,text/plain"></label>
+  <p id="p2ProfileStatus" class="p2-profile-note" role="status" aria-live="polite"></p>
+  <button type="button" class="btn btn-primary" data-p2-calculate>Zastosuj profil i przelicz projekt</button>
+</div>

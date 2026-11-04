@@ -41,6 +41,7 @@
 <p>Względna reszta bilansu masy wynosi {{ (100*ma.mass_residual_relative)|reportnum(5) }}% (wymóg zbieżności &lt; 0,1%).</p>
 {% if m.payload_range %}<h4>Wymiana masy płatnej na paliwo</h4><p>Przy stałej masie startowej i masie własnej rezygnacja z jednego pasażera z bagażem zwalnia {{ (params.m_pax + params.get('m_bag',0))|reportnum(0) }} kg na dodatkowe paliwo. Zasięg ogranicza wtedy bilans masy; pojemność zbiorników wymaga osobnego sprawdzenia.</p><table><caption>Zasięg ograniczony masą przy zmianie liczby pasażerów</caption><thead><tr><th class="number">Pasażerowie</th><th class="number">Masa płatna [kg]</th><th class="number">Paliwo [kg]</th><th class="number">Zasięg [km]</th></tr></thead><tbody>{% for row in m.payload_range %}<tr><td class="number">{{ row.passengers }}</td><td class="number">{{ row.payload_kg|reportnum(1) }}</td><td class="number">{{ row.fuel_kg|reportnum(1) }}</td><td class="number">{{ row.range_km|reportnum(0) }}</td></tr>{% endfor %}</tbody></table>{% endif %}
 <h3>Wykres doboru — obciążenie powierzchni i powierzchnia nośna</h3>
+{% if dp.selection_note %}<p>{{ dp.selection_note }}</p>{% endif %}
 {% set sz = res.sizing %}{% set sa = sz.assumptions %}
 <p>Wykres doboru wyznacza dopuszczalne granice obciążenia powierzchni i napędu dla kolejnych faz lotu {{ cite('galinski_sw') }}{% if doc.powered %}{{ xref('fig-matching') }}{% endif %}. Wymiarującym warunkiem obciążenia powierzchni jest {{ dp.limit_by }}.</p>
 {{ c.section(sheet, 'p2.matching') }}
@@ -60,6 +61,7 @@
 <figure id="fig-matching"><div id="repMatching"></div><figcaption>Wykres doboru obciążenia powierzchni i {{ 'ciągu' if params.engine_type == 'jet' else 'mocy' }} z zaznaczonym punktem projektowym.</figcaption></figure>
 {% endif %}
 <h3>Wstępny wybór profilu</h3>
+{% if af.source %}<p>Źródło rzędnych i charakterystyk podane przez autora: {{ af.source }}.</p>{% endif %}
 <p>Profil skrzydła dobrano do warunków przelotowych: obliczeniowej liczby Reynoldsa, liczby Macha oraz współczynnika siły nośnej.</p>
 {{ c.section(sheet, 'p2.airfoil') }}
 {% if af.comparison_by_author %}<p>Porównano {{ af.candidates|length }} profili na podstawie danych katalogowych dla obliczonych liczb Reynoldsa i Macha {{ cite('abbott') }}{{ xref('tab-airfoil-candidates') }}. Kryterium wyboru: {{ af.criterion_label }}. Najlepszy według kryterium jest profil {{ af.best_airfoil }}; przyjęto {{ af.selected_airfoil }}.{% if af.best_airfoil != af.selected_airfoil %} Wybór innego profilu niż najlepszy uzasadnia przebieg przeciągnięcia i pozostałe wymagania.{% endif %}</p>{% else %}<p>Jako profil skrzydła przyjęto {{ af.selected_airfoil }}. W tabeli{{ xref('tab-airfoil-candidates', ' ', '') }} porównano go z profilami alternatywnymi {{ cite('abbott') }}.</p>{% endif %}
