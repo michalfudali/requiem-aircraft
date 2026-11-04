@@ -121,6 +121,7 @@ def test_next_case_sees_pristine_state():
     assert result.returncode == 1, result.stdout + result.stderr
     cases = ET.parse(tmp_path / 'probe.xml').findall('.//testcase')
     assert len(cases) == 2
-    assert cases[0].find('failure') is not None
+    failure = cases[0].find('failure')
+    assert failure is not None and 'intentional isolation probe' in failure.get('message', ''), result.stdout
     assert cases[1].find('failure') is None, result.stdout
     assert cases[1].find('error') is None, result.stdout
