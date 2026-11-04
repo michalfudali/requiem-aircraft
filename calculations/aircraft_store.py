@@ -194,6 +194,10 @@ def connect(path=None):
     con = _open(path, 'rw')
     try:
         version = con.execute('PRAGMA user_version').fetchone()[0]
+        # Only a comparison-aircraft catalogue is upgraded; any other SQLite file (e.g. the
+        # projects database, also at schema version 1) is refused instead of receiving tables.
+        if not con.execute("SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = 'aircraft'").fetchone():
+            raise RuntimeError(f'Plik {path} nie jest bazą samolotów porównawczych (brak tabeli aircraft).')
         # Upgrade in place: new tables only add data, existing records stay unchanged.
         for old, tables in ((1, REFERENCE_TABLES), (2, ENGINE_TABLES)):
             if version == old:
