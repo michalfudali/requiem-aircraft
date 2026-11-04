@@ -25,9 +25,12 @@ Serwer nasłuchuje domyślnie tylko na `127.0.0.1:5000`. Zmienne środowiskowe:
 `FLASK_DEBUG=1` (debugger Werkzeuga). Debuggera nie włączaj razem z `HOST=0.0.0.0`,
 bo pozwala on wykonać dowolny kod na komputerze z serwerem.
 
-Testy regresji: `py -3.11 -m pip install -r requirements-dev.txt`, potem `py -3.11 -m pytest tests -q`.
-Testy narzędzi pracowni: `node --test tests/studio_core.test.mjs tests/aircraft_project.test.mjs`
-(Node 20, bez zależności npm). Oba zestawy uruchamia GitHub Actions (`.github/workflows/tests.yml`).
+Testy regresji: `python -m pip install -r requirements-dev.txt -c requirements-test-constraints.txt`,
+potem `python tools/check_databases.py` oraz `python -m pytest -q -n 2 --dist=loadfile`.
+Wszystkie testy JavaScript uruchamia `python tools/run_js_tests.py` (Node 24, bez pakietów npm).
+GitHub Actions sprawdza Linux, Windows, Python 3.11/3.13 i rzeczywiste scenariusze Chromium.
+Izolacja obu baz, pokrycie, raporty JUnit i uruchomienie testów przeglądarkowych:
+[`docs/TESTING.md`](docs/TESTING.md).
 Raporty są dokumentami HTML, które można wydrukować do PDF w przeglądarce.
 
 **Mechanika Lotu I:** osobny zeszyt `/ml1` przyjmuje dane znanego samolotu,

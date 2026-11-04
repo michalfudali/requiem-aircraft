@@ -1,2 +1,4 @@
 -r requirements.txt
 pytest>=9.1,<10
+pytest-xdist>=3.8,<4
+pytest-cov>=7,<8

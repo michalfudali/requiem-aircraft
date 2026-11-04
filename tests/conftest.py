@@ -1,35 +1,58 @@
-"""Shared test fixtures for BIPOL Studio E2E and unit test suites."""
+"""Worker-local databases, automatic rollback and opt-in browser acceptance tests."""
 import atexit
-import os
-import shutil
+from contextlib import ExitStack, closing
+from copy import deepcopy
 import sqlite3
-import tempfile
-from contextlib import closing
-from pathlib import Path
 
 import pytest
 
-from calculations import aircraft_store
+from database_sandbox import DatabaseSandbox
 
-# Tests never write to the committed catalogue. They use a private copy, set before the
-# application is imported; subprocesses inherit it through the environment variable.
-_TEST_DIR = Path(tempfile.mkdtemp(prefix='bipol-aircraft-'))
-PRISTINE_DB = _TEST_DIR / 'pristine.sqlite3'
-TEST_DB = _TEST_DIR / 'aircraft.sqlite3'
-shutil.copyfile(aircraft_store.DEFAULT_PATH, PRISTINE_DB)
-shutil.copyfile(PRISTINE_DB, TEST_DB)
-os.environ['BIPOL_AIRCRAFT_DB'] = str(TEST_DB)
-atexit.register(shutil.rmtree, _TEST_DIR, ignore_errors=True)
+# This must precede *all* calculations/app imports, including in xdist workers.
+SANDBOX = DatabaseSandbox()
+atexit.register(SANDBOX.close)
 
 from app import app  # noqa: E402
 from calculations.trends import load_aircraft  # noqa: E402
+from calculations.engine_fuel import _catalog  # noqa: E402
 
 
-def restore_test_database():
-    """Copy the pristine catalogue into the test database through SQLite (safe with open readers)."""
-    with closing(sqlite3.connect(PRISTINE_DB)) as source, closing(sqlite3.connect(TEST_DB, timeout=30)) as target:
-        source.backup(target)
-    load_aircraft.cache_clear()
+def pytest_addoption(parser):
+    parser.addoption('--browser', action='store_true', help='Include real Chromium acceptance tests')
+
+
+def pytest_collection_modifyitems(config, items):
+    if not config.getoption('--browser'):
+        selected = [item for item in items if 'browser' not in item.keywords]
+        deselected = [item for item in items if 'browser' in item.keywords]
+        items[:] = selected
+        config.hook.pytest_deselected(items=deselected)
+
+
+@pytest.fixture(autouse=True)
+def restore_shared_state():
+    """Restore modified stores even if a test forgot isolated_db or failed.
+
+    A retained connection sees commits by other connections and subprocesses,
+    including WAL. Read-only tests need no database copy.
+    """
+    config = deepcopy(dict(app.config))
+    with ExitStack() as stack:
+        monitors = {key: stack.enter_context(closing(sqlite3.connect(path)))
+                    for key, path in SANDBOX.paths.items()}
+        versions = {key: con.execute('PRAGMA data_version').fetchone()[0] for key, con in monitors.items()}
+        try:
+            yield
+        finally:
+            changed = [key for key, con in monitors.items()
+                       if con.execute('PRAGMA data_version').fetchone()[0] != versions[key]]
+            stack.close()
+            for key in changed:
+                SANDBOX.restore(key)
+            load_aircraft.cache_clear()
+            _catalog.cache_clear()
+            app.config.clear()
+            app.config.update(config)
 
 
 @pytest.fixture
@@ -42,8 +65,5 @@ def client():
 
 @pytest.fixture
 def isolated_db():
-    """Restores the test catalogue after the test, whatever the test changed."""
-    try:
-        yield
-    finally:
-        restore_test_database()
+    """Compatibility fixture; isolation now applies to every test and both stores."""
+    yield
