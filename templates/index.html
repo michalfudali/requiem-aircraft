@@ -17,6 +17,7 @@
   <link rel="stylesheet" href="/static/css/coursework.css?v=8">
   <link rel="stylesheet" href="/static/css/modern-ui.css?v=1">
   <link rel="stylesheet" href="/static/css/manual-control.css?v=1">
+  <link rel="stylesheet" href="/static/css/openvsp.css?v=1">
   <script>
     (function () {
       try {
@@ -187,6 +188,7 @@
           <button class="bipol-tab" data-target="tab-glide">Lot szybowy</button>
           <button class="bipol-tab" data-target="tab-trends">Baza i trendy</button>
           <button class="bipol-tab" data-target="tab-cad">📐 CAD A3Z</button>
+          <button class="bipol-tab" data-target="tab-openvsp">🛸 OpenVSP 3D / API</button>
           <button class="bipol-tab" data-target="tab-p1-p2">📦 P1/P2: MTOW & Matching</button>
           <button class="bipol-tab" data-target="tab-p3">📐 P3: Wymiarowanie & Schrenk</button>
           <button class="bipol-tab" data-target="tab-p4">🦅 P4: Biegunowe & Mechanizacja</button>
@@ -197,6 +199,7 @@
 
         {% include "inputs_panel.html" %}
         {% include "studio_panels.html" %}
+        {% include "openvsp_panel.html" %}
         {% include "coursework_panel.html" %}
         {% include "calculation_tree.html" %}
 
@@ -2550,5 +2553,6 @@
   <script src="/static/js/modern-ui.js?v=3"></script>
   <script src="/static/js/manual-control.js?v=1"></script>
   <script src="/static/js/engine-fuel.js?v=1"></script>
+  <script src="/static/js/openvsp.js?v=1"></script>
 </body>
 </html>

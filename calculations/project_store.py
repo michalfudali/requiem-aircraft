@@ -69,7 +69,7 @@ def connect(path=None, create=False):
     try:
         if not create:
             version = con.execute('PRAGMA user_version').fetchone()[0]
-            if version != SCHEMA_VERSION:
+            if version not in (SCHEMA_VERSION, 3):
                 raise RuntimeError(f'Nieobsługiwana wersja schematu bazy projektów: {version} (oczekiwano {SCHEMA_VERSION}).')
         yield con
     finally:

@@ -17,7 +17,7 @@
     {% endfor %}
     <button type="button" class="studio-nav-item" data-studio-nav="tab-calculation-tree"><span data-studio-icon="layers"></span><span>Drzewo obliczeń</span></button>
     <details class="quiet-nav-group" id="analysisNavigation"><summary>Analizy szczegółowe</summary>
-      {% for target, icon, label in [('tab-p1-p2','target','Masy i napęd'),('tab-p3','wing','Geometria i wyważenie'),('tab-p4','chart','Aerodynamika'),('tab-p5','clock','Osiągi'),('tab-glide','glider','Lot szybowy'),('tab-p6','shield','Obwiednia obciążeń'),('tab-compliance','check','Weryfikacja')] %}
+      {% for target, icon, label in [('tab-openvsp','layers','OpenVSP 3D i API'),('tab-p1-p2','target','Masy i napęd'),('tab-p3','wing','Geometria i wyważenie'),('tab-p4','chart','Aerodynamika'),('tab-p5','clock','Osiągi'),('tab-glide','glider','Lot szybowy'),('tab-p6','shield','Obwiednia obciążeń'),('tab-compliance','check','Weryfikacja')] %}
       <button type="button" class="studio-nav-item" data-studio-nav="{{ target }}"><span data-studio-icon="{{ icon }}"></span><span>{{ label }}</span></button>
       {% endfor %}
     </details>

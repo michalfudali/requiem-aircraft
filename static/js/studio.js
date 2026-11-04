@@ -3,7 +3,7 @@
   'use strict';
   const {escape: esc, format: fmt, filename, snapshot, metrics, csv, resultRows} = BipolStudio;
   const VARIANTS_KEY = 'bipol_studio_variants_v1';
-  const wideTabs = new Set(['tab-overview', 'tab-inputs', 'tab-calculation-tree', 'tab-variants', 'tab-reports', 'tab-glide', 'tab-methods', 'tab-trends', 'tab-coursework', 'tab-exam', 'tab-quiz']);
+  const wideTabs = new Set(['tab-overview', 'tab-inputs', 'tab-calculation-tree', 'tab-variants', 'tab-reports', 'tab-glide', 'tab-methods', 'tab-trends', 'tab-coursework', 'tab-exam', 'tab-quiz', 'tab-openvsp']);
   let view = 'iso', fresh = false, resultProject = null, messageTimer;
   let aircraftModel, aircraftResult, aircraftCamera = BipolAircraftPreview.camera(), aircraftFrame;
   let aircraftProportions = 'concept';
@@ -467,6 +467,11 @@
     });
     document.addEventListener('bipol:project', () => { fresh = false; loadEditorial(); renderComparison(); $('studioResultStatus').textContent = 'Oczekiwanie na obliczenia'; renderProjectGuidance(); });
     document.addEventListener('bipol:tab', syncNavigation);
+    document.addEventListener('bipol:tab', () => {
+      if (document.querySelector('.tab-content.active')?.id === 'tab-openvsp' && window.OpenVSPStudio?.redraw3D) {
+        requestAnimationFrame(() => window.OpenVSPStudio.redraw3D());
+      }
+    });
     document.addEventListener('bipol:tab', loadParameterCatalog);
     document.addEventListener('bipol:results', loadParameterCatalog);
     document.addEventListener('bipol:mode', syncNavigation);

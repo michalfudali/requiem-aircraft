@@ -73,6 +73,7 @@
     { type: 'tab', target: 'tab-inputs', icon: '⚙️', title: 'Założenia i wymagania taktyczno-techniczne', tag: 'Dane wejściowe' },
     { type: 'tab', target: 'tab-trends', icon: '📈', title: 'Baza samolotów i trendy statystyczne', tag: 'Statystyka' },
     { type: 'tab', target: 'tab-cad', icon: '📐', title: 'Rysunek zestawieniowy CAD A3Z (3 rzuty)', tag: 'Geometria' },
+    { type: 'tab', target: 'tab-openvsp', icon: '🛸', title: 'OpenVSP 3D Studio, Solwery VSPAERO i Katalog 1094 Funkcji API', tag: 'OpenVSP 3D / API' },
     { type: 'tab', target: 'tab-variants', icon: '⚖️', title: 'Porównanie wariantów konstrukcyjnych', tag: 'Warianty' },
     { type: 'tab', target: 'tab-calculation-tree', icon: '🌳', title: 'Drzewo obliczeń i graf zależności', tag: 'Metodyka' },
     { type: 'tab', target: 'tab-p1-p2', icon: '📦', title: 'P1/P2: Bilans mas i wykres dopasowania (Matching Chart)', tag: 'Masy i napęd' },
