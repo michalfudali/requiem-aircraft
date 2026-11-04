@@ -8,7 +8,7 @@ from math import isclose
 from calculations.ballast import ballast_model, solve_ballast
 
 FAA_SOURCE = 'https://www.faa.gov/sites/faa.gov/files/2023-09/Weight_Balance_Handbook.pdf'
-CS22_SOURCE = 'https://www.easa.europa.eu/sites/default/files/dfu/CS-22%20Amendment%203.pdf'
+CS22_SOURCE = 'http://itlims-zsis.meil.pw.edu.pl/pomoce/JAR/JAR-22_Lot.pdf'
 
 
 def intersect_limits(constraints, domain):
@@ -91,9 +91,9 @@ def calculate_pilot_loading(mass, geometry, balance):
                      'Pasażerowie, ładunek i paliwo danego stanu pozostają stałe. '
                      'Masa osoby obejmuje jej wyposażenie. Przedział dotyczy kryteriów modelu P3, '
                      'bez oceny sterowności i bez balastu; nie jest ograniczeniem z instrukcji użytkowania.',
-                cs22_note='CS 22.23(b): 70–110 kg na osobę ze spadochronem bez balastu; '
-                          'CS 22.25(b): przypadek 55 kg, z dopuszczonym balastem. '
-                          'Zakres 55–110 kg w P3 jest analizą projektową, a nie deklaracją zgodności CS-22.')
+                cs22_note='JAR 22.23(b): 70–110 kg na osobę ze spadochronem bez balastu; '
+                          'JAR 22.25(b): przypadek 55 kg, z dopuszczonym balastem. '
+                          'Zakres 55–110 kg w P3 jest analizą projektową, a nie deklaracją zgodności z JAR-22.')
     model = ballast_model(result, geometry, balance)
     result['ballast'] = dict(model=model, references=[solve_ballast(model,p) for p in (55.,110.)])
     return result

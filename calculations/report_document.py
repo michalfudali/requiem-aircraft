@@ -46,6 +46,31 @@ def report_metadata(params, overrides=None, today=None):
             for key, label, query in METADATA]
 
 
+def _features(results):
+    from calculations.polish_law import features
+    p = results['params']
+    return features(p.get('category'), p.get('aircraft_type', 'piston_ga'), p.get('engine_type', 'prop'))
+
+
+def payload_noun(results):
+    """Dopełniacz nazwy masy płatnej zgodny z tym, co statek przewozi."""
+    f, mass = _features(results), results['mass']
+    if mass['unmanned']:
+        return 'wyposażenia zadaniowego'
+    if mass['n_pax'] and (not f['cargo'] or not results['params'].get('m_cargo')):
+        return 'pasażerów'
+    return 'pasażerów i ładunku' if mass['n_pax'] else 'ładunku'
+
+
+def payload_label(results):
+    f, mass = _features(results), results['mass']
+    if mass['unmanned']:
+        return 'Wyposażenie zadaniowe'
+    if mass['n_pax'] and (not f['cargo'] or not results['params'].get('m_cargo')):
+        return 'Pasażerowie' + (' z bagażem' if f['baggage'] and not f['parachute'] else '')
+    return 'Pasażerowie i ładunek' if mass['n_pax'] else 'Ładunek'
+
+
 def _row(label, value, unit='', digits=2):
     return {'label': label, 'value': value, 'unit': unit, 'digits': digits}
 
@@ -119,11 +144,14 @@ def _concept(results):
                f'{controls["ailerons"]["name"].lower()}.' if controls.get('flaps') and controls.get('ailerons') else '')]
     if powered:
         engines = int(p.get('n_engines', 1) or 1)
+        one = engines == 1
         kind = ('odrzutowy' if jet else 'turbośmigłowy' if p.get('aircraft_type') == 'turboprop_regional'
-                else 'tłokowy ze śmigłem')
+                else 'tłokowy ze śmigłem') if one else ('odrzutowe' if jet else 'turbośmigłowe'
+                if p.get('aircraft_type') == 'turboprop_regional' else 'tłokowe ze śmigłami')
         place = ENGINE_PLACE.get(p.get('engine_location'), 'w przyjętym położeniu')
-        text.append(f'Napęd stanowi {"jeden silnik" if engines == 1 else f"{engines} silniki"} {kind} '
-                    f'umieszczony{"" if engines == 1 else "e"} {place}.')
+        count = 'jeden silnik' if one else (f'{engines} silniki' if 2 <= engines % 10 <= 4 and not 12 <= engines % 100 <= 14
+                                           else f'{engines} silników')
+        text.append(f'Napęd stanowi {count} {kind} umieszczon{"y" if one else "e"} {place}.')
     else:
         text.append('Szybowiec nie ma napędu własnego; start odbywa się za holem lub z wyciągarki.')
     gear = {'fuselage': 'do kadłuba', 'wing': 'do skrzydła'}.get(p.get('gear_attachment'))
@@ -134,8 +162,13 @@ def _concept(results):
     else:
         crew = 'członka' if mass['n_crew'] == 1 else 'członków'
         pax = (f' i {mass["n_pax"]} {"pasażera" if mass["n_pax"] == 1 else "pasażerów"}' if mass['n_pax'] else '')
-        text.append(f'Kabina mieści {mass["n_crew"]} {crew} załogi{pax}; łączna masa załogi i ładunku wynosi '
-                    f'{number(mass["m_crew"] + mass["m_payload"], 1)} kg.')
+        if mass['m_payload']:
+            noun = payload_noun(results)
+            text.append(f'Kabina mieści {mass["n_crew"]} {crew} załogi{pax}; łączna masa załogi'
+                        f'{", " + noun if " i " in noun else " i " + noun} '
+                        f'wynosi {number(mass["m_crew"] + mass["m_payload"], 1)} kg.')
+        else:
+            text.append(f'Kabina mieści {mass["n_crew"]} {crew} załogi; masa załogi wynosi {number(mass["m_crew"], 1)} kg.')
     pp = mass['preliminary_polar']
     text.append((f'Na tym etapie maksymalną doskonałość odczytano z wykresu jako {number(pp["kmax"], 1)}, co odpowiada oporowi zerowemu '
                  if pp['mode'] != 'input' else f'Na tym etapie maksymalną doskonałość oszacowano na {number(pp["kmax"], 1)} przy oporze zerowym ')
@@ -274,7 +307,9 @@ def _summaries(results):
              if powered else ', bez napędu')
     out['p1'] = [_row('Układ samolotu', f'{layout}, skrzydło {wing["planform_name_pl"].lower()}{drive}', '', None),
                  _row('Załoga / pasażerowie', f'{mass["n_crew"]} / {mass["n_pax"]}', 'os.', None),
-                 _row('Masa załogi i ładunku', mass['m_crew'] + mass['m_payload'], 'kg', 1),
+                 _row(('Masa wyposażenia zadaniowego' if mass['unmanned'] else
+                       f'Masa załogi i {payload_noun(results)}' if mass['m_payload'] else 'Masa załogi'),
+                      mass['m_crew'] + mass['m_payload'], 'kg', 1),
                  _row('Wydłużenie skrzydła Λ', pp['aspect_ratio'], '—', 2),
                  _row('Współczynnik Oswalda e', pp['oswald_e'], '—', 2),
                  _row('Opór zerowy (oszacowanie) C_x0', pp['cx0'], '—', 4),
@@ -439,6 +474,7 @@ def report_document(results, sections, overrides=None, folder_cover=False, sheet
                             'kN' if jet else 'kW', 2 if jet else 1))
     return {'sections': sections, 'titles': TITLES, 'metadata': report_metadata(p, overrides),
             'folder_cover': folder_cover, 'powered': powered, 'jet': jet, 'conclusions': _conclusions(results),
+            'payload_label': payload_label(results), 'features': _features(results),
             'checks': checks, 'failed': failed, 'pending': pending, 'summary': summary,
             'summaries': _summaries(results), 'predecessors': _predecessors(results),
             'performance_actions': _performance_actions(results),

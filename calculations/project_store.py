@@ -113,10 +113,20 @@ def create_database(path, presets, categories, topics):
 
 
 # --- Read-only course data ------------------------------------------------------------------
+def _jar_categories(params):
+    """Stored CS-23 Amdt 5 level keys are read as the JAR categories of the course regulations."""
+    from calculations.polish_law import stored_category
+    if isinstance(params, dict) and params.get('category'):
+        params['category'] = stored_category(params)
+        if params.get('category_seed'):
+            params['category_seed'] = params['category']
+    return params
+
+
 def load_presets(path=None):
     with connect(path) as con:
         rows = con.execute('SELECT key, parameters FROM presets ORDER BY sort_order').fetchall()
-    return {row['key']: json.loads(row['parameters']) for row in rows}
+    return {row['key']: _jar_categories(json.loads(row['parameters'])) for row in rows}
 
 
 def load_categories(path=None):
@@ -129,7 +139,7 @@ def load_topics(path=None):
     with connect(path) as con:
         rows = con.execute('SELECT * FROM topics ORDER BY num').fetchall()
     return [dict(id=row['id'], num=row['num'], title=row['title'], category=row['category'], defaults=json.loads(row['defaults']),
-                 parameters=json.loads(row['parameters']), requirements=json.loads(row['requirements']))
+                 parameters=_jar_categories(json.loads(row['parameters'])), requirements=json.loads(row['requirements']))
             for row in rows]
 
 

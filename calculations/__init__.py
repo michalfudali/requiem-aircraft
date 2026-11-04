@@ -108,6 +108,23 @@ def _size_airframe(params, param_states):
     return mass_res, sizing_res, geom_res, aero_res
 
 
+def _scope_category(params, m0):
+    """Kategoria wymagana przez JAR 23.1 dla tematu oficjalnego w przydzielonej mu kategorii, inaczej None."""
+    from calculations.polish_law import resolve_category, scope_category
+    if params.get('topic_origin') != 'official' or not params.get('category_seed'):
+        return None
+    if resolve_category(params.get('category')) != resolve_category(params['category_seed']):
+        return None
+    return scope_category(params, m0)
+
+
+def _reclassified(params, category):
+    updated = {**params, 'category': category, 'category_seed': category}
+    if category == 'cs25_transport':
+        updated['n_crew'] = max(2, int(params.get('n_crew') or 1))
+    return updated
+
+
 def run_bipol_project(params: dict):
     """
     Wykonuje pełny ciąg obliczeniowy projektu BIPOL I (etapy P1 - P6).
@@ -157,13 +174,12 @@ def run_bipol_project(params: dict):
             break
         first, coupled_widening = params['_reference']['index'] + 1, True
     m0 = mass_res["m0"]
-    # Tematy oficjalne: masa, nie liczba miejsc, przenosi samolot do CS-25 — także masa obliczonego
-    # projektu, dopóki kategoria jest ta przydzielona tematowi (wybór autora zostaje bez zmian).
-    from calculations.polish_law import CS23_MTOM_MAX_KG
-    if (params.get('topic_origin') == 'official' and params.get('category') == params.get('category_seed')
-            and str(params['category']).startswith('cs23') and m0 > CS23_MTOM_MAX_KG):
-        return run_bipol_project({**given, 'category': 'cs25_transport', 'category_seed': 'cs25_transport',
-                                  'n_crew': max(2, int(given.get('n_crew') or 1))})
+    # Tematy oficjalne: gdy obliczony projekt wykracza poza zakres stosowania JAR 23.1 przydzielonej
+    # kategorii (masa, liczba miejsc, napęd commuter), obliczenie powtarza się w kategorii, która go
+    # obejmuje — dopóki kategoria jest ta przydzielona tematowi (wybór autora zostaje bez zmian).
+    target = _scope_category(params, m0)
+    if target:
+        return run_bipol_project(_reclassified(given, target))
     finalize_parameter_states(params, param_states, mass_res, sizing_res, geom_res)
 
     # Etap P5: Osiągi samolotu (prędkości, wznoszenie, pułap, start, lądowanie)
@@ -270,7 +286,8 @@ def run_bipol_project(params: dict):
             "actual": c["value"],
             "passed": c["ok"],
             "severity": c["severity"],
-            "note": c["source"] + (" (zalecenie)" if c["severity"] == "warning" else "")
+            "rule": c.get("rule"),
+            "note": c["source"] + (" — " + c["note"] if c.get("note") else "") + (" (zalecenie)" if c["severity"] == "warning" else "")
         })
 
     engine_selection = engine_assessment(params, sizing_res)
@@ -302,7 +319,7 @@ def run_bipol_project(params: dict):
         "constraints": {
             "parameter_states": param_states,
             "locked_keys": params.get("locked_params", []),
-            "initial_suggestions": get_initial_constraint_suggestions(params.get("category", "cs23_level2"), params.get("aircraft_type", "piston_ga")),
+            "initial_suggestions": get_initial_constraint_suggestions(params.get("category", "jar23_normal"), params.get("aircraft_type", "piston_ga")),
             "available_planforms": WING_PLANFORMS,
             "warnings": constraint_warnings
         }
@@ -366,14 +383,13 @@ def refine_bipol_project(params: dict, max_iterations: int = 20, tolerance: floa
     Legacy keyword arguments remain accepted. Numerical closure is governed by
     resolve_design's documented tolerance and iteration bound, for every caller.
     """
-    from calculations.polish_law import CS23_MTOM_MAX_KG
     baseline = run_bipol_project(params)
     aero = baseline['aerodynamics']
     updated = {**baseline['params'], 'cx0': aero['cx0_clean'], 'oswald_e': aero['oswald_e'],
                'preliminary_polar_mode': 'input', 'design_iteration_mode': 'coupled',
                'preliminary_polar_includes_configuration': True}
-    if (updated.get('topic_origin') == 'official' and str(updated.get('category')).startswith('cs23')
-            and baseline['mass']['m0'] > CS23_MTOM_MAX_KG):
-        updated.update(category='cs25_transport', n_crew=max(2, int(updated.get('n_crew', 1))))
+    target = _scope_category(updated, baseline['mass']['m0'])
+    if target:
+        updated = _reclassified(updated, target)
     result = run_bipol_project(updated)
     return baseline, result, result['design_iteration']['history']

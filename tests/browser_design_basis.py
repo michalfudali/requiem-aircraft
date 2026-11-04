@@ -32,9 +32,10 @@ with sync_playwright() as p:
     assert float(page.locator('#wiz_aspect_ratio').input_value())==22
     assert not page.locator('#wiz_aspect_ratio').is_editable()
     page.locator('#wiz_wing_input_mode').select_option('span_aspect');page.locator('#wiz_aspect_ratio').fill('25')
-    page.locator('#wiz_payload_input_mode').select_option('total');page.locator('#wiz_m_payload').fill('60')
-    assert not page.locator('#wiz_m_cargo').is_editable()
-    assert float(page.locator('#wiz_m_cargo').input_value())==60
+    # JAR-22: a powered sailplane carries no cargo; its payload is the second occupant.
+    assert page.locator('#wiz_payload_input_mode option[value="total"]').is_disabled()
+    assert not page.locator('#wiz_m_cargo').is_visible()
+    page.locator('#wiz_n_pax').fill('1');page.locator('#wiz_m_pax').fill('90')
     page.locator('#wiz_name').fill('Motoszybowiec 22 m')
     step(2);page.locator('#wiz_range_km').fill('650')
     assert page.locator('#wiz_basis_range_km').input_value()=='650'
@@ -48,24 +49,21 @@ with sync_playwright() as p:
     page.wait_for_function('currentResults.params.name==="Motoszybowiec 22 m"')
     r=page.evaluate('currentResults')
     assert r['geometry']['wing']['b']==22 and r['geometry']['wing']['AR']==25
-    assert r['mass']['m_payload']==60 and r['sizing']['design_point']['power_kw']==60
+    assert r['mass']['m_payload']==90 and r['params']['m_cargo']==0 and r['sizing']['design_point']['power_kw']==60
     assert r['params']['range_km']==650 and 'range_km' in r['params']['locked_params']
     print('TOPIC >20 M, SELECTED GEOMETRY, PAYLOAD AND REAL FIXED ENGINE POWER: OK',flush=True)
     page.reload();page.wait_for_function('currentResults?.params?.name==="Motoszybowiec 22 m"')
     assert not edit_inputs(page,'wing_area_m2').is_editable()
-    assert not page.locator('#m_cargo').is_editable()
+    assert not page.locator('#m_cargo').is_visible()
     assert page.locator('#wing_input_mode').input_value()=='span_aspect'
-    assert page.locator('#payload_input_mode').input_value()=='total'
+    assert page.locator('#payload_input_mode').input_value()=='seats'
     assert page.evaluate("window.userLockedParams.has('engine_power_kw')")
-    wizard(True);page.locator('#wiz_m_payload').fill('50');page.locator('#wiz_n_pax').fill('1')
-    previous=page.evaluate('({count:getProjectsList().length,name:getActiveProject().name,m:getActiveProject().params.m_payload})')
-    step(5);page.locator('#wizFinishBtn').click()
-    page.wait_for_function('document.getElementById("wizardValidationStatus").textContent.includes("mniejsza")')
-    assert page.locator('#projectWizardBackdrop').get_attribute('aria-hidden')=='false'
-    assert page.evaluate('({count:getProjectsList().length,name:getActiveProject().name,m:getActiveProject().params.m_payload})')==previous
-    assert page.locator('#wiz_m_payload').input_value()=='50'
-    print('SAVED BASIS AND LOCKS, INVALID CANDIDATE RETAINS INPUTS AND EXISTING PROJECT: OK',flush=True)
-    step(1);page.locator('#wiz_n_pax').fill('0');page.locator('#wiz_m_payload').fill('60')
+    # JAR 22.1(a)(3): at most two persons on board — the wizard flags a third one with the paragraph.
+    wizard(True);page.locator('#wiz_n_pax').fill('2')
+    assert 'JAR 22.1(a)(3)' in page.locator('#wiz_n_pax').locator('xpath=ancestor::div[contains(@class,"input-group")]').inner_text()
+    assert page.locator('#wiz_n_pax').evaluate('(el)=>el.classList.contains("regulation-violation")')
+    print('SAVED BASIS AND LOCKS, NO CARGO IN A SAILPLANE, SEAT LIMIT FROM JAR-22: OK',flush=True)
+    step(1);page.locator('#wiz_n_pax').fill('0')
     step(3);page.locator('#wiz_engine_type').select_option('none')
     for key in ('engine_location','sfc','engine_power_kw','prop_efficiency'):
         assert not page.locator('#wiz_'+key).is_visible(),key

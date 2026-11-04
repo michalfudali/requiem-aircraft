@@ -1,3 +1,4 @@
+{% from 'regulation_select.html' import category_select %}
   <section id="tab-wizard" class="tab-content active" aria-label="Kreator projektu">
   <div id="projectWizardBackdrop" class="wizard-workspace active" aria-labelledby="wizardWorkspaceTitle" aria-hidden="false">
     <div class="wizard-workspace-shell">
@@ -96,43 +97,18 @@
             <div class="input-group">
               <label for="wiz_aircraft_type">Klasa konstrukcyjna samolotu:</label>
               <select id="wiz_aircraft_type">
-                <option value="piston_ga" selected>Tłokowy GA (EASA CS-23 L1-L2 / CS-VLA / CS-LSA / ULM)</option>
-                <option value="motoglider">Motoszybowiec (EASA CS-22 TMG / Klasa MG • silnik pomocniczy/ciągnący)</option>
-                <option value="glider">Szybowiec (EASA CS-22 / Klasa S • bez napędu / hol / wyciągarka)</option>
-                <option value="turboprop_regional">Turbośmigłowy Commuter (EASA CS-23 L3-L4 / Commuter)</option>
-                <option value="jet_business">Odrzutowy Dyspozycyjny (EASA CS-23 High Speed / VLJ / CS-25)</option>
-                <option value="jet_transport">Odrzutowy Komunikacyjny (EASA CS-25 Large Aeroplane)</option>
+                <option value="piston_ga" selected>Tłokowy GA (JAR-23 N/U/A, JAR-VLA, CS-LSA, UL)</option>
+                <option value="motoglider">Motoszybowiec (JAR-22, klasa MG • jeden silnik tłokowy)</option>
+                <option value="glider">Szybowiec (JAR-22, klasa S • bez napędu, hol lub wyciągarka)</option>
+                <option value="turboprop_regional">Turbośmigłowy (JAR-23 N/U/A lub commuter, JAR-25)</option>
+                <option value="jet_business">Odrzutowy dyspozycyjny (JAR-23 N/U/A, JAR-25)</option>
+                <option value="jet_transport">Odrzutowy komunikacyjny (JAR-25)</option>
                 <option value="uav">Bezzałogowy Statek Powietrzny EASA UAS (Specific / Certified • 0 osób)</option>
               </select>
             </div>
             <div class="input-group">
-              <label for="wiz_category">Przepisy zdatności EASA:</label>
-              <select id="wiz_category">
-                <optgroup label="EASA CS-23 Amdt 5 (Normal Category ≤ 19 pax / 8618 kg)">
-                  <option value="cs23_level1" selected>EASA CS-23 Level 1 (Normal • 0–1 pasażer • Szkolny / Treningowy)</option>
-                  <option value="cs23_level2">EASA CS-23 Level 2 (Normal • 2–6 pasażerów • Turystyczny / GA)</option>
-                  <option value="cs23_level3">EASA CS-23 Level 3 (Normal • 7–9 pasażerów • Użytkowy / Dyspozycyjny)</option>
-                  <option value="cs23_commuter">EASA CS-23 Level 4 / Commuter (10–19 pasażerów • MTOM ≤ 8618 kg)</option>
-                  <option value="cs23_aerobatic">EASA CS-23 Akrobacyjny (Certified for Aerobatics • n = +6.0 / -3.0)</option>
-                </optgroup>
-                <optgroup label="EASA Lekkie, Szybowce i Motoszybowce (CS-22 / VLA / LSA)">
-                  <option value="cs_vla">EASA CS-VLA (Bardzo lekki • MTOM ≤ 750 kg, max 2 os., przeciągnięcie ≤ 45 kt)</option>
-                  <option value="cs_lsa">EASA CS-LSA (Lekki sportowy • MTOM ≤ 600/650 kg, max 2 os., przeciągnięcie ≤ 45 kt)</option>
-                  <option value="cs22_motoglider">EASA CS-22 (Motoszybowiec turystyczny TMG • MTOM ≤ 850 kg, m/b² ≤ 3.0 kg/m²)</option>
-                  <option value="cs22_glider">EASA CS-22 (Szybowiec czysty • MTOM ≤ 850 kg, max 2 os., bez napędu)</option>
-                </optgroup>
-                <optgroup label="EASA CS-25 (Duże samoloty komunikacyjne)">
-                  <option value="cs25_transport">EASA CS-25 (Large Aeroplanes • podstawa certyfikacji)</option>
-                </optgroup>
-                <optgroup label="EASA Załącznik I (Opt-out krajowy / Ultralekkie 600 kg wg art. 2 ust. 8)">
-                  <option value="easa_optout_ul">EASA Annex I Opt-Out / UL-A (Ultralekki • MTOM ≤ 600/650 kg, max 2 os.)</option>
-                  <option value="easa_optout_ul115">EASA Annex I / UL-115 (Jednoosobowy mikrolot • masa własna ≤ 115 kg)</option>
-                </optgroup>
-                <optgroup label="EASA Bezzałogowe Statki Powietrzne UAS (UE 2019/947 & 2019/945 • 0 osób na pokładzie)">
-                  <option value="easa_uas_specific">EASA UAS Specific (kategoria operacji wg ryzyka)</option>
-                  <option value="easa_uas_certified">EASA UAS Certified (kategoria operacji wg ryzyka)</option>
-                </optgroup>
-              </select>
+              <label for="wiz_category">Przepisy budowy (wyjątki z przepisów JAR, ZSiS MEiL PW):</label>
+              {{ category_select("wiz_category", regulations) }}
             </div>
           </div>
 

@@ -55,7 +55,7 @@
       $('pilotLoading').hidden=!study?.available;if(!study?.available)return;
       stale(false);
       $('pilotLoadingNote').textContent=study.note;
-      $('pilotLoadingCS22').textContent=['cs22_glider','cs22_motoglider'].includes(r.params.category)?study.cs22_note:'';
+      $('pilotLoadingCS22').textContent=['cs22_glider','cs22_aerobatic','cs22_motoglider'].includes(r.params.category)?study.cs22_note:'';
       $('pilotLoadingInterval').textContent='Wspólny przedział dla wszystkich stanów w badanym zakresie: '+interval(study.common_interval)+'.';
       $('pilotLoadingCase').innerHTML=study.cases.map(c=>`<option value="${esc(c.key)}">${esc(c.name)}</option>`).join('');$('pilotLoadingCase').value='mtow';
       const slider=$('pilotLoadingMass');slider.min=study.domain_kg[0];slider.max=study.domain_kg[1];slider.value=study.nominal_person_kg;

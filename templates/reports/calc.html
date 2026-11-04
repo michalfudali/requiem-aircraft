@@ -3,6 +3,7 @@
 <div class="calc calc-{{ e.kind }}" id="q-{{ e.key }}" data-calc="{{ e.key }}">
   <p class="calc-label">{{ e.label|subs }}</p>
   <div class="equation"><div class="formula">\[{{ e.tex }}\]</div></div>
+  {%- set regulation = reg_refs(e.source) %}{% if regulation %}<p class="calc-note calc-regulation">Wymaganie przepisów: {{ regulation }}.</p>{% endif %}
   {%- if e.note %}<p class="calc-note">{{ e.note }}</p>{% endif %}
 </div>
 {%- endmacro %}

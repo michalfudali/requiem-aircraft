@@ -23,7 +23,7 @@ def test_sailplane_envelope_uses_cs22_factors_gusts_and_geometric_chord(results)
     r = results['glider_pw5']
     env, wing = r['envelope'], r['geometry']['wing']
     lim, spd, gf = env['limits'], env['speeds'], env['gust_factors']
-    assert lim['basis'] == 'CS-22'
+    assert lim['basis'] == 'JAR-22' and lim['cs22_gust_model'] == 'pratt'
     assert (lim['n_max'], lim['n_at_vd_pos'], lim['n_at_vd_neg'], lim['n_min']) == (5.3, 4.0, -1.5, -2.65)
     assert spd['v_c_kmh'] is None and spd['v_b_kmh'] == spd['v_a_kmh']
     assert spd['v_a_kmh'] == pytest.approx(spd['v_s_kmh'] * math.sqrt(5.3), abs=.2)
@@ -45,10 +45,11 @@ def test_cs23_speed_factors_decrease_linearly_above_20_psf(category, ws, vc0, vd
 
 def test_transport_dive_speed_follows_cs25_and_light_jet_uses_reduced_cs23_factor(results):
     env = results['regional_turboprop']['envelope']
-    assert env['limits']['basis'] == 'CS-25'
+    assert env['limits']['basis'] == 'JAR-25'
     assert env['speeds']['v_d_kmh'] == pytest.approx(env['speeds']['v_c_kmh'] / .8, abs=.2)
     vlj = results['vlj_jet']['envelope']
-    assert vlj['limits']['basis'] == 'CS-23' and '32.2·√(W/S)' in vlj['limits']['speed_rule']
+    assert vlj['limits']['basis'] == 'JAR-23' and '32.2·√(W/S)' in vlj['limits']['speed_rule']
+    assert 'JAR 23.335(a)' in vlj['limits']['speed_rule']
 
 
 @pytest.mark.parametrize('name, k_min', [('glider_pw5', 23), ('motoglider_aos', 21)])

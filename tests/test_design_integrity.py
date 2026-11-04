@@ -117,7 +117,7 @@ def test_water_aircraft_never_get_wheel_takeoff_or_braking_as_water_results(numb
     assert not water['hydrodynamic_performance_available']
     if result['mass']['m0'] > 8618:
         assert not water['cs23_criterion_applicable']
-        assert 'Projekt poza zakresem CS-23' in water['source']
+        assert 'Projekt poza zakresem JAR-23' in water['source']
     assert not next(c for c in result['compliance_checks'] if c['parameter'].startswith('[Woda] Wyporność'))['passed']
     sheet = build_sheet(result)
     assert not {e['key']:(e['value'], e['computed']) for e in sheet.entries.values() if e['consistent'] is False}
@@ -143,13 +143,12 @@ def test_underpowered_supplied_engine_is_not_replaced_by_automatic_mission_closu
     assert not next(c for c in result['compliance_checks'] if c['parameter'].startswith('Lot poziomy'))['passed']
 
 
-def test_calculated_design_speed_does_not_invent_operational_cas_and_mach_limits():
+def test_climb_requirement_comes_from_jar_23_65_with_its_paragraph():
     result=run_bipol_project(AIRCRAFT_PRESETS['ga_trainer'])
-    check=next(c for c in result['compliance_checks'] if 'Poziom osiągów' in c['parameter'])
-    assert not check['passed'] and 'Nie określono' in check['actual']
-    result=run_bipol_project(dict(AIRCRAFT_PRESETS['ga_trainer'], vmo_kcas=220, mmo=.5))
-    check=next(c for c in result['compliance_checks'] if 'Poziom osiągów' in c['parameter'])
-    assert check['passed'] and check['actual']=='Low Speed'
+    check=next(c for c in result['compliance_checks'] if 'gradient ustalonego wznoszenia' in c['parameter'])
+    assert check['rule']=='jar23.65a' and check['required']=='≥ 8.3 %'
+    climb=result['performance']['climb']
+    assert check['actual']==f"{100*climb['wy_max_ms']/(climb['v_wy_max_kmh']/3.6):.1f} %"
 
 
 def test_iteration_does_not_count_configuration_drag_again_after_copying_p4(client):

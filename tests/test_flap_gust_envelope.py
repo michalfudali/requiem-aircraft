@@ -33,7 +33,8 @@ def test_flap_gust_has_independent_signed_cases_and_full_precision_ultimate_load
     assert env['gust_factors']['k_g']==pytest.approx(k,rel=1e-12)
     vs=math.sqrt(2*500*G0/(RHO0*20*1.))
     vs1=math.sqrt(2*500*G0/(RHO0*20*.5))
-    vf=max(1.4*vs1,(2. if category=='cs22_glider' else 1.8)*vs)
+    # JAR 22.335(b)(1): max(1,4 VS1; 2,0 VSF); JAR 23.345(b): max(1,4 VS; 1,8 VSF); JAR 25.335(e)(3)(iii): 1,8 VS0.
+    vf=1.8*vs if category=='cs25_transport' else max(1.4*vs1,(2. if category=='cs22_glider' else 1.8)*vs)
     dn=.5*RHO0*vf*6.*k*u/(500*G0/20)
     assert flap['gust_at_vf']['delta_n']==pytest.approx(dn,rel=1e-12)
     assert flap['gust_at_vf']['n_positive']==pytest.approx(1+dn,rel=1e-12)

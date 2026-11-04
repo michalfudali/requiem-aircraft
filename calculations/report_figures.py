@@ -312,21 +312,29 @@ def _flow_proportion(trace, final, law, defs):
     first, n = trace['rows'][0], final
     bw, x1, x2 = 300, 20, 360
     svg = _svg_open(490, 'Schemat iteracji masy startowej, metoda proporcji', 'Schemat wyznaczania masy startowej metodą proporcji', defs)
-    left = [
+    powered = trace.get('powered', True)
+    load = 'm_zał + m_ład' if trace.get('payload') else 'm_zał'
+    # Szybowiec nie ma paliwa: bez stosunków mas faz lotu i udziału paliwa.
+    left = ([
         ('1) Stosunki mas w fazach lotu', ['mᵢ₊₁/mᵢ: start, wznoszenie, przelot,', 'oczekiwanie, lądowanie (tabela faz)']),
         ('2) Iloczyn stosunków', [f"M_ff = Π mᵢ₊₁/mᵢ = {_num(first['mff'], 5)}"]),
         ('3) Udział masy paliwa', [f"m_f/m₀ = {_num(trace['reserve_factor'], 2)}·(1 − M_ff) = {_num(first['fuel_fraction'], 5)}"]),
-        ('4) Założenie masy startowej', [f"m₀⁽¹⁾ = {_num(trace['start'])} kg", f"({trace['start_rule']})"]),
+    ] if powered else [('1) Masa załogi' + (' i masa płatna' if trace.get('payload') else ''),
+                        [f"{load} = {_num(trace['useful'])} kg", 'szybowiec bez paliwa'])]) + [
+        ('4) Założenie masy startowej' if powered else '2) Założenie masy startowej',
+         [f"m₀⁽¹⁾ = {_num(trace['start'])} kg", f"({trace['start_rule']})"]),
     ]
+    offset = 4 - len(left)
     for i, (title, body) in enumerate(left):
-        y = 20 + i * 100
-        svg.append(_box(x1, y, bw, 62, title, body, tone='#eef4fb' if i == 3 else '#f4f6f8'))
+        y = 20 + (i + offset) * 100
+        svg.append(_box(x1, y, bw, 62, title, body, tone='#eef4fb' if i == len(left) - 1 else '#f4f6f8'))
         if i:
             svg.append(_arrow([(x1 + bw / 2, y - 38), (x1 + bw / 2, y)]))
     cx = x2 + bw / 2
-    svg.append(_box(x2, 320, bw, 62, '5) Udział masy pustego z zależności statystycznej', [f"mₑ/m₀ = A·(m₀⁽ᵏ⁾)^C·K_vs = {_num(n['empty_fraction'], 4)}",
+    svg.append(_box(x2, 320, bw, 62, ('5)' if powered else '3)') + ' Udział masy pustego z zależności statystycznej', [f"mₑ/m₀ = A·(m₀⁽ᵏ⁾)^C·K_vs = {_num(n['empty_fraction'], 4)}",
                                                                                f"A = {_num(law['A'], 5)}, C = {_num(law['C'], 5)}, K_vs = {_num(law['k_vs'], 2)}"]))
-    svg.append(_box(x2, 220, bw, 62, '6) Nowa masa startowa z równania bilansu', ['m₀⁽ᵏ⁺¹⁾ = (m_zał + m_ład)/(1 − m_f/m₀ − mₑ/m₀)',
+    svg.append(_box(x2, 220, bw, 62, ('6)' if powered else '4)') + ' Nowa masa startowa z równania bilansu',
+                    [f'm₀⁽ᵏ⁺¹⁾ = ({load})/(1 − m_f/m₀ − mₑ/m₀)' if powered else f'm₀⁽ᵏ⁺¹⁾ = ({load})/(1 − mₑ/m₀)',
                                                                          f"= {_num(trace['useful'])}/{_num(n['denominator'], 5)} = {_num(n['next_m0'])} kg"]))
     svg.append(_arrow([(x1 + bw, 351), (x2, 351)]))
     svg.append(_arrow([(cx, 320), (cx, 282)]))

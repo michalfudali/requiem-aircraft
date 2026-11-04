@@ -26,6 +26,24 @@ N_, KN, KW, NM2, PA = r'\mathrm{N}', r'\mathrm{kN}', r'\mathrm{kW}', r'\mathrm{N
 DEG, RAD, S_, H_, KM = r'{}^{\circ}', r'\mathrm{rad^{-1}}', r'\mathrm{s}', r'\mathrm{h}', r'\mathrm{km}'
 PCT, USD, KGM2 = r'\%', r'\mathrm{USD}', r'\mathrm{kg\,m^2}'
 
+from calculations.regulations import cite as regulation_cite  # noqa: E402
+
+
+def occupant_minimum(params):
+    """Najmniejsza masa osoby wg przepisów kategorii projektu: (kg, id wymagania) albo (None, None)."""
+    from calculations.polish_law import is_unmanned, occupant_mass_minimum
+    if is_unmanned(params):
+        return None, None
+    seats = int(params.get('n_crew', 1) or 0) + int(params.get('n_pax', 0) or 0)
+    return occupant_mass_minimum(params.get('category'), seats)
+
+
+def occupant_note(params):
+    """Uwaga o najmniejszej masie osoby wymaganej przepisami kategorii (pusta, gdy przepisy jej nie podają)."""
+    minimum, rule_id = occupant_minimum(params)
+    return f'nie mniej niż {minimum:g} kg na miejsce wg {regulation_cite(rule_id)}' if minimum else ''
+
+
 SOURCES = {
     'B1': 'BIPOL_1 (C. Galiński, Analizy wstępne)',
     'B1W': 'BIPOL_1 — wyprowadzenie wzorów (C. Galiński, T. Grabowski)',
@@ -34,7 +52,7 @@ SOURCES = {
     'ML': 'Z. Paturski, Przewodnik po projektach z Mechaniki Lotu',
     'R': 'D. P. Raymer, Aircraft Design: A Conceptual Approach',
     'D': 'J. Danilecki, Konstruowanie samolotów',
-    'CS23': 'CS-23 Amdt 4 (metoda)', 'CS22': 'CS-22 Amdt 3', 'CS25': 'CS-25',
+    'CS23': 'JAR-23', 'CS22': 'JAR-22', 'CS25': 'JAR-25',
 }
 
 
@@ -335,16 +353,48 @@ def _constants(s, r):
 # =============================================================================================
 def _p1(s, r):
     p, mass, geom = r['params'], r['mass'], r['geometry']
-    s.section('p1', 'load', 'Masa załogi i masa płatna', SOURCES['B1'])
-    s.given('n_pas', r'n_{pas}', mass['n_pax'], r'\text{os.}', 0, 'Liczba pasażerów', 'Wymagania tematu')
-    s.given('m_pas', r'm_{pas}', p.get('m_pax', 80), KG, 1, 'Masa pasażera z bagażem', 'Wytyczne z zajęć: 115 kg')
-    s.given('m_bag', r'm_{bag}', p.get('m_bag', 0), KG, 1, 'Dodatkowy bagaż pasażera', 'Założenie')
-    s.given('m_cargo', r'm_{cargo}', p.get('m_cargo', 0), KG, 1, 'Ładunek (cargo, wyposażenie zadaniowe)', 'Wymagania tematu')
-    s.calc('m_lad', r'm_{ład}', r'n_{pas}\,(m_{pas}+m_{bag})+m_{cargo}',
-           r'[[n_pas]]\cdot([[m_pas]]+[[m_bag]])+[[m_cargo]]', mass['m_payload'], KG, 1, 'Masa płatna',
-           check=lambda v: v.n_pas * (v.m_pas + v.m_bag) + v.m_cargo)
+    from calculations.polish_law import features
+    f = features(p.get('category'), p.get('aircraft_type', 'piston_ga'), p.get('engine_type', 'prop'))
+    s.section('p1', 'load', 'Masa załogi i masa płatna' if mass['n_crew'] else 'Masa płatna (wyposażenie zadaniowe)', SOURCES['B1'])
+    # Tylko składniki, które w tej kategorii i klasie płatowca istnieją (szybowiec: bez bagażu i ładunku).
+    formula, subst, terms = [], [], []
+    if f['passengers'] and (mass['n_pax'] or p.get('aircraft_type') in ('turboprop_regional', 'jet_business', 'jet_transport')):
+        # Kabina pasażerska samolotów komunikacyjnych wymiaruje kadłub także przy zerowej liczbie miejsc.
+        s.given('n_pas', r'n_{pas}', mass['n_pax'], r'\text{os.}', 0, 'Liczba pasażerów', 'Wymagania tematu')
+    if f['passengers'] and mass['n_pax']:
+        if f['parachute']:
+            s.given('m_pas', r'm_{pas}', p.get('m_pax', 80), KG, 1, 'Masa drugiej osoby na pokładzie ze spadochronem', 'Założenie')
+        else:
+            s.given('m_pas', r'm_{pas}', p.get('m_pax', 80), KG, 1, 'Masa pasażera z bagażem', 'Wytyczne z zajęć: 115 kg')
+        if f['baggage'] and p.get('m_bag', 0):
+            s.given('m_bag', r'm_{bag}', p.get('m_bag', 0), KG, 1, 'Dodatkowy bagaż pasażera', 'Założenie')
+            formula.append(r'n_{pas}\,(m_{pas}+m_{bag})')
+            subst.append(r'[[n_pas]]\cdot([[m_pas]]+[[m_bag]])')
+            terms.append(lambda v: v.n_pas * (v.m_pas + v.m_bag))
+        else:
+            formula.append(r'n_{pas}\,m_{pas}')
+            subst.append(r'[[n_pas]]\cdot[[m_pas]]')
+            terms.append(lambda v: v.n_pas * v.m_pas)
+    if f['cargo'] and p.get('m_cargo', 0):
+        s.given('m_cargo', r'm_{cargo}', p.get('m_cargo', 0), KG, 1,
+                'Wyposażenie zadaniowe' if f['cargo_label'] == 'wyposażenie zadaniowe' else 'Ładunek handlowy', 'Wymagania tematu')
+        formula.append(r'm_{cargo}')
+        subst.append(r'[[m_cargo]]')
+        terms.append(lambda v: v.m_cargo)
+    # Bez pasażerów i ładunku (np. szybowiec jednomiejscowy) masy płatnej nie ma we wzorach.
+    if terms:
+        s.calc('m_lad', r'm_{ład}', '+'.join(formula), '+'.join(subst), mass['m_payload'], KG, 1, 'Masa płatna',
+               check=lambda v: sum(term(v) for term in terms))
+    if not mass['n_crew']:
+        _p1_polar(s, r)
+        _p1_trend(s, r)
+        return
     s.given('n_zal', r'n_{zał}', mass['n_crew'], r'\text{os.}', 0, 'Liczba członków załogi', 'Wymagania tematu')
-    s.given('m_os', r'm_{os}', p.get('m_crew_person', 90), KG, 1, 'Masa członka załogi', 'Założenie')
+    s.given('m_os', r'm_{os}', p.get('m_crew_person', 90), KG, 1, 'Masa członka załogi', 'Założenie', occupant_note(p))
+    minimum, rule_id = occupant_minimum(p)
+    if minimum:
+        s.given('m_os_min', r'm_{os,min}', minimum, KG, 0, 'Najmniejsza masa osoby na miejscu do ciężaru maksymalnego',
+                regulation_cite(rule_id))
     s.calc('m_zal', r'm_{zał}', r'n_{zał}\,m_{os}', r'[[n_zal]]\cdot[[m_os]]', mass['m_crew'], KG, 1,
            'Masa załogi', check=lambda v: v.n_zal * v.m_os)
 
@@ -577,13 +627,14 @@ def _p2(s, r):
     s.block('mass_iteration_' + mass['primary_method'], 'p2',
             'Schemat iteracji masy startowej — ' + ('metoda proporcji' if mass['primary_method'] == 'proportion'
                                                    else 'metoda iteracyjna') + '',
-            deps=['m_zal', 'm_lad', 'e_m0'], note='Metoda użyta w bilansie projektu.')
+            deps=[k for k in ('m_zal', 'm_lad', 'e_m0') if k in s.entries], note='Metoda użyta w bilansie projektu.')
     for method, other in mass['guideline_traces'].items():
         if method != mass['primary_method']:
             s.block('mass_iteration_' + method, 'p2',
                     'Schemat iteracji masy startowej — ' + ('metoda proporcji' if method == 'proportion'
                                                            else 'metoda iteracyjna') + '',
-                    deps=['m_zal', 'm_lad', 'e_m0'], note='Metoda porównawcza; daje tę samą masę bez zrzutu ładunku.')
+                    deps=[k for k in ('m_zal', 'm_lad', 'e_m0') if k in s.entries],
+                    note='Metoda porównawcza; daje tę samą masę bez zrzutu ładunku.')
 
     _p2_atmosphere(s, r)
 
@@ -733,23 +784,31 @@ def _p2(s, r):
 
     _p2_empty_law(s, r)
 
-    s.section('p2', 'mass', 'Masa startowa, masa własna i masa paliwa', SOURCES['B1'] + ', wzory (1), (4), (5)')
+    s.section('p2', 'mass', 'Masa startowa, masa własna i masa paliwa' if powered else 'Masa startowa i masa własna',
+              SOURCES['B1'] + (', wzory (1), (4), (5)' if powered else ', wzory (1), (5)'))
     block = '@mass_iteration_' + mass['primary_method']
+    payload = 'm_lad' in s.entries
+    # Masa użyteczna ze składników, które istnieją: załoga (bez niej w bezzałogowcu) i masa płatna.
+    useful = [(k, sym) for k, sym in (('m_zal', 'm_{zał}'), ('m_lad', 'm_{ład}')) if k in s.entries]
+    load = '+'.join(sym for _, sym in useful)
+    load_s = '+'.join(f'[[{k}]]' for k, _ in useful)
+    load_v = lambda v: sum(getattr(v, k) for k, _ in useful)  # noqa: E731
     if powered and 'mf_m0' in s.entries:
-        s.calc('m0', 'm_0', r'\frac{m_{zał}+m_{ład}}{1-\dfrac{m_f}{m_0}-\dfrac{m_e}{m_0}}',
-               r'\frac{[[m_zal]]+[[m_lad]]}{1-[[mf_m0]]-[[e_m0]]}', m0, KG, 1,
+        s.calc('m0', 'm_0', rf'\frac{{{load}}}{{1-\dfrac{{m_f}}{{m_0}}-\dfrac{{m_e}}{{m_0}}}}',
+               rf'\frac{{{load_s}}}{{1-[[mf_m0]]-[[e_m0]]}}', m0, KG, 1,
                'Masa startowa z równania bilansu masy', SOURCES['B1'] + ', wzór (5)',
                note='Równanie rozwiązano iteracyjnie; kolejne przybliżenia pokazuje schemat iteracji masy.',
-               check=lambda v: (v.m_zal + v.m_lad) / (1 - v.mf_m0 - v.e_m0), deps=[block])
+               check=lambda v: load_v(v) / (1 - v.mf_m0 - v.e_m0), deps=[block])
     elif not powered:
-        s.calc('m0', 'm_0', r'\frac{m_{zał}+m_{ład}}{1-\dfrac{m_e}{m_0}}', r'\frac{[[m_zal]]+[[m_lad]]}{1-[[e_m0]]}', m0, KG, 1,
-               'Masa startowa z równania bilansu masy (samolot bez paliwa)', SOURCES['B1'] + ', wzór (5)',
+        s.calc('m0', 'm_0', rf'\frac{{{load}}}{{1-\dfrac{{m_e}}{{m_0}}}}', rf'\frac{{{load_s}}}{{1-[[e_m0]]}}', m0, KG, 1,
+               'Masa startowa z równania bilansu masy (szybowiec bez paliwa)', SOURCES['B1'] + ', wzór (5)',
                note='Równanie rozwiązano iteracyjnie; kolejne przybliżenia pokazuje schemat iteracji masy.',
-               check=lambda v: (v.m_zal + v.m_lad) / (1 - v.e_m0), deps=[block])
+               check=lambda v: load_v(v) / (1 - v.e_m0), deps=[block])
     else:
         s.solve('m0', 'm_0', r'\Delta(m_0)=m_{e,mis}(m_0)-m_0\frac{m_e}{m_0}=0', m0, KG, 1,
                 'Masa startowa — zgodność masy pustego z misji i z zależności statystycznej', SOURCES['B1'] + ', s. 4, pkt 9–12',
-                note='Kolejne przybliżenia pokazuje schemat iteracji masy.', deps=[block, 'e_m0', 'm_zal', 'm_lad'])
+                note='Kolejne przybliżenia pokazuje schemat iteracji masy.',
+                deps=[block, 'e_m0'] + [k for k, _ in useful])
     s.calc('m_e', 'm_e', r'm_0\,\frac{m_e}{m_0}', r'[[m0]]\cdot[[e_m0]]', mass['m_empty'], KG, 1, 'Masa własna (pustego samolotu)',
            SOURCES['B1'] + ', pkt 10', check=lambda v: v.m0 * v.e_m0)
     if powered:
@@ -759,11 +818,11 @@ def _p2(s, r):
                check=lambda v, b=[ph['fuel_burn_kg'] for ph in burns]: sum(b))
         s.calc('m_f', 'm_f', r'k_{rez}\,m_{f,spal}', r'[[k_rez]]\cdot[[m_f_spal]]', mass['m_fuel'], KG, 1,
                'Masa paliwa z rezerwą i paliwem niezużywalnym', SOURCES['B1'] + ', wzór (4)', check=lambda v: v.k_rez * v.m_f_spal)
-        s.calc('m0_sum', r'm_0', r'm_e+m_f+m_{zał}+m_{ład}', r'[[m_e]]+[[m_f]]+[[m_zal]]+[[m_lad]]',
+        s.calc('m0_sum', r'm_0', r'm_e+m_f+' + load, r'[[m_e]]+[[m_f]]+' + load_s,
                mass['m_empty'] + mass['m_fuel'] + mass['m_crew'] + mass['m_payload'], KG, 1, 'Sprawdzenie bilansu mas',
-               check=lambda v: v.m_e + v.m_f + v.m_zal + v.m_lad)
-    s.calc('m_zfw', r'm_{ZFW}', r'm_e+m_{zał}+m_{ład}', r'[[m_e]]+[[m_zal]]+[[m_lad]]', mass['m_zfw'], KG, 1,
-           'Masa bez paliwa', check=lambda v: v.m_e + v.m_zal + v.m_lad)
+               check=lambda v: v.m_e + v.m_f + load_v(v))
+        s.calc('m_zfw', r'm_{ZFW}', r'm_e+' + load, r'[[m_e]]+' + load_s, mass['m_zfw'], KG, 1,
+               'Masa bez paliwa', check=lambda v: v.m_e + load_v(v))
 
     _p2_matching(s, r)
     _p2_airfoil(s, r)
@@ -1098,12 +1157,17 @@ def _p2_cost(s, r):
            r'[[C_MM_86]]+\left([[C_MM_86]]-[[C_MM_70]]\right)\cdot\frac{[[rok]]-1986}{16}', items['C_MM'], USD, 0,
            'Koszt materiałów i półfabrykatów', SOURCES['B2'] + ', wzór (17)',
            check=lambda v: max(0, v.C_MM_86 + (v.C_MM_86 - v.C_MM_70) * (v.rok - 1986) / 16), tolerance=max(1.0, 1e-6 * items['C_MM']))
-    s.given('n_sil', 'n_s', t['n_engines'], '', 0, 'Liczba silników', 'Założenia projektu')
-    s.given('C_sil', 'C_s', t['engine_price_raw'], USD, 0, 'Cena jednego silnika — ' + ca['engine_basis'].replace('założenie spoza wzoru (15): ', 'cena jednostkowa: ').replace('wzór (15): ', 'zależność kosztowa: '),
-            'Oferta producenta' if 'oferty' in ca['engine_basis'] else SOURCES['B2'] + ', wzór (15)')
     s.given('C_av', r'C_{av}', t['avionics_raw'], USD, 0, 'Cena awioniki na egzemplarz', 'Założenie')
-    s.calc('C_EN', 'C_{EN}', r'N_P\left(n_sC_s+C_{av}\right)', r'[[N_P]]\cdot\left([[n_sil]]\cdot[[C_sil]]+[[C_av]]\right)', items['C_EN'], USD, 0,
-           'Koszt silników i awioniki serii', SOURCES['B2'] + ', wzór (15)', check=lambda v: v.N_P * (v.n_sil * v.C_sil + v.C_av))
+    if t['n_engines']:
+        s.given('n_sil', 'n_s', t['n_engines'], '', 0, 'Liczba silników', 'Założenia projektu')
+        s.given('C_sil', 'C_s', t['engine_price_raw'], USD, 0, 'Cena jednego silnika — ' + ca['engine_basis'].replace('założenie spoza wzoru (15): ', 'cena jednostkowa: ').replace('wzór (15): ', 'zależność kosztowa: '),
+                'Oferta producenta' if 'oferty' in ca['engine_basis'] else SOURCES['B2'] + ', wzór (15)')
+        s.calc('C_EN', 'C_{EN}', r'N_P\left(n_sC_s+C_{av}\right)', r'[[N_P]]\cdot\left([[n_sil]]\cdot[[C_sil]]+[[C_av]]\right)', items['C_EN'], USD, 0,
+               'Koszt silników i awioniki serii', SOURCES['B2'] + ', wzór (15)', check=lambda v: v.N_P * (v.n_sil * v.C_sil + v.C_av))
+    else:
+        # Szybowiec: wzór (15) bez składnika silników.
+        s.calc('C_EN', 'C_{EN}', r'N_P\,C_{av}', r'[[N_P]]\cdot[[C_av]]', items['C_EN'], USD, 0,
+               'Koszt awioniki serii (szybowiec bez silników)', SOURCES['B2'] + ', wzór (15)', check=lambda v: v.N_P * v.C_av)
     s.calc('C_prod', r'C_{prod}', r'C_E+C_{ML}+C_{MM}+C_T+C_{QC}+C_{EN}', r'[[C_E]]+[[C_ML]]+[[C_MM]]+[[C_T]]+[[C_QC]]+[[C_EN]]',
            prod['total_raw'], USD, 0, 'Koszt produkcji serii', check=lambda v: v.C_E + v.C_ML + v.C_MM + v.C_T + v.C_QC + v.C_EN)
     s.given('C_RDTE', r'C_{RDT\&E}', rdte['total_raw'], USD, 0, f'Koszt fazy rozwoju ({rdte["n"]} prototypy) — suma składników', SOURCES['B2'])
@@ -1197,7 +1261,7 @@ def _p3(s, r):
     elif ac in ('glider', 'motoglider'):
         s.calc('l_k', 'l_k', r'\max\left(5{,}5;\;0{,}45\,b\right)', r'\max\left(5{,}5;\;0{,}45\cdot[[b]]\right)', fus['length'], M, 2,
                'Długość kadłuba', check=lambda v: max(5.5, .45 * v.b), tolerance=.011)
-        s.given('d_k', 'd_k', fus['diameter'], M, 2, 'Średnica zastępcza przekroju kabiny (układ i liczba miejsc)', 'Wymiary kabin szybowcowych')
+        s.given('d_k', 'd_k', fus['diameter'], M, 2, 'Średnica zastępcza przekroju kabiny (układ i liczba miejsc)', 'jednomiejscowa 0,72 m, tandem 0,82 m, miejsca obok siebie 1,10 m')
     elif ac == 'uav':
         s.calc('l_k', 'l_k', r'\max\left(1{,}5;\;0{,}55\,b\right)', r'\max\left(1{,}5;\;0{,}55\cdot[[b]]\right)', fus['length'], M, 2,
                'Długość kadłuba', check=lambda v: max(1.5, .55 * v.b), tolerance=.011)
@@ -1207,7 +1271,7 @@ def _p3(s, r):
     elif ac == 'piston_ga':
         s.calc('l_k', 'l_k', r'\max\left(5{,}5;\;0{,}72\,b\right)', r'\max\left(5{,}5;\;0{,}72\cdot[[b]]\right)', fus['length'], M, 2,
                'Długość kadłuba', check=lambda v: max(5.5, .72 * v.b), tolerance=.011)
-        s.given('d_k', 'd_k', fus['diameter'], M, 2, 'Średnica kadłuba (1,25 m do 4 pasażerów, dalej 1,50 m)', 'Wymiary kabin GA')
+        s.given('d_k', 'd_k', fus['diameter'], M, 2, 'Średnica kadłuba (1,25 m do 4 pasażerów, dalej 1,50 m)', 'do 4 pasażerów 1,25 m, powyżej 1,50 m')
     else:
         n_ab = fus['seats_abreast']
         shell = (.45, .30) if ac in ('turboprop_regional', 'jet_business') else (.50, .35)
@@ -1327,16 +1391,26 @@ def _p3_balance(s, r):
     s.calc('M_e', r'M_e', r'\sum_i m_i x_i', '+'.join(rf'{tex_value(bd[m], 1)}\cdot{tex_value(arms[a], 2)}' for m, a in parts if bd[m]),
            moment, r'\mathrm{kg\,m}', 1, 'Moment statyczny masy własnej względem nosa kadłuba', deps=['x_LEc', 'm_e'],
            check=lambda v, m=moment: m)
-    s.given('x_zal', r'x_{zał}', arms['crew'], M, 2, 'Ramię załogi', 'Tabela mas')
-    s.given('x_lad', r'x_{ład}', arms['payload_equivalent'], M, 2, 'Ramię zastępcze ładunku (pasażerowie i bagaż)', 'Tabela mas')
-    s.given('x_f', r'x_f', arms['fuel'], M, 2, 'Ramię paliwa', 'Tabela mas')
-    s.calc('x_cg', r'x_{SM}', r'\frac{M_e+m_{zał}x_{zał}+m_{ład}x_{ład}+m_fx_f}{m_e+m_{zał}+m_{ład}+m_f}',
-           r'\frac{[[M_e]]+[[m_zal]]\cdot[[x_zal]]+[[m_lad]]\cdot[[x_lad]]+[[m_f]]\cdot[[x_f]]}{[[m_e]]+[[m_zal]]+[[m_lad]]+[[m_f]]}'
-           if 'm_f' in s.entries else
-           r'\frac{[[M_e]]+[[m_zal]]\cdot[[x_zal]]+[[m_lad]]\cdot[[x_lad]]}{[[m_e]]+[[m_zal]]+[[m_lad]]}',
+    # Składniki obecne w projekcie: załoga tylko w statku załogowym, ładunek tylko przy masie płatnej,
+    # paliwo tylko przy napędzie.
+    items = [('M_e', None, r'M_e', r'm_e')]
+    if 'm_zal' in s.entries:
+        s.given('x_zal', r'x_{zał}', arms['crew'], M, 2, 'Ramię załogi', 'Tabela mas')
+        items.append(('m_zal', 'x_zal', r'm_{zał}x_{zał}', r'm_{zał}'))
+    if 'm_lad' in s.entries:
+        s.given('x_lad', r'x_{ład}', arms['payload_equivalent'], M, 2, 'Ramię zastępcze masy płatnej', 'Tabela mas')
+        items.append(('m_lad', 'x_lad', r'm_{ład}x_{ład}', r'm_{ład}'))
+    if 'm_f' in s.entries:
+        s.given('x_f', r'x_f', arms['fuel'], M, 2, 'Ramię paliwa', 'Tabela mas')
+        items.append(('m_f', 'x_f', r'm_fx_f', r'm_f'))
+    top = '+'.join(t for _, _, t, _ in items)
+    bottom = '+'.join(b for _, _, _, b in items)
+    top_s = '+'.join('[[M_e]]' if arm is None else f'[[{m}]]\\cdot[[{arm}]]' for m, arm, _, _ in items)
+    bottom_s = '+'.join('[[m_e]]' if arm is None else f'[[{m}]]' for m, arm, _, _ in items)
+    s.calc('x_cg', r'x_{SM}', rf'\frac{{{top}}}{{{bottom}}}', rf'\frac{{{top_s}}}{{{bottom_s}}}',
            mtow['xcg_m'], M, 3, 'Położenie środka masy przy masie startowej (MTOW)', SOURCES['B3'] + ', wzór (3.1)',
-           check=lambda v: (v.M_e + v.m_zal * v.x_zal + v.m_lad * v.x_lad + getattr(v, 'm_f', 0) * v.x_f)
-           / (v.m_e + v.m_zal + v.m_lad + getattr(v, 'm_f', 0)), tolerance=.002)
+           check=lambda v: (v.M_e + sum(getattr(v, m) * getattr(v, arm) for m, arm, _, _ in items if arm))
+           / (v.m_e + sum(getattr(v, m) for m, arm, _, _ in items if arm)), tolerance=.002)
     s.calc('xcg_pct', r'\bar x_{SM}', r'100\,\frac{x_{SM}-x_{N,\bar c}}{\bar c}', r'100\cdot\frac{[[x_cg]]-[[x_LEc]]}{[[mac]]}',
            mtow['xcg_mac_pct'], PCT, 1, 'Położenie środka masy w % ŚCA (MTOW)', check=lambda v: 100 * (v.x_cg - v.x_LEc) / v.mac, tolerance=.11)
     s.table('cg_states', 'Stany załadowania', r'x_{SM}=\frac{\sum_i m_ix_i}{\sum_i m_i},\qquad \bar x_{SM}=\frac{x_{SM}-x_{N,\bar c}}{\bar c}',
@@ -2178,39 +2252,46 @@ def _p6(s, r):
     t, lim, sp, gf = env['terms'], env['limits'], env['speeds'], env['gust_factors']
     basis = t['load_basis']
     flap = env['flap']
-    s.section('p6', 'loads', 'Współczynniki obciążeń dopuszczalnych', {'CS-22': SOURCES['CS22'], 'CS-25': SOURCES['CS25']}.get(lim['basis'], SOURCES['CS23']) + ' §.337')
+    rules = lim['rules']
+    cite = lambda key: regulation_cite(rules[key])  # noqa: E731
+    s.section('p6', 'loads', 'Współczynniki obciążeń dopuszczalnych', f"{cite('n_pos')}, {cite('n_neg')}")
     if basis in ('cs23_normal', 'cs23_commuter', 'cs25'):
         key = 'W_lb6'
         s.calc('W_lb6', 'W', r'2{,}20462\,m_0', r'2{,}20462\cdot[[m0]]', t['w_lb'], r'\mathrm{lb}', 0, 'Masa startowa w funtach',
                check=lambda v: 2.20462 * max(1, v.m0))
-        s.calc('n_plus', r'n_+', r'\min\left(3{,}8;\;\max\left(2{,}5;\;2{,}1+\frac{24000}{W+10000}\right)\right)',
-               rf'\min\left(3{{,}}8;\;\max\left(2{{,}}5;\;2{{,}}1+\frac{{24000}}{{[[{key}]]+10000}}\right)\right)', lim['n_max'], '', 2,
-               'Dodatnie przeciążenie manewrowe', check=lambda v: min(3.8, max(2.5, 2.1 + 24000 / (v.W_lb6 + 10000))))
         if basis == 'cs25':
-            s.given('n_minus', r'n_-', lim['n_min'], '', 2, 'Ujemne przeciążenie manewrowe', SOURCES['CS25'] + ' §25.337')
+            # JAR 25.337(b): 2,5 ≤ n ≤ 3,8.
+            s.calc('n_plus', r'n_+', r'\min\left(3{,}8;\;\max\left(2{,}5;\;2{,}1+\frac{24000}{W+10000}\right)\right)',
+                   rf'\min\left(3{{,}}8;\;\max\left(2{{,}}5;\;2{{,}}1+\frac{{24000}}{{[[{key}]]+10000}}\right)\right)', lim['n_max'], '', 2,
+                   'Dodatnie przeciążenie manewrowe', cite('n_pos'), check=lambda v: min(3.8, max(2.5, 2.1 + 24000 / (v.W_lb6 + 10000))))
+            s.given('n_minus', r'n_-', lim['n_min'], '', 2, 'Ujemne przeciążenie manewrowe', cite('n_neg'))
         else:
+            # JAR 23.337(a)(1): n nie musi przekraczać 3,8 (JAR-23 nie ma dolnej granicy 2,5).
+            s.calc('n_plus', r'n_+', r'\min\left(3{,}8;\;2{,}1+\frac{24000}{W+10000}\right)',
+                   rf'\min\left(3{{,}}8;\;2{{,}}1+\frac{{24000}}{{[[{key}]]+10000}}\right)', lim['n_max'], '', 2,
+                   'Dodatnie przeciążenie manewrowe', cite('n_pos') + '(1)', check=lambda v: min(3.8, 2.1 + 24000 / (v.W_lb6 + 10000)))
             s.calc('n_minus', r'n_-', r'-0{,}4\,n_+', r'-0{,}4\cdot[[n_plus]]', lim['n_min'], '', 2, 'Ujemne przeciążenie manewrowe',
-                   check=lambda v: -.4 * v.n_plus)
+                   cite('n_neg') + '(1)', check=lambda v: -.4 * v.n_plus)
     else:
         s.given('n_plus', r'n_+', lim['n_max'], '', 2, 'Dodatnie przeciążenie manewrowe', lim['load_factor_reference'])
         s.given('n_minus', r'n_-', lim['n_min'], '', 2, 'Ujemne przeciążenie manewrowe', lim['load_factor_reference'])
-    s.given('nu', r'\nu', lim['safety_factor_nu'], '', 1, 'Współczynnik bezpieczeństwa', SOURCES['CS23'] + ' §23.303 / CS 22.303')
+    s.given('nu', r'\nu', lim['safety_factor_nu'], '', 1, 'Współczynnik bezpieczeństwa', lim['safety_factor_reference'])
 
     s.section('p6', 'speeds', 'Prędkości obliczeniowe obwiedni (EAS)', lim['speed_rule'])
-    s.calc('V_A', 'V_A', r'V_{S1}\sqrt{n_+}', r'[[V_S]]\cdot\sqrt{[[n_plus]]}', t['v_a_ms'], MS, 2, 'Prędkość manewrowa', check=lambda v: v.V_S * math.sqrt(v.n_plus), tolerance=.03)
+    s.calc('V_A', 'V_A', r'V_{S1}\sqrt{n_+}', r'[[V_S]]\cdot\sqrt{[[n_plus]]}', t['v_a_ms'], MS, 2, 'Prędkość manewrowa', cite('va'), check=lambda v: v.V_S * math.sqrt(v.n_plus), tolerance=.03)
     s.given('Cz_min', r'C_{z\,min}', t['cz_min'], '', 2, 'Najmniejszy (ujemny) współczynnik siły nośnej', 'Założenie')
     s.calc('V_G', 'V_G', r'V_{S1}\sqrt{|n_-|\frac{C_{z\,max}}{|C_{z\,min}|}}', r'[[V_S]]\cdot\sqrt{\left|[[n_minus]]\right|\cdot\frac{[[Cz_max]]}{\left|[[Cz_min]]\right|}}',
            t['v_g_ms'], MS, 2, 'Prędkość manewrowa ujemna', check=lambda v: v.V_S * math.sqrt(abs(v.n_minus) * v.Cz_max / abs(v.Cz_min)), tolerance=.03)
-    if lim['basis'] == 'CS-22':
+    if lim['basis'] == 'JAR-22':
         s.calc('WS_daN', r'\left(\frac{W}{S}\right)_{daN}', r'\frac{W/S}{10}', r'\frac{[[WS_0]]}{10}', t['ws_dan'], r'\mathrm{daN/m^2}', 2, 'Obciążenie powierzchni w daN/m²',
                check=lambda v: v.WS_0 / 10)
         s.given('Cd_min', r'C_{d\,min}', t['cd_min'], '', 4, 'Najmniejszy współczynnik oporu', 'Biegunowa P4')
         if basis == 'cs22_utility':
             s.calc('V_D_rule', r'V_{D,min}', r'18\sqrt[3]{\frac{(W/S)_{daN}}{C_{d\,min}}}', r'18\cdot\sqrt[3]{\frac{[[WS_daN]]}{[[Cd_min]]}}', t['vd_rule_kmh'], KMH, 1,
-                   'Najmniejsza prędkość nurkowania (kat. U)', 'CS 22.335(f)', check=lambda v: 18 * (v.WS_daN / v.Cd_min) ** (1 / 3))
+                   'Najmniejsza prędkość nurkowania (kat. U)', cite('vd'), check=lambda v: 18 * (v.WS_daN / v.Cd_min) ** (1 / 3))
         else:
             s.calc('V_D_rule', r'V_{D,min}', r'3{,}5\,(W/S)_{daN}+200', r'3{,}5\cdot[[WS_daN]]+200', t['vd_rule_kmh'], KMH, 1,
-                   'Najmniejsza prędkość nurkowania (kat. A)', 'CS 22.335(f)', check=lambda v: 3.5 * v.WS_daN + 200)
+                   'Najmniejsza prędkość nurkowania (kat. A)', cite('vd'), check=lambda v: 3.5 * v.WS_daN + 200)
         if 'V_max' in s.entries:
             s.calc('V_D', 'V_D', r'\max\left(\frac{V_{D,min}}{3{,}6};\;1{,}35\,V_H;\;V_A\right)', r'\max\left(\frac{[[V_D_rule]]}{3{,}6};\;1{,}35\cdot[[V_max]];\;[[V_A]]\right)',
                    t['v_d_ms'], MS, 2, 'Prędkość obliczeniowa nurkowania', check=lambda v: max(v.V_D_rule / 3.6, 1.35 * v.V_max, v.V_A), tolerance=.03)
@@ -2219,37 +2300,45 @@ def _p6(s, r):
                    'Prędkość obliczeniowa nurkowania', check=lambda v: max(v.V_D_rule / 3.6, v.V_A), tolerance=.03)
         if flap['applicable']:
             s.calc('V_F', 'V_F', r'\max\left(1{,}4\,V_{S1};\;2{,}0\,V_{S0}\right)', r'\max\left(1{,}4\cdot[[V_S]];\;2{,}0\cdot[[V_S0]]\right)', t['v_f_ms'], MS, 2,
-                   'Prędkość obliczeniowa z wychyloną mechanizacją', 'CS 22.335(b)', check=lambda v: max(1.4 * v.V_S, 2 * v.V_S0), tolerance=.03)
-        s.calc('V_B', 'V_B', 'V_A', '[[V_A]]', t['v_b_ms'], MS, 2, 'Prędkość podmuchu intensywnego (nie mniejsza niż VA)', 'CS 22.335(c)', check=lambda v: v.V_A)
+                   'Prędkość obliczeniowa z wychyloną mechanizacją', cite('vf'), check=lambda v: max(1.4 * v.V_S, 2 * v.V_S0), tolerance=.03)
+        s.calc('V_B', 'V_B', 'V_A', '[[V_A]]', t['v_b_ms'], MS, 2, 'Prędkość podmuchu intensywnego (nie mniejsza niż VA)', cite('vb'), check=lambda v: v.V_A)
     else:
         s.calc('WS_psf', r'\left(\frac{W}{S}\right)_{psf}', r'\frac{W/S}{47{,}88}', r'\frac{[[WS_0]]}{47{,}88026}', t['ws_psf'], r'\mathrm{lbf/ft^2}', 2,
                'Obciążenie powierzchni w lbf/ft²', check=lambda v: v.WS_0 / 47.88026)
-        s.given('k_VC', r'k_{VC}', t['vc_factor_kts'], r'\mathrm{kt/\sqrt{psf}}', 2, 'Współczynnik prędkości przelotowej (33/36, malejący powyżej 20 psf)', SOURCES['CS23'] + ' §23.335(a)')
-        s.calc('V_Cmin', r'V_{C,min}', r'0{,}514444\,k_{VC}\sqrt{(W/S)_{psf}}', r'0{,}514444\cdot[[k_VC]]\cdot\sqrt{[[WS_psf]]}', t['v_c_min_ms'], MS, 2,
-               'Najmniejsza obliczeniowa prędkość przelotowa', check=lambda v: .514444 * v.k_VC * math.sqrt(max(1, v.WS_psf)))
+        if lim['basis'] == 'JAR-VLA':
+            # JAR-VLA 335(a)(1): VC ≥ 2,4·√(Mg/S) m/s, Mg/S w N/m².
+            s.calc('V_Cmin', r'V_{C,min}', r'2{,}4\sqrt{W/S}', r'2{,}4\cdot\sqrt{[[WS_0]]}', t['v_c_min_ms'], MS, 2,
+                   'Najmniejsza obliczeniowa prędkość przelotowa', cite('vc') + '(1)', check=lambda v: 2.4 * math.sqrt(v.WS_0))
+        else:
+            s.given('k_VC', r'k_{VC}', t['vc_factor_kts'], r'\mathrm{kt/\sqrt{psf}}', 2, 'Współczynnik prędkości przelotowej (33/36, malejący powyżej 20 psf)', cite('vc'))
+            s.calc('V_Cmin', r'V_{C,min}', r'0{,}514444\,k_{VC}\sqrt{(W/S)_{psf}}', r'0{,}514444\cdot[[k_VC]]\cdot\sqrt{[[WS_psf]]}', t['v_c_min_ms'], MS, 2,
+                   'Najmniejsza obliczeniowa prędkość przelotowa', cite('vc'), check=lambda v: .514444 * v.k_VC * math.sqrt(max(1, v.WS_psf)))
         s.calc('V_cr_eas', r'V_{cr,EAS}', r'V_{cr}\sqrt{\sigma_H}', r'[[V_cr]]\cdot\sqrt{[[sigma_cr]]}', t['v_cr_eas_ms'], MS, 2, 'Prędkość przelotowa równoważna',
                check=lambda v: v.V_cr * math.sqrt(v.sigma_cr))
-        if lim['basis'] == 'CS-25':
+        if lim['basis'] == 'JAR-25':
             s.calc('V_C', 'V_C', r'\max\left(V_{cr,EAS};\;1{,}02\,V_A\right)', r'\max\left([[V_cr_eas]];\;1{,}02\cdot[[V_A]]\right)', t['v_c_ms'], MS, 2,
-                   'Obliczeniowa prędkość przelotowa', check=lambda v: max(v.V_cr_eas, 1.02 * v.V_A), tolerance=.03)
-            s.calc('V_D', 'V_D', r'1{,}25\,V_C', r'1{,}25\cdot[[V_C]]', t['v_d_ms'], MS, 2, 'Obliczeniowa prędkość nurkowania (VD ≥ VC/0,8)', check=lambda v: 1.25 * v.V_C, tolerance=.03)
+                   'Obliczeniowa prędkość przelotowa', cite('vc'), check=lambda v: max(v.V_cr_eas, 1.02 * v.V_A), tolerance=.03)
+            s.calc('V_D', 'V_D', r'1{,}25\,V_C', r'1{,}25\cdot[[V_C]]', t['v_d_ms'], MS, 2, 'Obliczeniowa prędkość nurkowania (VD ≥ VC/0,8)', cite('vd'), check=lambda v: 1.25 * v.V_C, tolerance=.03)
         else:
             if 'V_max' in s.entries:
                 s.calc('V_C', 'V_C', r'\max\left(V_{cr,EAS};\;1{,}02\,V_A;\;\min\left(V_{C,min};\;0{,}9\,V_H\right)\right)',
                        r'\max\left([[V_cr_eas]];\;1{,}02\cdot[[V_A]];\;\min\left([[V_Cmin]];\;0{,}9\cdot[[V_max]]\right)\right)', t['v_c_ms'], MS, 2,
-                       'Obliczeniowa prędkość przelotowa', check=lambda v: max(v.V_cr_eas, 1.02 * v.V_A, min(v.V_Cmin, .9 * v.V_max)), tolerance=.03)
+                       'Obliczeniowa prędkość przelotowa', cite('vc'), check=lambda v: max(v.V_cr_eas, 1.02 * v.V_A, min(v.V_Cmin, .9 * v.V_max)), tolerance=.03)
             else:
                 s.calc('V_C', 'V_C', r'\max\left(V_{cr,EAS};\;1{,}02\,V_A;\;V_{C,min}\right)', r'\max\left([[V_cr_eas]];\;1{,}02\cdot[[V_A]];\;[[V_Cmin]]\right)',
-                       t['v_c_ms'], MS, 2, 'Obliczeniowa prędkość przelotowa', check=lambda v: max(v.V_cr_eas, 1.02 * v.V_A, v.V_Cmin), tolerance=.03)
-            s.given('k_VD', r'k_{VD}', t['vd_factor'], '', 3, 'Współczynnik VD/VC,min (1,40 / 1,50 / 1,55, malejący powyżej 20 psf)', SOURCES['CS23'] + ' §23.335(b)')
+                       t['v_c_ms'], MS, 2, 'Obliczeniowa prędkość przelotowa', cite('vc'), check=lambda v: max(v.V_cr_eas, 1.02 * v.V_A, v.V_Cmin), tolerance=.03)
+            s.given('k_VD', r'k_{VD}', t['vd_factor'], '', 3, 'Współczynnik VD/VC,min' + ('' if lim['basis'] == 'JAR-VLA' else ' (1,40 / 1,50 / 1,55, malejący powyżej 20 psf)'), cite('vd'))
             s.calc('V_D', 'V_D', r'\max\left(1{,}25\,V_C;\;k_{VD}V_{C,min}\right)', r'\max\left(1{,}25\cdot[[V_C]];\;[[k_VD]]\cdot[[V_Cmin]]\right)', t['v_d_ms'], MS, 2,
-                   'Obliczeniowa prędkość nurkowania', check=lambda v: max(1.25 * v.V_C, v.k_VD * v.V_Cmin), tolerance=.03)
+                   'Obliczeniowa prędkość nurkowania', cite('vd'), check=lambda v: max(1.25 * v.V_C, v.k_VD * v.V_Cmin), tolerance=.03)
         if gf['vb_gust']:
             s.given('V_B', 'V_B', t['v_b_ms'], MS, 2, 'Prędkość VB: przecięcie linii przeciągnięcia z linią podmuchu 66 ft/s, ograniczone do VC',
-                    SOURCES['CS23'] + ' §23.335(c)')
-        if flap['applicable']:
+                    cite('vb'))
+        if flap['applicable'] and lim['basis'] == 'JAR-25':
+            s.calc('V_F', 'V_F', r'1{,}8\,V_{S0}', r'1{,}8\cdot[[V_S0]]', t['v_f_ms'], MS, 2,
+                   'Prędkość obliczeniowa z klapami do lądowania', cite('vf') + '(iii)', check=lambda v: 1.8 * v.V_S0, tolerance=.03)
+        elif flap['applicable']:
             s.calc('V_F', 'V_F', r'\max\left(1{,}4\,V_{S1};\;1{,}8\,V_{S0}\right)', r'\max\left(1{,}4\cdot[[V_S]];\;1{,}8\cdot[[V_S0]]\right)', t['v_f_ms'], MS, 2,
-                   'Prędkość obliczeniowa z wychyloną mechanizacją', flap['basis'], check=lambda v: max(1.4 * v.V_S, 1.8 * v.V_S0), tolerance=.03)
+                   'Prędkość obliczeniowa z wychyloną mechanizacją', cite('flap'), check=lambda v: max(1.4 * v.V_S, 1.8 * v.V_S0), tolerance=.03)
     for key in ('V_A', 'V_C', 'V_D', 'V_F', 'V_G'):
         if key in s.entries:
             _to_kmh(s, key + '_kmh', s.entries[key]['sym'], key, sp[{'V_A': 'v_a_kmh', 'V_C': 'v_c_kmh', 'V_D': 'v_d_kmh', 'V_F': 'v_f_kmh', 'V_G': 'v_g_kmh'}[key]],
@@ -2262,18 +2351,18 @@ def _p6(s, r):
            'Cecha masowa samolotu', SOURCES['D'] + ', wzór (2.14)', check=lambda v: 2 * v.m0 / v.S / (v.rho0 * getattr(v, chord_key) * v.a_w), tolerance=.03)
     if lim.get('cs22_gust_model') == 'amendment3':
         s.calc('H_g_ratio', r'H/\bar c_g', r'12{,}17+0{,}191\,\mu_g', r'12{,}17+0{,}191\cdot[[mu_g]]', gf['gust_length_ratio'], '', 4,
-               'Długość podmuchu 1-cos względem cięciwy', 'CS 22.341 Amdt 3', check=lambda v: 12.17 + .191 * v.mu_g)
+               'Długość podmuchu 1-cos względem cięciwy', regulation_cite('cs22.341'), check=lambda v: 12.17 + .191 * v.mu_g)
         s.calc('H_g', 'H', r'(H/\bar c_g)\,\bar c_g', r'[[H_g_ratio]]\cdot[[c_g]]', gf['gust_length_m'], M, 3,
-               'Długość podmuchu 1-cos', 'CS 22.341 Amdt 3', check=lambda v: v.H_g_ratio * v.c_g)
+               'Długość podmuchu 1-cos', regulation_cite('cs22.341'), check=lambda v: v.H_g_ratio * v.c_g)
         s.calc('mu_g_reduced', r'\mu_g/(H/\bar c_g)', r'\frac{\mu_g}{H/\bar c_g}', r'\frac{[[mu_g]]}{[[H_g_ratio]]}', gf['mu_g']/gf['gust_length_ratio'], '', 5,
                'Względna cecha masowa samolotu', check=lambda v: v.mu_g / v.H_g_ratio)
         s.calc('K_g', 'K_g', r'\frac{0{,}96\,\mu_g/(H/\bar c_g)}{0{,}475+\mu_g/(H/\bar c_g)}',
                r'\frac{0{,}96\cdot[[mu_g_reduced]]}{0{,}475+[[mu_g_reduced]]}', gf['k_g'], '', 4,
-               'Współczynnik łagodzenia podmuchu 1-cos', 'CS 22.341 Amdt 3', check=lambda v: .96 * v.mu_g_reduced / (.475 + v.mu_g_reduced))
+               'Współczynnik łagodzenia podmuchu 1-cos', regulation_cite('cs22.341'), check=lambda v: .96 * v.mu_g_reduced / (.475 + v.mu_g_reduced))
     else:
         s.calc('K_g', 'K_g', r'\frac{0{,}88\,\mu_g}{5{,}3+\mu_g}', r'\frac{0{,}88\cdot[[mu_g]]}{5{,}3+[[mu_g]]}', gf['k_g'], '', 4, 'Współczynnik łagodzenia podmuchu (Pratt)',
                gf['gust_basis'], check=lambda v: .88 * v.mu_g / (5.3 + v.mu_g), tolerance=.0011)
-    sailplane = lim['basis'] == 'CS-22'
+    sailplane = lim['basis'] == 'JAR-22'
     for gust in gf['gusts']:
         label = gust['speed']
         vkey = {'VB': 'V_B', 'VC': 'V_C', 'VD': 'V_D'}[label]
@@ -2283,18 +2372,18 @@ def _p6(s, r):
         if sailplane:
             s.calc('dn_' + label[1], rf'\Delta n_{label[1]}', r'\min\left(\frac{K_g\rho_0Va\,U}{2\,W/S};\;1{,}25\left(\frac{V}{V_{S1}}\right)^2-1\right)',
                    rf'\min\left(\frac{{[[K_g]]\cdot[[rho0]]\cdot[[{vkey}]]\cdot[[a_w]]\cdot[[{u}]]}}{{2\cdot[[WS_0]]}};\;1{{,}}25\cdot\left(\frac{{[[{vkey}]]}}{{[[V_S]]}}\right)^2-1\right)',
-                   dn, '', 3, f'Przyrost przeciążenia od podmuchu przy {label}', 'CS 22.341',
+                   dn, '', 3, f'Przyrost przeciążenia od podmuchu przy {label}', cite('gust_formula'),
                    check=lambda v, vk=vkey, uk=u: min(v.K_g * v.rho0 * getattr(v, vk) * v.a_w * getattr(v, uk) / (2 * v.WS_0), 1.25 * (getattr(v, vk) / v.V_S) ** 2 - 1),
                    tolerance=.004 + .01 * abs(dn))
             s.calc('dn_neg_' + label[1], rf'\Delta n_{{-,{label[1]}}}', r'\min\left(\frac{K_g\rho_0Va\,U}{2\,W/S};\;1{,}25\left(\frac{V}{V_{S1}}\right)^2+1\right)',
                    rf'\min\left(\frac{{[[K_g]]\cdot[[rho0]]\cdot[[{vkey}]]\cdot[[a_w]]\cdot[[{u}]]}}{{2\cdot[[WS_0]]}};\;1{{,}}25\cdot\left(\frac{{[[{vkey}]]}}{{[[V_S]]}}\right)^2+1\right)',
-                   gust['delta_n_neg'], '', 3, f'Ujemny przyrost przeciążenia od podmuchu przy {label}', 'CS 22.341',
+                   gust['delta_n_neg'], '', 3, f'Ujemny przyrost przeciążenia od podmuchu przy {label}', cite('gust_formula'),
                    check=lambda v, vk=vkey, uk=u: min(v.K_g * v.rho0 * getattr(v, vk) * v.a_w * getattr(v, uk) / (2 * v.WS_0), 1.25 * (getattr(v, vk) / v.V_S) ** 2 + 1),
                    tolerance=.004 + .01 * abs(gust['delta_n_neg']))
         else:
             s.calc('dn_' + label[1], rf'\Delta n_{label[1]}', r'\frac{K_g\rho_0Va\,U}{2\,W/S}',
                    rf'\frac{{[[K_g]]\cdot[[rho0]]\cdot[[{vkey}]]\cdot[[a_w]]\cdot[[{u}]]}}{{2\cdot[[WS_0]]}}', dn, '', 3,
-                   f'Przyrost przeciążenia od podmuchu przy {label}', SOURCES['D'] + ', wzory (2.10)–(2.13)',
+                   f'Przyrost przeciążenia od podmuchu przy {label}', cite('gust_formula') + '; ' + SOURCES['D'] + ', wzory (2.10)–(2.13)',
                    check=lambda v, vk=vkey, uk=u: v.K_g * v.rho0 * getattr(v, vk) * v.a_w * getattr(v, uk) / (2 * v.WS_0), tolerance=.004 + .01 * abs(dn))
     keys = ['dn_' + g['speed'][1] for g in gf['gusts']]
     negative_keys = ['dn_neg_' + g['speed'][1] for g in gf['gusts']] if sailplane else keys
@@ -2472,12 +2561,20 @@ def _worked_proportion(trace, row, add):
     else:
         fuel = (f"\\frac{{m_f}}{{m_0}} = k_{{rez}}\\left(1-M_{{ff}}\\right) = {_t(trace['reserve_factor'], 2)}\\cdot\\left(1-{_t(row['mff'], 5)}\\right)"
                 f" = {_t(row['fuel_fraction'], 5)}")
-    add('3', 'Udział masy paliwa', fuel)
+    powered = trace.get('powered', True)
+    load = 'm_{zał}+m_{ład}' if trace.get('payload') else 'm_{zał}'
+    if powered:
+        add('3', 'Udział masy paliwa', fuel)
     formula, numbers = _law_tex(trace, row['m0'], row['empty_fraction'])
     add('5', 'Udział masy pustego z zależności statystycznej', f"\\frac{{m_e}}{{m_0}} = {formula} = {numbers} = {_t(row['empty_fraction'], 5)}")
-    add('6', 'Nowa masa startowa z równania bilansu masy',
-        f"m_0^{{({k + 1})}} = \\frac{{m_{{zał}}+m_{{ład}}}}{{1-\\dfrac{{m_f}}{{m_0}}-\\dfrac{{m_e}}{{m_0}}}}"
-        f" = \\frac{{{_t(trace['useful'], 1)}}}{{1-{_t(row['fuel_fraction'], 5)}-{_t(row['empty_fraction'], 5)}}} = {_t(row['next_m0'], 2)}{unit}")
+    if powered:
+        add('6', 'Nowa masa startowa z równania bilansu masy',
+            f"m_0^{{({k + 1})}} = \\frac{{{load}}}{{1-\\dfrac{{m_f}}{{m_0}}-\\dfrac{{m_e}}{{m_0}}}}"
+            f" = \\frac{{{_t(trace['useful'], 1)}}}{{1-{_t(row['fuel_fraction'], 5)}-{_t(row['empty_fraction'], 5)}}} = {_t(row['next_m0'], 2)}{unit}")
+    else:
+        add('6', 'Nowa masa startowa z równania bilansu masy (szybowiec bez paliwa)',
+            f"m_0^{{({k + 1})}} = \\frac{{{load}}}{{1-\\dfrac{{m_e}}{{m_0}}}}"
+            f" = \\frac{{{_t(trace['useful'], 1)}}}{{1-{_t(row['empty_fraction'], 5)}}} = {_t(row['next_m0'], 2)}{unit}")
     criterion = r'\le 0{,}1\,\%' if row['relative'] <= trace['tolerance'] else r'> 0{,}1\,\%'
     add('7', 'Kryterium zgodności 0,1%',
         f"\\frac{{\\left|m_0^{{({k + 1})}}-m_0^{{({k})}}\\right|}}{{m_0^{{({k})}}}} = \\frac{{\\left|{_t(row['next_m0'], 2)}-{_t(row['m0'], 2)}\\right|}}"

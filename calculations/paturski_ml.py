@@ -653,7 +653,7 @@ def paturski_project_3_aircraft_aero(geom_res: dict, params: dict, m0: float = N
         },
         {
             "lp": 2,
-            "component": "Owiewka kabiny załogi" + (" (w przekroju kadłuba)" if sailplane else " (brak kabiny)" if ac_type == "uav" else ""),
+            "component": "Owiewka kabiny załogi" + (" (w przekroju kadłuba)" if sailplane else ""),
             "cx_j": round(cx_canopy, 4),
             "s_j_m2": round(s_canopy, 3),
             "cx_s_m2": round(cx_canopy * s_canopy, 4),

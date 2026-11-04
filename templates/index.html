@@ -1,3 +1,4 @@
+{% from 'regulation_select.html' import category_select %}
 <!DOCTYPE html>
 <html lang="pl">
 <head>
@@ -2091,6 +2092,7 @@
     window.INITIAL_PORTAL_MODE = "{{ initial_portal_mode or '' }}";
     // Projekty użytkownika z bazy projektów (serwer); przeglądarka trzyma tylko stan interfejsu.
     window.BIPOL_PROJECTS = {{ (projects or [])|tojson }};
+    window.BIPOL_REGULATIONS = {{ regulations|tojson }};
     // Przykłady konkretnych samolotów w opisach — z bazy samolotów porównawczych.
     window.BIPOL_MODEL_EXAMPLES = {{ (model_examples or {})|tojson }};
     window.modelExample = (context, key) => (window.BIPOL_MODEL_EXAMPLES[context] || {})[key] || '';
@@ -2113,6 +2115,7 @@
   <script src="/static/js/app.js?v=wizard-workspace-20261104"></script>
   <script src="/static/js/didactic_modes.js?v=merge-20261104"></script>
   <script src="/static/js/constraints-ui.js?v=7"></script>
+  <script src="/static/js/regulation-limits.js?v=1"></script>
   <script src="/static/js/design-basis.js?v=wizard-workspace-20261104"></script>
   <script src="/static/js/wizard-workspace.js?v=1"></script>
   <script src="/static/js/parameter-report.js?v=1"></script>

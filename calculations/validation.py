@@ -223,7 +223,7 @@ ENUM_CHOICES = {
 
 DEFAULTS = {
     "aircraft_type": "piston_ga", "engine_type": "prop", "engine_location": "nose",
-    "category": "cs23_level2", "n_pax": 4, "n_crew": 1, "m_pax": PASSENGER_WITH_BAG_KG,
+    "category": "jar23_normal", "n_pax": 4, "n_crew": 1, "m_pax": PASSENGER_WITH_BAG_KG,
     "m_bag": 0, "m_cargo": 0, "m_crew_person": 90,
     "range_km": 1200, "cruise_altitude_m": 3000, "cruise_speed_kmh": 250,
     "v_stall_kmh": 100, "takeoff_run_m": 500, "climb_rate_ms": 4,
@@ -241,7 +241,7 @@ DEFAULTS = {
     "mass_method": "auto", "empty_mass_model": "trend",
     "payload_drop_kg": 0, "return_range_km": 0,
     "design_iteration_mode": "preliminary", "operating_surface": "land", "runway_surface": "paved",
-    "cs22_gust_model": "amendment3",
+    "cs22_gust_model": "pratt",
     "profile_thickness_mode": "auto", "tc_ratio": 0.12,
     "cargo_bay_length_m": 0, "cargo_bay_width_m": 0, "cargo_bay_height_m": 0,
     "max_power_time_min": 0, "preliminary_polar_mode": "raymer",

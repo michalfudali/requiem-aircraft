@@ -56,7 +56,9 @@
   function sync(prefix='') {
     if (prefix === 'wiz_') wettedVisibility();
     document.querySelectorAll(`[data-water-scope="${prefix}"]`).forEach(el=>el.hidden=value(prefix,'operating_surface')!=='water');
-    document.querySelectorAll(`[data-cargo-scope="${prefix}"]`).forEach(el=>el.hidden=number(prefix,'m_cargo')<=0);
+    // Ładownia tylko w klasie, która ją ma (przepisy i klasa płatowca), i tylko przy ładunku.
+    const cargoBay=window.BipolRegulations?.features?.(prefix)?.cargo_bay??true;
+    document.querySelectorAll(`[data-cargo-scope="${prefix}"]`).forEach(el=>el.hidden=!cargoBay||number(prefix,'m_cargo')<=0);
     const mode=value(prefix,'wing_input_mode') || 'loading';
     const b=number(prefix,'wingspan_m'), s=number(prefix,'wing_area_m2'), ar=number(prefix,'aspect_ratio');
     if (mode==='span_aspect') {

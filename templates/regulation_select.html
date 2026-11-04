@@ -1,0 +1,13 @@
+{#- Wybór przepisów budowy: kategorie i grupy z calculations.polish_law (wyjątki z przepisów JAR). -#}
+{% macro category_select(element_id, regulations, selected='jar23_normal') -%}
+<select id="{{ element_id }}" data-regulation-select>
+  {%- for group in regulations.groups %}
+  <optgroup label="{{ group.label }}">
+    {%- for key in group['keys'] %}{% set sub = regulations.subcategories[key] %}
+    <option value="{{ key }}"{% if key == selected %} selected{% endif %} title="{{ sub.scope_paragraph or '' }}: {{ sub.scope_text or '' }}">{{ sub.name }}</option>
+    {%- endfor %}
+  </optgroup>
+  {%- endfor %}
+</select>
+<p class="param-didactic-hint regulation-scope" id="{{ element_id }}_scope" data-regulation-scope></p>
+{%- endmacro %}

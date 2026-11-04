@@ -165,7 +165,7 @@ def test_project_report_writes_every_part_as_formulas(client):
     for key in ('m_lad', 'AR_wet', 'Cx0_1', 'm0', 'WS', 'S', 'b', 'S_H', 'x_N', 'Cx0', 'Cz_L', 'V_S', 's_TO15', 'V_A', 'mu_g', 'n_ult_p'):
         assert f'data-calc="{key}"' in html, key
     assert 'data-mass-iteration="proportion"' in html and 'class="report-chart flow"' in html
-    assert 'Paliwo i zrzut ładunku w poszczególnych fazach' in html and '<script src=' not in html
+    assert 'w poszczególnych fazach misji' in html and '<script src=' not in html
     single = client.post('/report/project/p3', json=AIRCRAFT_PRESETS['vlj_jet']).get_data(as_text=True)
     assert 'data-sheet-section="p3.neutral"' in single and 'data-sheet-section="p6.gust"' not in single
 

@@ -32,7 +32,7 @@ from calculations.drawing_sheet import drawing_sheet
 from calculations import report_figures
 from calculations.calc_sheet import build_sheet, worked_iteration
 from calculations.report_docx import build_docx
-from calculations.report_origin import (number_references, xref, cite, origin, origin_ref, render_tokens, subscripts,
+from calculations.report_origin import (number_references, xref, cite, origin, origin_ref, render_tokens, subscripts, reg, reg_refs,
                                          component_source)
 from calculations import report_charts
 from calculations import manual_control
@@ -57,6 +57,7 @@ app.jinja_env.globals['report_sketch'] = report_sketch
 app.jinja_env.globals['drawing_sheet'] = drawing_sheet
 app.jinja_env.globals['figs'] = report_figures
 app.jinja_env.globals['worked_iteration'] = worked_iteration
+app.jinja_env.globals.update(reg=reg, reg_refs=reg_refs)
 app.jinja_env.globals.update(xref=xref, cite=cite, origin=origin, origin_ref=origin_ref, tokens=render_tokens,
                              charts=report_charts, zip=zip)
 PROJECT_TITLES = {'const': 'Stałe fizyczne', 'p1': 'P1 · Projekt koncepcyjny', 'p2': 'P2 · Studium wykonalności',
@@ -135,7 +136,7 @@ def index_page(**extra):
     from calculations.design_controls import controls
     return render_template('index.html', design_controls=controls(), presets=AIRCRAFT_PRESETS, categories=OFFICIAL_CATEGORIES, topics=ALL_TOPICS,
                            projects=user_projects(), wetted_examples=aircraft_store.wetted_area_examples(),
-                           model_examples=aircraft_store.model_examples(), **extra)
+                           model_examples=aircraft_store.model_examples(), regulations=catalog_for_frontend(), **extra)
 
 
 @app.route('/')
@@ -194,7 +195,7 @@ def get_topics():
 
 @app.route('/api/constraints/suggestions', methods=['GET'])
 def get_constraint_suggestions():
-    category = request.args.get('category', 'cs23_level2')
+    category = request.args.get('category', 'jar23_normal')
     aircraft_type = request.args.get('aircraft_type', 'piston_ga')
     from calculations.constraints import get_initial_constraint_suggestions, WING_PLANFORMS, LOCKABLE_PARAMETERS
     return jsonify({

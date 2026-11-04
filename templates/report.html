@@ -53,6 +53,15 @@
       {% for row in doc.assumptions %}<tr><td>{{ row.entry.label|subs }}</td><td>\({{ row.entry.sym }} = {{ row.entry.value_tex }}\)</td><td>{{ row.kind }}</td><td>{{ tokens(row.text) }}</td></tr>{% endfor %}
       </tbody></table>
       {% endif %}
+      {% set law = res.easa_compliance %}
+      <h3>Podstawa przepisowa</h3>
+      <p>Samolot zaprojektowano według przepisów {{ law.regulation }}, kategoria: {{ law.subcategory }}{% if law.scope_rule %}; zakres stosowania wg {{ reg(law.scope_rule) }} — {{ law.scope_text }}{% endif %}. Przepisy przyjęto w brzmieniu wyjątków z przepisów udostępnionych do przedmiotu przez Zakład Samolotów i Śmigłowców Wydziału MEiL PW. Wartości wynikające z przepisów zestawiono w tabeli{{ xref('tab-regulation-values') }}; każda ma wskazany paragraf i rozdział przepisów.</p>
+      {% if law.regulation_values %}
+      <table class="compact-table" id="tab-regulation-values"><caption>Wartości wynikające z przepisów budowy</caption><thead><tr><th>Wielkość</th><th class="number">Wartość</th><th>Wymaganie przepisów</th><th>Paragraf</th></tr></thead><tbody>
+      {% for v in law.regulation_values %}<tr><td>{{ v.name|subs }}</td><td class="number">{{ v.value|reportnum(2) }}{% if v.unit and v.unit != '—' %} {{ v.unit }}{% endif %}{% if v.note %} ({{ v.note }}){% endif %}</td><td>{{ v.requirement }}</td><td>{{ reg(v.rule) }}</td></tr>{% endfor %}
+      </tbody></table>
+      {% endif %}
+      {% if law.corrections %}<p>Dane projektu skorygowano zgodnie z przepisami: {% for c in law.corrections %}{{ c }}{% if not loop.last %} {% endif %}{% endfor %}</p>{% endif %}
       {% if doc.constants %}
       <table class="compact-table" id="tab-constants"><caption>Stałe fizyczne i parametry atmosfery wzorcowej na poziomie morza</caption><thead><tr><th>Wielkość</th><th>Symbol i wartość</th></tr></thead><tbody>
       {% for e in doc.constants %}<tr><td>{{ e.label|subs }}</td><td>\({{ e.sym }} = {{ e.value_tex }}\)</td></tr>{% endfor %}
@@ -75,7 +84,7 @@
       <p>Najważniejsze parametry samolotu „{{ params.name }}” zestawiono poniżej.</p>
       <table><caption>Podstawowe parametry samolotu</caption><thead><tr><th>Wielkość</th><th class="number">Wartość</th><th>Jednostka</th></tr></thead><tbody>{% for row in doc.summary %}<tr><td>{{ row.label|subs }}</td><td class="number">{{ value_cell(row) }}</td><td>{{ row.unit }}</td></tr>{% endfor %}</tbody></table>
       {% if doc.checks %}
-      <table class="compact-table"><caption>Porównanie wyników z wymaganiami i kryteriami</caption><thead><tr><th>Kryterium</th><th>Wymaganie</th><th>Wynik</th><th>Ocena</th></tr></thead><tbody>{% for c in doc.checks %}<tr><td>{{ c.parameter }}</td><td>{{ c.required }}</td><td>{{ c.actual }}</td><td>{{ 'spełnione' if c.passed else ('do oceny' if c.severity == 'warning' else 'niespełnione') }}</td></tr>{% endfor %}</tbody></table>
+      <table class="compact-table"><caption>Porównanie wyników z wymaganiami i kryteriami</caption><thead><tr><th>Kryterium</th><th>Wymaganie</th><th>Wynik</th><th>Ocena</th></tr></thead><tbody>{% for c in doc.checks %}<tr><td>{{ c.parameter }}{% if c.rule %} ({{ reg(c.rule) }}){% endif %}</td><td>{{ c.required }}</td><td>{{ c.actual }}</td><td>{{ 'spełnione' if c.passed else ('do oceny' if c.severity == 'warning' else 'niespełnione') }}</td></tr>{% endfor %}</tbody></table>
       {% if doc.failed %}<p>Nie wszystkie wymagania zostały spełnione. Korekty wymagają: {% for c in doc.failed %}{{ c.parameter|lower }}{% if not loop.last %}; {% endif %}{% endfor %}. Przed przyjęciem wariantu do dalszych prac należy zmienić odpowiednie założenia i powtórzyć obliczenia.</p>{% else %}<p>Spełniono {{ doc.checks|selectattr('passed')|list|length }} z {{ doc.checks|length }} rozpatrzonych wymagań.{% if doc.pending %} Pozostałe wymagają uzupełnienia danych podanych w tabeli.{% endif %}</p>{% endif %}
       {% endif %}
       {% if params.get('report_notes') %}<section id="author-notes"><h3>Uwagi i wnioski autora</h3><p class="author-text">{{ params.report_notes }}</p></section>{% endif %}

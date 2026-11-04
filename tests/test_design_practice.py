@@ -96,8 +96,8 @@ def test_racer_has_a_race_speed_requirement_and_cruises_slower():
 
 
 def test_advanced_trainers_use_aerobatic_loads_and_course_power_caps():
-    assert [topic(n)['category'] for n in (34, 37, 38)] == ['cs23_aerobatic'] * 3
-    assert topic(32)['category'] == 'cs23_level1'
+    assert [topic(n)['category'] for n in (34, 37, 38)] == ['jar23_aerobatic'] * 3
+    assert topic(32)['category'] == 'jar23_normal'
     r = run_bipol_project(topic(37))
     assert r['envelope']['limits']['n_max'] >= 6
     assert next(c for c in r['easa_compliance']['checks'] if 'Klasa' in c['name'])['ok']

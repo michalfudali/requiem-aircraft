@@ -78,7 +78,8 @@ def engine_price(params, year, thrust_kn, power_kw, mach_max):
 def default_amortization_count(params):
     """Galiński (2016), rozdz. 2.7: n_am ≈ 150 dla samolotów lekkich, ≈ 250 dla komunikacyjnych."""
     category = str(params.get("category") or "")
-    return 250 if category.startswith("cs25") or category == "cs23_commuter" else 150
+    from calculations.polish_law import resolve_category
+    return 250 if resolve_category(category) in ("cs25_transport", "jar23_commuter") else 150
 
 
 def calculate_costs(params, m_empty_kg, v_max_kmh, thrust_kn=None, power_kw=None, mach_max=0.3):

@@ -393,7 +393,7 @@ def perform_engineering_audit(result: dict) -> dict:
     # 8. OBCIĄŻENIE POWIERZCHNI NOŚNEJ W/S A KATEGORIA SAMOLOTU
     # =========================================================================
     ws_n_m2 = (m0 * G0) / max(0.1, S)
-    ac_cat = params.get("category", "cs23_level2")
+    ac_cat = params.get("category", "jar23_normal")
     ac_type = params.get("aircraft_type", "piston_ga")
 
     if ac_type in ("glider", "motoglider"):
@@ -438,8 +438,12 @@ def perform_engineering_audit(result: dict) -> dict:
     })
 
     # =========================================================================
-    # 9. MARGINES BEZPIECZEŃSTWA PRZED FLATTEREM (CS-23.629 / CS-25.629)
+    # 9. MARGINES BEZPIECZEŃSTWA PRZED FLATTEREM (JAR 23.629, JAR-VLA 629, JAR 22.629, JAR 25.629)
     # =========================================================================
+    from calculations.polish_law import SUBCATEGORIES, resolve_category
+    from calculations.regulations import cite as _cite
+    flutter_rule = SUBCATEGORIES[resolve_category(ac_cat)].get("rules", {}).get("flutter", "jar23.629")
+    flutter_paragraph = _cite(flutter_rule)
     aeroel = result.get("aeroelastics") or {}
     v_flutter = float(aeroel.get("flutter_speed_kmh", 0.0) or 0.0)
     v_d_val = float(aeroel.get("dive_speed_vd_kmh", 0.0) or 0.0)
@@ -458,7 +462,8 @@ def perform_engineering_audit(result: dict) -> dict:
             "category": "Aeroelastyczność i sztywność konstrukcji",
             "title": "Margines bezpieczeństwa flatteru (V_flater vs 1.20 VD)",
             "value": f"V_flater = {v_flutter:.0f} km/h ({flutter_margin:.2f} VD)",
-            "required": "≥ 1.20 VD (wymóg CS-23.629 / CS-25.629)",
+            "required": f"≥ 1.20 VD (wymóg {flutter_paragraph})",
+            "rule": flutter_rule,
             "passed": flutter_ok,
             "severity": "ok" if flutter_ok else "warning",
             "didactic_simple": (
@@ -469,7 +474,7 @@ def perform_engineering_audit(result: dict) -> dict:
             "engineering_note": (
                 f"Szacowana prędkość flatteru giętno-skrętnego wynosi V_flater = {v_flutter:.0f} km/h (VD = {v_d_val:.0f} km/h, zapas: {flutter_margin:.2f} VD); "
                 "to szacunek wstępny z modelu przekroju typowego z aerodynamiką quasi-stacjonarną. "
-                + ("Szacunek mieści się w marginesie 1,20 VD; CS-23.629 wymaga potwierdzenia analizą drgań lub próbami." if flutter_ok else
+                + (f"Szacunek mieści się w marginesie 1,20 VD; {flutter_paragraph} wymaga potwierdzenia analizą drgań lub próbami." if flutter_ok else
                    "Szacunek nie daje marginesu 1,20 VD: przesuń środek masy przekrojów do przodu (wyważenie masowe lotek, "
                    "masy przed osią sprężystą) i zwiększ sztywność skrętną kesonu.")
             )

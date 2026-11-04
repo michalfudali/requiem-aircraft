@@ -167,7 +167,7 @@ function updateDerivedUI(paramStates) {
 async function renderInitialSuggestions() {
   const catEl = document.getElementById('category');
   const typeEl = document.getElementById('aircraft_type');
-  const cat = catEl ? catEl.value : 'cs23_level2';
+  const cat = catEl ? catEl.value : 'jar23_normal';
   const acType = typeEl ? typeEl.value : 'piston_ga';
 
   const container = document.getElementById('suggestionsCardsContainer');

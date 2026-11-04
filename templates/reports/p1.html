@@ -13,7 +13,7 @@
 </tbody></table>
 <p>Przyjęte wydłużenie skrzydła oraz szacunkowy udział masy własnej zapewniają wymaganą doskonałość aerodynamiczną i korzystną masę użyteczną. Szczegółowe obciążenia powierzchni i napędu wyznaczono w studium wykonalności.</p>
 {% endif %}
-<h3>Masa załogi i masa płatna</h3>
+<h3>{{ 'Masa załogi i masa płatna' if res.mass.n_crew else 'Masa płatna (wyposażenie zadaniowe)' }}</h3>
 {{ c.section(sheet, 'p1.load') }}
 {% include 'trend_report.html' %}
 {% if sheet.section_entries('p1.trend') %}

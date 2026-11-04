@@ -4,7 +4,7 @@ Zgodny z wytycznymi MEiL PW:
 - J. Danilecki: "Konstruowanie samolotów",
 - Bisplinghoff, Ashley, Halfman: "Aeroelasticity",
 - D. Raymer: "Aircraft Design: A Conceptual Approach" (rozdz. 14.8),
-- Wymagania przepisów zdatności CS-23.629 / CS-25.629 / CS-22.629 (margines flatteru 1.20 VD).
+- Wymagania przepisów zdatności JAR 23.629(c) / JAR-VLA 629(b) / JAR 22.629 / JAR 25.629(b)(1) (margines flatteru 1.20 VD).
 """
 import math
 from calculations.atmosphere import RHO0
@@ -101,7 +101,7 @@ def estimate_aeroelastics(geom: dict, aero: dict, mass: dict, envelope: dict, pa
     v_flutter_ms = section["v_flutter_ms"]
     v_flutter_kmh = v_flutter_ms * 3.6
 
-    # 4. MARGINESY BEZPIECZEŃSTWA WG PRZEPISÓW ZDATNOŚCI (CS-23.629 / CS-25.629)
+    # 4. MARGINESY BEZPIECZEŃSTWA WG PRZEPISÓW ZDATNOŚCI (JAR 23.629(c) / JAR 25.629(b)(1))
     v_req_flutter_kmh = 1.20 * v_d_kmh
     v_req_rev_kmh = 1.15 * v_d_kmh
 
@@ -135,7 +135,7 @@ def estimate_aeroelastics(geom: dict, aero: dict, mass: dict, envelope: dict, pa
         "flutter_model": {
             "method": ("Przekrój typowy 2 st. swobody, aerodynamika quasi-stacjonarna, flatter przy zbiegnięciu częstości "
                        "(Hodges, Pierce, rozdz. 5). Szacunek wstępny: rzeczywista prędkość flatteru wymaga analizy "
-                       "z aerodynamiką niestacjonarną lub badań drgań (CS 23.629)."),
+                       "z aerodynamiką niestacjonarną lub badań drgań (JAR 23.629)."),
             "mass_ratio_mu": round(mu_mass, 2),
             "elastic_axis_chord": x_ea, "section_cg_chord": x_cg, "radius_of_gyration": r_alpha,
             "coalescence": coalescence,
@@ -143,7 +143,7 @@ def estimate_aeroelastics(geom: dict, aero: dict, mass: dict, envelope: dict, pa
         "explanation": {
             "flutter": (
                 "Flater to gwałtowne, samowzbudne drgania giętno-skrętne skrzydła pod wpływem sił aerodynamicznych. "
-                "Przepisy CS-23.629 wymagają, by prędkość flatteru przewyższała obliczeniową prędkość nurkowania VD o co najmniej 20% (margines 1.20 VD)."
+                "Przepisy JAR 23.629(c) wymagają, by prędkość flatteru przewyższała obliczeniową prędkość nurkowania VD o co najmniej 20% (margines 1.20 VD)."
             ),
             "reversal": (
                 "Rewers lotek to niebezpieczne zjawisko, w którym przy dużej prędkości moment pochylający od wychylenia lotki "

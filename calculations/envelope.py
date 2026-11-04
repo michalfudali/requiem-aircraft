@@ -1,26 +1,28 @@
 """
 Moduł obwiedni obciążeń dopuszczalnych V-n (BIPOL I)
-Samoloty: metoda wg CS-23 Amdt 4 (§23.333–23.345) i Danileckiego „Konstruowanie samolotów”, rozdz. 2.
-CS-23 Amdt 5 usunęła te paragrafy (wymagania celu CS 23.2xxx, środki spełnienia w AMC/ASTM),
-dlatego program stosuje je jako metodę dydaktyczną, a nie obowiązujący przepis.
-Dla CS-25 linie podmuchu Pratta są uproszczeniem: CS-25.341 stosuje podmuch dyskretny 1-cos.
-Szybowce i motoszybowce: CS-22 Amdt 3, §22.333–22.345; opcjonalnie starszy model Pratta z Amdt 2.
+Podstawa: przepisy wybranej kategorii w brzmieniu wyjątków z przepisów (calculations.regulations):
+JAR 23.333–23.345, JAR-VLA 333–345, JAR 22.333–22.345, JAR 25.333–25.345; metoda obliczeń wg
+Danileckiego „Konstruowanie samolotów”, rozdz. 2.
+JAR 25.341(a) wymaga analizy dynamicznej podmuchu 1-cos; linie podmuchu Pratta są tu oszacowaniem.
+Szybowce: JAR 22.341 (wzór Pratta); opcjonalnie podmuch 1-cos wg CS 22.341 Amdt 3.
+Kategorie bez własnej reguły prędkości (CS-LSA, UL, UAS) korzystają z reguły JAR 23.335.
 Wszystkie prędkości obwiedni są prędkościami równoważnymi (EAS), poziom morza.
 """
 import math
+from calculations import regulations as R
 from calculations.atmosphere import G0, RHO0, isa_atmosphere
 from calculations.polish_law import resolve_category, limit_load_factors, envelope_speed_family, SUBCATEGORIES
 from calculations.flap_envelope import calculate_flap_envelope
 
-# CS 22.337: n1 (przy VA), n2 (przy VD), n3 (przy VD), n4 (przy VG); kategoria U i A.
+# JAR 22.337: n1 (przy VA), n2 (przy VD), n3 (przy VD), n4 (przy VG); kategoria U i A.
 CS22_LOAD_FACTORS = {'cs22_utility': (5.3, 4.0, -1.5, -2.65), 'cs22_aerobatic': (7.0, 7.0, -5.0, -5.0)}
 
 
 def cs23_speed_factors(category, ws_psf):
-    """CS-23 Amdt 4 §23.335(a)(1) i (b)(2): współczynnik VC,min [kt/√psf] i VD/VC,min.
+    """JAR 23.335(a)(1) i (b)(2): współczynnik VC,min [kt/√psf] i VD/VC,min.
 
     Dla W/S > 20 psf oba maleją liniowo: do 28,6 i do 1,35 przy W/S = 100 psf
-    (§23.335(a)(1)(iv) i (b)(4)).
+    (JAR 23.335(a)(2) i (b)(3)).
     """
     aerobatic = category in ("aerobatic", "acrobatic")
     vc0 = 36.0 if aerobatic else 33.0
@@ -58,8 +60,16 @@ def calculate_vn_envelope(m0: float, geom: dict, aero: dict, perf: dict, params:
     category_key = resolve_category(params.get("category", "normal"))
     n_max, n_min, load_factor_ref = limit_load_factors(category_key, m0)
     category = envelope_speed_family(category_key)
-    load_basis = SUBCATEGORIES[category_key]["load_basis"]
+    sub = SUBCATEGORIES[category_key]
+    load_basis = sub["load_basis"]
     sailplane = load_basis in CS22_LOAD_FACTORS
+    # Wymagania użyte w obwiedni; kategorie bez własnej reguły prędkości korzystają z JAR-23.
+    rules = {'nu': 'jar23.303', 'maneuver': 'jar23.333b', 'gust': 'jar23.333c', 'gust_formula': 'jar23.341',
+             'vc': 'jar23.335a', 'vd': 'jar23.335b', 'va': 'jar23.335c', 'vb': 'jar23.335d', 'flap': 'jar23.345',
+             **sub.get('rules', {})}
+    rules.setdefault('vf', rules['flap'])
+    regulation = sub["regulation"] if sub["regulation"] in ("JAR-23", "JAR-22", "JAR-25", "JAR-VLA") else "JAR-23"
+    cite = lambda key: R.cite(rules[key])  # noqa: E731
     cz_max = float(aero["cz_max_clean"])
     cz_min = float(aero.get("cz_min_clean", -0.85))  # Współczynnik siły nośnej ujemnego przeciągnięcia
 
@@ -67,13 +77,13 @@ def calculate_vn_envelope(m0: float, geom: dict, aero: dict, perf: dict, params:
     # Pochodna współczynnika siły nośnej skończonego płata a_w = dCz/dalpha [1/rad] (wzór Helmbolda-Diedericha ze skosem)
     a_w = float(aero.get("a_w_rad", (2.0 * math.pi * AR) / (AR + 2.0 * ((AR + 4.0) / (AR + 2.0)))))
 
-    # CS 22.341 i CS-23 Amdt 4 §23.341: średnia cięciwa geometryczna S/b.
+    # JAR 22.341, JAR 23.341(c), JAR-VLA 341: średnia cięciwa geometryczna S/b.
     chord = S / b
     mu_g = (2.0 * (m0 / S)) / (RHO0 * chord * a_w)
 
-    # Współczynnik łagodzenia podmuchu Kg wg Danilecki wzór (2.13) / CS-23 Amdt 4 §23.341(b) / CS 22.341
+    # Współczynnik łagodzenia podmuchu kg = 0,88 µg/(5,3 + µg): Danilecki wzór (2.13), JAR 23.341(c), JAR 22.341
     k_g = (0.88 * mu_g) / (5.3 + mu_g)
-    cs22_model = params.get('cs22_gust_model', 'amendment3') if sailplane else None
+    cs22_model = params.get('cs22_gust_model', 'pratt') if sailplane else None
     gust_length_ratio = None
     if cs22_model == 'amendment3':
         gust_length_ratio = 12.17 + .191 * mu_g
@@ -90,7 +100,7 @@ def calculate_vn_envelope(m0: float, geom: dict, aero: dict, perf: dict, params:
 
     if sailplane:
         n1, n2, n3, n4 = CS22_LOAD_FACTORS[load_basis]
-        # CS 22.335(f): VD >= 18 * cbrt((W/S)/Cd_min) km/h (kat. U, W/S w daN/m²) lub 3,5 W/S + 200 (kat. A);
+        # JAR 22.335(f): VD >= 18 * cbrt((W/S)/Cd_min) km/h (kat. U, W/S w daN/m²) lub 3,5 W/S + 200 (kat. A);
         # dla motoszybowca także VD >= 1,35 VH.
         cd_min = max(0.004, float(aero.get("cx0_clean") or aero.get("cx0") or 0.012))
         ws_dan = ws / 10.0
@@ -98,42 +108,56 @@ def calculate_vn_envelope(m0: float, geom: dict, aero: dict, perf: dict, params:
                        else 3.5 * ws_dan + 200.0)
         v_d_ms = max(vd_rule_kmh / 3.6, 1.35 * v_h_ms if powered else 0.0, v_a_ms)
         rule_terms = dict(cd_min=cd_min, ws_dan=ws_dan, vd_rule_kmh=vd_rule_kmh)
-        v_b_ms = v_a_ms               # CS 22.335(c): VB nie mniejsza niż VA
-        v_c_ms = None                 # CS-22 nie definiuje VC
-        v_f_ms = max(1.4 * vs_clean_ms, 2.0 * vs_lnd_ms)   # CS 22.335(b)(1)
-        n_flap, u_flap = 4.0, 7.5                           # CS 22.345(b)(1)
-        gusts = [("VB", v_b_ms, 15.0), ("VD", v_d_ms, 7.5)]  # CS 22.333(c)
+        v_b_ms = v_a_ms               # JAR 22.335(c): VB nie mniejsza niż VA
+        v_c_ms = None                 # JAR-22 nie definiuje VC
+        v_f_ms = max(1.4 * vs_clean_ms, 2.0 * vs_lnd_ms)   # JAR 22.335(b)(1)
+        n_flap, u_flap = 4.0, 7.5                           # JAR 22.345(b)(1)
+        gusts = [("VB", v_b_ms, 15.0), ("VD", v_d_ms, 7.5)]  # JAR 22.333(c)
         vb_gust = True
-        gust_basis = (f"CS-22 Amdt {'3 (podmuch 1-cos)' if cs22_model == 'amendment3' else '2 (Pratt)'} §22.333(c), §22.341: "
-                      "15 m/s przy VB i 7,5 m/s przy VD; μ z cięciwy S/b; osobne ograniczenia n dodatniego i ujemnego do ±1,25 (V/VS1)².")
-        speed_rule = (f"CS 22.335: VB ≥ VA, VD ≥ {'18·∛((W/S)/Cd,min)' if load_basis == 'cs22_utility' else '3,5·W/S + 200'}"
+        if cs22_model == 'amendment3':
+            rules['gust_formula'] = 'cs22.341'
+        gust_basis = (f"{cite('gust')}, {cite('gust_formula')}"
+                      + (" (podmuch 1-cos)" if cs22_model == 'amendment3' else " (wzór Pratta)")
+                      + ": 15 m/s przy VB i 7,5 m/s przy VD; μ z cięciwy S/b; osobne ograniczenia n dodatniego "
+                        "i ujemnego do ±1,25 (V/VS1)².")
+        speed_rule = (f"{cite('vb')}: VB ≥ VA; {cite('vd')}: VD ≥ "
+                      f"{'18·∛((W/S)/Cd,min)' if load_basis == 'cs22_utility' else '3,5·W/S + 200'}"
                       f" = {vd_rule_kmh:.0f} km/h (Cd,min = {cd_min:.4f})" + (", VD ≥ 1,35 VH" if powered else "")
-                      + "; VF ≥ max(1,4 VS1; 2,0 VSF).")
+                      + f"; {cite('vf')}: VF ≥ max(1,4 VS1; 2,0 VSF).")
     else:
         # Obliczeniowa prędkość przelotowa VC (EAS)
         ws_psf = ws / 47.88026   # 1 lbf/ft² = 47.88026 N/m²; siła ciężkości, nie masa
         vc_factor_kts, vd_factor = cs23_speed_factors(category, ws_psf)
         v_c_min_ms = (vc_factor_kts * math.sqrt(max(1.0, ws_psf))) * 0.514444
+        if category == "vla":
+            # JAR-VLA 335(a)(1): VC ≥ 2,4·√(Mg/S) m/s (Mg/S w N/m²), bez zmniejszania mnożnika; (b)(2): VD ≥ 1,40 VCmin.
+            v_c_min_ms = 2.4 * math.sqrt(ws)
+            vc_factor_kts, vd_factor = v_c_min_ms / 0.514444 / math.sqrt(max(1.0, ws_psf)), 1.40
         if category == "transport":
-            # CS-25.335: reguła 33·√(W/S) dotyczy CS-23; VD >= VC/0,8.
+            # JAR 25.335(b): VC nie większa niż 0,8 VD; reguła 33·√(W/S) dotyczy tylko JAR-23.
             v_c_ms = max(v_cr_ms, v_a_ms * 1.02)
             v_d_ms = 1.25 * v_c_ms
-            speed_rule = "CS-25.335(b): VD ≥ VC/0,8; VC nie mniejsza niż przelotowa EAS i VA (uproszczenie bez kryterium VB + 1,32 Uref)."
+            speed_rule = (f"{cite('vd')}: VD ≥ VC/0,8; {cite('vc')}: VC nie mniejsza niż przelotowa EAS i VA "
+                          "(bez kryterium VC ≥ VB + 1,32 Uref, wymagającego analizy podmuchu).")
         else:
-            # CS-23 Amdt 4 §23.335(a)(2): VC nie musi przekraczać 0.9 VH, ale musi być >= VA
+            # JAR 23.335(a)(3), JAR-VLA 335(a)(2): VC nie musi przekraczać 0,9 VH, ale musi być >= VA
             v_c_ms = max(v_cr_ms, v_a_ms * 1.02, min(v_c_min_ms, 0.9 * v_h_ms) if v_h_ms > 0 else v_c_min_ms)
-            # §23.335(b): VD >= 1,25 VC oraz VD >= k·VC,min (1,40 / 1,50 / 1,55, malejące powyżej 20 psf)
+            # JAR 23.335(b), JAR-VLA 335(b): VD >= 1,25 VC oraz VD >= k·VC,min
             v_d_ms = max(1.25 * v_c_ms, vd_factor * v_c_min_ms)
-            speed_rule = (f"CS-23 Amdt 4 §23.335: VC,min = {vc_factor_kts:.1f}·√(W/S) kt, VD ≥ max(1,25 VC; "
-                          f"{vd_factor:.3f} VC,min); W/S = {ws_psf:.1f} lbf/ft².")
+            if category == "vla":
+                speed_rule = (f"{cite('vc')}: VC,min = 2,4·√(Mg/S) m/s; {cite('vd')}: VD ≥ max(1,25 VC; 1,40 VC,min); "
+                              f"Mg/S = {ws:.0f} N/m².")
+            else:
+                speed_rule = (f"{cite('vc')}: VC,min = {vc_factor_kts:.1f}·√(W/S) kt; {cite('vd')}: VD ≥ max(1,25 VC; "
+                              f"{vd_factor:.3f} VC,min); W/S = {ws_psf:.1f} lbf/ft².")
         rule_terms = dict(ws_psf=ws_psf, vc_factor_kts=vc_factor_kts, vd_factor=vd_factor,
                           v_c_min_ms=v_c_min_ms)
         n1, n4 = n_max, n_min
-        # CS-23 Amdt 4 / JAR-23.333(b)(3): ujemna gałąź maleje liniowo od VC do n = 0 przy VD
-        # (normal, commuter; także CS-25.333(b)), a do n = −1 dla kategorii akrobacyjnej i użytkowej.
+        # JAR 23.333(b)(3), JAR-VLA 333(b)(3), JAR 25.337(c): ujemna gałąź maleje liniowo od VC do n = 0 przy VD
+        # (normalna, commuter, VLA, JAR-25), a do n = −1 dla kategorii akrobacyjnej i użytkowej.
         n2, n3 = n_max, (-1.0 if load_basis in ("cs23_aerobatic", "cs23_utility") else 0.0)
-        # Podmuch przy V_B był wymagany tylko dla kategorii commuter (§23.333(c)(1)(iii));
-        # dla CS-25 odpowiada uproszczonemu modelowi Pratta (dawny FAR 25.341).
+        # Podmuch przy V_B wymagany tylko dla kategorii commuter (JAR 23.333(c)(1)(iii));
+        # dla JAR-25 linie Pratta są oszacowaniem (JAR 25.341(a) wymaga analizy dynamicznej).
         vb_gust = load_basis in ("cs23_commuter", "cs25")
         # Prędkość VB: przecięcie linii przeciągnięcia n = (V/Vs1)^2 z linią podmuchu 66 fps (20.12 m/s)
         a_quad = 1.0 / max(1.0, vs_clean_ms ** 2)
@@ -141,20 +165,21 @@ def calculate_vn_envelope(m0: float, geom: dict, aero: dict, perf: dict, params:
         v_b_intersect_ms = (b_quad + math.sqrt((b_quad ** 2) + 4.0 * a_quad)) / (2.0 * a_quad)
         v_b_ms = min(v_c_ms, max(v_a_ms * 0.85, v_b_intersect_ms))
         rule_terms.update(v_b_intersect_ms=v_b_intersect_ms)
-        # CS-23 Amdt 4 §23.345: VF = max(1.4 Vs1, 1.8 Vs0), n = +2,0
-        v_f_ms = max(1.4 * vs_clean_ms, 1.8 * vs_lnd_ms)
+        # JAR 23.345, JAR-VLA 345: VF = max(1,4 VS1; 1,8 VS0), n = +2,0, podmuch 7,62 m/s;
+        # JAR 25.335(e)(3)(iii): VF ≥ 1,8 VS0 dla klap do lądowania, JAR 25.345(a): n = 2,0, 7,62 m/s.
+        v_f_ms = 1.8 * vs_lnd_ms if category == "transport" else max(1.4 * vs_clean_ms, 1.8 * vs_lnd_ms)
         n_flap, u_flap = 2.0, 7.62
         gusts = ([("VB", v_b_ms, 20.12)] if vb_gust else []) + [("VC", v_c_ms, 15.24), ("VD", v_d_ms, 7.62)]
         if load_basis == "cs25":
-            gust_basis = ("Uproszczony model Pratta (dawny FAR 25.341: 66/50/25 ft/s przy VB/VC/VD). "
-                          "Obowiązujący CS-25.341 stosuje podmuch dyskretny 1-cos i turbulencję ciągłą.")
+            gust_basis = (f"Oszacowanie liniami podmuchu Pratta 66/50/25 ft/s przy VB/VC/VD; {cite('gust')} wymaga "
+                          "analizy dynamicznej podmuchu 1-cos (Uref = 17,07 m/s przy VC) i turbulencji ciągłej.")
         elif vb_gust:
-            gust_basis = "Metoda wg CS-23 Amdt 4 §23.333(c) / Danilecki: 66/50/25 ft/s przy VB/VC/VD (commuter)."
+            gust_basis = f"{cite('gust')}, {cite('gust_formula')}: 66/50/25 ft/s przy VB/VC/VD (commuter)."
         else:
-            gust_basis = ("Metoda wg CS-23 Amdt 4 §23.333(c) / Danilecki: 50/25 ft/s przy VC/VD; "
-                          "podmuch 66 ft/s przy VB dotyczył tylko kategorii commuter.")
+            gust_basis = (f"{cite('gust')}, {cite('gust_formula')}: 15,24 m/s przy VC i 7,62 m/s przy VD"
+                          + ("; podmuch 66 ft/s przy VB dotyczy tylko kategorii commuter." if regulation == "JAR-23" else "."))
 
-    # Współczynnik bezpieczeństwa konstrukcji nu = 1.5 wg CS-23 Amdt 4 §23.303 / CS 22.303 / Danilecki wzór (1.1)
+    # Współczynnik bezpieczeństwa ν = 1,5 wg przepisów kategorii (JAR 23.303, JAR 22.303, JAR-VLA 303, JAR 25.303)
     safety_factor_nu = 1.5
 
     # 4. Generowanie krzywych obwiedni manewrowej do wykresu
@@ -240,11 +265,11 @@ def calculate_vn_envelope(m0: float, geom: dict, aero: dict, perf: dict, params:
 
     high_lift = (params.get('flap_type', 'single_slotted') != 'none'
                  or params.get('slat_type', 'none') in ('slats_auto', 'krueger'))
-    flap_basis = (f"CS-22 Amdt {'3' if cs22_model == 'amendment3' else '2'} §22.345(b)(1), §22.341"
-                  if sailplane else 'CS-23 Amdt 4 §23.345(a), §23.341 (metoda Pratta)')
+    flap_basis = (f"{cite('flap')}, {cite('vf')}, {cite('gust_formula')}" if sailplane
+                  else f"{cite('flap')}, {cite('gust_formula')} (wzór Pratta)")
     if category == 'transport':
-        flap_basis = ('Wstępne oszacowanie Pratta dla ±7,62 m/s; CS-25.345 wymaga analizy dynamicznej. '
-                      'VF z reguły dydaktycznej CS-23; nie określa granic eksploatacyjnych CS-25.')
+        flap_basis = (f"{cite('vf')}: VF ≥ 1,8 VS0 (klapy do lądowania); {cite('flap')}: n = 2,0 i podmuch ±7,62 m/s; "
+                      "przyrost od podmuchu oszacowano wzorem Pratta, przepis wymaga analizy dynamicznej.")
     flap = calculate_flap_envelope(vs_lnd_ms, v_f_ms, n_flap, u_flap, gust_dn(1., u_flap), high_lift, flap_basis)
     global_pos = max(n_dimensioning_pos, flap['limits']['n_dimensioning_pos']) if high_lift else n_dimensioning_pos
     global_neg = min(n_dimensioning_neg, flap['limits']['n_dimensioning_neg']) if high_lift else n_dimensioning_neg
@@ -254,7 +279,7 @@ def calculate_vn_envelope(m0: float, geom: dict, aero: dict, perf: dict, params:
         governing_positive='landing_high_lift' if global_pos > n_dimensioning_pos else 'clean',
         governing_negative='landing_high_lift' if global_neg < n_dimensioning_neg else 'clean')
 
-    # F. Wypadkowa obwiednia konstrukcyjna (CS-23.333(c) / Danilecki rys. 2.1)
+    # F. Wypadkowa obwiednia konstrukcyjna (JAR 23.333(d) / Danilecki rys. 2.1)
     composite_pts_pos = []
     composite_pts_neg = []
     sample_speeds = {i * v_d_ms / 60 for i in range(61)} | {
@@ -315,7 +340,10 @@ def calculate_vn_envelope(m0: float, geom: dict, aero: dict, perf: dict, params:
             "design_code": SUBCATEGORIES[category_key]["design_code"],
             "load_factor_reference": load_factor_ref,
             "speed_rule": speed_rule,
-            "basis": "CS-22" if sailplane else ("CS-25" if category == "transport" else "CS-23"),
+            "basis": regulation,
+            "regulation": sub["regulation"],
+            "rules": rules,
+            "safety_factor_reference": cite('nu'),
             "cs22_gust_model": cs22_model,
         },
         "speeds": {
@@ -335,7 +363,7 @@ def calculate_vn_envelope(m0: float, geom: dict, aero: dict, perf: dict, params:
             "gust_length_ratio": gust_length_ratio,
             "gust_length_m": gust_length_ratio * chord if gust_length_ratio is not None else None,
             "chord_m": chord,
-            "chord_basis": "średnia cięciwa geometryczna S/b (CS 22.341 / CS-23 Amdt 4 §23.341)",
+            "chord_basis": f"średnia cięciwa geometryczna S/b ({cite('gust_formula')})",
             "vb_gust": vb_gust,
             "gust_basis": gust_basis,
             "gusts": [{"speed": label, "v_kmh": kmh(v), "u_ms": u, "delta_n": pos-1,

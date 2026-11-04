@@ -80,7 +80,7 @@ def estimate_aircraft_noise(params: dict, sizing: dict, perf: dict, geom: dict, 
         limit = round(chapter10_limit(m0, single_engine_land), 1)
         limit_basis = "10.4 b) jednosilnikowe" if single_engine_land else "10.4 a)"
         # 10.1.1: rozdział nie obejmuje samolotów akrobacyjnych, rolniczych, pożarniczych i motoszybowców samostartujących.
-        if resolve_category(params.get("category")) == "cs23_aerobatic":
+        if resolve_category(params.get("category")) == "jar23_aerobatic":
             limit, limit_basis = None, "nie dotyczy samolotów akrobacyjnych (10.1.1)"
         elif m0 > 8618.0:
             # Powyżej 8618 kg obowiązują limity EPNdB w trzech punktach (rozdz. 14); model dB(A) ich nie obejmuje.

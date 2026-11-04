@@ -10,7 +10,7 @@ from app import app
 from calculations import run_bipol_project
 from calculations.presets import AIRCRAFT_PRESETS
 from calculations.atmosphere import G0, RHO0
-from calculations.polish_law import SUBCATEGORIES, check_compliance, suggest_subcategory
+from calculations.polish_law import resolve_category, SUBCATEGORIES, check_compliance, suggest_subcategory
 
 
 @pytest.fixture
@@ -73,7 +73,7 @@ def test_vb_gust_only_for_commuter_and_transport(category, vb_gust):
     assert env['gust_factors']['vb_gust'] is vb_gust
     assert (env['speeds']['v_b_kmh'] is not None) is vb_gust
     assert len(env['gust_pos']) == (4 if vb_gust else 3)
-    assert 'Amdt 4' in env['gust_factors']['gust_basis'] or 'Pratta' in env['gust_factors']['gust_basis']
+    assert 'JAR 23.333(c)' in env['gust_factors']['gust_basis'] or 'Pratta' in env['gust_factors']['gust_basis']
 
 
 def test_impossible_mission_is_not_hidden_by_clamped_fuel_fraction(client):
@@ -101,10 +101,21 @@ def test_explicit_span_uses_same_aspect_ratio_for_sizing_and_aerodynamics():
     assert result['sizing']['design_point']['ws'] == pytest.approx(result['mass']['m0'] * G0 / wing['S'], rel=.001)
 
 
-@pytest.mark.parametrize('category', ['cs23_level1', 'cs23_level2', 'cs23_level3', 'cs23_commuter'])
-def test_all_cs23_levels_have_8618_kg_scope(category):
-    assert SUBCATEGORIES[category]['mtom_max'] == 8618
-    assert suggest_subcategory(6000, 1, 5, False, 'jet') == 'cs23_level2'
+@pytest.mark.parametrize('category,mtom,seats', [('jar23_normal', 5670, 9), ('jar23_utility', 5670, 9),
+                                                 ('jar23_aerobatic', 5670, 9), ('jar23_commuter', 8618, 19)])
+def test_jar23_scope_follows_jar_23_1(category, mtom, seats):
+    # JAR 23.1(a)(1): N/U/A ≤ 9 seats besides pilots and ≤ 5670 kg; (a)(2): propeller twin commuter ≤ 19 and ≤ 8618 kg.
+    assert (SUBCATEGORIES[category]['mtom_max'], SUBCATEGORIES[category]['pax_max']) == (mtom, seats)
+    assert suggest_subcategory(5000, 1, 5, False, 'jet', 'jet_business') == 'jar23_normal'
+    assert suggest_subcategory(7000, 2, 15, False, 'prop', 'turboprop_regional', 2) == 'jar23_commuter'
+    assert suggest_subcategory(7000, 2, 8, False, 'jet', 'jet_business', 2) == 'cs25_transport'
+
+
+@pytest.mark.parametrize('old,new', [('cs23_level1', 'jar23_normal'), ('cs23_level2', 'jar23_normal'),
+                                     ('cs23_level3', 'jar23_normal'), ('cs23_aerobatic', 'jar23_aerobatic'),
+                                     ('cs23_commuter', 'jar23_commuter')])
+def test_saved_cs23_level_keys_open_as_jar23_categories(old, new):
+    assert resolve_category(old) == new
 
 
 @pytest.mark.parametrize('category,mass', [('easa_uas_specific', 750), ('easa_uas_certified', 100)])
@@ -116,26 +127,30 @@ def test_uas_operation_category_has_no_600_kg_cutoff(category, mass):
     assert result['n_warnings'] >= 1
 
 
-def test_cs23_performance_level_is_not_inferred_from_cruise_tas():
-    p = {'category': 'cs23_level2', 'aircraft_type': 'jet_business', 'n_crew': 1, 'n_pax': 5, 'cruise_speed_kmh': 680}
-    mass = {'m0': 6000}
-    assert 'Nie określono' in check_compliance(p, mass)['easa_performance_level']
-    assert check_compliance(dict(p, vmo_kcas=240, mmo=.55), mass)['easa_performance_level'] == 'Low Speed'
-    assert check_compliance(dict(p, vmo_kcas=240, mmo=.7), mass)['easa_performance_level'] == 'High Speed'
+def test_every_compliance_check_cites_its_paragraph_or_program_assumption():
+    p = {'category': 'jar23_normal', 'aircraft_type': 'jet_business', 'n_crew': 1, 'n_pax': 5, 'cruise_speed_kmh': 680}
+    result = check_compliance(p, {'m0': 6000})
+    mtom = next(c for c in result['checks'] if c['name'] == 'Maksymalna masa startowa MTOM')
+    assert not mtom['ok'] and mtom['paragraph'] == 'JAR 23.1(a)(1)' and mtom['url'].endswith('JAR-23_Ogolne.pdf')
+    assert result['suggested_category'] == 'cs25_transport'
+    for check in result['checks']:
+        assert check['paragraph'] or check['source'].startswith('Założenie programu'), check['name']
 
 
 def test_passengers_are_not_silently_removed_to_make_project_compliant():
-    result = run_bipol_project(dict(AIRCRAFT_PRESETS['ga_trainer'], category='cs23_level1', n_pax=3))
-    assert result['params']['n_pax'] == 3
-    assert result['mass']['n_pax'] == 3
+    # JAR-VLA 1(a): at most two seats — a third occupant stays and is reported.
+    result = run_bipol_project(dict(AIRCRAFT_PRESETS['ga_trainer'], category='cs_vla', n_pax=2))
+    assert result['params']['n_pax'] == 2
+    assert result['mass']['n_pax'] == 2
     assert result['easa_compliance']['n_errors'] > 0
 
 
-def test_unknown_performance_class_is_warning_in_api_and_report(client):
-    result = client.post('/api/calculate', json=AIRCRAFT_PRESETS['vlj_jet']).json
-    check = next(c for c in result['compliance_checks'] if '23.2005(c)' in c['parameter'])
-    assert check['severity'] == 'warning'
-    assert '<td>do oceny</td>' in client.get('/report?preset=vlj_jet').get_data(as_text=True)
+def test_unverified_one_engine_inoperative_climb_is_warning_in_api_and_report(client):
+    # JAR 25.121 needs an engine-out analysis the preliminary design does not make: reported, not hidden.
+    result = client.post('/api/calculate', json=AIRCRAFT_PRESETS['regional_turboprop']).json
+    check = next(c for c in result['compliance_checks'] if 'jednym silnikiem niepracującym' in c['parameter'])
+    assert check['severity'] == 'warning' and check['rule'] == 'jar25.121'
+    assert '<td>do oceny</td>' in client.get('/report?preset=regional_turboprop').get_data(as_text=True)
 
 
 @pytest.mark.parametrize('url', ['/', '/holistic', '/projekty', '/report', '/report/project/folder_cover'] + [f'/report/project/p{i}' for i in range(1,7)])

@@ -16,6 +16,8 @@ nie ma w dokumencie (np. raport jednej części), znika razem z nawiasem.
 import html as _html
 import re
 
+from calculations import regulations as _regulations
+
 from markupsafe import Markup, escape
 
 # ---------------------------------------------------------------------------------------------
@@ -47,6 +49,8 @@ LITERATURE = {
     'stanag': 'NATO: <em>STANAG 4671 — Unmanned Aerial Vehicles Systems Airworthiness Requirements (USAR)</em>.',
     'isa': 'ISO 2533:1975 <em>Standard Atmosphere</em> (atmosfera wzorcowa ISA).',
 }
+# Rozdziały wyjątków z przepisów (i dokumenty spoza nich) — klucze reg_…, cytowane przy paragrafach.
+LITERATURE.update(_regulations.literature())
 
 CATEGORY = {'req': 'Wymaganie tematu', 'ass': 'Założenie początkowe', 'bc': 'Warunek brzegowy',
             'reg': 'Przepisy budowy', 'chart': 'Odczyt z wykresu', 'lit': 'Dane z literatury',
@@ -98,7 +102,8 @@ ORIGIN = {
     'T_cr': _ISA, 'a_0': _ISA, 'sigma_4500': _ISA, 'rho_gl': _ISA, 'rho_mis': _ISA,
     # --- Projekt 1 ---
     'n_pas': ('req', ''), 'm_cargo': ('req', ''), 'n_zal': ('req', ''),
-    'm_pas': ('ass', 'masa obliczeniowa pasażera wraz z bagażem'),
+    'm_pas': lambda e: ('ass', 'masa drugiej osoby wraz ze spadochronem' if 'spadochron' in e.get('label', '')
+                        else 'masa obliczeniowa pasażera wraz z bagażem'),
     'm_bag': ('ass', 'bagaż ponad masę obliczeniową pasażera'),
     'm_os': ('ass', 'masa obliczeniowa członka załogi z wyposażeniem osobistym'),
     'H_cr': ('req', ''), 'V_cr_kmh': ('req', 'prędkość rzeczywista (TAS)'),
@@ -188,7 +193,7 @@ ORIGIN = {
     'c_t': ('calc', 'obrys eliptyczny kończy się zerową cięciwą'),
     'xi_b': ('ass', 'położenie załamania obrysu przyjęte w koncepcji'),
     'y_mac': ('calc', 'z całkowania obrysu skrzydła (moment statyczny półskrzydła)'),
-    'd_k': ('ass', 'średnica kadłuba dobrana do układu kabiny (do 4 osób 1,25 m, powyżej 1,50 m)'),
+    'd_k': lambda e: ('ass', 'średnica kadłuba dobrana do układu kabiny' + (f' ({e["source"]})' if e.get('source') and e['source'] != 'Założenie' else '')),
     'n_ab': ('ass', 'liczba foteli w rzędzie przyjęta w koncepcji kabiny'),
     'l_layout': ('ass', 'długość kabiny z przyjętego układu foteli'),
     'd_layout': ('ass', 'średnica kabiny z przyjętego układu foteli'),
@@ -257,13 +262,14 @@ ORIGIN = {
     'Cz_gopt': ('calc', 'z tabeli biegunowej prędkości {tab:speed-polar}'),
     'Cz_gek': ('calc', 'z tabeli biegunowej prędkości {tab:speed-polar}'),
     # --- Projekt 6 ---
-    'nu': ('reg', 'współczynnik bezpieczeństwa 1,5 wymagany przepisami budowy'),
+    'nu': lambda e: ('reg', 'współczynnik bezpieczeństwa wg ' + _regulation(e['source'])),
+    'm_os_min': lambda e: ('reg', 'najmniejsza masa osoby na miejscu wg ' + _regulation(e['source'])),
     'Cz_min': ('ass', 'najmniejszy (ujemny) współczynnik siły nośnej w locie odwróconym'),
-    'k_VC': ('reg', 'współczynnik minimalnej prędkości przelotowej wg przepisów {lit:cs23}'),
-    'k_VD': ('reg', 'stosunek V_D/V_C,min wg przepisów {lit:cs23}'),
-    'V_B': ('reg', 'prędkość dla podmuchu o największej intensywności wg przepisów {lit:cs23}'),
+    'k_VC': lambda e: ('reg', 'współczynnik minimalnej prędkości przelotowej wg ' + _regulation(e['source'])),
+    'k_VD': lambda e: ('reg', 'stosunek V_D/V_C,min wg ' + _regulation(e['source'])),
+    'V_B': lambda e: ('reg', 'prędkość dla podmuchu o największej intensywności wg ' + _regulation(e['source'])),
     'U_B': _gust, 'U_C': _gust, 'U_D': _gust, 'U_F': _gust,
-    'n_f': ('reg', 'przeciążenie manewrowe z wychyloną mechanizacją wg przepisów'),
+    'n_f': lambda e: ('reg', 'przeciążenie manewrowe z wychyloną mechanizacją wg ' + _regulation(e['source'])),
     'n_plus': _load_factor, 'n_minus': _load_factor,
     'Cd_min': ('calc', 'najmniejszy współczynnik oporu z biegunowej samolotu (Projekt 4) {tab:polar-coefficients}'),
 }
@@ -275,13 +281,16 @@ _PATTERNS = (
     (re.compile(r'^(Dane silnika)', re.I), ('ass', 'dane silnika przyjętego w koncepcji')),
     (re.compile(r'^Profil misji', re.I), _MISSION),
     (re.compile(r'^ISA$'), _ISA),
-    (re.compile(r'CS-?2[235]|STANAG|FAR', re.I), None),
+    (re.compile(r'JAR|CS-?2[235]|CS-LSA|STANAG|FAR', re.I), None),
 )
 
 
 def _regulation(text):
-    """Nazwa przepisu z odnośnikiem do literatury, bez dopisków roboczych."""
+    """Paragrafy przepisów cytowane w tekście, każdy z odnośnikiem do rozdziału wyjątków."""
     text = text or ''
+    found = _regulations.find_rules(text)
+    if found:
+        return ', '.join(_regulations.report_ref(rule_id) for rule_id in found)
     for key, needle in (('cs22', '22'), ('cs25', '25'), ('stanag', 'STANAG'), ('cs23', '23')):
         if needle in text:
             name = {'cs22': 'CS-22', 'cs25': 'CS-25', 'stanag': 'STANAG 4671', 'cs23': 'CS-23'}[key]
@@ -392,6 +401,17 @@ def render_tokens(text):
 
 def origin(entry):
     return render_tokens(origin_text(entry))
+
+
+def reg(rule_id):
+    """Paragraf przepisów z numerem rozdziału wyjątków w spisie literatury: „JAR 23.337(a) [N]”."""
+    return render_tokens(_regulations.report_ref(rule_id))
+
+
+def reg_refs(text):
+    """Paragrafy przepisów cytowane w tekście (np. źródle wzoru) albo pusty tekst."""
+    found = _regulations.find_rules(text)
+    return render_tokens(', '.join(_regulations.report_ref(rule_id) for rule_id in found)) if found else ''
 
 
 def origin_ref(sheet, key, here_project=None):

@@ -12,13 +12,16 @@ def assessment(params, mass, aero=None):
     checks, limitations = [], []
     water = None
     if is_water(params):
-        # CS 23.2310(a): 80% excess over the buoyancy supporting MTOW in fresh water.
+        # JAR 23.751(a)(1): 80% excess over the buoyancy supporting MTOW in fresh water.
+        from calculations.polish_law import SUBCATEGORIES, is_jar23, resolve_category
+        from calculations.regulations import cite, reference
         required = 1.8 * mass['m0'] / 1000.0
         volume = params.get('water_displacement_volume_m3') or None
-        cs23 = str(params.get('category', '')).startswith('cs23_') and mass['m0'] <= 8618
-        basis_note = ('EASA CS 23.2310(a); obliczenie wyporności nie dowodzi stateczności ani certyfikacji.'
+        category = resolve_category(params.get('category'))
+        cs23 = is_jar23(category) and mass['m0'] <= SUBCATEGORIES[category]['mtom_max']
+        basis_note = (f"{reference('jar23.751')}; obliczenie wyporności nie dowodzi stateczności ani certyfikacji."
                       if cs23 else
-                      'Wstępne kryterium 1,8·MTOW zaczerpnięte z CS 23.2310(a). Projekt poza zakresem CS-23: '
+                      f"Wstępne kryterium 1,8·MTOW zaczerpnięte z {cite('jar23.751')}. Projekt poza zakresem JAR-23: "
                       'wymagania wyporności i podziału kadłuba/pływaków właściwej podstawy certyfikacji pozostają niezweryfikowane.')
         water = dict(required_buoyant_volume_m3=required, supplied_buoyant_volume_m3=volume,
                      fresh_water_density_kg_m3=1000.0, excess_buoyancy_factor=1.8,

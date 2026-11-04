@@ -67,8 +67,10 @@ def test_jet_topics_are_not_seeded_with_piston_stall_speeds():
         p = topic(num)
         assert low <= p['v_stall_kmh'] <= high, num
     r = run_bipol_project(topic(61))
-    # A 10-seat business jet: CJ3/Phenom 300 have 27–29 m² and 16 m, not 70 m² and 24 m.
-    assert r['geometry']['wing']['S'] < 35 and r['geometry']['wing']['b'] < 18
+    # A 10-seat business jet: CJ3/Phenom 300 have 27–29 m² and 16 m, not 70 m² and 24 m. Above 5670 kg
+    # JAR 23.1(a)(1) no longer applies, so it is designed to JAR-25 with two pilots.
+    assert r['params']['category'] == 'cs25_transport' and r['mass']['m0'] > 5670
+    assert r['geometry']['wing']['S'] < 40 and r['geometry']['wing']['b'] < 18
     assert r['mass']['m0'] / r['geometry']['wing']['S'] > 150
 
 
@@ -80,8 +82,8 @@ def test_ultralight_topics_meet_the_ul_stall_limit_without_an_invented_span():
 
 
 def test_aerobatic_topics_use_aerobatic_loads():
-    assert [topic(n)['category'] for n in (27, 28, 29)] == ['cs23_aerobatic'] * 3
-    assert topic(23)['category'] == 'cs23_level1'
+    assert [topic(n)['category'] for n in (27, 28, 29)] == ['jar23_aerobatic'] * 3
+    assert topic(23)['category'] == 'jar23_normal'
     envelope = run_bipol_project(topic(28))['envelope']
     assert envelope['limits']['n_max'] >= 6
     # §23.333(b)(3): przy VD ujemna gałąź kończy się na −1 (akrobacyjna), a nie na 0 jak w normalnej.
@@ -95,25 +97,25 @@ def test_heavy_payload_topics_are_transport_category_with_two_pilots():
         p = topic(num)
         assert (p['category'], p['n_crew']) == ('cs25_transport', 2), num
     # The P1 mass seeds 1,3 t and 1,8 t of cargo in CS-23; the calculated design decides in the end.
-    assert topic(66)['category'] == topic(67)['category'] == 'cs23_level1'
+    assert topic(66)['category'] == topic(67)['category'] == 'jar23_normal'
     for num in (67, 68):
         r = run_bipol_project(topic(num))
         assert r['mass']['m0'] > 8618 and (r['params']['category'], r['params']['n_crew']) == ('cs25_transport', 2), num
         assert all(c['ok'] for c in r['easa_compliance']['checks'] if 'MTOM' in c['name']), num
     # A category chosen by the author stays, and its MTOM limit is reported.
     own = run_bipol_project(dict(topic(67), category='cs23_commuter'))
-    assert own['params']['category'] == 'cs23_commuter'
+    assert own['params']['category'] == 'jar23_commuter'
     assert not all(c['ok'] for c in own['easa_compliance']['checks'] if 'MTOM' in c['name'])
     # The mass, not the seat count, puts a freighter in CS-25.
     assert not any('pasażerów' in c['name'] for c in r['easa_compliance']['checks'])
 
 
-def test_design_cruising_speed_does_not_replace_operational_cas_and_mach_limits():
-    level = lambda num: run_bipol_project(topic(num))['easa_compliance']['easa_performance_level']
-    assert level(40).startswith('Nie określono')
-    assert level(49).startswith('Nie określono')
-    r = run_bipol_project(dict(topic(49), vmo_kcas=240, mmo=.55))
-    assert r['easa_compliance']['easa_performance_level'] == 'Low Speed'
+def test_jar23_has_no_cs23_amendment5_performance_levels():
+    # The course regulations (JAR-23) classify by category, seats and mass — not by CS 23.2005 levels.
+    for num in (40, 49):
+        law = run_bipol_project(topic(num))['easa_compliance']
+        assert law['regulation'] in ('JAR-23', 'JAR-25') and 'easa_performance_level' not in law
+        assert not any('2005' in (c['source'] or '') for c in law['checks'])
 
 
 def test_topic_specific_payloads():
@@ -290,12 +292,14 @@ def test_cs23_dive_speed_respects_vc_min_lower_bound():
     assert v_d_kmh >= 1.40 * v_c_min_kmh - 1.0
 
 
-def test_cs23_load_factor_enforces_statutory_2_5_floor():
+def test_load_factor_floor_of_2_5_is_jar25_only():
     from calculations.polish_law import limit_load_factors
-    # Heavy commuter category aircraft under CS-23
-    n_pos, n_neg, ref = limit_load_factors("cs23_commuter", 25000.0)
-    assert n_pos >= 2.50
-    assert n_pos == pytest.approx(2.50, abs=0.01)
+    # JAR 23.337(a)(1): n ≥ 2,1 + 24000/(W + 10000), at most 3,8 — no 2,5 floor (W ≤ 19 000 lb anyway).
+    n_pos, _, ref = limit_load_factors("jar23_commuter", 25000.0)
+    assert n_pos == pytest.approx(2.1 + 24000 / (25000 * 2.20462 + 10000), abs=0.01) and 'JAR 23.337(a)(1)' in ref
+    # JAR 25.337(b): not less than 2,5.
+    n_pos, _, ref = limit_load_factors("cs25_transport", 25000.0)
+    assert n_pos == pytest.approx(2.50, abs=0.01) and 'JAR 25.337(b)' in ref
 
 
 def test_composite_vn_envelope_polygon_exists_and_bounds_points():

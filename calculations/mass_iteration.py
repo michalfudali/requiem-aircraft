@@ -63,7 +63,9 @@ def guideline_trace(p, payload, crew, method, start=None):
     useful = payload + crew
     chosen = float(start) if start else auto_start(useful)
     base = dict(method='proportion' if method == 'proportions' else 'iterative', start=chosen,
-                start_rule=p.get('_mass_trace_start_rule') or ('założenie autora' if start else '3·(m_zał + m_ład), zaokrąglone w górę do 10 kg'),
+                start_rule=p.get('_mass_trace_start_rule') or ('założenie autora' if start else
+                           ('3·(m_zał + m_ład)' if payload else '3·m_zał') + ', zaokrąglone w górę do 10 kg'),
+                powered=p.get('engine_type', 'prop') != 'none',
                 payload=payload, crew=crew, useful=useful, drop=drop, reserve_factor=mission['reserve'],
                 tolerance=TOLERANCE, law=dict(mode=law['mode'], A=law['A'], C=law['C'], k_vs=law['k_vs']),
                 factors={k: v for k, v in mission['factors'].items()}, kmax=polar['kmax'],

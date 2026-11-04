@@ -241,14 +241,21 @@ def calculate_all_bipol_projects(mass_res: dict, sizing_res: dict, geom_res: dic
     # Re-solve the actual nonlinear mass balance for each perturbation.
     # A constant-fraction derivative is incorrect for me/m0 = A*m0**C.
     sens_d_payload = calculate_mass_sizing(dict(params, m_cargo=params.get('m_cargo', 0)+1))['m0'] - m0
-    scenarios = [
-        ('Masa płatna m_payload', '+10%', {k: params.get(k, 0)*1.1 for k in ('m_pax','m_bag','m_cargo')}),
-        ('Masa płatna m_payload', '-10%', {k: params.get(k, 0)*.9 for k in ('m_pax','m_bag','m_cargo')}),
-        ('Zasięg obliczeniowy R', '+10%', {'range_km': params['range_km']*1.1}),
-        ('Doskonałość przelotowa K', '+10%', {'cruise_ld_p4': params['cruise_ld_p4']*1.1} if params.get('cruise_ld_p4')
-                                             else {'mission_ld_factor': params['mission_ld_factor']*1.1}),
-        ('Jednostkowe zużycie paliwa SFC', '+10%', {'sfc': params.get('sfc', 0)*1.1}),
-    ]
+    # Only variables that exist for this aircraft: a sailplane carries no fuel, so range, cruise
+    # L/D and SFC do not change its mass; without payload the crew mass is the varied load.
+    has_payload = float(mass_res.get('m_payload') or 0) > 0
+    scenarios = ([('Masa płatna m_payload', '+10%', {k: params.get(k, 0)*1.1 for k in ('m_pax','m_bag','m_cargo')}),
+                  ('Masa płatna m_payload', '-10%', {k: params.get(k, 0)*.9 for k in ('m_pax','m_bag','m_cargo')})]
+                 if has_payload else
+                 [('Masa członka załogi m_os', '+10%', {'m_crew_person': params.get('m_crew_person', 90)*1.1}),
+                  ('Masa członka załogi m_os', '-10%', {'m_crew_person': params.get('m_crew_person', 90)*.9})])
+    if params.get('engine_type') != 'none':
+        scenarios += [
+            ('Zasięg obliczeniowy R', '+10%', {'range_km': params['range_km']*1.1}),
+            ('Doskonałość przelotowa K', '+10%', {'cruise_ld_p4': params['cruise_ld_p4']*1.1} if params.get('cruise_ld_p4')
+                                                 else {'mission_ld_factor': params['mission_ld_factor']*1.1}),
+            ('Jednostkowe zużycie paliwa SFC', '+10%', {'sfc': params.get('sfc', 0)*1.1}),
+        ]
     sensitivity_table = []
     for label, delta, change in scenarios:
         try:
@@ -260,7 +267,7 @@ def calculate_all_bipol_projects(mass_res: dict, sizing_res: dict, geom_res: dic
     # 2.5 Analiza kosztów B+R i produkcji (BIPOL_2.pdf wzory 13-21, Tab. 5.9, wzór 5.10)
     # W studium wykonalności prędkość maksymalna nie jest jeszcze obliczona (P5): przyjmuje się
     # wymaganą prędkość maksymalną, a bez takiego wymagania prędkość przelotową — jak na wykresie doboru.
-    # Szybowiec nie ma Vmax lotu poziomego; przyjęto VNE = 0,9·VD (CS 22.1505).
+    # Szybowiec nie ma Vmax lotu poziomego; przyjęto VNE = 0,9·VD (CS 22.1505; podczęść G JAR-22 poza wyjątkami).
     dp = sizing_res["design_point"]
     v_max_cost = (float(params.get("v_max_required_kmh") or 0) or float(params["cruise_speed_kmh"])
                   if engine_type != "none" else 0.9 * float(env_res["speeds"]["v_d_kmh"]))
@@ -335,8 +342,10 @@ def calculate_all_bipol_projects(mass_res: dict, sizing_res: dict, geom_res: dic
         ]
     else:
         table_3_1 += [
-            {"item": "13. Załoga (pilot + instruktor)", "mass_kg": m_crew, "x_m": arms["crew"], "y_m": 0.0, "z_m": 0.1},
-            {"item": "14. Pasażerowie / Ładunek użyteczny", "mass_kg": m_payload, "x_m": arms["pax_front"], "y_m": 0.0, "z_m": 0.1},
+            {"item": "13. Załoga", "mass_kg": m_crew, "x_m": arms["crew"], "y_m": 0.0, "z_m": 0.1},
+            {"item": "14. " + ("Druga osoba na pokładzie" if engine_type == "none" or ac_type == "motoglider"
+                                else "Pasażerowie" if not float(params.get("m_cargo") or 0) else "Pasażerowie i ładunek"),
+             "mass_kg": m_payload, "x_m": arms["pax_front"], "y_m": 0.0, "z_m": 0.1},
         ]
     table_3_1 += [
         {"item": "15. Paliwo w zbiornikach skrzydłowych", "mass_kg": m_fuel, "x_m": arms["fuel"], "y_m": 1.2, "z_m": 0.15}
@@ -356,6 +365,15 @@ def calculate_all_bipol_projects(mass_res: dict, sizing_res: dict, geom_res: dic
     for row in table_3_1:
         row['y_rms_m'] = abs(row['y_m'])
         row['y_m'] = 0.0
+    # Only components this aircraft has: a sailplane lists no engine, engine mount, fuel or payload.
+    if engine_type == "none":
+        table_3_1[8]['item'] = "9. Hamulce aerodynamiczne i instalacje płatowca"
+    if not unmanned_ac and int(mass_res.get("n_crew", 1) or 0) <= 1:
+        table_3_1[12]['item'] = "13. Pilot"
+    table_3_1 = [row for row in table_3_1 if row['mass_kg'] > 1e-9]
+    # Renumber the remaining rows so that the list stays consecutive.
+    for number, row in enumerate(table_3_1, 1):
+        row['item'] = f"{number}. " + row['item'].split('. ', 1)[1]
 
     # Obliczenie momentów bezwładności w środku ciężkości Jx, Jy, Jz i dewiacji Jxz (wzory 2.3 - 2.4 z BIPOL_3_2010.pdf)
     xcg_mtow = float(next(s for s in bal_res["loading_states"] if s["key"] == "mtow")["xcg_m"])
@@ -721,7 +739,7 @@ def calculate_all_bipol_projects(mass_res: dict, sizing_res: dict, geom_res: dic
     # =========================================================================
     # PROJEKT 6: OBWIEDNIA OBCIĄŻEŃ DOPUSZCZALNYCH (20 pkt)
     # =========================================================================
-    # 6.1 Punkty charakterystyczne i 6.2 pętla klapowa z obwiedni: CS-23 Amdt 4 / CS-25 / CS-22 wg kategorii
+    # 6.1 Punkty charakterystyczne i 6.2 pętla klapowa z obwiedni: JAR-23 / JAR-VLA / JAR-25 / JAR-22 wg kategorii
     limits = env_res.get("limits", {})
     gusts = env_res.get("gust_factors", {})
     points_vn = env_res["key_points"]
