@@ -126,7 +126,7 @@ def calculate_geometry(m0: float, ws: float, params: dict):
             return cr * (y_val ** 2) / 2.0 - ((cr - ct) / half_span) * (y_val ** 3) / 3.0
 
     # 2. Geometria kadłuba (wstępne oszacowanie z liczby pasażerów i rozpiętości)
-    # Freighters: the hold volume follows from the payload density (C-295 ≈ 140, C-130 ≈ 180 kg/m³),
+    # Freighters: the hold volume follows from the payload density (density given by the topic),
     # with height 0.9·width, length 4·width and room for an LD-3 container (2.0 m wide).
     hold = None
     hold_density = float(params.get('cargo_hold_density_kg_m3') or 0)

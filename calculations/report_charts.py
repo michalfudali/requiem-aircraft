@@ -9,7 +9,8 @@ import math
 
 from markupsafe import Markup
 
-from calculations.bipol1 import CORKE, CX0_LABELS, RAYMER, RAYMER_LABELS, WETTED_EXAMPLES
+from calculations import aircraft_store
+from calculations.bipol1 import CORKE, CX0_LABELS, RAYMER, RAYMER_LABELS
 from calculations.flight_model import propulsion_lapse
 from calculations.report_document import report_number
 from calculations.report_figures import FONT, HALO, INK, MUTED, line_chart
@@ -67,9 +68,6 @@ def raymer_chart(family, wetted_aspect, kmax, extrapolated=False):
                       'Λ / (S_wet / S)', 'K_max', extra=extra)
 
 
-SWET_SHORT = {'flying_wing': 'latające skrzydło', 'delta_fighter': 'delta F-102', 'glider': 'szybowiec',
-              'light_single': 'Cessna 150', 'twin_turboprop': 'King Air', 'fighter': 'F-104',
-              'jet_transport': 'Boeing 747', 'bomber': 'B-47'}
 
 
 def swet_scale_chart(value, example=None):
@@ -87,7 +85,8 @@ def swet_scale_chart(value, example=None):
     for tick in range(2, 9):
         svg.append(f'<path d="M{px(tick):.1f} {axis_y - 5}V{axis_y + 5}" stroke="{INK}"/>'
                    f'<text x="{px(tick):.1f}" y="{axis_y + 20}" text-anchor="middle" font-size="11" fill="{MUTED}" {FONT}>{tick}</text>')
-    for i, (key, (label, x)) in enumerate(WETTED_EXAMPLES.items()):
+    for i, (key, row) in enumerate(aircraft_store.wetted_area_examples().items()):
+        x = row['swet_ratio']
         y = axis_y - 18 - 16 * (i % 4)
         chosen = key == example
         color, weight = (INK, ' font-weight="bold"') if chosen else (MUTED, '')
@@ -95,7 +94,7 @@ def swet_scale_chart(value, example=None):
         svg.append(f'<circle cx="{px(x):.1f}" cy="{axis_y}" r="{4.5 if chosen else 3.5}" fill="{color}"/>'
                    f'<path d="M{px(x):.1f} {axis_y - 4}V{y + 4}" stroke="#b5b4ae" stroke-width="1"/>'
                    f'<text x="{px(x):.1f}" y="{y}" text-anchor="{anchor}" font-size="10" fill="{color}"{weight} {HALO}{FONT}>'
-                   f'{html.escape(SWET_SHORT.get(key, label))} {_n(x, 2)}</text>')
+                   f'{html.escape(row["short_label"])} {_n(x, 2)}</text>')
     svg.append(f'<path d="M{px(value):.1f} {axis_y - 9}L{px(value) + 7:.1f} {axis_y + 40}L{px(value) - 7:.1f} {axis_y + 40}Z" fill="#eb6834"/>'
                f'<text x="{px(value):.1f}" y="{axis_y + 56}" text-anchor="middle" font-size="12" font-weight="bold" fill="{INK}" {FONT}>'
                f'projekt: S_wet/S = {_n(value, 2)}</text>'

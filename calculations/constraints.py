@@ -37,13 +37,13 @@ WING_PLANFORMS = {
     'compound_trapezoid': {
         'id': 'compound_trapezoid',
         'name_pl': 'Prostokątno-trapezowy',
-        'description': 'Centropłat prostokątny ułatwia montaż klap, podwozia i zbiorników; końcówki trapezowe redukują indukowany opór (układ Piper Cherokee/Archer, Cessna 172, Wilga).',
+        'description': 'Centropłat prostokątny ułatwia montaż klap, podwozia i zbiorników; końcówki trapezowe redukują indukowany opór.',
         'stall_behavior': 'Sam obrys nie przesądza o przeciągnięciu. Sprawdź profile, zwichrzenie, mechanizację i rozkład lokalnego Cz.'
     },
     'elliptical': {
         'id': 'elliptical',
         'name_pl': 'Eliptyczny (minimalny opór indukowany)',
-        'description': 'Teoretycznie optymalny rozkład siły nośnej wg Prandtla (współczynnik e = 1.0). Bardzo wysoki koszt produkcji i trudna technologia wykonania żeber (układ Supermarine Spitfire).',
+        'description': 'Teoretycznie optymalny rozkład siły nośnej wg Prandtla (współczynnik e = 1.0). Bardzo wysoki koszt produkcji i trudna technologia wykonania żeber.',
         'stall_behavior': 'Sam obrys nie przesądza o przeciągnięciu. Sprawdź profile, zwichrzenie, mechanizację i rozkład lokalnego Cz.'
     },
     'swept_trapezoidal': {

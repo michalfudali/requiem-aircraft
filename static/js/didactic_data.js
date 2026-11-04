@@ -40,7 +40,7 @@ const DIDACTIC_DATABASE = {
         "Niewystarczająca dla samolotów o dużym obciążeniu powierzchni nośnej (W/S > 1200 N/m²)."
       ],
       galinski_quote: "W najprostszym przypadku klap wysklepiających wystarcza zawieszenie na konwencjonalnych zawiasach liniowych lub punktowych (rys. 16.14a). Pokrycie za dźwigarkiem może być sztywne lub elastyczne, zawsze jednak należy zadbać, aby środek masy znajdował się możliwie blisko lub przed osią obrotu klapy (ochrona przed flatterem).",
-      typical_aircraft: "PZL-102B Kos, Piper J-3 Cub, RWD-8, szybowce szkolne i akrobacyjne.",
+      typical_aircraft: modelExample('flaps', 'plain'),
       recommendation: "Zalecana dla lekkich samolotów szkolnych, motoszybowców i maszyn turystycznych o niskich prędkościach lądowania (Vs0 < 85 km/h)."
     },
 
@@ -73,7 +73,7 @@ const DIDACTIC_DATABASE = {
         "Brak szczeliny energetyzującej warstwę przyścienną."
       ],
       galinski_quote: "W samolocie Douglas DC-3 (rys. 16.14a) zastosowano klapy krokodylowe zawieszone na zawiasach punktowych na dolnej powierzchni. Płyta dolna odchyla się w dół, tworząc za sobą podciśnienie zwiększające wysklepienie efektywne oraz silny opór hamujący.",
-      typical_aircraft: "Douglas DC-3 / C-47 Dakota, Supermarine Spitfire, PZL-37 Łoś, North American T-6 Texan.",
+      typical_aircraft: modelExample('flaps', 'split'),
       recommendation: "Doskonała w konstrukcjach historycznych oraz maszynach wymagających stromego kąta schodzenia do lądowania bez osobnych hamulców aerodynamicznych."
     },
 
@@ -107,7 +107,7 @@ const DIDACTIC_DATABASE = {
         "Wrażliwość na oblodzenie szczeliny i wysięgników."
       ],
       galinski_quote: "Już w przypadku klap Junkersa (rys. 16.14b, np. samolot Zenair STOL CH 701) oś obrotu klapy znajduje się daleko pod obrysem profilu płata. Wymaga to przymocowania do żeber w skrzydle długiego wysięgnika z łożyskiem obrotu wystającego w opływ.",
-      typical_aircraft: "Zenair STOL CH 701 / CH 750, Junkers Ju 52, Ju 87 Stuka, samoloty buszowe ULM.",
+      typical_aircraft: modelExample('flaps', 'junkers'),
       recommendation: "Idealny wybór dla samolotów krótkiego startu i lądowania (STOL), maszyn rolniczych i patrolowych latających z małą prędkością przelotową."
     },
 
@@ -137,12 +137,12 @@ const DIDACTIC_DATABASE = {
       ],
       cons: [
         "Wymaga wysuniętej osi obrotu poniżej dolnego pokrycia skrzydła na zewnętrznych wysięgnikach lub czworoboku przegubowym (rys. 16.25).",
-        "Wsporniki zawieszenia wymagają owiewek podskrzydłowych (np. w Cirrus SR22 i Partenavia Victor), dających niewielki opór pasożytniczy.",
+        "Wsporniki zawieszenia wymagają owiewek podskrzydłowych, dających niewielki opór pasożytniczy.",
         "Wymaga wysokiej dokładności wykonania geometrii noska klapy i ścianki przed klapą, aby szczelina miała kształt dyszy zbieżnej.",
         "Większy moment pochylający niż w klapie zwykłej."
       ],
       galinski_quote: "Najprostszym rozwiązaniem dla klap szczelinowych jest przymocowanie do żeber w skrzydle długiego wysięgnika z łożyskiem obrotu klapy oraz drugiego wysięgnika w klapie (rys. 16.15–16.17, np. Cirrus SR22). Można też zastosować czworobok przegubowy (rys. 16.25, szybowiec Breguet 901).",
-      typical_aircraft: "Cessna 172 Skyhawk, Cirrus SR22, Piper PA-28, Diamond DA40, Partenavia P.68 Victor.",
+      typical_aircraft: modelExample('flaps', 'single_slotted'),
       recommendation: "Najbardziej uniwersalny i zalecany wybór dla 80% samolotów turystycznych, szkolnych, dyspozycyjnych i lekkich transportowych."
     },
 
@@ -177,7 +177,7 @@ const DIDACTIC_DATABASE = {
         "Duże przesunięcie środka parcia do tyłu generuje silny ujemny moment pochylający ΔCm (wymaga większej objętości usterzenia poziomego V_H)."
       ],
       galinski_quote: "Zawieszenie szynowo-rolkowe (rys. 16.23 i 16.24, np. samolot PZL-130 Orlik) daje niemal nieograniczone możliwości kształtowania trajektorii klapy Fowlera. Istotnym problemem jest sztywność szyny: jeśli byłaby za mała, klapa zablokowałaby się przy ugięciu skrzydła. Z kolei sztywna szyna bywa ciężka i wystaje poza obrys płata.",
-      typical_aircraft: "PZL-130 Orlik, Beechcraft King Air, ATR 42/72, Boeing 737 / 787, Cessna Citation, Lockheed C-130.",
+      typical_aircraft: modelExample('flaps', 'fowler'),
       recommendation: "Zalecana dla szybkich samolotów tłokowych, turbośmigłowych, szkolno-bojowych oraz odrzutowych dyspozycyjnych i komunikacyjnych."
     },
 
@@ -200,17 +200,17 @@ const DIDACTIC_DATABASE = {
       pros: [
         "Najwyższy przyrost współczynnika siły nośnej: dwie szczeliny kaskadowo energetyzują opływ, pozwalając uzyskać Cz_max_lnd = 2.8 – 3.3!",
         "Umożliwia bardzo strome podejście i krótkie lądowanie ciężkich samolotów transportowych i pasażerskich.",
-        "W odmianie ze stałym przednim slotem (np. Boeing C-17, BAE Hawk - rys. 16.18–16.20) napęd pozostaje stosunkowo prosty.",
-        "W odmianie z niezależnymi siłownikami (np. GAF Nomad - rys. 16.22) pozwala indywidualnie optymalizować wysuw na lądowiskach w buszu."
+        "W odmianie ze stałym przednim slotem (rys. 16.18–16.20) napęd pozostaje stosunkowo prosty.",
+        "W odmianie z niezależnymi siłownikami (rys. 16.22) pozwala indywidualnie optymalizować wysuw na lądowiskach w buszu."
       ],
       cons: [
         "Bardzo duża masa własna mechanizacji, wsporników i wielosekcyjnych siłowników.",
-        "Skomplikowana kinematyka sprzężonych wysięgników (np. L-410 Turbolet - rys. 16.21) wymagająca precyzyjnej regulacji.",
+        "Skomplikowana kinematyka sprzężonych wysięgników (rys. 16.21) wymagająca precyzyjnej regulacji.",
         "Wymaga wygospodarowania obszernej wnęki w spływie skrzydła na schowanie przedniego segmentu (vane).",
-        "W samolotach STOL z nadmuchem gazów wylotowych (np. C-17) wymaga zastosowania ciężkich stopów żarowytrzymałych (Inconel, Rene 41) odpornych na pełzanie."
+        "W samolotach STOL z nadmuchem gazów wylotowych wymaga zastosowania ciężkich stopów żarowytrzymałych (Inconel, Rene 41) odpornych na pełzanie."
       ],
       galinski_quote: "Dążąc do wysokiej efektywności przy akceptowalnej masie, stosuje się klapy dwuszczelinowe ze stałym slotem (C-17, F-18, BAE Hawk - rys. 16.19-16.20), ze sprzężonym napędem jednym siłownikiem (L-410 Turbolet - rys. 16.21) lub z dwoma niezależnymi siłownikami (GAF Nomad - rys. 16.22).",
-      typical_aircraft: "Boeing C-17 Globemaster III, Let L-410 Turbolet, GAF Nomad, Airbus A321, BAE Hawk.",
+      typical_aircraft: modelExample('flaps', 'double_slotted'),
       recommendation: "Niezbędna dla samolotów komunikacyjnych, regionalnych STOL oraz ciężkich transportowców wojskowych."
     },
 
@@ -244,7 +244,7 @@ const DIDACTIC_DATABASE = {
         "Podatność na flatter giętno-skrętny – bezwzględny wymóg wyważenia masowego przed osią obrotu."
       ],
       galinski_quote: "Łączne wychylenie klapolotek w dół powinno być mniejsze niż wychylenie konwencjonalnych klap. Większe wychylenie klap wewnętrznych gwarantuje, że przy zmniejszaniu prędkości oderwanie opływu najpierw wystąpi przy kadłubie, zachowując sterowność poprzeczną (rys. 17.28).",
-      typical_aircraft: "Motoszybowiec AOS-71 (PW), PZL-104 Wilga, szybowce zawodnicze, F-16, UAV MALE.",
+      typical_aircraft: modelExample('flaps', 'flaperon'),
       recommendation: "Wyjątkowo korzystna dla motoszybowców, bezzałogowców MALE oraz samolotów ultralekkich i STOL."
     }
   },
@@ -276,7 +276,7 @@ const DIDACTIC_DATABASE = {
         "Przy dużych wychyleniach wzrasta siła na drążku sterowym (wymaga kompensacji rogowej lub klapek odciążających)."
       ],
       galinski_quote: "Ruch różnicowy lotek eliminuje ujemne sprzężenie kierunkowe: lotka unosząca się w górę stawia większy opór niż opuszczana w dół, redukując konieczność kompensacji sterem kierunku.",
-      typical_aircraft: "Cessna 172/182, Piper PA-28 Archer, PZL-104 Wilga, SZD-50 Puchacz.",
+      typical_aircraft: modelExample('ailerons', 'differential'),
       recommendation: "Zalecana jako podstawowe rozwiązanie dla wszystkich samolotów szkolnych, turystycznych i motoszybowców."
     },
 
@@ -304,7 +304,7 @@ const DIDACTIC_DATABASE = {
         "Ryzyko wpadnięcia noska w nadmierną kompensację (nadkompensacja aerodynamiczna) przy bardzo dużych kątach natarcia."
       ],
       galinski_quote: "W lotce Frise oś obrotu jest cofnięta, a nosek wyprofilowany tak, że przy wychyleniu w górę wystaje poniżej dolnego zarysu profilu, generując duży opór hamujący skrzydło po wewnętrznej stronie zakrętu.",
-      typical_aircraft: "Supermarine Spitfire, PZL P.11c, Beechcraft Bonanza, samoloty akrobacyjne Extra 300.",
+      typical_aircraft: modelExample('ailerons', 'frise'),
       recommendation: "Idealna dla samolotów akrobacyjnych, szybkich maszyn dyspozycyjnych i zaawansowanych motoszybowców."
     },
 
@@ -331,7 +331,7 @@ const DIDACTIC_DATABASE = {
         "Wymaga starannego uszczelnienia krawędzi lub profilowanych fartuchów."
       ],
       galinski_quote: "Szczelina przed lotką działa podobnie jak szczelina klapy jednoszczelinowej: zasilana warstwa przyścienna pozwala na sterowanie przechyleniem nawet wtedy, gdy nasada skrzydła wchodzi w przeciągnięcie.",
-      typical_aircraft: "Pilatus PC-6 Porter, Antonow An-2, samoloty STOL krótkiego startu.",
+      typical_aircraft: modelExample('ailerons', 'slotted'),
       recommendation: "Zalecana dla samolotów operujących przy niskich prędkościach (STOL, zrzut skoczków, rolnicze)."
     },
 
@@ -358,7 +358,7 @@ const DIDACTIC_DATABASE = {
         "Duże siły na drążku przy większych prędkościach lotu."
       ],
       galinski_quote: "Klasyczna lotka na zawiasach liniowych jest powszechnie stosowana w szybowcach i lekkich samolotach ze względu na czystość aerodynamiczną profilu w położeniu neutralnym.",
-      typical_aircraft: "PZL-102 Kos, RWD-8, SZD-9 Bocian, PW-5 Smyk.",
+      typical_aircraft: modelExample('ailerons', 'plain'),
       recommendation: "Zalecana dla prostych konstrukcji ultralekkich i szybowców klubowych."
     },
 
@@ -386,7 +386,7 @@ const DIDACTIC_DATABASE = {
         "Ryzyko przedwczesnego przeciągnięcia końcówki skrzydła przy jednoczesnym wychyleniu klapowym i opuszczeniu lotki."
       ],
       galinski_quote: "Klapolotka wymaga ograniczenia kąta wychylenia w dół na końcówce skrzydła, aby punkt początkowego oderwania strug nie przeniósł się na obszar sterowania poprzecznego.",
-      typical_aircraft: "Motoszybowiec AOS-71, Pipistrel Sinus, F-16 Fighting Falcon, Zenith CH-701.",
+      typical_aircraft: modelExample('ailerons', 'flaperon'),
       recommendation: "Doskonała dla nowoczesnych motoszybowców kompozytowych i samolotów krótkiego startu STOL."
     }
   },
@@ -526,7 +526,7 @@ const DIDACTIC_DATABASE = {
       pros: [
         "Zastrzał podskrzydłowy przejmuje lwią część momentu gnącego – pozwala zastosować cieńszy profil i znacznie lżejszy dźwigar skrzydła!",
         "Brak konieczności prowadzenia potężnego centropłata przez kadłub – skrzydła mocowane przegubowo do boków wręg lub kratownicy.",
-        "Możliwość zastosowania kinematyki składania skrzydeł do tyłu wzdłuż kadłuba wokół wspólnej osi tylnego okucia i zastrzału (jak w RWD-13, rys. 14.6) – ogromna zaleta przy hangarowaniu!"
+        "Możliwość zastosowania kinematyki składania skrzydeł do tyłu wzdłuż kadłuba wokół wspólnej osi tylnego okucia i zastrzału (rys. 14.6) – ogromna zaleta przy hangarowaniu!"
       ],
       cons: [
         "Znaczny opór szkodliwy zastrzałów i interferencji węzłów (wzrost Cx0 o 0.004–0.007) – nieopłacalny przy prędkościach powyżej 230 km/h.",
@@ -759,7 +759,7 @@ const PARAMETER_ENCYCLOPEDIA = {
     full_definition: "Droga rozbiegu zależy od stosunku ciągu do ciężaru (T/W), obciążenia powierzchni nośnej (W/S) oraz współczynnika siły nośnej w konfiguracji startowej Cz_max_to.",
     formula: "S_to = 1.21 · (W/S) / [ ρ₀ · g · C_z,max,to · (T/W − μ) ]",
     effect_increase: "Dłuższy dopuszczalny rozbieg pozwala zastosować słabszy, lżejszy silnik i mniejsze skrzydło. Wymóg bardzo krótkiego rozbiegu (STOL < 200 m) wymusza dużą moc silnika i dużą powierzchnię nośną.",
-    typical_ranges: "STOL (Wilga, Zenith CH 701): 30–150 m | Samoloty lekkie GA na lotniska trawiaste: 210–400 m | Dyspozycyjne i regionalne: 600–1100 m | Komunikacyjne: 1400–2400 m.",
+    typical_ranges: modelExample('typical_values', 'takeoff_run_m'),
     galinski_note: "Rozbieg skracają przede wszystkim mniejsze obciążenie powierzchni W/S, większy stosunek mocy (ciągu) do masy i wyższe Cz,max do startu. Klapy do startu wychyla się mniej niż do lądowania (zwykle 10–20°), bo duże wychylenie dodaje opór, który wydłuża rozbieg i pogarsza wznoszenie."
   },
 
@@ -803,7 +803,7 @@ const PARAMETER_ENCYCLOPEDIA = {
     full_definition: "Parametr termodynamicznej sprawności silnika wchodzący wprost do wykładnika we wzorze całkowym Bregueta na zasięg i długotrwałość lotu.",
     formula: "Śmigłowy: c_p [g/(kW·h)]   |   Odrzutowy: c_j [1/h]",
     effect_increase: "Wyższe jednostkowe zużycie paliwa zwiększa wymaganą masę paliwa m_f na misję i w pętli iteracyjnej podnosi masę startową samolotu m0.",
-    typical_ranges: "Tłokowe benzynowe (Rotax/Lycoming): 230–290 g/kWh | Tłokowe Diesel: 190–215 g/kWh | Małe turbośmigłowe (PT6A): 330–390 g/kWh | Regionalne turbośmigłowe (PW127): 280–300 g/kWh | Turbowentylatorowe: 0,50–0,80 1/h (małe silniki biznesowe bliżej 0,7–0,8).",
+    typical_ranges: modelExample('typical_values', 'sfc'),
     galinski_note: "Mniejsze zużycie paliwa pozwala zmniejszyć objętość zbiorników i zrezygnować ze zbiorników kadłubowych na rzecz bezpieczniejszych zbiorników w skrzydle."
   },
 
@@ -903,7 +903,7 @@ const PARAMETER_ENCYCLOPEDIA = {
     full_definition: "Mniejsza powierzchnia S (większe obciążenie W/S) zmniejsza opór tarcia na przelocie i wrażliwość na podmuchy, ale zwiększa prędkość lądowania Vs0, o ile nie zastosujemy skutecznych klap.",
     formula: "S = (m₀ · g) / (W/S)_projektowe",
     effect_increase: "Większa powierzchnia S ułatwia krótki start i lądowanie (STOL), lecz zwiększa masę skrzydła i opór szkodliwy w przelocie.",
-    typical_ranges: "ULM: 9,5–13 m² | Cessna 172: 16,2 m² | King Air 350: 28,8 m² | ATR 42: 54,5 m².",
+    typical_ranges: modelExample('typical_values', 'kpi_wing_s'),
     galinski_note: "Na rysunku zestawieniowym 3-rzutowym (ZPK CAD1) powierzchnia S obejmuje trapez przedłużony do płaszczyzny symetrii kadłuba."
   },
 

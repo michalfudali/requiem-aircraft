@@ -21,8 +21,7 @@ test('empty mass always comes from BIPOL_1 eq. (1) of the trend line, never a ty
 
 test('a sample mass law follows later sample edits instead of freezing old coefficients',()=>{
   const apply={empty_mass_model:'trend',empty_mass_trend_A:.9,empty_mass_trend_C:-.05,empty_mass_fraction:null};
-  assert.deepEqual(patch('me_m0',.61,{},1000,{apply}),
-    {empty_mass_model:'trend',empty_mass_trend_A:null,empty_mass_trend_C:null,empty_mass_fraction:null});
+  assert.deepEqual(patch('me_m0',.61,{},1000,{apply}),{empty_mass_model:'trend'});
   assert.equal(apply.empty_mass_trend_A,.9);
 });
 test('unsupported or missing values cannot claim to have been applied',()=>{

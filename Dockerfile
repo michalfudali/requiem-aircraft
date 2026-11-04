@@ -5,7 +5,7 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     PIP_DISABLE_PIP_VERSION_CHECK=1 \
     PORT=8080 \
-    BIPOL_AIRCRAFT_DB=/var/lib/bipol/aircraft.sqlite3
+    BIPOL_AIRCRAFT_DB=/var/lib/bipol/aircraft.sqlite3 \n    BIPOL_PROJECTS_DB=/var/lib/bipol/projects.sqlite3
 WORKDIR /app
 
 COPY requirements.txt requirements-production.txt ./

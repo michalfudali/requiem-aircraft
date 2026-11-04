@@ -62,6 +62,12 @@ def family_name(name):
     return name.split('-')[0]
 
 
+# Designations classified as business jets are data of the comparison-aircraft database.
+try:
+    BUSINESS_JETS = [name.strip() for name in aircraft_store.model_examples()['fast_import']['business_jets'].split(',')]
+except (FileNotFoundError, KeyError):
+    BUSINESS_JETS = []
+
 def record(source, model, cls, engine, family, **values):
     return {"id": source + "-" + slug(model), "model": model,
             "aircraft_type": cls, "engine_type": engine, "family": family_name(family or model),
@@ -97,7 +103,8 @@ def import_fast(path):
             jet = sheet_name == 'Jet Aircraft'
             pax = num('MaximumPassengers') or num('TypicalPassengers')
             business = (pax is not None and pax <= 19 and mtow < 50000 and val('Payload Type  (P, C, M)') != 'C')
-            business = business or str(model).startswith(('Learjet', 'BD_700', 'BD_100', 'IAI_Astra')) or str(model) in ('EMB_135BJ', 'ERJ_190_100_ECJ')
+            business = business or any(str(model).startswith(name[:-1]) if name.endswith('*') else str(model) == name
+                                       for name in BUSINESS_JETS)
             cls = 'jet_business' if jet and business else ('jet_transport' if jet else 'turboprop_regional')
             engine_name = str(val('EngineDesignation') or '')
             count = num('NumberEngines')

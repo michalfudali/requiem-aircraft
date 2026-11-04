@@ -19,7 +19,7 @@ napędu nie wymaga fikcyjnej propozycji silnika.
 
 ## Dane źródłowe sprawdzone 3 listopada 2026
 
-Katalog `data/engines.json` zawiera odczytane wielkości, lokalizatory i adresy
+Katalog silników (tabela `engines` w `data/aircraft/aircraft.sqlite3`) zawiera odczytane wielkości, lokalizatory i adresy
 dokumentów, bez kopii podręczników producentów.
 
 | Silnik | Dane zużycia używane domyślnie | Dokument |

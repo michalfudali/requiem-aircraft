@@ -14,7 +14,7 @@ from pathlib import Path
 
 DATA = Path(__file__).resolve().parents[1] / 'data' / 'aircraft'
 DEFAULT_PATH = DATA / 'aircraft.sqlite3'
-SCHEMA_VERSION = 1
+SCHEMA_VERSION = 3
 
 CLASSES = {
     'piston_ga': 'Samoloty tłokowe GA', 'turboprop_regional': 'Samoloty turbośmigłowe',
@@ -99,6 +99,47 @@ _REVISION_TRIGGERS = '\n'.join(
     'BEGIN UPDATE catalog_state SET revision = random(); END;'
     for table in ('sources', 'aircraft') for event in ('INSERT', 'UPDATE', 'DELETE'))
 
+# Version 2: data about specific comparison aircraft used outside the trend catalogue.
+REFERENCE_TABLES = """
+-- Values read from a figure for named example aircraft (e.g. BIPOL_1, Fig. 1: S_wet/S_ref).
+CREATE TABLE wetted_area_examples (
+    key         TEXT PRIMARY KEY CHECK (key <> '' AND key NOT GLOB '*[^a-z0-9_]*'),
+    sort_order  INTEGER NOT NULL UNIQUE,
+    label       TEXT NOT NULL CHECK (trim(label) <> ''),
+    short_label TEXT NOT NULL CHECK (trim(short_label) <> ''),
+    swet_ratio  REAL NOT NULL CHECK (swet_ratio > 1 AND swet_ratio < 20),
+    citation    TEXT NOT NULL
+) STRICT;
+
+-- Named example aircraft and their figures quoted in explanations of a design choice
+-- (context: e.g. wing_config, flap_type; key: the option; text: the examples).
+CREATE TABLE model_examples (
+    context  TEXT NOT NULL CHECK (context <> ''),
+    key      TEXT NOT NULL CHECK (key <> ''),
+    text     TEXT NOT NULL CHECK (trim(text) <> ''),
+    citation TEXT,
+    PRIMARY KEY (context, key)
+) STRICT;
+
+-- Documented supplements to catalogue aircraft for one project (CSV import). They never
+-- change the shared record; the calculation of that project overlays them.
+CREATE TABLE aircraft_supplements (
+    project_id  TEXT NOT NULL CHECK (project_id <> ''),
+    aircraft_id TEXT NOT NULL REFERENCES aircraft (id) ON DELETE CASCADE,
+    data        TEXT NOT NULL CHECK (json_valid(data)),
+    PRIMARY KEY (project_id, aircraft_id)
+) STRICT;
+"""
+
+# Version 3: engine proposals with documented fuel-consumption points (one JSON document each).
+ENGINE_TABLES = """
+CREATE TABLE engines (
+    id         TEXT PRIMARY KEY CHECK (id <> '' AND id NOT GLOB '*[^a-z0-9_]*'),
+    sort_order INTEGER NOT NULL UNIQUE,
+    document   TEXT NOT NULL CHECK (json_valid(document) AND json_extract(document, '$.id') = id)
+) STRICT;
+"""
+
 SCHEMA = f"""
 CREATE TABLE sources (
     id           TEXT PRIMARY KEY CHECK (id <> '' AND id NOT GLOB '*[^a-z0-9_]*'),
@@ -125,6 +166,8 @@ CREATE TABLE catalog_state (
 INSERT INTO catalog_state VALUES (1, 0);
 {_REVISION_TRIGGERS}
 
+{REFERENCE_TABLES}
+{ENGINE_TABLES}
 PRAGMA user_version = {SCHEMA_VERSION};
 """
 
@@ -151,6 +194,11 @@ def connect(path=None):
     con = _open(path, 'rw')
     try:
         version = con.execute('PRAGMA user_version').fetchone()[0]
+        # Upgrade in place: new tables only add data, existing records stay unchanged.
+        for old, tables in ((1, REFERENCE_TABLES), (2, ENGINE_TABLES)):
+            if version == old:
+                con.executescript(f'BEGIN IMMEDIATE;{tables}PRAGMA user_version = {old + 1}; COMMIT;')
+                version = old + 1
         if version != SCHEMA_VERSION:
             raise RuntimeError(f'Nieobsługiwana wersja schematu bazy samolotów: {version} (oczekiwano {SCHEMA_VERSION}).')
         yield con
@@ -264,3 +312,50 @@ def create_database(path, sources, records=()):
         path.unlink(missing_ok=True)
         raise
     con.close()
+
+
+# --- Data about named comparison aircraft outside the catalogue table -----------------------
+def wetted_area_examples(path=None):
+    """{key: (label, swet_ratio, short_label, citation)} in figure order."""
+    with connect(path) as con:
+        rows = con.execute('SELECT * FROM wetted_area_examples ORDER BY sort_order').fetchall()
+    return {row['key']: dict(label=row['label'], swet_ratio=row['swet_ratio'], short_label=row['short_label'],
+                             citation=row['citation']) for row in rows}
+
+
+def model_examples(path=None):
+    """{context: {key: text}} of example aircraft quoted in explanations."""
+    with connect(path) as con:
+        rows = con.execute('SELECT context, key, text FROM model_examples ORDER BY context, key').fetchall()
+    out = {}
+    for row in rows:
+        out.setdefault(row['context'], {})[row['key']] = row['text']
+    return out
+
+
+def project_supplements(project_id, path=None):
+    """Supplements of one project as observation records [{id, ..., source}]."""
+    import json
+    with connect(path) as con:
+        rows = con.execute('SELECT aircraft_id, data FROM aircraft_supplements WHERE project_id = ? ORDER BY aircraft_id',
+                           (project_id,)).fetchall()
+    return [{**json.loads(row['data']), 'id': row['aircraft_id']} for row in rows]
+
+
+def replace_project_supplements(project_id, observations, path=None):
+    """Store the project's supplements (validated observation records); returns their number."""
+    import json
+    with transaction(path) as con:
+        con.execute('DELETE FROM aircraft_supplements WHERE project_id = ?', (project_id,))
+        for record in observations:
+            con.execute('INSERT INTO aircraft_supplements VALUES (?, ?, ?)',
+                        (project_id, record['id'], json.dumps({k: v for k, v in record.items() if k != 'id'})))
+    return len(observations)
+
+
+def engines(path=None):
+    """Engine proposals in catalogue order (documents with model, ratings, fuel points and sources)."""
+    import json
+    with connect(path) as con:
+        rows = con.execute('SELECT document FROM engines ORDER BY sort_order').fetchall()
+    return [json.loads(row['document']) for row in rows]

@@ -1,9 +1,7 @@
 """Real engine proposals and traceable fuel data. A catalogue point is not an engine map."""
 from copy import deepcopy
 from functools import lru_cache
-import json
 import math
-from pathlib import Path
 
 from calculations.atmosphere import G0
 
@@ -12,7 +10,9 @@ US_GALLON_L = 3.785411784
 
 @lru_cache(maxsize=1)
 def _catalog():
-    return json.loads((Path(__file__).resolve().parents[1] / 'data/engines.json').read_text(encoding='utf-8'))['engines']
+    # Engine proposals live in the comparison-aircraft database (table engines).
+    from calculations import aircraft_store
+    return aircraft_store.engines()
 
 
 def catalog():
@@ -152,8 +152,9 @@ def apply_engine_inputs(p):
             evidence['maximum_point'] = deepcopy(maximum)
             evidence['maximum_supported'] = True
             if engine == 'prop':
-                if maximum['id'] == 'takeoff' and float(p['max_power_time_min']) > 5:
-                    raise ValueError('Moc startowa Rotax 912 może być użyta przez najwyżej 5 minut.')
+                limit = record.get('takeoff_limit_min')
+                if maximum['id'] == 'takeoff' and limit and float(p['max_power_time_min']) > limit:
+                    raise ValueError(f"Moc startowa silnika {record['model']} może być użyta przez najwyżej {limit:g} minut.")
                 p['max_power_kw'] = requested
     p['_engine_fuel'] = evidence
 

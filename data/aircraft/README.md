@@ -104,7 +104,7 @@ Dzięki temu w analizie można je odfiltrować (filtr „Wpisy użytkownika”),
 nie mieszają się z cytowaniem FAST, CADO czy zestawienia geometrii. Każdy wpis podaje
 własne źródło w `source_references`; zasady opisuje [USER-DATA.txt](licenses/USER-DATA.txt).
 Puste źródło nie pojawia się w katalogu ani w bibliografii. Rekord dopisywany skryptem
-z jawnym `source_id` (np. `geometry_trends` w `tools/merge_aircraft.py`) zachowuje to
+z jawnym `source_id` (np. `geometry_trends`) zachowuje to
 źródło; nieznane `source_id` jest odrzucane.
 
 ## Odtworzenie
@@ -120,3 +120,17 @@ Importer sprawdza SHA-256, nie wymaga sieci i zastępuje w bazie wyłącznie rek
 `fast` i `cado`, w osobnej transakcji dla każdego źródła. Nowa wersja źródła wymaga przeglądu
 mapowania pól i świadomej aktualizacji skrótu. Do uruchomienia aplikacji nie jest
 potrzebny openpyxl ani dostęp do źródeł zewnętrznych.
+
+
+## Dane o konkretnych samolotach poza katalogiem (schemat w wersji 2)
+
+Baza jest jedynym miejscem danych o samolotach porównawczych; kod ich nie zawiera.
+
+- `wetted_area_examples` — stosunek powierzchni omywanej do powierzchni odniesienia
+  przykładowych układów z rys. 1 materiałów BIPOL_1 (wg Raymera), z którego P1 dobiera S_wet/S.
+- `model_examples` — przykładowe samoloty i ich dane przytaczane w opisach rozwiązań
+  konstrukcyjnych (klapy, lotki, obrysy skrzydła, typowe wartości, przykłady nazw).
+- `aircraft_supplements` — udokumentowane uzupełnienia danych katalogowych dla jednego
+  projektu (import CSV); nie zmieniają wspólnego rekordu.
+
+Projekty i tematy (projektowane samoloty) są w osobnej bazie `data/projects/projects.sqlite3`.

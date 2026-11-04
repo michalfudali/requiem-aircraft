@@ -11,35 +11,35 @@ const WING_PLANFORMS_INFO = {
     stall_summary: 'Sam obrys nie przesądza o przeciągnięciu. Potrzebne są profile, zwichrzenie i rozkład lokalnego Cz.',
     pros: 'Optymalny kompromis aerodynamiczno-wytrzymałościowy. Mniejsza masa dźwigarów w nasadzie niż w skrzydle prostokątnym.',
     cons: 'Wymaga zbieżnych żeber o zmiennej geometrii (wyższy koszt tłoczenia niż prostokątne).',
-    aircraft: 'PZL Koliber, Socata TB-20 Trinidad, Diamond DA40, Cessna 402, większość samolotów pasażerskich.'
+    aircraft: modelExample('wing_planform', 'trapezoidal')
   },
   rectangular: {
     name_pl: 'Prostokątny (stała cięciwa c = const)',
     stall_summary: 'Sam obrys nie przesądza o przeciągnięciu. Potrzebne są profile, zwichrzenie i rozkład lokalnego Cz.',
     pros: 'Maksymalna prostota technologiczna: wszystkie żebra są identyczne, proste poszycie bez skręcenia.',
     cons: 'Wyższy opór indukowany (współczynnik e ~ 0.70–0.78); cięższa nasada skrzydła ze względu na większą cięciwę przykadłubową.',
-    aircraft: 'Piper PA-28 Cherokee (wczesne warianty), Piper J-3 Cub, RWD-8, PZL Wilga, Cessna 140.'
+    aircraft: modelExample('wing_planform', 'rectangular')
   },
   compound_trapezoid: {
     name_pl: 'Prostokątno-trapezowy (centropłat prostokątny + końcówki trapezowe)',
     stall_summary: 'Sam obrys nie przesądza o przeciągnięciu. Potrzebne są profile, zwichrzenie i rozkład lokalnego Cz.',
     pros: 'Centropłat o stałej cięciwie ułatwia montaż klap, podwozia i zbiorników; trapezowe końcówki redukują opór indukowany.',
     cons: 'Punkt załamania krawędzi spływu wymaga dodatkowego węzła konstrukcyjnego.',
-    aircraft: 'Piper Archer III / Arrow, Cessna 150/152/172/182, PZL Wilga 2000, PZL M26 Iskierka.'
+    aircraft: modelExample('wing_planform', 'compound_trapezoid')
   },
   elliptical: {
     name_pl: 'Eliptyczny (minimalny opór indukowany wg Prandtla)',
     stall_summary: 'Sam obrys nie przesądza o przeciągnięciu. Potrzebne są profile, zwichrzenie i rozkład lokalnego Cz.',
     pros: 'Teoretycznie minimalny możliwy opór indukowany (współczynnik Oswalda e = 1.0 dla skrzydła płaskiego).',
     cons: 'Bardzo wysoki koszt produkcji: każde żebro ma inne wymiary i krzywiznę, trudne wykonanie kesonu.',
-    aircraft: 'Supermarine Spitfire, Heinkel He 70 Blitz, Seversky P-35.'
+    aircraft: modelExample('wing_planform', 'elliptical')
   },
   swept_trapezoidal: {
     name_pl: 'Skośny trapezowy (wysokie liczby Macha)',
     stall_summary: 'Sam obrys nie przesądza o przeciągnięciu. Potrzebne są profile, zwichrzenie i rozkład lokalnego Cz.',
     pros: 'Przesunięcie krytycznej liczby Macha Makr ku wyższym prędkościom przelotowym; mniejszy opór falowy.',
     cons: 'Spadek współczynnika siły nośnej cz_max; konieczność stosowania bardziej złożonej mechanizacji krawędzi natarcia (sloty).',
-    aircraft: 'Cessna Citation, Gulfstream G650, Boeing 737, Airbus A320, Embraer E-Jets.'
+    aircraft: modelExample('wing_planform', 'swept_trapezoidal')
   }
 };
 

@@ -2396,7 +2396,7 @@
               <select id="wiz_wing_config">
                 <option value="low">Dolnopłat wolnonośny (łatwe chowanie podwozia, bezpieczeństwo)</option>
                 <option value="high">Górnopłat wolnonośny (doskonała widoczność w dół, STOL)</option>
-                <option value="braced_high">Górnopłat zastrzałowy (lekka struktura, np. Cessna 152)</option>
+                <option value="braced_high">Górnopłat zastrzałowy (lekka struktura, np. {{ model_examples.wing_config.braced_high }})</option>
                 <option value="mid">Średniopłat (motoszybowce / akrobacyjne)</option>
               </select>
             </div>
@@ -2509,6 +2509,9 @@
     window.INITIAL_PORTAL_MODE = "{{ initial_portal_mode or '' }}";
     // Projekty użytkownika z bazy projektów (serwer); przeglądarka trzyma tylko stan interfejsu.
     window.BIPOL_PROJECTS = {{ (projects or [])|tojson }};
+    // Przykłady konkretnych samolotów w opisach — z bazy samolotów porównawczych.
+    window.BIPOL_MODEL_EXAMPLES = {{ (model_examples or {})|tojson }};
+    window.modelExample = (context, key) => (window.BIPOL_MODEL_EXAMPLES[context] || {})[key] || '';
   </script>
   <script src="/static/vendor/katex/katex.min.js"></script>
   <script src="/static/vendor/katex/contrib/auto-render.min.js"></script>

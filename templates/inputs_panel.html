@@ -138,7 +138,7 @@
                     </div>
                     <div class="constraints-drawer-body" id="constraintsDrawerBody" style="display:none;">
                       <div style="font-size:0.75rem; color:#475569; margin-bottom:0.5rem;">
-                        Kliknij <b>+ Zastosuj i Zablokuj 🔒</b> aby natychmiast przypiąć wybrane ograniczenie (np. limit prędkości przeciągnięcia CS, rozpiętość FAI lub silnik rynkowy Rotax/Lycoming) jako stałe założenie projektowe.
+                        Kliknij <b>+ Zastosuj i Zablokuj 🔒</b> aby natychmiast przypiąć wybrane ograniczenie (np. limit prędkości przeciągnięcia CS, rozpiętość FAI lub silnik rynkowy {{ model_examples.naming.engine_constraint }}) jako stałe założenie projektowe.
                       </div>
                       <div class="suggestions-cards-grid" id="suggestionsCardsContainer">
                         <!-- Generowane dynamicznie przez renderInitialSuggestions() -->
@@ -343,7 +343,7 @@
                         <option value="trapezoidal" selected>1. Trapezowy (zbieżny klasyczny &bull; Danilecki)</option>
                         <option value="rectangular">2. Prostokątny (stała cięciwa c = const)</option>
                         <option value="compound_trapezoid">3. Prostokątno-trapezowy (centropłat prostokątny + końcówki)</option>
-                        <option value="elliptical">4. Eliptyczny (rozkład Prandtla &bull; Spitfire)</option>
+                        <option value="elliptical">4. Eliptyczny (rozkład Prandtla)</option>
                         <option value="swept_trapezoidal">5. Skośny trapezowy (duże prędkości / skos)</option>
                       </select>
                       <div class="param-didactic-hint" id="hint_wing_planform">Wybierz obrys determinujący cyrkulację Schrenka i technologię żeber.</div>
@@ -369,7 +369,7 @@
                       <select id="wing_config">
                         <option value="low">Dolnopłat wolnonośny</option>
                         <option value="high">Górnopłat wolnonośny (STOL / Transport)</option>
-                        <option value="braced_high">Górnopłat zastrzałowy (RWD-13 / Cessna)</option>
+                        <option value="braced_high">Górnopłat zastrzałowy (np. {{ model_examples.wing_config.braced_high }})</option>
                         <option value="mid">Średniopłat (Motoszybowce / Akrobacja)</option>
                       </select>
                       <div class="param-didactic-hint" id="hint_wing_config"></div>
@@ -629,7 +629,7 @@
                         <button type="button" class="param-lock-btn" id="lock_btn_engine_power_kw" onclick="toggleParamLock('engine_power_kw')" title="Zablokuj moc silnika rynkowego">🔓</button>
                       </label>
                       <input step="any" required type="number" id="engine_power_kw" min="0" max="15000" value="0" placeholder="0 = z bilansu P5">
-                      <div class="param-didactic-hint" id="hint_engine_power_kw">Podaj moc silnika rynkowego (np. Rotax: 73.5 kW, Lycoming: 112 kW) lub 0 dla automatycznego doboru.</div>
+                      <div class="param-didactic-hint" id="hint_engine_power_kw">Podaj moc silnika rynkowego ({{ model_examples.typical_values.engine_power_hint }}) lub 0 dla automatycznego doboru.</div>
                       <div class="derived-badge" id="derived_badge_engine_power_kw" style="display:none;"></div>
                     </div>
                   </div>

@@ -7,6 +7,7 @@ Masses are kg; distances m; speeds TAS m/s; time s.
 import math
 from collections import Counter
 
+from calculations import aircraft_store
 from calculations.atmosphere import G0, isa_atmosphere
 
 # Fig. 2, p. 3. Points read from the printed axes (linear on both axes).
@@ -22,17 +23,10 @@ RAYMER = {
 CORKE = [(.1,1),(.2,.997),(.3,.993),(.4,.989),(.5,.984),(.7,.975),
          (1,.960),(1.5,.935),(2,.905),(2.5,.873),(3,.839),(4,.770),
          (5,.699),(6,.638),(7,.587),(8,.542),(9,.505)]
-# Fig. 1, p. 2: S_wet/S_ref of the example aircraft, read from the printed scale 2–8.
-WETTED_EXAMPLES = {
-    'flying_wing': ('latające skrzydło', 2.25),
-    'delta_fighter': ('myśliwiec z płatem delta (F-102)', 3.05),
-    'glider': ('szybowiec', 3.05),
-    'light_single': ('lekki samolot jednosilnikowy (Cessna 150)', 3.9),
-    'twin_turboprop': ('dwusilnikowy samolot turbośmigłowy (Beech King Air)', 4.9),
-    'fighter': ('myśliwiec odrzutowy (F-104)', 5.5),
-    'jet_transport': ('samolot komunikacyjny (Boeing 747)', 6.15),
-    'bomber': ('bombowiec z gondolami silników (B-47)', 7.75),
-}
+# Fig. 1, p. 2: S_wet/S_ref of the example aircraft — stored in the comparison-aircraft
+# database (table wetted_area_examples), never in the code.
+WETTED_EXAMPLES = {key: (row['label'], row['swet_ratio'])
+                   for key, row in aircraft_store.wetted_area_examples().items()}
 RAYMER_LABELS = {
     'glider': 'szybowce', 'military_supersonic': 'samoloty bojowe w locie naddźwiękowym',
     'military_subsonic': 'samoloty bojowe w locie poddźwiękowym', 'jet': 'cywilne samoloty odrzutowe',

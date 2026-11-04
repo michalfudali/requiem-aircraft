@@ -12,7 +12,7 @@ from flask import Flask, Response, render_template, request, jsonify, send_file,
 from werkzeug.exceptions import BadRequest
 from calculations import run_bipol_project, refine_bipol_project
 from calculations.presets import AIRCRAFT_PRESETS
-from calculations import project_store
+from calculations import aircraft_store, project_store
 from calculations.aircraft_store import export_source
 from calculations.official_topics import ALL_TOPICS, OFFICIAL_CATEGORIES
 from calculations.coursework import SCHEDULE, GROUP_DAYS, GROUP_HOURS
@@ -108,21 +108,42 @@ def _report_parameters():
 def invalid_parameters(error):
     return jsonify(status='error', message=str(error)), 400
 
+def _stored_project(project):
+    """Supplements to comparison aircraft (CSV) go to the aircraft database, the rest to the projects database."""
+    from calculations.trend_observations import validate_observations
+    params = dict(project.get('params') or {})
+    observations = params.pop('trend_observations', None) or []
+    aircraft_store.replace_project_supplements(project['id'], validate_observations(observations) if observations else [])
+    return {**project, 'params': params}
+
+
+def _with_supplements(project):
+    supplements = aircraft_store.project_supplements(project['id'])
+    if supplements:
+        project = {**project, 'params': {**project['params'], 'trend_observations': supplements}}
+    return project
+
+
+def user_projects():
+    return [_with_supplements(project) for project in project_store.list_projects()]
+
+
+def index_page(**extra):
+    """Main page: course data from the projects database, examples from the aircraft database."""
+    return render_template('index.html', presets=AIRCRAFT_PRESETS, categories=OFFICIAL_CATEGORIES, topics=ALL_TOPICS,
+                           projects=user_projects(), wetted_examples=aircraft_store.wetted_area_examples(),
+                           model_examples=aircraft_store.model_examples(), **extra)
+
+
 @app.route('/')
 def index():
-    return render_template(
-        'index.html',
-        presets=AIRCRAFT_PRESETS,
-        categories=OFFICIAL_CATEGORIES,
-        topics=ALL_TOPICS,
-        projects=project_store.list_projects()
-    )
+    return index_page()
 
 
 # Projekty użytkownika (projektowane samoloty) — baza data/projects/projects.sqlite3.
 @app.get('/api/projects')
 def list_user_projects():
-    return jsonify(projects=project_store.list_projects())
+    return jsonify(projects=user_projects())
 
 
 @app.put('/api/projects/<project_id>')
@@ -130,11 +151,12 @@ def save_user_project(project_id):
     project = request.get_json(silent=True)
     if not isinstance(project, dict) or project.get('id') != project_id:
         return jsonify(status='error', message='Identyfikator projektu w adresie i w treści musi być ten sam.'), 400
-    return jsonify(status='ok', project=project_store.save_project(project))
+    return jsonify(status='ok', project=_with_supplements(project_store.save_project(_stored_project(project))))
 
 
 @app.delete('/api/projects/<project_id>')
 def delete_user_project(project_id):
+    aircraft_store.replace_project_supplements(project_id, [])
     return jsonify(status='ok', deleted=project_store.delete_project(project_id))
 
 @app.route('/api/presets', methods=['GET'])
@@ -532,23 +554,11 @@ def parameter_report():
 
 @app.route('/holistic')
 def holistic_portal():
-    return render_template(
-        'index.html',
-        presets=AIRCRAFT_PRESETS,
-        categories=OFFICIAL_CATEGORIES,
-        topics=ALL_TOPICS,
-        initial_portal_mode='holistic'
-    )
+    return index_page(initial_portal_mode='holistic')
 
 @app.route('/projekty')
 def projects_portal():
-    return render_template(
-        'index.html',
-        presets=AIRCRAFT_PRESETS,
-        categories=OFFICIAL_CATEGORIES,
-        topics=ALL_TOPICS,
-        initial_portal_mode='projects'
-    )
+    return index_page(initial_portal_mode='projects')
 
 @app.route('/report/project/<p_id>', methods=['GET', 'POST'])
 def project_report(p_id):
