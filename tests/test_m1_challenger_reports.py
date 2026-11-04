@@ -59,8 +59,8 @@ def check_html_integrity(html: str, context_label: str):
 
     # 4. Check for double punctuation in Polish prose (e.g., '..', ',,')
     # Filter out ellipsis '...' and KaTeX/LaTeX decimal comma r'\,', or URLs
-    prose_sample = re.sub(r'\\\(.*?\\\)', '', body_clean)  # remove inline math
-    prose_sample = re.sub(r'\\\[.*?\\\]', '', prose_sample, flags=re.DOTALL)  # remove display math
+    prose_sample = re.sub(r'\\\(.*?\\\)', '[wzór]', body_clean)  # remove inline math
+    prose_sample = re.sub(r'\\\[.*?\\\]', '[wzór]', prose_sample, flags=re.DOTALL)  # remove display math
     prose_sample = re.sub(r'<[^>]+>', ' ', prose_sample)  # strip tags
     prose_sample = re.sub(r'\.\.\.', ' ', prose_sample)  # remove ellipsis
 

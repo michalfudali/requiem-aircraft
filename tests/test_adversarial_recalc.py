@@ -189,10 +189,10 @@ def test_reactive_recalc_partial_payload_and_progressive_enrichment(client, reca
     and PUTting missing fields progressively activates further regressions."""
     res_base = client.get('/api/trends/suggestions?aircraft_type=piston_ga')
     base_data = res_base.get_json()['suggestions']
-    n_ws_base = base_data['ws']['n']
-    n_ar_base = base_data['ar']['n']
-    n_pw_base = base_data['pw']['n']
-    n_vh_base = base_data['vh']['n']
+    n_ws_base = base_data['ws']['available_n']
+    n_ar_base = base_data['ar']['available_n']
+    n_pw_base = base_data['pw']['available_n']
+    n_vh_base = base_data['vh']['available_n']
 
     aid = "adv-partial-ga-01"
     min_payload = {
@@ -211,10 +211,10 @@ def test_reactive_recalc_partial_payload_and_progressive_enrichment(client, reca
         res_post_min = client.get('/api/trends/suggestions?aircraft_type=piston_ga')
         post_min_data = res_post_min.get_json()['suggestions']
         # None of the geometric / power regressions should have incremented
-        assert post_min_data['ws']['n'] == n_ws_base
-        assert post_min_data['ar']['n'] == n_ar_base
-        assert post_min_data['pw']['n'] == n_pw_base
-        assert post_min_data['vh']['n'] == n_vh_base
+        assert post_min_data['ws']['available_n'] == n_ws_base
+        assert post_min_data['ar']['available_n'] == n_ar_base
+        assert post_min_data['pw']['available_n'] == n_pw_base
+        assert post_min_data['vh']['available_n'] == n_vh_base
 
         # Now PUT s and p_kw
         res_put1 = _robust_put(client, f'/api/aircraft/{aid}', {"s": 15.0, "p_kw": 120.0})
@@ -222,11 +222,13 @@ def test_reactive_recalc_partial_payload_and_progressive_enrichment(client, reca
 
         res_post_put1 = client.get('/api/trends/suggestions?aircraft_type=piston_ga')
         post_put1_data = res_post_put1.get_json()['suggestions']
-        # ws and pw must now have incremented by 1, but ar and vh must not
-        assert post_put1_data['ws']['n'] == n_ws_base + 1
-        assert post_put1_data['pw']['n'] == n_pw_base + 1
-        assert post_put1_data['ar']['n'] == n_ar_base
-        assert post_put1_data['vh']['n'] == n_vh_base
+        # Available observations increment independently of whether the new point
+        # moves a fit across the acceptance threshold (and thus changes its dated subset).
+        # ws and pw increment by 1, but ar and vh must not
+        assert post_put1_data['ws']['available_n'] == n_ws_base + 1
+        assert post_put1_data['pw']['available_n'] == n_pw_base + 1
+        assert post_put1_data['ar']['available_n'] == n_ar_base
+        assert post_put1_data['vh']['available_n'] == n_vh_base
 
         # Now PUT b and v_h
         res_put2 = _robust_put(client, f'/api/aircraft/{aid}', {"b": 10.5, "v_h": 0.75})
@@ -234,8 +236,8 @@ def test_reactive_recalc_partial_payload_and_progressive_enrichment(client, reca
 
         res_post_put2 = client.get('/api/trends/suggestions?aircraft_type=piston_ga')
         post_put2_data = res_post_put2.get_json()['suggestions']
-        assert post_put2_data['ar']['n'] == n_ar_base + 1
-        assert post_put2_data['vh']['n'] == n_vh_base + 1
+        assert post_put2_data['ar']['available_n'] == n_ar_base + 1
+        assert post_put2_data['vh']['available_n'] == n_vh_base + 1
 
     finally:
         _robust_delete(client, f'/api/aircraft/{aid}')
@@ -243,10 +245,10 @@ def test_reactive_recalc_partial_payload_and_progressive_enrichment(client, reca
 
     res_final = client.get('/api/trends/suggestions?aircraft_type=piston_ga')
     final_data = res_final.get_json()['suggestions']
-    assert final_data['ws']['n'] == n_ws_base
-    assert final_data['ar']['n'] == n_ar_base
-    assert final_data['pw']['n'] == n_pw_base
-    assert final_data['vh']['n'] == n_vh_base
+    assert final_data['ws']['available_n'] == n_ws_base
+    assert final_data['ar']['available_n'] == n_ar_base
+    assert final_data['pw']['available_n'] == n_pw_base
+    assert final_data['vh']['available_n'] == n_vh_base
 
 
 # ==============================================================================

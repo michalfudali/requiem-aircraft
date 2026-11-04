@@ -35,6 +35,7 @@ from calculations.report_origin import (number_references, xref, cite, origin, o
                                          component_source)
 from calculations import report_charts
 from calculations import manual_control
+from calculations.engine_fuel import catalog as engine_catalog
 from calculations.calculation_graph import build_calculation_graph
 
 app = Flask(__name__)
@@ -226,9 +227,14 @@ def aircraft_item(aircraft_id):
 
 
 
+@app.get('/api/engines')
+def engines():
+    return jsonify(engines=engine_catalog())
+
+
 @app.route('/api/trends/suggestions', methods=['GET', 'POST'])
 def get_trends_suggestions():
-    # POST carries the whole project: the sample is then the one of its P1 trend analysis.
+    # POST carries the project's comparison-sample settings, including its own observations.
     args = (request.get_json(silent=True) or {}) if request.method == 'POST' else request.args.to_dict()
     if not isinstance(args, dict):
         return jsonify(status='error', message='Expected a JSON object'), 400
@@ -256,7 +262,7 @@ def get_trends_suggestions():
         return jsonify(status='error', message=f"Unknown engine_type: '{engine_type}'"), 400
     try:
         res = get_trend_suggestions(aircraft_type, m0=m0, wing_configuration=wing_cfg, engine_type=engine_type,
-                                    project=args if request.method == 'POST' else None)
+                                    settings=args, project=args if request.method == 'POST' else None)
     except ValueError as err:
         return jsonify(status='error', message=str(err)), 400
     return jsonify(res)

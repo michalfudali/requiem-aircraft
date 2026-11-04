@@ -244,7 +244,7 @@ def test_tier4_scenario1_student_ga_trainer_design_workflow(client):
     5. Verifies successful preliminary sizing results (geometry, aerodynamics, mass balance).
     """
     # Step 1 & 2: Fetch suggestions
-    res = client.get('/api/trends/suggestions?aircraft_type=piston_ga&m0=1150')
+    res = client.get('/api/trends/suggestions?aircraft_type=piston_ga&m0=1150&trend_nearest_count=50&mass_initial_guess=1150')
     if res.status_code != 200:
         pytest.skip("Suggestions API not yet implemented")
     

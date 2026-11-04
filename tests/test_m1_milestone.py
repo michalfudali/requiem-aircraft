@@ -118,7 +118,7 @@ def test_feature2_statistical_empty_weight_7_classes(ac_type):
     """Feature 2: BIPOL_1 eq. (1) for every class, A and C from two points of the sample's trend line."""
     from calculations.trends import empty_mass_trend
     engine = {'glider': 'none', 'jet_business': 'jet', 'jet_transport': 'jet'}.get(ac_type, 'prop')
-    p = {'aircraft_type': ac_type, 'engine_type': engine, '_reference_mass': None}  # whole class
+    p = {'aircraft_type': ac_type, 'engine_type': engine, 'empty_mass_model': 'trend', 'trend_nearest_count': 0}  # whole class
     share, meta = empty_mass_law(p)
     rows, fit, points = empty_mass_trend(p)
     assert meta['mode'] == 'trend' and meta['n'] == len(rows) >= 3
@@ -397,6 +397,7 @@ def test_tier4_scenario_cs23_ga_trainer():
     """Tier 4 Scenario 1: CS-23 4-seat Single-Engine GA Trainer (Cessna 172 / Piper Archer class)."""
     p = base_params(
         n_pax=3, n_crew=1, m_cargo=40, range_km=1100, cruise_speed_kmh=225,
+        empty_mass_model='trend', trend_reference_mode='design', trend_nearest_count=50,
         v_stall_kmh=95, takeoff_distance_m=480, landing_distance_m=460, climb_rate_ms=4.5
     )
     res_mass = calculate_mass_sizing(p)

@@ -220,7 +220,7 @@ def test_adversarial_empty_weight_bounds_across_extreme_masses(ac_type):
     it is a trend line of real aircraft, not a clamped correlation."""
     from calculations.trends import empty_mass_trend
     engine = {'glider': 'none', 'jet_business': 'jet', 'jet_transport': 'jet'}.get(ac_type, 'prop')
-    p = {'aircraft_type': ac_type, 'engine_type': engine, '_reference_mass': None}  # whole class
+    p = {'aircraft_type': ac_type, 'engine_type': engine, 'empty_mass_model': 'trend', 'trend_nearest_count': 0}  # whole class
     share, meta = empty_mass_law(p)
     _, fit, _ = empty_mass_trend(p)
     lo, hi = fit['x_min'], fit['x_max']

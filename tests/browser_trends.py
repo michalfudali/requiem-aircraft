@@ -24,12 +24,14 @@ with sync_playwright() as p:
     page.wait_for_function("document.querySelectorAll('#trendAircraftRows tr').length > 1")
     assert str(page.request.get(args.base_url+'/api/aircraft').json()['total']) in page.locator('#trendSummary').inner_text()
     assert page.locator('#trendMassChart svg').count() == 1
+    assert page.locator('#trendAverages tbody tr').count() == 8
     assert 'brak' not in page.locator('#trendStatus').inner_text().lower() or 'braki danych' in page.locator('#trendStatus').inner_text()
 
     # Controls use the API cohort, not only a filter on the visible table.
     page.locator('#trendSelectionPanel-tab').click()
     page.locator('#trend_source').select_option('cado')
     page.locator('#trend_nearest_count').select_option('20')
+    reveal_details(page.locator('#trend_engine_count'))
     page.locator('#trend_engine_count').select_option('1')
     page.locator('#trendRecalculate').click()
     page.wait_for_function("currentResults.params.trend_source === 'cado' && currentResults.params.trend_engine_count === 1")
@@ -124,4 +126,34 @@ with sync_playwright() as p:
         page.screenshot(path=out/f'trends-{width}.png',animations='disabled')
     assert not errors, errors
     print('DATED JET TRENDS, +5 YEARS, WIDTHS 320–1600 AND JAVASCRIPT: OK')
+    page.set_viewport_size({'width':1600,'height':1100})
+    presets = page.request.get(args.base_url+'/api/presets').json()
+    page.evaluate('async params=>{loadProjectIntoForm({name:"Dobór iteracyjny",params});await performCalculation();}',
+                  dict(presets['motoglider_aos'], empty_mass_model='trend'))
+    navigate(page,'tab-trends')
+    page.locator('#trendSelectionPanel-tab').click()
+    reveal_details(page.locator('#trend_reference_mode'))
+    page.locator('#trend_reference_mode').select_option('design')
+    page.locator('#trend_nearest_count').select_option('50')
+    page.locator('#trendRecalculate').click()
+    page.wait_for_function("currentResults.params.trend_reference_mode==='design' && currentResults.params._reference!==undefined")
+    reference=page.evaluate('currentResults.params._reference_mass')
+    # The coupled calculation can legitimately widen to the whole class.
+    assert page.evaluate('currentResults.bipol_projects.p1.trend_analysis.selected_n')>=50
+    suggestions=page.evaluate('async()=>await BipolTrendProvenance.fetchSuggestions({aircraft_type:"motoglider",engine_type:"prop"})')
+    assert suggestions['sample']['reference_mass']==reference
+    assert suggestions['suggestions']==page.evaluate('currentResults.bipol_projects.p1.trend_analysis.suggestions')
+    page.reload()
+    page.wait_for_function("currentResults?.params.trend_reference_mode==='design'")
+    assert page.evaluate('currentResults.params._reference_mass')==reference
+    legacy = page.evaluate('currentResults.params')
+    legacy.pop('trend_reference_mode')
+    legacy.pop('trend_nearest_count')
+    page.evaluate('params=>loadProjectIntoForm({name:"Starszy projekt",params})',legacy)
+    assert page.evaluate('collectFormData().trend_reference_mode')=='design'
+    assert int(page.evaluate('collectFormData().trend_nearest_count'))==50
+    page.evaluate('async()=>await performCalculation()')
+    assert page.evaluate('currentResults.params.trend_reference_mode')=='design'
+    assert not errors,errors
+    print('ITERATIVE DESIGN REFERENCE, SUGGESTION PROVENANCE AND RELOAD: OK')
     browser.close()

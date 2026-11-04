@@ -110,6 +110,7 @@ class TestBipol1MassSizing:
         """Współczynniki A, C (dwa punkty linii trendu próby) i Kvs (BIPOL_1 wzór 1) zasilają bilans masy."""
         from calculations.trends import empty_mass_trend
         params = validate_parameters(dict(AIRCRAFT_PRESETS['ga_trainer'], variable_sweep=True,
+                                          empty_mass_model='trend', trend_reference_mode='design', trend_nearest_count=50,
                                           empty_mass_trend_A=0.95, empty_mass_trend_C=-0.055))
         res = calculate_mass_sizing(params)
         _, _, points = empty_mass_trend(params)

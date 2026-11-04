@@ -24,13 +24,14 @@ from calculations.design_solver import resolve_design
 from calculations.model_scope import assessment, is_water
 from calculations.profile_geometry import resolve_profile_geometry
 from calculations.constraints import resolve_and_lock_parameters, finalize_parameter_states, get_initial_constraint_suggestions, WING_PLANFORMS
+from calculations.engine_fuel import engine_assessment, fuel_check
 
 def _size_airframe(params, param_states):
     # BIPOL_1, s. 1: one comparison sample of aircraft similar to the design for the P1 trend
     # analysis and the empty-mass law; its reference mass is computed once per project.
     from calculations.trends import SIMILAR_COUNT, similar_sample
-    if ('_similar_count' not in params and params.get('trend_aircraft_ids') is None
-            and int(params.get('trend_nearest_count', SIMILAR_COUNT) or 0)):
+    if (params.get('trend_reference_mode') == 'design' and '_similar_count' not in params
+            and params.get('trend_aircraft_ids') is None and int(params.get('trend_nearest_count', 0) or 0)):
         sample = similar_sample(params)
         params.update(_reference=sample, _reference_mass=sample['mass'], _similar_count=sample['count'])
     mass_res = calculate_mass_sizing(params)
@@ -134,7 +135,8 @@ def run_bipol_project(params: dict):
     import copy
     from calculations.design_solver import MASS_NOT_CLOSED
     from calculations.trends import EQ1_UNSOLVABLE, PAYLOAD_MARGIN, SIMILAR_COUNT, similar_sample
-    nearest = params.get('trend_aircraft_ids') is None and int(params.get('trend_nearest_count', SIMILAR_COUNT) or 0)
+    nearest = (params.get('trend_reference_mode') == 'design' and params.get('trend_aircraft_ids') is None
+               and int(params.get('trend_nearest_count', 0) or 0))
     initial, first, coupled_widening = copy.deepcopy((params, param_states)), 0, False
     while True:
         params, param_states = copy.deepcopy(initial)
@@ -272,10 +274,19 @@ def run_bipol_project(params: dict):
             "note": c["source"] + (" (zalecenie)" if c["severity"] == "warning" else "")
         })
 
+    engine_selection = engine_assessment(params, sizing_res)
+    if params['engine_type'] != 'none':
+        checks.append(fuel_check(engine_selection))
+        if engine_selection.get('supported'):
+            checks.append(dict(parameter='Moc lub ciąg rzeczywistej propozycji silnika',
+                required=f"≥ {engine_selection['required_total']:.3f} {engine_selection['rating_unit']} łącznie",
+                actual=f"{engine_selection['installed_total']:.3f} {engine_selection['rating_unit']} łącznie",
+                passed=engine_selection['adequate'], note='Ocena doboru mocy/ciągu, nie dopuszczenie zabudowy silnika.'))
     result = {
         "status": "success",
         "design_iteration": design_iteration,
         "model_scope": model_scope,
+        "engine_selection": engine_selection,
         "params": params,
         "mass": mass_res,
         "sizing": sizing_res,

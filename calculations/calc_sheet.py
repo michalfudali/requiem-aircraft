@@ -528,6 +528,46 @@ def _p1_trend(s, r):
 # =============================================================================================
 # P2 — studium wykonalności
 # =============================================================================================
+def _engine_consumption(s, p, jet):
+    ef = p.get('_engine_fuel', {})
+    point = ef.get('point', {})
+    source = (f"Silnik {ef['model']}; {ef['source']}; {ef.get('locator', '')}" if ef.get('supported') else
+              'Nieudokumentowane założenie robocze — wymagane dane rzeczywistego silnika')
+    note = point.get('conditions', 'Brak źródła i warunków punktu pracy.')
+    if ef.get('supported'):
+        s.given('engine_count_ref', r'n_{sil}', p['n_engines'], '', 0,
+                'Liczba jednakowych silników w projekcie', 'Założenie autora')
+        s.given('engine_rating_ref', r'T_{sil}' if jet else r'P_{sil}',
+                ef['rating_kn' if jet else 'rating_kw'], KN if jet else KW, 4,
+                'Katalogowy ciąg jednego silnika' if jet else 'Katalogowa moc jednego silnika', source,
+                ef['rating_note'])
+    key, symbol, unit = ('TSFC', r'c_Tg', r'\mathrm{1/h}') if jet else ('SFC', 'SFC', r'\mathrm{g/(kW\,h)}')
+    raw_unit = point.get('unit')
+    if raw_unit in ('l/h', 'US gal/h'):
+        s.given('engine_flow_ref', r'\dot V_{f,ref}', point['value'],
+                r'\mathrm{US\,gal/h}' if raw_unit == 'US gal/h' else r'\mathrm{l/h}', 3,
+                'Zużycie objętościowe w punkcie pracy rzeczywistego silnika', source, note)
+        s.given('engine_power_ref', r'P_{ref}', point['power_kw'], KW, 4, 'Moc jednego silnika w punkcie zużycia', source)
+        s.given('fuel_density', r'\rho_f', ef['density_kg_l'], r'\mathrm{kg/l}', 3,
+                'Gęstość paliwa do przeliczenia przepływu', 'Założenie autora — nie jest daną zużycia silnika')
+        factor = r'\cdot3{,}785411784' if raw_unit == 'US gal/h' else ''
+        s.calc(key, symbol, r'\frac{1000\rho_f\dot V_{f,ref}' + factor + r'}{P_{ref}}',
+               r'\frac{1000\cdot[[fuel_density]]\cdot[[engine_flow_ref]]' + factor + r'}{[[engine_power_ref]]}',
+               p['sfc'], unit, 4, 'Jednostkowe zużycie z punktu producenta', source,
+               check=lambda v: 1000*v.fuel_density*v.engine_flow_ref*(3.785411784 if raw_unit == 'US gal/h' else 1)/v.engine_power_ref)
+    elif raw_unit in ('kg/(N h)', 'kg/(kW h)'):
+        s.given('engine_sfc_ref', r'c_{ref}', point['value'],
+                r'\mathrm{kg/(N\,h)}' if jet else r'\mathrm{kg/(kW\,h)}', 5,
+                'Jednostkowe zużycie w jednostkach dokumentu silnika', source, note)
+        multiplier = '[[g]]' if jet else '1000'
+        s.calc(key, symbol, r'c_{ref}\,g' if jet else r'1000\,c_{ref}', r'[[engine_sfc_ref]]\cdot' + multiplier,
+               p['sfc'], unit, 5, 'Zużycie jednostkowe w jednostkach projektu', source,
+               check=lambda v: v.engine_sfc_ref*(v.g if jet else 1000))
+    else:
+        s.given(key, symbol, p['sfc'], unit, 3, 'Jednostkowe zużycie paliwa rzeczywistego silnika' if ef.get('supported') else
+                'Robocze zużycie paliwa — brak danych silnika', source, note)
+
+
 def _p2(s, r):
     p, mass = r['params'], r['mass']
     powered = _powered(r)
@@ -554,12 +594,11 @@ def _p2(s, r):
         back = float(p.get('return_range_km') or 0)
         total = float(p['range_km'])
         s.given('R_km', 'R', total, KM, 0, 'Zasięg obliczeniowy misji', 'Wymagania tematu')
+        _engine_consumption(s, p, jet)
         if jet:
-            s.given('TSFC', r'c_T g', float(p['sfc']), r'\mathrm{1/h}', 3, 'Jednostkowe zużycie paliwa (ciągowe)', 'Dane silnika / założenie')
             s.calc('c_T', 'c_T', r'\frac{c_T g\,[\mathrm{1/h}]}{3600}', r'\frac{[[TSFC]]}{3600}', float(p['sfc']) / 3600,
                    r'\mathrm{1/s}', 6, 'Jednostkowe zużycie paliwa w jednostkach SI', check=lambda v: v.TSFC / 3600)
         else:
-            s.given('SFC', r'SFC', float(p['sfc']), r'\mathrm{g/(kW\,h)}', 1, 'Jednostkowe zużycie paliwa (mocowe)', 'Dane silnika / założenie')
             s.calc('c_P', 'c_P', r'\frac{SFC}{3{,}6\cdot10^{9}}', r'\frac{[[SFC]]}{3{,}6\cdot10^{9}}', float(p['sfc']) / 3.6e9,
                    r'\mathrm{kg/(W\,s)}', 4, 'Jednostkowe zużycie paliwa w jednostkach SI', check=lambda v: v.SFC / 3.6e9)
             s.given('eta_p', r'\eta_p', float(p.get('prop_efficiency', .82)), '', 2, 'Sprawność śmigła w przelocie',
@@ -648,8 +687,12 @@ def _p2(s, r):
         if 'task' in phases:
             task_h = float(p['max_power_time_min'])
             s.given('t_zad', r't_{zad}', task_h, r'\mathrm{min}', 0, 'Czas pracy na maksymalnym ciągu (mocy)', 'Profil misji')
+            ef = p.get('_engine_fuel', {})
+            maximum_source = (f"Silnik {ef['model']}; {ef.get('maximum_source') or ef['source']}" if ef.get('maximum_supported') else
+                              'Nieudokumentowane założenie robocze — wymagane dane maksymalnego ustawienia silnika')
             s.given('SFC_max', r'SFC_{max}', float(p['max_power_sfc']), r'\mathrm{1/h}' if jet else r'\mathrm{g/(kW\,h)}', 3,
-                    'Zużycie jednostkowe przy maksymalnym ciągu (mocy)', 'Dane silnika')
+                    'Zużycie jednostkowe przy maksymalnym ciągu (mocy)', maximum_source,
+                    ef.get('maximum_point', {}).get('conditions', 'Brak udokumentowanych warunków.'))
             if jet:
                 s.given('T_max_zad', r'T_{max}', float(p['max_thrust_kn']), KN, 2, 'Maksymalny ciąg', 'Dane silnika')
                 s.calc('m_f_zad', r'm_{f,zad}', r'\frac{SFC_{max}}{g}\,1000\,T_{max}\frac{t_{zad}}{60}',
@@ -731,9 +774,23 @@ def _p2(s, r):
 def _p2_empty_law(s, r):
     p, mass = r['params'], r['mass']
     law = mass['empty_mass_law']
+    mode = law['mode']
     s.section('p2', 'empty', 'Udział masy własnej', SOURCES['B1'] + ', wzór (1)')
-    if law['mode'] == 'two_point':
-        source = 'Dwa punkty odczytane z wykresu mₑ/m₀ = f(m₀)'
+    source = {'class_correlation': 'Korelacja klasy (robocza; do zastąpienia analizą własnej próby)',
+              'trend': f"Regresja próby P1 ({law.get('n', '—')} konstrukcji)",
+              'bipol1_trend': 'Współczynniki z analizy trendów P1', 'coefficients': 'Współczynniki podane przez autora',
+              'two_point': 'Dwa punkty odczytane z wykresu mₑ/m₀ = f(m₀)', 'fixed_fraction': 'Założenie autora'}[mode]
+    if mode == 'fixed_fraction':
+        s.given('e_m0', r'\frac{m_e}{m_0}', law['A'], '', 4, 'Stały udział masy własnej', source)
+        return
+    if mode == 'trend':
+        s.given('K_vs', 'K_{vs}', law['k_vs'], '', 2, 'Współczynnik stałości skosu', SOURCES['B1'] + ', s. 1')
+        s.calc('e_m0', r'\frac{m_e}{m_0}', r'A\,m_0^{C}K_{vs}',
+               r'[[tr_A]]\cdot[[m0]]^{[[tr_C]]}\cdot[[K_vs]]', mass['m_empty'] / mass['m0'], '', 4,
+               'Udział masy własnej z tej samej linii trendu P1', SOURCES['B1'] + ', wzór (1)',
+               check=lambda v: v.tr_A * v.m0 ** v.tr_C * v.K_vs)
+        return
+    if mode == 'two_point':
         s.given('mp_x1', 'x_1', float(p['mass_point_x1']), KG, 0, 'Punkt 1 wykresu — masa startowa', source)
         s.given('mp_y1', 'y_1', float(p['mass_point_y1']), '', 4, 'Punkt 1 wykresu — mₑ/m₀', source)
         s.given('mp_x2', 'x_2', float(p['mass_point_x2']), KG, 0, 'Punkt 2 wykresu — masa startowa', source)
@@ -744,15 +801,26 @@ def _p2_empty_law(s, r):
                check=lambda v: math.log(v.mp_y1 / v.mp_y2) / math.log(v.mp_x1 / v.mp_x2))
         s.calc('A_e', 'A', r'\frac{y_1}{x_1^{C}}', r'\frac{[[mp_y1]]}{[[mp_x1]]^{[[C_e]]}}', law['A'], '', 5,
                'Współczynnik A zależności masy pustej', SOURCES['B1'] + ', s. 1', check=lambda v: v.mp_y1 / v.mp_x1 ** v.C_e)
-        a_key, c_key = 'A_e', 'C_e'
     else:
-        # A i C wyznaczono w analizie trendów P1 z dwóch punktów tej samej linii trendu.
-        a_key, c_key = 'tr_A', 'tr_C'
+        s.given('A_e', 'A', law['A'], '', 5, 'Współczynnik A zależności masy pustej', source)
+        s.given('C_e', 'C', law['C'], '', 5, 'Wykładnik C zależności masy pustej', source)
     s.given('K_vs', 'K_{vs}', law['k_vs'], '', 2, 'Współczynnik stałości skosu (1,0 — stały; 1,04 — zmienny)', SOURCES['B1'] + ', s. 1')
-    s.calc('e_m0', r'\frac{m_e}{m_0}', r'A\,m_0^{C}K_{vs}',
-           '[[' + a_key + r']]\cdot[[m0]]^{[[' + c_key + r']]}\cdot[[K_vs]]', mass['m_empty'] / mass['m0'], '', 4,
-           'Udział masy własnej dla masy startowej projektu', SOURCES['B1'] + ', wzór (1)',
-           check=lambda v: getattr(v, a_key) * v.m0 ** getattr(v, c_key) * v.K_vs)
+    m0, value = mass['m0'], mass['m_empty'] / mass['m0']
+    if mode == 'class_correlation':
+        s.given('K_kor', 'K_{kor}', law['structural_modifier'], '', 4, 'Poprawka konstrukcyjna korelacji klasy', 'Korelacja klasy')
+        raw = law['A'] * m0 ** law['C'] * law['k_vs'] * law['structural_modifier']
+        bounded = not .38 <= raw <= .74
+        formula, subst = r'A\,m_0^{C}K_{vs}K_{kor}', r'[[A_e]]\cdot[[m0]]^{[[C_e]]}\cdot[[K_vs]]\cdot[[K_kor]]'
+        if bounded:  # Korelacja klasy jest ograniczona do 0,38–0,74; zapis jawny, by podstawienie dawało wynik.
+            formula = r'\min\left(0{,}74;\;\max\left(0{,}38;\;' + formula + r'\right)\right)'
+            subst = r'\min\left(0{,}74;\;\max\left(0{,}38;\;' + subst + r'\right)\right)'
+        s.calc('e_m0', r'\frac{m_e}{m_0}', formula, subst,
+               value, '', 4, 'Udział masy własnej dla masy startowej projektu', SOURCES['B1'] + ', wzór (1)',
+               check=lambda v: min(.74, max(.38, v.A_e * v.m0 ** v.C_e * v.K_vs * v.K_kor)))
+    else:
+        s.calc('e_m0', r'\frac{m_e}{m_0}', r'A\,m_0^{C}K_{vs}', r'[[A_e]]\cdot[[m0]]^{[[C_e]]}\cdot[[K_vs]]', value, '', 4,
+               'Udział masy własnej dla masy startowej projektu', SOURCES['B1'] + ', wzór (1)',
+               check=lambda v: v.A_e * v.m0 ** v.C_e * v.K_vs)
 
 
 def _p2_matching(s, r):
@@ -873,7 +941,12 @@ def _p2_matching(s, r):
                r'1{,}06\cdot\max\left\{[[TW_TO]];\;[[TW_wzn]];\;[[TW_cr_inst]];\;[[TW_extra]]\right\}', tw0, '', 3,
                'Stosunek ciągu do ciężaru z wykresu doboru (6% zapasu)', SOURCES['B2'],
                check=lambda v: round(1.06 * max(v.TW_TO, v.TW_wzn, v.TW_cr_inst, v.TW_extra), 3))
-        if abs(dp['tw'] - tw0) <= 5e-4:
+        if p.get('engine_static_thrust_kn'):
+            s.calc('TW', r'\frac{T}{W}', r'\frac{1000\,n_{sil}T_{sil}}{m_0 g}',
+                   r'\frac{1000\cdot[[engine_count_ref]]\cdot[[engine_rating_ref]]}{[[m0]]\cdot[[g]]}',
+                   dp['tw'], '', 5, 'Ciąg względny rzeczywistego zespołu napędowego',
+                   check=lambda v: 1000*v.engine_count_ref*v.engine_rating_ref/(v.m0*v.g))
+        elif abs(dp['tw'] - tw0) <= 5e-4:
             s.calc('TW', r'\frac{T}{W}', r'\left(\tfrac{T}{W}\right)_{dob}', r'[[TW_dob]]', dp['tw'], '', 4,
                    'Stosunek ciągu do ciężaru przyjęty', check=lambda v: v.TW_dob, tolerance=6e-4)
         else:
@@ -904,7 +977,11 @@ def _p2_matching(s, r):
         p_dob = round(pw0 * mass['m0'] * G0 / 1000, 1)
         s.calc('P_dob', r'N_{dob}', r'\frac{(N/W)_{dob}\,m_0 g}{1000}', r'\frac{[[PW_dob]]\cdot[[m0]]\cdot[[g]]}{1000}', p_dob, KW, 1,
                'Moc z wykresu doboru', check=lambda v: v.PW_dob * v.m0 * v.g / 1000)
-        if p.get('power_input_mode') == 'fixed' or 'engine_power_kw' in p.get('locked_params', []):
+        if p.get('_engine_fuel', {}).get('supported'):
+            s.calc('P', 'N', r'n_{sil}P_{sil}', r'[[engine_count_ref]]\cdot[[engine_rating_ref]]',
+                   dp['power_kw'], KW, 2, 'Moc rzeczywistego zespołu napędowego',
+                   check=lambda v: v.engine_count_ref*v.engine_rating_ref)
+        elif p.get('power_input_mode') == 'fixed' or 'engine_power_kw' in p.get('locked_params', []):
             s.given('P', 'N', dp['power_kw'], KW, 1, 'Moc wybranego silnika', 'Założenia projektu')
         elif abs(dp['power_kw'] - p_dob) <= .05:
             s.calc('P', 'N', r'N_{dob}', r'[[P_dob]]', dp['power_kw'], KW, 1, 'Moc startowa zespołu napędowego',
@@ -2092,7 +2169,7 @@ def _p5_turn(s, r):
     s.calc('n_T2', r'n_T^2', r'\frac{\frac{T_r}{W}q_z-\frac{q_z^2C_{x0}}{W/S}}{k\,W/S}', r'\frac{\frac{[[T_z]]}{[[m0]]\cdot[[g]]}\cdot[[q_z]]-\frac{[[q_z]]^2\cdot[[Cx0]]}{[[WS_0]]}}{[[k]]\cdot[[WS_0]]}',
            t['n_thrust_sq'], '', 3, 'Kwadrat przeciążenia zakrętu prawidłowego (T = D)', SOURCES['B1W'] + ', wzór (50)',
            check=lambda v: (v.T_z / (v.m0 * v.g) * v.q_z - v.q_z ** 2 * v.Cx0 / v.WS_0) / (v.k * v.WS_0), tolerance=.01 * abs(t['n_thrust_sq']) + 1e-3)
-    s.calc('n_z', 'n', r'\min\left(n_{aero};\;\sqrt{n_T^2}\right)', r'\min\left([[n_aero]];\;\sqrt{[[n_T2]]}\right)', turn['n_sustained'], '', 2, 'Przeciążenie w zakręcie ustalonym',
+    s.calc('n_z', 'n', r'\min\left(n_{aero};\;\sqrt{n_T^2}\right)', r'\min\left([[n_aero]];\;\sqrt{[[n_T2]]}\right)', t['n'], '', 4, 'Przeciążenie w zakręcie ustalonym',
            check=lambda v: min(v.n_aero, math.sqrt(max(0, v.n_T2))), tolerance=.006)
     s.calc('phi_z', r'\varphi', r'\arccos\frac{1}{n}', r'\arccos\frac{1}{[[n_z]]}', turn['bank_angle_deg'], DEG, 1, 'Kąt przechylenia', SOURCES['B1W'] + ', wzór (31)',
            check=lambda v: math.degrees(math.acos(1 / v.n_z)), tolerance=.2)

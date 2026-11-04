@@ -1,0 +1,296 @@
+[
+  {
+    "project": "ga_trainer",
+    "part": "p1",
+    "formulae": 53,
+    "calculations": 8,
+    "overflow": []
+  },
+  {
+    "project": "ga_trainer",
+    "part": "p2",
+    "formulae": 83,
+    "calculations": 73,
+    "overflow": []
+  },
+  {
+    "project": "ga_trainer",
+    "part": "p3",
+    "formulae": 145,
+    "calculations": 145,
+    "overflow": []
+  },
+  {
+    "project": "ga_trainer",
+    "part": "p4",
+    "formulae": 57,
+    "calculations": 57,
+    "overflow": []
+  },
+  {
+    "project": "ga_trainer",
+    "part": "p5",
+    "formulae": 61,
+    "calculations": 61,
+    "overflow": []
+  },
+  {
+    "project": "ga_trainer",
+    "part": "p6",
+    "formulae": 39,
+    "calculations": 39,
+    "overflow": []
+  },
+  {
+    "project": "regional_turboprop",
+    "part": "p1",
+    "formulae": 53,
+    "calculations": 8,
+    "overflow": []
+  },
+  {
+    "project": "regional_turboprop",
+    "part": "p2",
+    "formulae": 84,
+    "calculations": 73,
+    "overflow": []
+  },
+  {
+    "project": "regional_turboprop",
+    "part": "p3",
+    "formulae": 146,
+    "calculations": 146,
+    "overflow": []
+  },
+  {
+    "project": "regional_turboprop",
+    "part": "p4",
+    "formulae": 57,
+    "calculations": 57,
+    "overflow": []
+  },
+  {
+    "project": "regional_turboprop",
+    "part": "p5",
+    "formulae": 59,
+    "calculations": 59,
+    "overflow": []
+  },
+  {
+    "project": "regional_turboprop",
+    "part": "p6",
+    "formulae": 39,
+    "calculations": 39,
+    "overflow": []
+  },
+  {
+    "project": "vlj_jet",
+    "part": "p1",
+    "formulae": 53,
+    "calculations": 8,
+    "overflow": []
+  },
+  {
+    "project": "vlj_jet",
+    "part": "p2",
+    "formulae": 79,
+    "calculations": 67,
+    "overflow": []
+  },
+  {
+    "project": "vlj_jet",
+    "part": "p3",
+    "formulae": 146,
+    "calculations": 146,
+    "overflow": []
+  },
+  {
+    "project": "vlj_jet",
+    "part": "p4",
+    "formulae": 58,
+    "calculations": 58,
+    "overflow": []
+  },
+  {
+    "project": "vlj_jet",
+    "part": "p5",
+    "formulae": 59,
+    "calculations": 59,
+    "overflow": []
+  },
+  {
+    "project": "vlj_jet",
+    "part": "p6",
+    "formulae": 39,
+    "calculations": 39,
+    "overflow": []
+  },
+  {
+    "project": "motoglider_aos",
+    "part": "p1",
+    "formulae": 53,
+    "calculations": 8,
+    "overflow": []
+  },
+  {
+    "project": "motoglider_aos",
+    "part": "p2",
+    "formulae": 81,
+    "calculations": 72,
+    "overflow": []
+  },
+  {
+    "project": "motoglider_aos",
+    "part": "p3",
+    "formulae": 145,
+    "calculations": 145,
+    "overflow": []
+  },
+  {
+    "project": "motoglider_aos",
+    "part": "p4",
+    "formulae": 57,
+    "calculations": 57,
+    "overflow": []
+  },
+  {
+    "project": "motoglider_aos",
+    "part": "p5",
+    "formulae": 61,
+    "calculations": 61,
+    "overflow": []
+  },
+  {
+    "project": "motoglider_aos",
+    "part": "p6",
+    "formulae": 39,
+    "calculations": 39,
+    "overflow": []
+  },
+  {
+    "project": "glider_pw5",
+    "part": "p1",
+    "formulae": 32,
+    "calculations": 8,
+    "overflow": []
+  },
+  {
+    "project": "glider_pw5",
+    "part": "p2",
+    "formulae": 46,
+    "calculations": 39,
+    "overflow": []
+  },
+  {
+    "project": "glider_pw5",
+    "part": "p3",
+    "formulae": 119,
+    "calculations": 119,
+    "overflow": []
+  },
+  {
+    "project": "glider_pw5",
+    "part": "p4",
+    "formulae": 57,
+    "calculations": 57,
+    "overflow": []
+  },
+  {
+    "project": "glider_pw5",
+    "part": "p5",
+    "formulae": 29,
+    "calculations": 29,
+    "overflow": []
+  },
+  {
+    "project": "glider_pw5",
+    "part": "p6",
+    "formulae": 39,
+    "calculations": 39,
+    "overflow": []
+  },
+  {
+    "project": "uav_tactical",
+    "part": "p1",
+    "formulae": 32,
+    "calculations": 8,
+    "overflow": []
+  },
+  {
+    "project": "uav_tactical",
+    "part": "p2",
+    "formulae": 77,
+    "calculations": 68,
+    "overflow": []
+  },
+  {
+    "project": "uav_tactical",
+    "part": "p3",
+    "formulae": 61,
+    "calculations": 61,
+    "overflow": []
+  },
+  {
+    "project": "uav_tactical",
+    "part": "p4",
+    "formulae": 57,
+    "calculations": 57,
+    "overflow": []
+  },
+  {
+    "project": "uav_tactical",
+    "part": "p5",
+    "formulae": 61,
+    "calculations": 61,
+    "overflow": []
+  },
+  {
+    "project": "uav_tactical",
+    "part": "p6",
+    "formulae": 36,
+    "calculations": 36,
+    "overflow": []
+  },
+  {
+    "project": "jet_transport",
+    "part": "p1",
+    "formulae": 53,
+    "calculations": 8,
+    "overflow": []
+  },
+  {
+    "project": "jet_transport",
+    "part": "p2",
+    "formulae": 80,
+    "calculations": 67,
+    "overflow": []
+  },
+  {
+    "project": "jet_transport",
+    "part": "p3",
+    "formulae": 147,
+    "calculations": 147,
+    "overflow": []
+  },
+  {
+    "project": "jet_transport",
+    "part": "p4",
+    "formulae": 58,
+    "calculations": 58,
+    "overflow": []
+  },
+  {
+    "project": "jet_transport",
+    "part": "p5",
+    "formulae": 59,
+    "calculations": 59,
+    "overflow": []
+  },
+  {
+    "project": "jet_transport",
+    "part": "p6",
+    "formulae": 39,
+    "calculations": 39,
+    "overflow": []
+  }
+]

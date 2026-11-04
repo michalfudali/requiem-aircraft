@@ -116,9 +116,9 @@ ORIGIN = {
     # --- Projekt 2: misja i masa ---
     'R_km': ('req', ''), 'R_pow': _MISSION, 'H_0': _MISSION, 'V_0_kmh': _MISSION, 't_ocz': _MISSION,
     'V_ocz_kmh': _MISSION, 't_zad': _MISSION, 'm_zrzut': _MISSION,
-    'SFC': ('ass', 'jednostkowe zużycie paliwa silnika przyjętego w koncepcji (zakres przelotowy)'),
-    'TSFC': ('ass', 'jednostkowe zużycie paliwa silnika przyjętego w koncepcji (zakres przelotowy)'),
-    'SFC_max': ('ass', 'jednostkowe zużycie paliwa przy mocy (ciągu) maksymalnej — dane silnika'),
+    'SFC': lambda e: ('lit', e['source']) if e.get('source', '').startswith('Silnik ') else ('ass', 'brak udokumentowanego źródła zużycia paliwa'),
+    'TSFC': lambda e: ('lit', e['source']) if e.get('source', '').startswith('Silnik ') else ('ass', 'brak udokumentowanego źródła zużycia paliwa'),
+    'SFC_max': lambda e: ('lit', e['source']) if e.get('source', '').startswith('Silnik ') else ('ass', 'brak udokumentowanych danych maksymalnego ustawienia silnika'),
     'T_max_zad': ('ass', 'ciąg maksymalny silnika przyjętego w koncepcji'),
     'P_max_zad': ('ass', 'moc maksymalna silnika przyjętego w koncepcji'),
     'eta_p': ('ass', 'sprawność śmigła w przelocie, typowo η ≈ 0,8 {lit:galinski_aw}'),
@@ -269,6 +269,7 @@ ORIGIN = {
 }
 
 _PATTERNS = (
+    (re.compile(r'^Silnik '), ('lit', 'dane rzeczywistej propozycji silnika {tab:engine-fuel}')),
     (re.compile(r'^Wymagania tematu', re.I), ('req', '')),
     (re.compile(r'^(Założenia projektu|Założenie autora|Założenie)\b', re.I), ('ass', '')),
     (re.compile(r'^(Dane silnika)', re.I), ('ass', 'dane silnika przyjętego w koncepcji')),

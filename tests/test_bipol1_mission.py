@@ -155,7 +155,7 @@ def test_drop_flows_to_landing_performance_and_balance():
 
 
 def test_project_review_does_not_invent_manual_work_or_missing_data():
-    r=run_bipol_project(base())
+    r=run_bipol_project(base(empty_mass_model='trend', trend_reference_mode='design', trend_nearest_count=50))
     c={x['key']:x for x in r['bipol1_review']['checks']}
     assert not c['sketch']['passed'] and not c['mission']['passed']
     # Eq. (1) comes from the program's own trend line of the sample: nothing to write by hand.

@@ -126,11 +126,12 @@ def test_defense_questions_follow_the_actual_design():
     """Pytania na obronę: miejsce przeciągnięcia względem lotek i warianty dla szybowca bez napędu."""
     from calculations import run_bipol_project
     from calculations.presets import AIRCRAFT_PRESETS
-    trainer = {q['id']: q for q in run_bipol_project(dict(AIRCRAFT_PRESETS['ga_trainer']))['engineering_audit']['defense_questions']}
+    result = run_bipol_project(dict(AIRCRAFT_PRESETS['ga_trainer']))
+    trainer = {q['id']: q for q in result['engineering_audit']['defense_questions']}
     stall = trainer['q_stall_origin']['expected_answer']
-    import re
-    eta = float(re.search(r'Lotki zaczynają się w η ≈ (\d+,\d+)', stall).group(1).replace(',', '.'))
-    assert .6 < eta < .8 and 'przed nimi' in stall
+    eta = result['geometry']['control_surfaces']['ailerons']['eta_in']
+    assert ('Lotki zaczynają się w η ≈ ' + f'{eta:.2f}'.replace('.', ',')) in stall
+    assert 'przed nimi' in stall
     assert 'wznoszenie' in trainer['q_matching_chart']['expected_answer']  # rzeczywiste ograniczenie aktywne
     glider = {q['id']: q for q in run_bipol_project(dict(AIRCRAFT_PRESETS['glider_pw5']))['engineering_audit']['defense_questions']}
     assert 'szybowca' in glider['q_matching_chart']['question'] and 'kN' not in glider['q_matching_chart']['question']

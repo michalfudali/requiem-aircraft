@@ -4,8 +4,17 @@
     b_ail_ratio:'aileron_span_ratio', c_ail_ratio:'aileron_chord_ratio',
     c_e_ratio:'elevator_chord_ratio', c_r_ratio:'rudder_chord_ratio'};
   function patch(key, value, params, mass, suggestion) {
-    // BIPOL_1, s. 4: eq. (1) of the trend analysis always goes into the mass balance.
-    if (key === 'me_m0') return {empty_mass_model:'trend'};
+    if (key === 'me_m0' && !suggestion?.apply?.empty_mass_model) return {empty_mass_model:'trend'};
+    // BIPOL_1, s. 4: eq. (1) of the trend analysis goes into the mass balance, not a fixed fraction.
+    if (key === 'me_m0' && suggestion?.apply) {
+      const update = {...suggestion.apply};
+      // A live sample law must follow later filter or observation edits. Its
+      // coefficients remain in provenance, not as detached input overrides.
+      if (update.empty_mass_model === 'trend') {
+        update.empty_mass_trend_A = null; update.empty_mass_trend_C = null;
+      }
+      return update;
+    }
     if (!Number.isFinite(value)) throw Error('Brak liczbowej propozycji.');
     if (key === 'ws') {
       if (!(value > 0 && mass > 0)) throw Error('Najpierw oblicz masę projektu.');

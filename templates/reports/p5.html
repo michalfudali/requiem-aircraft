@@ -1,4 +1,5 @@
 {% import 'reports/calc.html' as c %}
+{% if 'p2' not in selected_sections and 'p4' not in selected_sections %}{% include 'reports/engine_fuel.html' %}{% endif %}
 {% set perf=res.performance %}{% set glide=perf.glide %}
 {% if doc.powered %}<p>Osiągi wyznaczono w warunkach atmosfery wzorcowej ISA {{ cite('paturski') }} na podstawie geometrii z projektu 3, biegunowej z projektu 4 oraz charakterystyk zespołu napędowego. Prędkości charakterystyczne i wznoszenie obliczono dla masy startowej {{ res.mass.m0|reportnum(1) }} kg, fazę przelotu — dla mas bilansu misji, a podejście i lądowanie — dla masy do lądowania {{ perf.landing.mass_kg|reportnum(1) }} kg (prędkości TAS).</p>{% else %}<p>Osiągi szybowca wyznaczono w warunkach atmosfery wzorcowej ISA {{ cite('paturski') }} dla masy startowej {{ res.mass.m0|reportnum(1) }} kg na podstawie biegunowej z projektu 4. Obejmują one prędkości charakterystyczne, charakterystyki lotu ślizgowego oraz lądowanie (prędkości TAS).</p>{% endif %}
 <h3>Prędkości charakterystyczne</h3>

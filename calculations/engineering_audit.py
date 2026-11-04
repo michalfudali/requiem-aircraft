@@ -203,6 +203,7 @@ def perform_engineering_audit(result: dict) -> dict:
     partition = geom.get("control_surfaces", {}).get("trailing_edge_partition", {})
     eta_aileron = (1.0 - (partition.get("tip_clearance_pct", 0.0) + partition.get("aileron_span_pct", 0.0)) / 100.0
                    if partition.get("aileron_span_pct") else 0.65)
+    eta_aileron = geom.get("control_surfaces", {}).get("ailerons", {}).get("eta_in", eta_aileron)
     metrics["aileron_inner_eta"] = round(eta_aileron, 3)
     stall_safe = stall_eta < eta_aileron
     eta_txt = lambda v: f"{v:.2f}".replace(".", ",")  # noqa: E731
@@ -603,6 +604,7 @@ def generate_defense_questions(result: dict, metrics: dict) -> list:
     partition = result.get("geometry", {}).get("control_surfaces", {}).get("trailing_edge_partition", {})
     eta_aileron = (1.0 - (partition.get("tip_clearance_pct", 0.0) + partition.get("aileron_span_pct", 0.0)) / 100.0
                    if partition.get("aileron_span_pct") else None)
+    eta_aileron = result.get("geometry", {}).get("control_surfaces", {}).get("ailerons", {}).get("eta_in", eta_aileron)
     if eta_aileron is None:
         stall_verdict = "Porównaj to miejsce z wewnętrzną krawędzią lotki na rysunku."
     elif stall_eta < eta_aileron:

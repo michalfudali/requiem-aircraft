@@ -79,20 +79,22 @@
     </div>`;
   }
 
-  // The project defines its comparison sample (the aircraft nearest in MTOW to the design), so the
-  // wizard and the input panel send the whole project and get the aircraft of its P1 trend analysis.
-  function projectBody(project, query) {
-    const body = {};
-    for (const [key, value] of Object.entries(project || {})) {
-      if (key.startsWith('_') || value == null || value === '' || Number.isNaN(value)) continue;
-      body[key] = value;
+  // The comparison sample of the project: the wizard and the input panel must
+  // propose values from the same aircraft as the P1 trend analysis.
+  const SAMPLE_KEYS = ['trend_source', 'trend_nearest_count', 'trend_reference_mode', 'mass_initial_guess', 'trend_engine_count', 'trend_year_min',
+    'trend_year_max', 'trend_weighting', 'trend_year_basis', 'trend_aircraft_ids', 'trend_observations', 'variable_sweep'];
+
+  function sampleSettings(project, query) {
+    const settings = {};
+    for (const key of SAMPLE_KEYS) {
+      const value = project?.[key];
+      if (value != null && value !== '' && !Number.isNaN(value)) settings[key] = value;
     }
     // A manual aircraft selection belongs to one class and propulsion.
-    if (query.aircraft_type !== body.aircraft_type || (query.engine_type && query.engine_type !== body.engine_type)) {
-      delete body.trend_aircraft_ids;
+    if (project && (query.aircraft_type !== project.aircraft_type || (query.engine_type && query.engine_type !== project.engine_type))) {
+      delete settings.trend_aircraft_ids;
     }
-    for (const [key, value] of Object.entries(query)) if (value) body[key] = value;
-    return body;
+    return settings;
   }
 
   function projectSettings() {
@@ -101,7 +103,14 @@
   }
 
   async function fetchSuggestions(query, project = projectSettings()) {
-    const body = projectBody(project, query);
+    const body = {};
+    for (const [key, value] of Object.entries(query)) if (value) body[key] = value;
+    Object.assign(body, sampleSettings(project, body));
+    if (body.trend_reference_mode === 'design') {
+      for (const [key,value] of Object.entries(project || {})) {
+        if (!key.startsWith('_') && !(key in body) && value != null && value !== '') body[key] = value;
+      }
+    }
     const keyStr = JSON.stringify(body);
     if (cachedPromise && cachedQueryKey === keyStr) return cachedPromise;
     cachedQueryKey = keyStr;
@@ -271,7 +280,7 @@
     return `${svg}<div class="wizard-trend-legend">
       <span><i class="wizard-trend-dot" style="background:#5478a9"></i>Konstrukcje (${chart.n})</span>
       <span><i class="wizard-trend-line-swatch" style="background:#147f76"></i>${fit ? 'Regresja z próby' : 'Średnia ważona BIPOL_1'}</span>
-      ${chart.forecast ? `<span><i class="wizard-trend-dot" style="background:#a86621"></i>Prognoza ${chart.forecast.x} r.${chart.forecast.accepted ? '' : ' (poza zakresem → średnia)'}</span>` : ''}
+      ${chart.forecast ? `<span><i class="wizard-trend-dot" style="background:#a86621"></i>Prognoza ${chart.forecast.x} r.${chart.forecast.accepted ? '' : ' (odrzucona według kryteriów → średnia)'}</span>` : ''}
       ${Array.isArray(chart.typical_range) ? `<span><i class="wizard-trend-band-swatch"></i>Zakres lit. (${num(chart.typical_range[0], 2)}–${num(chart.typical_range[1], 2)}${esc(unitSuffix)})</span>` : ''}
       ${marker ? `<span><i class="wizard-trend-line-swatch" style="background:#b5486a"></i>Twój projekt w kreatorze</span>` : ''}
       <span style="margin-left:auto;">${statsParts.join(' · ')}</span>
@@ -318,10 +327,7 @@
   }
 
   // The project the wizard is building carries its own comparison-sample settings.
-  const wizardProject = () => {
-    try { return root.BipolDesignBasis?.snapshot?.() || projectSettings(); }
-    catch (_) { return root.BipolDesignBasis?.wizardBase?.() || projectSettings(); }
-  };
+  const wizardProject = () => root.BipolDesignBasis?.wizardBase?.() || projectSettings();
 
   // Wizard: apply the chosen suggestions and show where each value came from.
   async function applyInWizard(button, box, keys, assign) {

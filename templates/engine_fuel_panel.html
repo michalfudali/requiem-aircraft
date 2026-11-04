@@ -1,0 +1,36 @@
+<section id="engineFuelPanel" class="studio-card" style="margin:1rem 0;padding:1rem">
+  <style>
+    #engineFuelPanel [hidden]{display:none!important}
+    #engineFuelPanel label{display:block;margin:.7rem 0;min-width:0}
+    #engineFuelPanel input,#engineFuelPanel select{width:100%;min-width:0;max-width:100%;box-sizing:border-box}
+    #engineFuelPanel p,#engineFuelPanel td{overflow-wrap:anywhere}
+  </style>
+  <h3>Rzeczywisty silnik i dane zużycia paliwa</h3>
+  <p>SFC do bilansu misji powinno pochodzić z konkretnej propozycji silnika. Wybierz model i punkt pracy albo podaj własne dane producenta. Moc podaje się na jeden silnik; program uwzględnia ich liczbę.</p>
+  <label>Podstawa danych <select id="engine_fuel_mode" data-engine-field>
+    <option value="unselected">Brak udokumentowanego silnika — założenie robocze</option>
+    <option value="catalog">Propozycja z dokumentacją producenta</option>
+    <option value="custom">Inny rzeczywisty silnik — własne źródło</option>
+  </select></label>
+  <div data-engine-catalog hidden class="trend-controls">
+    <label>Model i wariant <select id="engine_model_id" data-engine-field></select></label>
+    <label>Punkt danych paliwowych <select id="engine_fuel_point" data-engine-field></select></label>
+    <label data-engine-density>Gęstość do przeliczenia l/h na masę [kg/l] — założenie <input id="fuel_density_kg_l" data-engine-field type="number" min="0.5" max="1" step="any" value="0.72"></label>
+  </div>
+  <div data-engine-custom hidden class="trend-controls">
+    <label>Producent, model i wariant <input id="engine_custom_model" data-engine-field type="text" maxlength="2000"></label>
+    <label data-engine-shaft>Moc ciągła jednego silnika [kW] <input id="engine_custom_power_kw" data-engine-field type="number" min="0.001" max="100000" step="any" value="0"></label>
+    <label data-engine-jet>Ciąg jednego silnika [kN] <input id="engine_custom_thrust_kn" data-engine-field type="number" min="0.001" max="10000" step="any" value="0"></label>
+    <label>Dokument producenta, wydanie i strona / adres <input id="engine_fuel_source" data-engine-field type="text" maxlength="2000"></label>
+    <label>Warunki punktu SFC: moc/ciąg, obroty, H i M <input id="engine_fuel_conditions" data-engine-field type="text" maxlength="2000"></label>
+    <label>Jednostkowe zużycie paliwa ze źródła <span id="engineCustomSfcUnit"></span><input id="engine_custom_sfc" data-engine-field type="number" min="0.001" max="1000" step="any"></label>
+    <details><summary>Źródło dla dodatkowego zadania na maksymalnym ustawieniu</summary>
+      <p>Uzupełnij, jeśli misja zawiera czas maksymalnej mocy lub ciągu. Wartość SFC tego zadania podaj w jego założeniach.</p>
+      <label>Dokument i strona danych maksymalnego ustawienia <input id="engine_max_fuel_source" data-engine-field type="text" maxlength="2000"></label>
+      <label>Warunki maksymalnego ustawienia <input id="engine_max_fuel_conditions" data-engine-field type="text" maxlength="2000"></label>
+    </details>
+  </div>
+  <button type="button" class="btn btn-primary" id="applyEngineFuel">Przyjmij dane silnika i przelicz</button>
+  <div id="engineFuelStatus" role="status" style="margin:1rem 0"></div>
+  <details><summary>Porównaj rzeczywiste propozycje silników</summary><div class="trend-table-scroll" id="engineFuelCandidates"></div></details>
+</section>

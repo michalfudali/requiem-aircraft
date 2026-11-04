@@ -1,0 +1,238 @@
+{
+  "schema_version": 1,
+  "engines": [
+    {
+      "id": "rotax_912_ul",
+      "model": "Rotax 912 UL",
+      "engine_type": "prop",
+      "technology": "piston",
+      "classes": [
+        "piston_ga",
+        "motoglider",
+        "uav"
+      ],
+      "rating_kw": 58,
+      "takeoff_kw": 59.6,
+      "source_url": "https://www.rotax-owner.com/pdf/OM_912-Series_ED4_R1.pdf",
+      "source_title": "BRP-Rotax, OM-912, Ed.4 Rev.1, 01.01.2023",
+      "source_locator": "§ 2.1: moc; § 5.2, s. 5-8: zużycie",
+      "checked_on": "2026-11-03",
+      "rating_note": "Moc ciągła; moc startowa dopuszczalna przez 5 min; warunki ISA, bez odbiorników zewnętrznych.",
+      "points": [
+        {
+          "id": "cruise75",
+          "value": 16.2,
+          "unit": "l/h",
+          "power_kw": 43.5,
+          "conditions": "75% maksymalnej mocy ciągłej; punkt z tabeli producenta"
+        },
+        {
+          "id": "continuous",
+          "value": 285,
+          "unit": "g/(kW h)",
+          "power_kw": 58,
+          "rpm": 5500,
+          "conditions": "maksymalna moc ciągła, 5500 obr/min"
+        },
+        {
+          "id": "takeoff",
+          "value": 24,
+          "unit": "l/h",
+          "power_kw": 59.6,
+          "rpm": 5800,
+          "conditions": "moc startowa, 5800 obr/min, maks. 5 min"
+        }
+      ]
+    },
+    {
+      "id": "rotax_912_uls",
+      "model": "Rotax 912 ULS",
+      "engine_type": "prop",
+      "technology": "piston",
+      "classes": [
+        "piston_ga",
+        "motoglider",
+        "uav"
+      ],
+      "rating_kw": 69,
+      "takeoff_kw": 73.5,
+      "source_url": "https://www.rotax-owner.com/pdf/OM_912-Series_ED4_R1.pdf",
+      "source_title": "BRP-Rotax, OM-912, Ed.4 Rev.1, 01.01.2023",
+      "source_locator": "§ 2.2: moc; § 5.2, s. 5-8: zużycie",
+      "checked_on": "2026-11-03",
+      "rating_note": "Moc ciągła; moc startowa dopuszczalna przez 5 min; warunki ISA, bez odbiorników zewnętrznych.",
+      "points": [
+        {
+          "id": "cruise75",
+          "value": 18.5,
+          "unit": "l/h",
+          "power_kw": 51.75,
+          "conditions": "75% maksymalnej mocy ciągłej; punkt z tabeli producenta"
+        },
+        {
+          "id": "continuous",
+          "value": 285,
+          "unit": "g/(kW h)",
+          "power_kw": 69,
+          "rpm": 5500,
+          "conditions": "maksymalna moc ciągła, 5500 obr/min"
+        },
+        {
+          "id": "takeoff",
+          "value": 27,
+          "unit": "l/h",
+          "power_kw": 73.5,
+          "rpm": 5800,
+          "conditions": "moc startowa, 5800 obr/min, maks. 5 min"
+        }
+      ]
+    },
+    {
+      "id": "lycoming_o360_a1a",
+      "model": "Lycoming O-360-A1A",
+      "engine_type": "prop",
+      "technology": "piston",
+      "classes": [
+        "piston_ga",
+        "uav"
+      ],
+      "rating_kw": 134.22597688480863,
+      "takeoff_kw": 134.22597688480863,
+      "source_url": "https://www.lycoming.com/sites/default/files/file/2025-11/60297-12%20-%20O-360%2C%20HO-360%2C%20IO-360%2C%20AIO-360%2C%20HIO-360%2C%20and%20TIO-360%20Series.pdf",
+      "source_title": "Lycoming, Operator’s Manual 60297-12, O-360 and associated models",
+      "source_locator": "§ 3 Operating conditions, s. 3-12",
+      "checked_on": "2026-11-03",
+      "rating_note": "Normal rated power; zużycie z tabeli dla wskazanej rodziny silników.",
+      "points": [
+        {
+          "id": "cruise75",
+          "value": 10.5,
+          "unit": "US gal/h",
+          "power_kw": 100.66948266360649,
+          "rpm": 2450,
+          "conditions": "Performance Cruise, 75% mocy znamionowej, 2450 obr/min"
+        },
+        {
+          "id": "cruise65",
+          "value": 9.5,
+          "unit": "US gal/h",
+          "power_kw": 87.24688497512562,
+          "rpm": 2350,
+          "conditions": "Economy Cruise, 65% mocy znamionowej, 2350 obr/min"
+        }
+      ]
+    },
+    {
+      "id": "lycoming_io360_a1a",
+      "model": "Lycoming IO-360-A1A",
+      "engine_type": "prop",
+      "technology": "piston",
+      "classes": [
+        "piston_ga",
+        "uav"
+      ],
+      "rating_kw": 149.13997431645404,
+      "takeoff_kw": 149.13997431645404,
+      "source_url": "https://www.lycoming.com/sites/default/files/file/2025-11/60297-12%20-%20O-360%2C%20HO-360%2C%20IO-360%2C%20AIO-360%2C%20HIO-360%2C%20and%20TIO-360%20Series.pdf",
+      "source_title": "Lycoming, Operator’s Manual 60297-12, O-360 and associated models",
+      "source_locator": "§ 3 Operating conditions, s. 3-13",
+      "checked_on": "2026-11-03",
+      "rating_note": "Normal rated power; zużycie z tabeli dla wskazanej rodziny silników.",
+      "points": [
+        {
+          "id": "cruise75",
+          "value": 12.3,
+          "unit": "US gal/h",
+          "power_kw": 111.85498073734054,
+          "rpm": 2450,
+          "conditions": "Performance Cruise, 75% mocy znamionowej, 2450 obr/min"
+        },
+        {
+          "id": "cruise65",
+          "value": 9.5,
+          "unit": "US gal/h",
+          "power_kw": 96.94098330569513,
+          "rpm": 2350,
+          "conditions": "Economy Cruise, 65% mocy znamionowej, 2350 obr/min"
+        }
+      ]
+    },
+    {
+      "id": "hirth_4103",
+      "model": "Hirth 4103",
+      "engine_type": "prop",
+      "technology": "piston",
+      "classes": [
+        "uav"
+      ],
+      "rating_kw": 4.97,
+      "takeoff_kw": 4.97,
+      "source_url": "https://hirthengines.com/4103-engine-air-cooled-two-stroke-engine/",
+      "source_title": "Hirth Engines GmbH, 4103 Technical specification",
+      "source_locator": "PERFORMANCE: full throttle i SFC @6500rpm",
+      "checked_on": "2026-11-03",
+      "rating_note": "Moc zmierzona, nie oznacza dopuszczenia zabudowy. Producent przeznacza tę wersję do UAV.",
+      "points": [
+        {
+          "id": "rated",
+          "value": 517,
+          "unit": "g/(kW h)",
+          "power_kw": 4.97,
+          "rpm": 6500,
+          "conditions": "6500 obr/min; punkt znamionowy ze specyfikacji, brak pełnej mapy"
+        }
+      ],
+      "rating_basis": "measured"
+    },
+    {
+      "id": "pbs_tp100",
+      "model": "PBS TP100",
+      "engine_type": "prop",
+      "technology": "turboprop",
+      "classes": [
+        "turboprop_regional",
+        "uav"
+      ],
+      "rating_kw": 180,
+      "takeoff_kw": 180,
+      "source_url": "https://www.pbs.cz/api/document-files-en/file/PBS_Brochure_Turbine_Engines.pdf",
+      "source_title": "PBS, Turbine Engine Portfolio",
+      "source_locator": "s. 12: PBS TP100 Technical Parameters",
+      "checked_on": "2026-11-03",
+      "rating_note": "Maksymalna moc wyjściowa 180 kW; obwiednia pracy do 9000 m. Warunki punktu SFC nie zostały podane w broszurze.",
+      "points": [
+        {
+          "id": "catalog",
+          "value": 0.548,
+          "unit": "kg/(kW h)",
+          "conditions": "punkt katalogowy; brak opublikowanych H, M i częściowego obciążenia"
+        }
+      ],
+      "rating_basis": "maximum"
+    },
+    {
+      "id": "pbs_tj100",
+      "model": "PBS TJ100 (zakres 1100–1250 N)",
+      "engine_type": "jet",
+      "technology": "turbojet",
+      "classes": [
+        "uav",
+        "jet_business"
+      ],
+      "rating_kn": 1.1,
+      "source_url": "https://www.pbs.cz/api/document-files-en/file/PBS_Brochure_Turbine_Engines.pdf",
+      "source_title": "PBS, Turbine Engine Portfolio",
+      "source_locator": "s. 7: PBS TJ100 Technical Parameters, jednostki SI",
+      "checked_on": "2026-11-03",
+      "rating_note": "Przyjęto dolną granicę 1100 N z katalogowego zakresu rodziny 1100–1250 N; wariant zabudowy wymaga doprecyzowania. Dane katalogowe nie są mapą przelotową.",
+      "points": [
+        {
+          "id": "catalog",
+          "value": 0.118,
+          "unit": "kg/(N h)",
+          "conditions": "punkt katalogowy SFC; brak opublikowanych H, M i częściowego ciągu"
+        }
+      ]
+    }
+  ]
+}

@@ -227,11 +227,9 @@ def test_p2_and_p4_polars_are_checked_for_consistency(results):
         if not k_p2:
             continue
         assert check[0]['passed'] == (abs(k_p2 - r['aerodynamics']['k_max']) <= POLAR_CONSISTENCY_TOLERANCE * r['aerodynamics']['k_max'])
-        # Fig. 2 of BIPOL_1: the propeller curves agree with the P4 polars of the presets. The civil-jet
-        # curve (airliners) and the sailplane curve read a much higher K_max than the P4 component build-up
-        # of a very light jet or a glider; the check above flags such a difference.
-        if r['mass']['preliminary_polar']['raymer_family'] in ('prop_fixed', 'prop_retractable'):
-            assert check[0]['passed'], name
+        # The graph estimate is retained even if a detailed P4 polar disagrees;
+        # the review flags the actual discrepancy instead of clipping the reading.
+        assert k_p2 == pytest.approx(r['mass']['preliminary_polar']['kmax'])
 
 
 def test_p5_explains_why_range_or_cruise_requirements_fail(results):

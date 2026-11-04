@@ -420,6 +420,9 @@ def topic_parameters(topic):
         # BIPOL_2, wzór (20): kontrola jakości samolotu towarowego 0,076 H_ML zamiast 0,13 H_ML.
         p['cost_qc_factor'] = QC_FACTOR_CARGO
     p['design_iteration_mode'] = 'coupled'
+    # The course topics retain the local BIPOL_1 path: equation (1) of a sample
+    # iterated around the design mass, while custom projects retain their explicit model.
+    p.update(empty_mass_model='trend', trend_reference_mode='design', trend_nearest_count=50)
     if topic['num'] in (71, 74):
         # Explicit preliminary bay envelope for the vehicle-carrying concept.
         # These are design assumptions; ramp clearance and a particular vehicle

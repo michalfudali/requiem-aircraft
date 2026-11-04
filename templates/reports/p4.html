@@ -70,6 +70,7 @@
 <p>Różnice między metodą ścisłą a przybliżoną wynikają głównie z odstępstwa rzeczywistej biegunowej od paraboli przy dużych współczynnikach siły nośnej. Wyznaczony stosunek \(V_{opt}/V_{ek}\) wynosi {{ ap.ratio_v_opt_v_ek|reportnum(3) }}.</p>
 {% endif %}
 <h3>Charakterystyki zespołu napędowego</h3>
+{% if 'p2' not in selected_sections %}{% include 'reports/engine_fuel.html' %}{% endif %}
 {% if prop.engine_type == 'prop' %}{% set ps=prop.propeller_selection %}
 <p>Śmigło dobrano dla warunków obliczeniowych: prędkości {{ (3.6*ps.v_d_ms)|reportnum(0) }} km/h na wysokości {{ ps.h_d_m|reportnum(0) }} m, przy mocy {{ ps.n_d_kw|reportnum(1) }} kW i obrotach {{ ps.rpm_prop|reportnum(0) }} obr/min {{ cite('paturski') }}. Dla współczynnika szybkobieżności \(C_D={{ ps.cd_dimensionless|texnum(3) }}\) posuw optymalny wynosi \(J={{ ps.j_opt|texnum(3) }}\){{ xref('fig-propeller') }}, co odpowiada średnicy śmigła \(D={{ ps.diameter_m|texnum(2) }}\) m. Liczba Macha końcówki łopaty przy prędkości maksymalnej wynosi {{ ps.ma_tip_kl|reportnum(3) }} i {{ 'nie przekracza' if ps.tip_mach_ok else 'przekracza' }} dopuszczalnej wartości 0,85.</p>
 <figure id="fig-propeller">{{ charts.propeller_chart(ps) }}<figcaption>Posuw śmigła odpowiadający największej sprawności w funkcji współczynnika szybkobieżności C<sub>D</sub> (przybliżenie wykresów doboru śmigieł {{ cite('paturski') }}). Zaznaczono punkt doboru.</figcaption></figure>

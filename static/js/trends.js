@@ -3,7 +3,7 @@
   'use strict';
   const {escape: esc, format: fmt, csv, filename} = BipolStudio;
   const $ = id => document.getElementById(id);
-  const defaults = {trend_source:'all', trend_nearest_count:50, trend_engine_count:0, trend_year_min:0, trend_year_max:0,
+  const defaults = {trend_source:'all', trend_nearest_count:0, trend_reference_mode:'initial', mass_initial_guess:5000, trend_engine_count:0, trend_year_min:0, trend_year_max:0,
     trend_weighting:'family', mission_phase_model:'galinski', fuel_reserve_factor:1.06, mission_ld_factor:0.94};
   let result, catalog, catalogPromise, page = 0, selected = new Set(), visible = [];
   let latestSuggestions = null;
@@ -21,6 +21,10 @@
 
   function syncControls() {
     for (const [key, fallback] of Object.entries(defaults)) if ($(key)) $(key).value = ['mission_phase_model','mission_ld_factor'].includes(key)?fallback:formBaseParams[key]??fallback;
+    if (!formBaseParams.trend_reference_mode && formBaseParams._reference) {
+      $('trend_reference_mode').value='design';
+      if (formBaseParams.trend_nearest_count == null) $('trend_nearest_count').value='50';
+    }
     if ($('trend_variable_sweep')) $('trend_variable_sweep').value = formBaseParams.variable_sweep ? 'true' : 'false';
   }
 
@@ -60,9 +64,9 @@
     const valid=a.similar_aircraft.filter(r=>r.empty_fraction>.15&&r.empty_fraction<.95);
     const t=a.time_trends.find(t=>t.key===$('trendTimeMetric').value);
     if(t) {
-      const forecast=t.fit&&t.forecast_physical?{x:t.forecast_year,y:t.forecast,model:'Prognoza +5 lat'}:null;
+      const forecast=t.fit&&t.forecast_accepted?{x:t.forecast_year,y:t.forecast,model:'Prognoza +5 lat'}:null;
       $('trendTimeChart').innerHTML=plot(t.points,t.fit,{title:`${t.label} — trend czasowy`,xLabel:a.year_basis,yLabel:`${t.label} [${t.unit}]`,forecast})+
-        `<p>${t.fit?`Prognoza na ${t.forecast_year} (rok opracowania + 5 lat; ${fmt(t.extrapolation_years,0)} lat po ostatniej obserwacji): <strong>${fmt(t.forecast,3)} ${esc(t.unit)}</strong>${!t.forecast_physical?' — wartość poza zakresem fizycznym; odrzuć prognozę.':''}${t.provisional?' · próba poniżej 20 obserwacji.':''}`:'Wymagane co najmniej 3 kompletne daty i rozpiętość czasu ≥5 lat.'}</p>`;
+        `<p>${t.fit?`Prognoza na ${t.forecast_year} (rok opracowania + 5 lat; ${fmt(t.extrapolation_years,0)} lat po ostatniej obserwacji): <strong>${fmt(t.forecast,3)} ${esc(t.unit)}</strong>${!t.forecast_accepted?' — nie przyjęto do doboru: '+esc(t.forecast_rejection)+'.':''}${t.provisional?' · próba poniżej 20 obserwacji.':''}`:'Wymagane co najmniej 3 kompletne daty i rozpiętość czasu ≥5 lat.'}</p>`;
     }
     $('trendMassChart').innerHTML=plot(valid.map(r=>({x:r.m0,y:r.empty_fraction,model:r.model})),a.mass_fit,
       {title:'Udział masy pustej a MTOW',xLabel:'MTOW [kg]',yLabel:'OEW / MTOW [−]',project:{x:result.mass.m0,y:a.we_wo_actual,model:'Projekt'}});
@@ -106,7 +110,7 @@
     if(!s) return false;
     // The alternative (sample mean) of eq. (1) is a fixed fraction, not the trend equation.
     const patch=BipolTrendInputs.patch(key,value??s.suggested_value,collectFormData(),currentResults?.mass?.m0,value==null?s:null);
-    if(key==='me_m0') patch.empty_mass_model='trend';
+    if(key==='me_m0'&&!patch.empty_mass_model) patch.empty_mass_model='class_correlation';
     const previous={};
     for(const [field,fieldValue] of Object.entries(patch)) {
       previous[field]={base:formBaseParams[field],input:$(field)?.value};
@@ -240,14 +244,14 @@
     $('trendSummary').innerHTML=[['Konstrukcji w bazie',a.database_total],['Wariantów w próbie',a.selected_n],['Rodzin w próbie',a.families_n],['Pełnych par masowych',a.mass_fit?.n??0]].map(([label,value])=>`<div><small>${esc(label)}</small><strong>${value}</strong></div>`).join('');
     $('trendWarnings').innerHTML=a.warnings.map(w=>`<p>${esc(w)}</p>`).join('');
     const tp=a.two_point;
-    $('trendMassStats').innerHTML=`<p class="studio-equation">OEW / MTOW = ${fmt(a.reg_A,4)} · m₀<sup>${fmt(a.reg_C,4)}</sup> · ${fmt(a.k_vs,2)}</p><p>${fitText(a.mass_fit)} · projekt ${fmt(a.we_wo_actual,3)} · trend ${fmt(a.we_wo_trend,3)}</p>${tp?`<p>Dwa punkty linii trendu: (${fmt(tp.x1,0)} kg; ${fmt(tp.y1,4)}) i (${fmt(tp.x2,0)} kg; ${fmt(tp.y2,4)}) → C = log(y₁/y₂)/log(x₁/x₂) = ${fmt(tp.C,4)}, A = y₁/x₁<sup>C</sup> = ${fmt(tp.A,4)}.</p>`:''}<p>${esc(a.method)} Model masy pustej w bilansie: ${res.mass.empty_mass_model==='bipol1_trend'?'równanie (1) z tej analizy':res.mass.empty_mass_model==='fixed_fraction'?'stały udział':'korelacja klasy'}.</p>`;
+    $('trendMassStats').innerHTML=`<p class="studio-equation">OEW / MTOW = ${fmt(a.reg_A,4)} · m₀<sup>${fmt(a.reg_C,4)}</sup> · ${fmt(a.k_vs,2)}</p><p>${fitText(a.mass_fit)} · projekt ${fmt(a.we_wo_actual,3)} · trend ${fmt(a.we_wo_trend,3)}</p>${tp?`<p>Dwa punkty linii trendu: (${fmt(tp.x1,0)} kg; ${fmt(tp.y1,4)}) i (${fmt(tp.x2,0)} kg; ${fmt(tp.y2,4)}) → C = log(y₁/y₂)/log(x₁/x₂) = ${fmt(tp.C,4)}, A = y₁/x₁<sup>C</sup> = ${fmt(tp.A,4)}.</p>`:''}<p>${esc(a.method)} Model masy pustej w bilansie: ${res.mass.empty_mass_model==='trend'?'równanie (1) z aktualnej próby':res.mass.empty_mass_model==='bipol1_trend'?'współczynniki wskazane przez autora':res.mass.empty_mass_model==='fixed_fraction'?'stały udział':res.mass.empty_mass_model==='class_correlation'?'korelacja klasy':'własny model autora'}.</p>`;
     const metric=$('trendTimeMetric').value;
     // <option> nie składa indeksów: lista pomija końcowy symbol (V_H, c_e/c_H), wykres pokazuje go złożonego.
     $('trendTimeMetric').innerHTML=a.time_trends.map(t=>`<option value="${esc(t.key)}">${esc(t.label.replace(/\s+\S*_\S*$/,''))} [${esc(t.unit)}] · n=${t.available_n}</option>`).join('');
     $('trendTimeMetric').value=metric||'ar';
     const labels={empty_fraction:'OEW / MTOW [−]',ar:'Wydłużenie AR [−]',wing_loading_kg_m2:'Obciążenie powierzchni [kg/m²]',h_tail_area:'Powierzchnia usterzenia poziomego [m²]',v_tail_area:'Powierzchnia usterzenia pionowego [m²]'};
     const required=new Set(['v_h','v_v','empty_fraction','aileron_span_fraction','aileron_chord_ratio','elevator_chord_ratio','rudder_chord_ratio','dihedral_deg']);
-    $('trendAverages').innerHTML='<div class="trend-table-scroll"><table class="b-table"><thead><tr><th>Parametr</th><th>Średnia ważona</th><th>n</th><th>BIPOL_1</th></tr></thead><tbody>'+Object.entries(a.averages).map(([key,value])=>`<tr><td>${esc(labels[key]||a.time_trends.find(t=>t.key===key)?.label||key)}</td><td>${value.n?fmt(value.mean,key==='v_v'?4:3):'brak danych'}</td><td>${value.n}</td><td>${required.has(key)?'wymagana średnia':'—'}</td></tr>`).join('')+'</tbody></table></div>';
+    $('trendAverages').innerHTML='<div class="trend-table-scroll"><table class="b-table"><thead><tr><th>Parametr</th><th>Średnia</th><th>n</th></tr></thead><tbody>'+[...required].map(key=>{const value=a.averages[key];return `<tr><td>${esc(labels[key]||a.time_trends.find(t=>t.key===key)?.label||key)}</td><td>${value.n?fmt(value.mean,key==='v_v'?4:3):'brak danych'}</td><td>${value.n}</td></tr>`;}).join('')+'</tbody></table></div>';
     const turn=p.turn_45,mission=res.mass.mission_assumptions;
     $('trendPreliminary').innerHTML=`<p><strong>Kmax = ${fmt(p.k_max,2)}</strong> · Cx₀ z odwróconego wzoru = ${fmt(p.cx0_from_kmax,4)} · wydłużenie omywane AR/(Swet/S) = ${fmt(p.wetted_aspect_ratio,2)}.</p><div class="trend-table-scroll"><table class="b-table"><thead><tr><th>Warunek analityczny</th><th>Cz</th><th>K</th><th>V TAS [km/h]</th><th>Granica Czmax</th></tr></thead><tbody>${p.operating_points.map(v=>`<tr><td>${esc(v.label)}<small>${esc(v.formula)}</small></td><td>${fmt(v.cl,3)}</td><td>${fmt(v.ld,2)}</td><td>${fmt(v.v_tas_kmh,1)}</td><td>${v.below_stall_limit?'W zakresie':'Punkt nieosiągalny'}</td></tr>`).join('')}</tbody></table></div><p>Wznoszenie: <code>${esc(p.climb.formula)}</code> → minimum T/W = ${fmt(p.climb.tw_lower_bound,4)}.</p><p>Zakręt poziomy 45° przy prędkości przelotowej: n = ${fmt(turn.load_factor,3)}, r = ${fmt(turn.radius_m,0)} m, ω = ${fmt(turn.rate_deg_s,2)} °/s. Wymagany T/W = ${fmt(turn.tw_required,4)}, Cz = ${fmt(turn.cl_required,3)} ${turn.cl_required>res.aerodynamics.cz_max_clean?'— powyżej Czmax; zakręt nieosiągalny.':''}</p><p>Bilans misji: K przelotu = ${fmt(res.mass.ld_cruise_used,2)}, współczynnik rezerwy = ${fmt(mission.reserve_factor,2)}; względna reszta równania masowego = ${fmt(mission.mass_residual_relative*100,5)}% (cel PDF: ≤0,1%).</p><p class="studio-fine-print">${esc(p.limitations)}</p>`;
     $('trendSources').innerHTML=Object.entries(a.sources).map(([id,s])=>`<p>${s.url?`<a href="${esc(s.url)}" target="_blank" rel="noopener"><strong>${esc(s.name)}</strong></a>`:`<strong>${esc(s.name)}</strong>`}<br>${esc(s.citation)}<br>${s.attribution?esc(s.attribution)+'<br>':''}<a href="/download/aircraft/${id}/data">Dane JSON</a> · <a href="/download/aircraft/${id}/license">Licencja ${esc(s.license)}</a></p>`).join('')+`<p class="studio-fine-print">${esc(a.limitations)}</p>`;
@@ -271,7 +275,7 @@
     syncControls();if(currentResults)render(currentResults);
     document.querySelectorAll('[data-analysis-param]').forEach(input=>input.addEventListener('change',event=>{
       if(window.isDuplicateCalculatedChange?.(event))return;
-      if(input.id.startsWith('trend_'))delete formBaseParams.trend_aircraft_ids;
+      if(input.id.startsWith('trend_')||input.id==='mass_initial_guess')delete formBaseParams.trend_aircraft_ids;
       document.dispatchEvent(new CustomEvent('bipol:calculating'));status('Założenia zmienione — użyj „Przelicz analizę”.');
     }));
     for(const id of ['trendRecalculate','trendMissionApply'])$(id).addEventListener('click',()=>performCalculation());

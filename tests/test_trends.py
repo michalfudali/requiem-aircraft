@@ -84,7 +84,7 @@ def test_degenerate_regressions_have_no_fictitious_fit(points, power):
 
 def test_cohort_respects_class_source_engine_count_and_manual_ids():
     params = {'aircraft_type':'piston_ga','engine_type':'prop','trend_source':'cado','trend_engine_count':2,
-              'trend_nearest_count':20,'_reference_mass':1200}
+              'trend_nearest_count':20,'mass_initial_guess':1200}
     rows = select_references(params)
     assert rows and all(r['aircraft_type']=='piston_ga' and r['source_id']=='cado' and r['n_engines']==2 for r in rows)
     ids = [r['id'] for r in rows[:3]]
@@ -93,27 +93,15 @@ def test_cohort_respects_class_source_engine_count_and_manual_ids():
     assert select_references({**params,'trend_aircraft_ids':[]}) == []
 
 
-def test_similar_aircraft_are_the_nearest_in_mass_to_the_design():
-    from calculations import run_bipol_project
-    from calculations.presets import AIRCRAFT_PRESETS
-    from calculations.trends import SIMILAR_COUNT, design_reference
+def test_sample_is_independent_of_the_computed_mass_and_of_the_old_count_key():
     base = {'aircraft_type':'motoglider','engine_type':'prop'}
-    whole = select_references({**base,'_reference_mass':None})
-    # Projects saved before the change keep trend_count=50; only trend_nearest_count narrows the sample.
-    assert select_references({**base,'_reference_mass':None,'trend_count':50}) == whole
-    near = select_references({**base,'_reference_mass':700,'trend_nearest_count':20})
+    whole = select_references(base)
+    # Projects saved before the change keep trend_count=50; it no longer narrows the sample.
+    assert select_references({**base,'trend_count':50}) == whole
+    near = select_references({**base,'trend_nearest_count':20,'mass_initial_guess':700})
     assert len(near) == 20 and set(r['id'] for r in near) <= set(r['id'] for r in whole)
-    # The design mass is the fixed point of the P1 balance with eq. (1) of its own sample.
-    r = run_bipol_project(dict(AIRCRAFT_PRESETS['motoglider_aos']))
-    reference = r['params']['_reference_mass']
-    sample = r['bipol_projects']['p1']['trend_analysis']['similar_aircraft']
-    assert len(sample) == SIMILAR_COUNT and reference == design_reference(r['params'], SIMILAR_COUNT)['mass']
-    pool = sorted((x for x in load_aircraft() if x['aircraft_type']=='motoglider' and x['engine_type']=='prop'),
-                  key=lambda x: (abs(math.log(x['m0']/reference)), x['id']))
-    assert [x['id'] for x in sample] == [x['id'] for x in pool[:SIMILAR_COUNT]]
-    # m0 only evaluates eq. (1): the same project parameters give the same sample.
-    a = analyze_trends({**base,'_reference_mass':reference}, 650, 400)
-    b = analyze_trends({**base,'_reference_mass':reference}, 900, 560)
+    a = analyze_trends(base, 650, 400)
+    b = analyze_trends(base, 900, 560)
     assert a['sample'] == b['sample'] and a['suggestions']['ar']['suggested_value'] == b['suggestions']['ar']['suggested_value']
 
 
@@ -216,7 +204,16 @@ def test_reports_share_real_sample_sources_and_inline_plots(client,url):
     response=client.get(url)
     assert response.status_code==200
     text=response.get_data(as_text=True)
-    assert 'data-trend-report' in text and 'ENAC CADO' in text and 'Apache-2.0' in text
+    assert 'data-trend-report' in text
+    # Only sources actually present in the chosen cohort belong in the report.
+    # Gliders do not acquire a CADO citation just because the database also holds GA aircraft.
+    from calculations.trends import SOURCES
+    from calculations.validation import validate_parameters
+    params = validate_parameters(AIRCRAFT_PRESETS['glider_pw5' if 'glider_pw5' in url else 'pzl_kos'])
+    analysis = analyze_trends(params, 1000, 600)
+    for source_id in analysis['sources']:
+        assert SOURCES[source_id]['license'] in text
+    assert ('Apache-2.0' in text) == ('fast' in analysis['sources'])
     assert 'nie rok produkcji' in text and 'Jane\'s Aircraft' not in text
     assert 'statistical_averages' not in text
     if 'glider_pw5' not in url:assert '<svg xmlns=' in text

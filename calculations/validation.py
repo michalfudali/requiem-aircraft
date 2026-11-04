@@ -4,6 +4,8 @@ from calculations.instructor import (CRUISE_LD_FACTOR, PASSENGER_WITH_BAG_KG,
                                      FLAP_TAKEOFF_DEFLECTION_DEG, FLAP_LANDING_DEFLECTION_DEG)
 
 NUMERIC_LIMITS = {
+    'fuel_density_kg_l': (.5, 1.0), 'engine_custom_power_kw': (0, 100000),
+    'engine_custom_thrust_kn': (0, 10000), 'engine_static_thrust_kn': (0, 10000),
     "n_pax": (0, 1000), "n_crew": (0, 20), "m_pax": (0, 500),
     "m_bag": (0, 500), "m_cargo": (0, 500000), "m_crew_person": (0, 500),
     "range_km": (0, 30000), "cruise_altitude_m": (0, 20000),
@@ -77,7 +79,7 @@ DEFAULTS = {
     "mission_phase_model": "galinski", "mission_ld_factor": CRUISE_LD_FACTOR,
     "gear_attachment": "fuselage",
     "takeoff_distance_m": 0, "landing_distance_m": 0,
-    "mass_method": "auto", "empty_mass_model": "trend",
+    "mass_method": "auto", "empty_mass_model": "auto",
     "mass_initial_guess": 5000, "payload_drop_kg": 0, "return_range_km": 0,
     "design_iteration_mode": "preliminary", "operating_surface": "land", "runway_surface": "paved",
     "cs22_gust_model": "amendment3",
@@ -92,6 +94,11 @@ def validate_parameters(data):
     if not isinstance(data, dict):
         raise ValueError("Parametry projektu muszą być obiektem JSON.")
     p = {**DEFAULTS, **data}
+    # Older locally saved designs used the iterative sample without an explicit selector.
+    # Migrate that choice, then discard all cached reference numbers below.
+    if 'trend_reference_mode' not in data and isinstance(data.get('_reference'), dict):
+        p['trend_reference_mode'] = 'design'
+        p.setdefault('trend_nearest_count', 50)
     if p['operating_surface'] not in ('land', 'water'):
         raise ValueError('Nieznane środowisko startu i lądowania.')
     if 'preliminary_polar_includes_configuration' in p and not isinstance(p['preliminary_polar_includes_configuration'], bool):
@@ -170,6 +177,8 @@ def validate_parameters(data):
         p.setdefault('n_engines', 2 if p.get('engine_location') == 'wing' or p['engine_type'] == 'jet' else 1)
         if p['n_engines'] < 1:
             raise ValueError('Samolot z napędem wymaga co najmniej jednego silnika.')
+        from calculations.engine_fuel import apply_engine_inputs
+        apply_engine_inputs(p)
         p.setdefault('sfc', .62 if p['engine_type'] == 'jet' else 265.)
         # One unit convention in forms, mass sizing and performance. Never
         # silently substitute another engine's consumption for a submitted value.
@@ -177,6 +186,9 @@ def validate_parameters(data):
         if not low <= p['sfc'] <= high:
             unit = '1/h' if p['engine_type'] == 'jet' else 'g/(kW·h)'
             raise ValueError(f'SFC: dla tego napędu podaj wartość {low:g}–{high:g} {unit}.')
+    if p['engine_type'] == 'none':
+        from calculations.engine_fuel import apply_engine_inputs
+        apply_engine_inputs(p)
     for key in ('turbocharged', 'retractable_gear'):
         if key in p and not isinstance(p[key], bool):
             raise ValueError(f'Pole {key}: wymagana wartość logiczna.')
@@ -184,6 +196,7 @@ def validate_parameters(data):
         if key in p and not float(p[key]).is_integer():
             raise ValueError(f'Pole {key}: wymagana liczba całkowita.')
     for key, allowed in {'trend_source': ('all', 'fast', 'cado', 'motogliders', 'geometry_trends', 'user'),
+                         'trend_reference_mode': ('initial', 'design'),
                          'wing_input_mode': ('loading', 'span_aspect', 'span_area', 'area_aspect'),
                          'payload_input_mode': ('seats', 'total'),
                          'airfoil_criterion': ('auto', 'cruise', 'lift'),
@@ -243,14 +256,8 @@ def validate_parameters(data):
     elif p['preliminary_polar_mode'] in ('raymer', 'reading') and 'wetted_example' not in data and 'sketch_swet_ratio' in data:
         # Earlier projects measured S_wet/S on the sketch.
         p['wetted_example'] = 'sketch'
-    # Masa odniesienia próby wynika z obliczeń, nigdy z zapisanych parametrów.
+    # A saved calculation cannot authenticate the fixed-point reference of another design.
     for key in ('_reference_mass', '_reference', '_similar_count'):
-        p.pop(key, None)
-    # BIPOL_1, s. 1 i 4: masa pusta z równania (1) analizy trendów; wcześniejsze modele
-    # (korelacja klasy, stały udział, własne A i C) nie należą do ścieżki projektu.
-    if p.get('empty_mass_model') != 'two_point':
-        p['empty_mass_model'] = 'trend'
-    for key in ('empty_mass_trend_A', 'empty_mass_trend_C', 'empty_mass_fraction', 'empty_mass_a', 'empty_mass_c'):
         p.pop(key, None)
     from calculations.bipol1 import validate_bipol1
     validate_bipol1(p)

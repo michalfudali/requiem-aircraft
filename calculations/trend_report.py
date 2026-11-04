@@ -25,7 +25,7 @@ def trend_chart(analysis, mode, marks=()):
         points = [(p['x'], p['y'], p['model']) for p in trend['points']]
         fit = trend['fit']
         title, xlabel, ylabel = trend['label'], 'Rok certyfikacji', trend['unit']
-        forecast = (trend['forecast_year'], trend['forecast']) if trend['forecast_physical'] else None
+        forecast = (trend['forecast_year'], trend['forecast']) if trend['forecast_accepted'] else None
     if not points:
         return Markup('<p class="missing-chart">Brak kompletnych danych źródłowych do tej zależności. Wykres wymaga uzupełnienia próby.</p>')
     xmin, xmax = min(p[0] for p in points), max(p[0] for p in points)

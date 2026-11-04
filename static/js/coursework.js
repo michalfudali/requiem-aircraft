@@ -281,7 +281,7 @@
     const stale = event => { if (window.isDuplicateCalculatedChange?.(event)) return; fresh = false; freshness(); };
     $('designForm').addEventListener('input', stale);
     $('designForm').addEventListener('change', stale);
-    document.querySelectorAll('[data-analysis-param], [data-bipol1]').forEach(el => {
+    document.querySelectorAll('[data-analysis-param], [data-bipol1], [data-engine-field]').forEach(el => {
       el.addEventListener('input', stale); el.addEventListener('change', stale);
     });
     document.addEventListener('bipol:calculating', stale);

@@ -70,9 +70,10 @@ def test_tier1_r1_suggestions_all_7_aircraft_classes(client, aircraft_type):
 
 @pytest.mark.tier1
 def test_tier1_r1_suggestions_dynamic_evaluation_with_m0(client):
-    """Similar aircraft of a light or a heavy design give different suggestions."""
-    res_light = client.get('/api/trends/suggestions?aircraft_type=piston_ga&m0=800')
-    res_heavy = client.get('/api/trends/suggestions?aircraft_type=piston_ga&m0=2500')
+    """A sample narrowed around a light or a heavy reference mass gives different suggestions."""
+    narrow = '&trend_nearest_count=50&mass_initial_guess='
+    res_light = client.get('/api/trends/suggestions?aircraft_type=piston_ga&m0=800' + narrow + '800')
+    res_heavy = client.get('/api/trends/suggestions?aircraft_type=piston_ga&m0=2500' + narrow + '2500')
     
     assert res_light.status_code == 200
     assert res_heavy.status_code == 200
