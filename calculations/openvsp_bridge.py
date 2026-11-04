@@ -56,7 +56,18 @@ def require_openvsp():
 
 
 def _vspscript_path():
-    directory = os.environ.get('BIPOL_OPENVSP_DIR', 'OpenVSP-3.55.0')
+    directory = os.environ.get('BIPOL_OPENVSP_DIR')
+    if not directory or not os.path.isdir(directory):
+        from pathlib import Path
+        root = Path(__file__).resolve().parents[1]
+        local_vsp = root / 'OpenVSP-3.55.0'
+        if local_vsp.is_dir():
+            directory = str(local_vsp)
+        else:
+            sibling_vsp = root.parent / 'bipol' / 'OpenVSP-3.55.0'
+            if sibling_vsp.is_dir():
+                directory = str(sibling_vsp)
+    directory = directory or 'OpenVSP-3.55.0'
     return os.path.abspath(os.path.join(directory, 'vspscript.exe' if os.name == 'nt' else 'vspscript'))
 
 # Globalny RLock chroniący singleton C++ OpenVSP przed równoległym dostępem wątków Flask
@@ -1898,10 +1909,24 @@ def manage_design_vars_sets_links(payload: dict[str, Any]) -> dict[str, Any]:
 
 @blueprint.get("/status")
 def api_status():
-    if vsp is None:
-        return jsonify(status='unavailable', available=False, files=[],
-                       message='Brak zgodnego API OpenVSP. Pozostałe obliczenia BIPOL i ML1 są dostępne.')
-    cat = get_api_catalog()
+    from calculations.openvsp_integration import check_openvsp_availability
+    int_info = check_openvsp_availability(vsp_module=vsp)
+    is_available = (vsp is not None) or bool(int_info.get("available", False))
+    if not is_available:
+        return jsonify(
+            status='unavailable',
+            available=False,
+            files=[],
+            openvsp=int_info,
+            message='Brak zgodnego API OpenVSP. Pozostałe obliczenia BIPOL i ML1 są dostępne.'
+        )
+    cat = get_api_catalog() if vsp is not None else {
+        "version": int_info.get("version") or "OpenVSP API",
+        "vspaero_available": False,
+        "vspaero_path": "",
+        "vspscript_available": False,
+        "counts": {},
+    }
     return jsonify({
         "status": "ok",
         "available": True,
@@ -1913,6 +1938,7 @@ def api_status():
         "vspscript_available": cat["vspscript_available"],
         "counts": cat["counts"],
         "files": list_workspace_files(),
+        "openvsp": int_info,
     })
 
 

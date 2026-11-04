@@ -144,36 +144,36 @@
           <div class="input-row" id="wiz_row_occupants_1">
             <div class="input-group" id="wiz_group_n_crew">
               <label for="wiz_n_crew">Liczba załogi (pilotów) [os.]:</label>
-              <input type="number" id="wiz_n_crew" min="0" max="6" value="1">
+              <input type="number" id="wiz_n_crew" min="0" max="6" value="1" step="1">
             </div>
             <div class="input-group" id="wiz_group_m_crew_person">
               <label for="wiz_m_crew_person">Masa 1 członka załogi (pilot) [kg]:</label>
-              <input step="any" required type="number" id="wiz_m_crew_person" min="55" max="150" value="90">
+              <input step="0.5" required type="number" id="wiz_m_crew_person" min="55" max="150" value="90">
             </div>
           </div>
 
           <div class="input-row" id="wiz_row_occupants_2">
             <div class="input-group" id="wiz_group_n_pax">
               <label for="wiz_n_pax">Liczba pasażerów [os.]:</label>
-              <input type="number" id="wiz_n_pax" min="0" max="300" value="1">
+              <input type="number" id="wiz_n_pax" min="0" max="300" value="1" step="1">
             </div>
             <div class="input-group" id="wiz_group_m_pax">
               <label for="wiz_m_pax">Masa 1 pasażera z bagażem [kg]:</label>
-              <input step="any" required type="number" id="wiz_m_pax" min="0" max="150" value="115">
+              <input step="0.5" required type="number" id="wiz_m_pax" min="0" max="150" value="115">
             </div>
           </div>
 
           <div class="input-row" id="wiz_row_occupants_3">
             <div class="input-group" id="wiz_group_m_cargo">
               <label for="wiz_m_cargo" id="label_wiz_m_cargo">Dodatkowy ładunek handlowy cargo [kg]:</label>
-              <input step="any" required type="number" id="wiz_m_cargo" min="0" max="50000" value="0">
+              <input step="1" required type="number" id="wiz_m_cargo" min="0" max="50000" value="0">
               <div class="derived-badge" id="wiz_derived_badge_m_cargo" hidden></div>
             </div>
           </div>
 
           <div class="input-group" data-basis-param="m_payload">
             <label for="wiz_m_payload">Łączna masa płatna, bez załogi [kg]</label>
-            <input type="number" step="any" required id="wiz_m_payload" min="0" max="500000" value="100">
+            <input type="number" step="1" required id="wiz_m_payload" min="0" max="500000" value="100">
             <div class="derived-badge" id="wiz_derived_badge_m_payload" hidden></div>
           </div>
           <div class="formula-box" style="margin-top:0.75rem;">
@@ -214,33 +214,33 @@
           <div class="input-row">
             <div class="input-group">
               <label for="wiz_range_km">Zasięg obliczeniowy R [km]:</label>
-              <input step="any" required type="number" id="wiz_range_km" min="0" max="30000" value="640">
+              <input step="1" required type="number" id="wiz_range_km" min="0" max="30000" value="640">
             </div>
             <div class="input-group">
               <label for="wiz_cruise_altitude_m">Wysokość przelotowa H [m]:</label>
-              <input step="any" required type="number" id="wiz_cruise_altitude_m" min="500" max="15000" value="2000">
+              <input step="10" required type="number" id="wiz_cruise_altitude_m" min="500" max="15000" value="2000">
             </div>
           </div>
 
           <div class="input-row">
             <div class="input-group">
               <label for="wiz_cruise_speed_kmh">Prędkość przelotowa Vcr [km/h]:</label>
-              <input step="any" required type="number" id="wiz_cruise_speed_kmh" min="80" max="950" value="174">
+              <input step="1" required type="number" id="wiz_cruise_speed_kmh" min="80" max="950" value="174">
             </div>
             <div class="input-group">
               <label for="wiz_v_stall_kmh">Maks. prędkość przeciągnięcia VS0 [km/h]:</label>
-              <input step="any" required type="number" id="wiz_v_stall_kmh" min="45" max="250" value="84">
+              <input step="1" required type="number" id="wiz_v_stall_kmh" min="45" max="250" value="84">
             </div>
           </div>
 
           <div class="input-row">
-            <div class="input-group" data-param="takeoff_distance_m"><label for="wiz_takeoff_distance_m">Maks. całkowita długość startu [m]</label><input type="number" id="wiz_takeoff_distance_m" min="0" max="20000" step="any" value="600"><small>Przeszkoda 15 m; 0 = nie określono.</small></div><div class="input-group" data-param="landing_distance_m"><label for="wiz_landing_distance_m">Maks. całkowita długość lądowania [m]</label><input type="number" id="wiz_landing_distance_m" min="0" max="20000" step="any" value="600"><small>Przeszkoda 15 m; 0 = nie określono.</small></div><details class="legacy-runway"><summary>Dodatkowe ograniczenie rozbiegu</summary><div class="input-group">
+            <div class="input-group" data-param="takeoff_distance_m"><label for="wiz_takeoff_distance_m">Maks. całkowita długość startu [m]</label><input type="number" id="wiz_takeoff_distance_m" min="0" max="20000" step="5" value="600"><small>Przeszkoda 15 m; 0 = nie określono.</small></div><div class="input-group" data-param="landing_distance_m"><label for="wiz_landing_distance_m">Maks. całkowita długość lądowania [m]</label><input type="number" id="wiz_landing_distance_m" min="0" max="20000" step="5" value="600"><small>Przeszkoda 15 m; 0 = nie określono.</small></div><details class="legacy-runway"><summary>Dodatkowe ograniczenie rozbiegu</summary><div class="input-group">
               <label for="wiz_takeoff_run_m">Wymagana droga rozbiegu S_to [m]:</label>
-              <input step="any" required type="number" id="wiz_takeoff_run_m" min="60" max="3000" value="210">
+              <input step="5" required type="number" id="wiz_takeoff_run_m" min="60" max="3000" value="210">
             </div></details>
             <div class="input-group">
               <label for="wiz_climb_rate_ms">Min. wznoszenie przy ziemi w_y [m/s]:</label>
-              <input step="any" required type="number" id="wiz_climb_rate_ms" min="1.5" max="30" value="4.1">
+              <input step="0.1" required type="number" id="wiz_climb_rate_ms" min="1.5" max="30" value="4.1">
             </div>
           </div>
 
@@ -274,7 +274,7 @@
 
           <div class="input-row" data-power-basis>
             <div class="input-group"><label for="wiz_power_input_mode">Dobór mocy</label><select id="wiz_power_input_mode" data-basis-selector><option value="sized">Oblicz wymaganą moc</option><option value="fixed">Znam dostępną moc silnika</option></select></div>
-            <div class="input-group"><label for="wiz_engine_power_kw">Moc silnika [kW]</label><input type="number" id="wiz_engine_power_kw" min="0" max="100000" step="any" value="0"><div class="derived-badge" id="wiz_derived_badge_engine_power_kw" hidden></div></div>
+            <div class="input-group"><label for="wiz_engine_power_kw">Moc silnika [kW]</label><input type="number" id="wiz_engine_power_kw" min="0" max="100000" step="1" value="0"><div class="derived-badge" id="wiz_derived_badge_engine_power_kw" hidden></div></div>
           </div>
           <div class="input-row">
             <div class="input-group">
@@ -305,11 +305,11 @@
           <div class="input-row">
             <div class="input-group" id="wiz_group_sfc">
               <label for="wiz_sfc" id="label_wiz_sfc">Jednostkowe zużycie paliwa SFC c_p [g/(kW&bull;h)]:</label>
-              <input step="any" required type="number" id="wiz_sfc" min="150" max="450" value="265">
+              <input step="0.01" required type="number" id="wiz_sfc" min="150" max="450" value="265">
             </div>
             <div class="input-group" id="wiz_group_prop_efficiency">
               <label for="wiz_prop_efficiency">Sprawność śmigła w przelocie &eta;_p [-]:</label>
-              <input step="any" required type="number" id="wiz_prop_efficiency" min="0.65" max="0.90" value="0.80">
+              <input step="0.01" required type="number" id="wiz_prop_efficiency" min="0.65" max="0.90" value="0.80">
             </div>
           </div>
 
@@ -344,7 +344,7 @@
           <div id="wizDragCd0Fields" class="wizard-drag-fields" hidden>
             <div class="input-group">
               <label for="wiz_cx0">Opór zerowy C<sub>D0</sub> = C<sub>x0</sub> [–]</label>
-              <input id="wiz_cx0" type="number" min="0.001" max="0.3" step="any" value="0.025" required disabled>
+              <input id="wiz_cx0" type="number" min="0.001" max="0.3" step="0.001" value="0.025" required disabled>
               <small>Dla całego samolotu, względem powierzchni skrzydła S. Uwzględnij zabudowę, zastrzały i stałe podwozie. Opór profilu 2D nie jest oporem całego samolotu.</small>
             </div>
           </div>
@@ -360,7 +360,7 @@
             </div>
             <div class="input-group" id="wizWettedRatioGroup" hidden>
               <label for="wiz_sketch_swet_ratio">Własny stosunek S<sub>wet</sub>/S [–]</label>
-              <input id="wiz_sketch_swet_ratio" type="number" min="1" max="20" step="any" value="4" required disabled>
+              <input id="wiz_sketch_swet_ratio" type="number" min="1" max="20" step="0.05" value="4" required disabled>
               <small>Wartość bezwymiarowa, np. 4,2. Podaj pomiar ze szkicu lub udokumentowane oszacowanie.</small>
             </div>
           </div>
@@ -371,11 +371,11 @@
             </div>
             <div class="input-group" id="wizRaymerKmaxGroup" hidden>
               <label for="wiz_raymer_kmax">Odczytana doskonałość K<sub>max</sub> [–]</label>
-              <input id="wiz_raymer_kmax" type="number" min="1" max="150" step="any" value="15" required disabled>
+              <input id="wiz_raymer_kmax" type="number" min="1" max="150" step="0.5" value="15" required disabled>
             </div>
             <div class="input-group">
               <label for="wiz_oswald_e">Współczynnik Oswalda e [–]</label>
-              <input id="wiz_oswald_e" type="number" min="0.1" max="1" step="any" value="0.8" required>
+              <input id="wiz_oswald_e" type="number" min="0.1" max="1" step="0.01" value="0.8" required>
             </div>
           </div>
           <div class="input-group">
@@ -425,11 +425,11 @@
           <div class="input-row">
             <div class="input-group">
               <label for="wiz_taper_ratio">Zbieżność skrzydła &eta; = c_t/c_r [-]:</label>
-              <input step="any" required type="number" id="wiz_taper_ratio" min="0" max="1.0" value="0.60">
+              <input step="0.01" required type="number" id="wiz_taper_ratio" min="0" max="1.0" value="0.60">
             </div>
             <div class="input-group">
               <label for="wiz_sweep_quarter_deg">Skos skrzydła &chi;₂₅% [&deg;]:</label>
-              <input step="any" required type="number" id="wiz_sweep_quarter_deg" min="0" max="45" value="0">
+              <input step="0.5" required type="number" id="wiz_sweep_quarter_deg" min="0" max="45" value="0">
             </div>
           </div>
 

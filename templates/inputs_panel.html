@@ -217,7 +217,7 @@
                       <label for="m_crew_person">
                         <span class="label-text">Masa 1 członka załogi (pilot) [kg] <span class="info-circle-icon" data-param="m_crew_person" tabindex="0">i</span></span>
                       </label>
-                      <input step="any" required type="number" id="m_crew_person" min="55" max="150" value="90">
+                      <input step="0.5" required type="number" id="m_crew_person" min="55" max="150" value="90">
                       <div class="param-didactic-hint" id="hint_m_crew_person">Domyślnie 90 kg (pilot z wyposażeniem osobistym / spadochronem ratowniczym wg norm CS-22.771 / CS-VLA / CS-23). Min. certyfikacyjna: 70 kg (77 kg ze spadochronem).</div>
                     </div>
                   </div>
@@ -236,7 +236,7 @@
                       <label for="m_pax">
                         <span class="label-text">Masa 1 pasażera z bagażem [kg] <span class="info-circle-icon" data-param="m_pax" tabindex="0">i</span></span>
                       </label>
-                      <input step="any" required type="number" id="m_pax" min="0" max="150" value="115">
+                      <input step="0.5" required type="number" id="m_pax" min="0" max="150" value="115">
                       <div class="param-didactic-hint" id="hint_m_pax">Masa pojedynczego pasażera z bagażem (standardowo 115 kg: 80 kg pasażer + 35 kg bagaż).</div>
                     </div>
                   </div>
@@ -247,7 +247,7 @@
                         <span class="label-text" id="label_m_cargo_text">Ładunek cargo [kg] <span class="info-circle-icon" data-param="m_cargo" tabindex="0">i</span></span>
                         <button type="button" class="param-lock-btn" id="lock_btn_m_cargo" onclick="toggleParamLock('m_cargo')" title="Zablokuj ładunek cargo">🔓</button>
                       </label>
-                      <input step="any" required type="number" id="m_cargo" min="0" max="50000" value="0">
+                      <input step="1" required type="number" id="m_cargo" min="0" max="50000" value="0">
                       <div class="param-didactic-hint" id="hint_m_cargo"></div>
                       <div class="derived-badge" id="derived_badge_m_cargo" style="display:none;"></div>
                     </div>
@@ -256,7 +256,7 @@
                         <span class="label-text">Masa płatna bez załogi [kg] <span class="info-circle-icon" data-param="m_payload" tabindex="0">i</span></span>
                         <button type="button" class="param-lock-btn" id="lock_btn_m_payload" onclick="toggleParamLock('m_payload')" title="Zablokuj łączną masę płatną">🔓</button>
                       </label>
-                      <input step="any" type="number" id="m_payload" min="0" max="50000" value="0" placeholder="0 = z pax + cargo">
+                      <input step="1" type="number" id="m_payload" min="0" max="50000" value="0" placeholder="0 = z pax + cargo">
                       <div class="param-didactic-hint" id="hint_m_payload">Masa pasażerów z bagażem i cargo. Sposób obliczania wybierasz w założeniach masy płatnej.</div>
                       <div class="derived-badge" id="derived_badge_m_payload" style="display:none;"></div>
                     </div>
@@ -268,7 +268,7 @@
                         <span class="label-text">Zasięg obliczeniowy R [km] <span class="info-circle-icon" data-param="range_km" tabindex="0">i</span></span>
                         <button type="button" class="param-lock-btn" id="lock_btn_range_km" onclick="toggleParamLock('range_km')" title="Zablokuj zasięg">🔓</button>
                       </label>
-                      <input step="any" required type="number" id="range_km" min="0" max="30000" value="640">
+                      <input step="1" required type="number" id="range_km" min="0" max="30000" value="640">
                       <div class="param-didactic-hint" id="hint_range_km"></div>
                       <div class="derived-badge" id="derived_badge_range_km" style="display:none;"></div>
                     </div>
@@ -277,7 +277,7 @@
                         <span class="label-text">Prędkość przelotowa Vcr [km/h] <span class="info-circle-icon" data-param="cruise_speed_kmh" tabindex="0">i</span></span>
                         <button type="button" class="param-lock-btn" id="lock_btn_cruise_speed_kmh" onclick="toggleParamLock('cruise_speed_kmh')" title="Zablokuj prędkość przelotową">🔓</button>
                       </label>
-                      <input step="any" required type="number" id="cruise_speed_kmh" min="80" max="950" value="174">
+                      <input step="1" required type="number" id="cruise_speed_kmh" min="80" max="950" value="174">
                       <div class="param-didactic-hint" id="hint_cruise_speed_kmh"></div>
                       <div class="derived-badge" id="derived_badge_cruise_speed_kmh" style="display:none;"></div>
                     </div>
@@ -289,7 +289,7 @@
                         <span class="label-text">Prędkość przeciągnięcia VS0 [km/h] <span class="info-circle-icon" data-param="v_stall_kmh" tabindex="0">i</span></span>
                         <button type="button" class="param-lock-btn" id="lock_btn_v_stall_kmh" onclick="toggleParamLock('v_stall_kmh')" title="Zablokuj prędkość przeciągnięcia">🔓</button>
                       </label>
-                      <input step="any" required type="number" id="v_stall_kmh" min="45" max="250" value="84">
+                      <input step="1" required type="number" id="v_stall_kmh" min="45" max="250" value="84">
                       <div class="param-didactic-hint" id="hint_v_stall_kmh"></div>
                       <div class="derived-badge" id="derived_badge_v_stall_kmh" style="display:none;"></div>
                     </div>
@@ -297,7 +297,7 @@
                       <label for="cruise_altitude_m">
                         <span class="label-text">Wysokość przelotu H [m] <span class="info-circle-icon" data-param="cruise_altitude_m" tabindex="0">i</span></span>
                       </label>
-                      <input step="any" required type="number" id="cruise_altitude_m" min="100" max="15000" value="2000">
+                      <input step="10" required type="number" id="cruise_altitude_m" min="100" max="15000" value="2000">
                       <div class="param-didactic-hint" id="hint_cruise_altitude_m"></div>
                     </div>
                   </div>
@@ -305,11 +305,11 @@
                   <!-- Parametry uzupełniające misji (widoczne w trybie zaawansowanym) -->
                   <div class="advanced-only">
                     <div class="input-row">
-                      <div class="input-group" data-param="takeoff_distance_m"><label for="takeoff_distance_m">Maks. całkowita długość startu [m]</label><input type="number" id="takeoff_distance_m" min="0" max="20000" step="any" value="600"><small>Przeszkoda 15 m; 0 = nie określono.</small></div><div class="input-group" data-param="landing_distance_m"><label for="landing_distance_m">Maks. całkowita długość lądowania [m]</label><input type="number" id="landing_distance_m" min="0" max="20000" step="any" value="600"><small>Przeszkoda 15 m; 0 = nie określono.</small></div><details class="legacy-runway"><summary>Dodatkowe ograniczenie rozbiegu</summary><div class="input-group" data-param="takeoff_run_m">
+                      <div class="input-group" data-param="takeoff_distance_m"><label for="takeoff_distance_m">Maks. całkowita długość startu [m]</label><input type="number" id="takeoff_distance_m" min="0" max="20000" step="5" value="600"><small>Przeszkoda 15 m; 0 = nie określono.</small></div><div class="input-group" data-param="landing_distance_m"><label for="landing_distance_m">Maks. całkowita długość lądowania [m]</label><input type="number" id="landing_distance_m" min="0" max="20000" step="5" value="600"><small>Przeszkoda 15 m; 0 = nie określono.</small></div><details class="legacy-runway"><summary>Dodatkowe ograniczenie rozbiegu</summary><div class="input-group" data-param="takeoff_run_m">
                         <label for="takeoff_run_m">
                           <span class="label-text">Droga rozbiegu S_to [m] <span class="info-circle-icon" data-param="takeoff_run_m" tabindex="0">i</span></span>
                         </label>
-                        <input step="any" required type="number" id="takeoff_run_m" min="60" max="3500" value="210">
+                        <input step="5" required type="number" id="takeoff_run_m" min="60" max="3500" value="210">
                         <div class="param-didactic-hint" id="hint_takeoff_run_m"></div>
                       </div></details>
                       <div class="input-group" data-param="runway_surface">
@@ -321,7 +321,7 @@
                         <label for="climb_rate_ms">
                           <span class="label-text">Wznoszenie przy ziemi w_y [m/s] <span class="info-circle-icon" data-param="climb_rate_ms" tabindex="0">i</span></span>
                         </label>
-                        <input step="any" required type="number" id="climb_rate_ms" min="1.5" max="35" value="4.1">
+                        <input step="0.1" required type="number" id="climb_rate_ms" min="1.5" max="35" value="4.1">
                         <div class="param-didactic-hint" id="hint_climb_rate_ms"></div>
                       </div>
                     </div>
@@ -364,7 +364,7 @@
                       <label for="break_span_ratio">
                         <span class="label-text">Centropłat y_brk/(b/2) [-] <span class="info-circle-icon" data-param="break_span_ratio" tabindex="0">i</span></span>
                       </label>
-                      <input step="0.05" type="number" id="break_span_ratio" min="0.10" max="0.80" value="0.40">
+                      <input step="0.01" type="number" id="break_span_ratio" min="0.10" max="0.80" value="0.40">
                       <div class="param-didactic-hint" id="hint_break_span_ratio">Udział centropłata o stałej cięciwie w rozpiętości (0.30–0.50).</div>
                     </div>
                   </div>
@@ -390,13 +390,13 @@
                         <span class="label-text">Rozpiętość b [m] <small class="text-hint-cyan">(0=auto)</small> <span class="info-circle-icon" data-param="wingspan_m" tabindex="0">i</span></span>
                         <button type="button" class="param-lock-btn" id="lock_btn_wingspan_m" onclick="toggleParamLock('wingspan_m')" title="Zablokuj rozpiętość">🔓</button>
                       </label>
-                      <input step="any" required type="number" id="wingspan_m" min="0" max="80" value="0" placeholder="0 = wylicz z S·Λ">
+                      <input step="0.05" required type="number" id="wingspan_m" min="0" max="80" value="0" placeholder="0 = wylicz z S·Λ">
                       <div class="param-didactic-hint" id="hint_wingspan_m"></div>
                       <div class="derived-badge" id="derived_badge_wingspan_m" style="display:none;"></div>
                     </div>
                   </div>
 
-                  <div class="input-group" data-param="wing_area_m2"><label for="wing_area_m2">Powierzchnia skrzydła S [m²]</label><input type="number" step="any" id="wing_area_m2" min="0" max="1000" value="0"><div class="derived-badge" id="derived_badge_wing_area_m2" hidden></div></div>
+                  <div class="input-group" data-param="wing_area_m2"><label for="wing_area_m2">Powierzchnia skrzydła S [m²]</label><input type="number" step="0.05" id="wing_area_m2" min="0" max="1000" value="0"><div class="derived-badge" id="derived_badge_wing_area_m2" hidden></div></div>
                   <!-- Karta Dydaktyczna Plusów i Minusów Wybranego Układu Skrzydła -->
                   <div id="wingConfigDidacticBox" class="flap-didactic-card" style="margin-bottom:0.75rem;"></div>
 
@@ -406,7 +406,7 @@
                         <span class="label-text">Wydłużenie skrzydła Λ (AR) [-] <span class="info-circle-icon" data-param="aspect_ratio" tabindex="0">i</span></span>
                         <button type="button" class="param-lock-btn" id="lock_btn_aspect_ratio" onclick="toggleParamLock('aspect_ratio')" title="Zablokuj wydłużenie">🔓</button>
                       </label>
-                      <input step="any" required type="number" id="aspect_ratio" min="2" max="35" value="7.33">
+                      <input step="0.01" required type="number" id="aspect_ratio" min="2" max="35" value="7.33">
                       <div class="param-didactic-hint" id="hint_aspect_ratio"></div>
                       <div class="derived-badge" id="derived_badge_aspect_ratio" style="display:none;"></div>
                     </div>
@@ -414,7 +414,7 @@
                       <label for="taper_ratio">
                         <span class="label-text">Zbieżność skrzydła η = ct/cr [-] <span class="info-circle-icon" data-param="taper_ratio" tabindex="0">i</span></span>
                       </label>
-                      <input step="any" required type="number" id="taper_ratio" min="0" max="1.0" value="0.60">
+                      <input step="0.01" required type="number" id="taper_ratio" min="0" max="1.0" value="0.60">
                       <div class="param-didactic-hint" id="hint_taper_ratio"></div>
                     </div>
                   </div>
@@ -424,14 +424,14 @@
                       <label for="sweep_quarter_deg">
                         <span class="label-text">Skos skrzydła χ25% [°] <span class="info-circle-icon" data-param="sweep_quarter_deg" tabindex="0">i</span></span>
                       </label>
-                      <input step="any" required type="number" id="sweep_quarter_deg" min="0" max="45" value="0">
+                      <input step="0.5" required type="number" id="sweep_quarter_deg" min="0" max="45" value="0">
                       <div class="param-didactic-hint" id="hint_sweep_quarter_deg"></div>
                     </div>
                     <div class="input-group" data-param="dihedral_deg">
                       <label for="dihedral_deg">
                         <span class="label-text">Wznios skrzydła Γ [°] <span class="info-circle-icon" data-param="dihedral_deg" tabindex="0">i</span></span>
                       </label>
-                      <input step="any" required type="number" id="dihedral_deg" min="-3" max="10" value="4.0">
+                      <input step="0.5" required type="number" id="dihedral_deg" min="-3" max="10" value="4.0">
                       <div class="param-didactic-hint" id="hint_dihedral_deg"></div>
                     </div>
                   </div>
@@ -548,7 +548,7 @@
                       <label for="tc_ratio"><span class="label-text">Grubość względna skrzydła t/c [-]</span>
                         <button type="button" class="param-lock-btn" id="lock_btn_tc_ratio" onclick="toggleParamLock('tc_ratio')" title="Zablokuj założenie grubości">🔓</button>
                       </label>
-                      <input step="any" required type="number" id="tc_ratio" min="0.04" max="0.30" value="0.12">
+                      <input step="0.005" required type="number" id="tc_ratio" min="0.04" max="0.30" value="0.12">
                       <div class="derived-badge" id="derived_badge_tc_ratio" style="display:none;"></div>
                       <small>0,12 oznacza 12% cięciwy. Oznaczenie i rzędne wybierz w P3.</small>
                     </div>
@@ -563,14 +563,14 @@
                       <label for="cx0">
                         <span class="label-text">Opór szkodliwy Cx0 [-] <span class="info-circle-icon" data-param="cx0" tabindex="0">i</span></span>
                       </label>
-                      <input step="any" required type="number" id="cx0" min="0.001" max="0.300" value="0.028">
+                      <input step="0.001" required type="number" id="cx0" min="0.001" max="0.300" value="0.028">
                       <div class="param-didactic-hint" id="hint_cx0"></div>
                     </div>
                     <div class="input-group" data-param="oswald_e">
                       <label for="oswald_e">
                         <span class="label-text">Współczynnik Oswalda e [-] <span class="info-circle-icon" data-param="oswald_e" tabindex="0">i</span></span>
                       </label>
-                      <input step="any" required type="number" id="oswald_e" min="0.6" max="0.95" value="0.78">
+                      <input step="0.01" required type="number" id="oswald_e" min="0.6" max="0.95" value="0.78">
                       <div class="param-didactic-hint" id="hint_oswald_e"></div>
                     </div>
                   </div>
@@ -580,14 +580,14 @@
                       <label for="cz_max_clean">
                         <span class="label-text">Cz_max (gładka) [-] <span class="info-circle-icon" data-param="cz_max_clean" tabindex="0">i</span></span>
                       </label>
-                      <input step="any" required type="number" id="cz_max_clean" min="1.0" max="2.0" value="1.40">
+                      <input step="0.01" required type="number" id="cz_max_clean" min="1.0" max="2.0" value="1.40">
                       <div class="param-didactic-hint" id="hint_cz_max_clean"></div>
                     </div>
                     <div class="input-group" data-param="cz_max_lnd">
                       <label for="cz_max_lnd">
                         <span class="label-text">Cz_max,lnd (klapa) [-] <span class="info-circle-icon" data-param="cz_max_lnd" tabindex="0">i</span></span>
                       </label>
-                      <input step="any" required type="number" id="cz_max_lnd" min="0.1" max="7" value="2.05">
+                      <input step="0.01" required type="number" id="cz_max_lnd" min="0.1" max="7" value="2.05">
                       <div class="param-didactic-hint" id="hint_cz_max_lnd"></div>
                     </div>
                   </div>
@@ -646,7 +646,7 @@
                         <span class="label-text">Moc silnika P_max [kW] <small class="text-hint-cyan">(0=auto)</small> <span class="info-circle-icon" data-param="engine_power_kw" tabindex="0">i</span></span>
                         <button type="button" class="param-lock-btn" id="lock_btn_engine_power_kw" onclick="toggleParamLock('engine_power_kw')" title="Zablokuj moc silnika rynkowego">🔓</button>
                       </label>
-                      <input step="any" required type="number" id="engine_power_kw" min="0" max="15000" value="0" placeholder="0 = z bilansu P5">
+                      <input step="1" required type="number" id="engine_power_kw" min="0" max="15000" value="0" placeholder="0 = z bilansu P5">
                       <div class="param-didactic-hint" id="hint_engine_power_kw">Podaj moc silnika rynkowego ({{ model_examples.typical_values.engine_power_hint }}) lub 0 dla automatycznego doboru.</div>
                       <div class="derived-badge" id="derived_badge_engine_power_kw" style="display:none;"></div>
                     </div>
@@ -657,14 +657,14 @@
                       <label for="sfc">
                         <span class="label-text"><span id="label_sfc_text">Zużycie SFC c_p [g/(kW&bull;h)]</span> <span class="info-circle-icon" data-param="sfc" tabindex="0">i</span></span>
                       </label>
-                      <input step="any" required type="number" id="sfc" min="0.2" max="600" value="265">
+                      <input step="0.01" required type="number" id="sfc" min="0.2" max="600" value="265">
                       <div class="param-didactic-hint" id="hint_sfc"></div>
                     </div>
                     <div class="input-group" data-param="prop_efficiency" id="group_prop_efficiency">
                       <label for="prop_efficiency">
                         <span class="label-text">Sprawność śmigła &eta;_p [-] <span class="info-circle-icon" data-param="prop_efficiency" tabindex="0">i</span></span>
                       </label>
-                      <input step="any" required type="number" id="prop_efficiency" min="0.5" max="0.92" value="0.80">
+                      <input step="0.01" required type="number" id="prop_efficiency" min="0.5" max="0.92" value="0.80">
                       <div class="param-didactic-hint" id="hint_prop_efficiency"></div>
                     </div>
                   </div>

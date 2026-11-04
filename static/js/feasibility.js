@@ -54,7 +54,7 @@
   function validate() {
     for (const field of document.querySelectorAll('[data-optional-param]')) {
       if (!field.value.trim() || field.disabled || field.readOnly) continue;
-      if (!Number.isFinite(Number(field.value)) || !field.checkValidity()) {
+      const val=field.validity; if (!Number.isFinite(Number(field.value)) || (val&&(val.badInput||val.rangeUnderflow||val.rangeOverflow||val.valueMissing))) {
         throw new Error(`Sprawdź: ${field.labels?.[0]?.textContent.trim() || field.id}. ${field.validationMessage}`);
       }
     }

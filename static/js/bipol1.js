@@ -32,7 +32,7 @@
     for(const el of document.querySelectorAll('[data-bipol1]')) {
       if(el.closest('[hidden]')) continue;
       if(!el.value.trim()) {delete data[el.id];continue;}
-      if(!el.checkValidity()) throw Error(`Sprawdź: ${el.closest('label')?.textContent.trim()||el.id}. ${el.validationMessage}`);
+      const val=el.validity; if(val&&(val.badInput||val.rangeUnderflow||val.rangeOverflow||val.valueMissing)) throw Error(`Sprawdź: ${el.closest('label')?.textContent.trim()||el.id}. ${el.validationMessage}`);
       data[el.id]=el.type==='number'?Number(el.value):el.value;
     }
     if(data.wetted_example!=='sketch') delete data.sketch_swet_ratio;

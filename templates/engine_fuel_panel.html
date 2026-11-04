@@ -21,15 +21,15 @@
   <div data-engine-catalog hidden class="trend-controls" style="margin-top:0.4rem;">
     <label>Model i wariant <select id="engine_model_id" data-engine-field></select></label>
     <label>Punkt danych paliwowych <select id="engine_fuel_point" data-engine-field></select></label>
-    <label data-engine-density>Gęstość do przeliczenia l/h na masę [kg/l] — założenie <input id="fuel_density_kg_l" data-engine-field type="number" min="0.5" max="1" step="any" value="0.72"></label>
+    <label data-engine-density>Gęstość do przeliczenia l/h na masę [kg/l] — założenie <input id="fuel_density_kg_l" data-engine-field type="number" min="0.5" max="1" step="0.01" value="0.72"></label>
   </div>
   <div data-engine-custom hidden class="trend-controls" style="margin-top:0.4rem;">
     <label>Producent, model i wariant <input id="engine_custom_model" data-engine-field type="text" maxlength="2000" placeholder="np. Rotax 912 UL"></label>
-    <label data-engine-shaft style="display:none;">Moc ciągła jednego silnika [kW] <input id="engine_custom_power_kw" data-engine-field type="number" min="0.001" max="100000" step="any" value="0"></label>
-    <label data-engine-jet>Ciąg jednego silnika [kN] <input id="engine_custom_thrust_kn" data-engine-field type="number" min="0.001" max="10000" step="any" value="0"></label>
+    <label data-engine-shaft style="display:none;">Moc ciągła jednego silnika [kW] <input id="engine_custom_power_kw" data-engine-field type="number" min="0.001" max="100000" step="1" value="0"></label>
+    <label data-engine-jet>Ciąg jednego silnika [kN] <input id="engine_custom_thrust_kn" data-engine-field type="number" min="0.001" max="10000" step="0.1" value="0"></label>
     <label>Dokument producenta, wydanie i strona / adres <input id="engine_fuel_source" data-engine-field type="text" maxlength="2000" placeholder="np. BRP-Rotax OM-912 Ed.4 Rev.1, §5.2"></label>
     <label>Warunki punktu SFC: moc/ciąg, obroty, H i M <input id="engine_fuel_conditions" data-engine-field type="text" maxlength="2000" placeholder="np. 58 kW, 5500 rpm, maximum continuous, ISA"></label>
-    <input id="engine_custom_sfc" data-engine-field type="number" min="0.001" max="1000" step="any" style="display:none;">
+    <input id="engine_custom_sfc" data-engine-field type="number" min="0.001" max="1000" step="0.01" style="display:none;">
     <details style="margin-top:0.4rem;">
       <summary style="font-size:0.8rem;cursor:pointer;color:#0f766e;font-weight:600;">Źródło dla dodatkowego zadania na maksymalnym ustawieniu</summary>
       <p style="font-size:0.78rem;color:#64748b;margin:0.25rem 0;">Uzupełnij, jeśli misja zawiera czas maksymalnej mocy lub ciągu. Wartość SFC tego zadania podaj w jego założeniach.</p>

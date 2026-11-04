@@ -120,7 +120,7 @@
       <fieldset class="studio-report-options"><legend>Schemat iteracji masy</legend>
         <label><input type="radio" name="param-iterations" value="all" checked>Każda iteracja w pełnym zapisie</label>
         <label><input type="radio" name="param-iterations" value="first">Pierwsza iteracja w pełnym zapisie, kolejne w tabeli</label>
-        <label class="studio-field" for="paramIterStart">Masa startowa w 1. iteracji [kg]<input id="paramIterStart" type="number" min="1" max="1000000" step="any" placeholder="puste: 3·(m_zał + m_ład)"></label>
+        <label class="studio-field" for="paramIterStart">Masa startowa w 1. iteracji [kg]<input id="paramIterStart" type="number" min="1" max="1000000" step="1" placeholder="puste: 3·(m_zał + m_ład)"></label>
       </fieldset>
     </div>
     <div class="studio-stack-actions"><button class="btn btn-primary" data-studio-action="preview-param-report">Otwórz i edytuj kartę obliczeń</button><button class="btn btn-outline" data-studio-action="download-param-report-docx">Pobierz DOCX</button><button class="btn btn-outline" data-studio-action="download-param-report">Pobierz samodzielny HTML</button><button type="button" class="btn btn-outline" id="paramClear">Wyczyść wybór</button></div>
