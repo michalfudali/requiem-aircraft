@@ -13,46 +13,41 @@ from calculations.trends import (analyze_trends, forecast_rejection, get_trend_s
 from calculations.validation import validate_parameters
 
 
-def test_auto_mass_model_prefers_a_supported_trend_and_preserves_manual_choices():
-    p = validate_parameters(dict(AIRCRAFT_PRESETS['regional_turboprop'], aircraft_type='jet_transport', engine_type='jet', sfc=.6))
-    assert p['empty_mass_model'] == 'auto'
-    _, fit = mass_trend(p)
-    share, meta = empty_mass_law(p)
-    assert meta['mode'] == 'trend' and meta['selection_mode'] == 'auto'
-    assert (meta['A'], meta['C']) == pytest.approx((fit['A'], fit['C']))
-    assert share(77000) == pytest.approx(fit['A'] * 77000 ** fit['C'])
-    share, meta = empty_mass_law(dict(p, empty_mass_fraction=.61))
-    assert meta['mode'] == 'fixed_fraction' and share(77000) == .61
-    _, meta = empty_mass_law(dict(p, empty_mass_model='class_correlation'))
-    assert meta['mode'] == 'class_correlation'
+def test_mass_law_is_always_equation_one_of_the_sample_trend_line():
+    # BIPOL_1, s. 1 and 4: no class correlation, typed fraction or own A, C in the project path.
+    for changes in ({}, {'empty_mass_fraction': .61}, {'empty_mass_model': 'class_correlation'},
+                    {'empty_mass_model': 'auto'}, {'empty_mass_model': 'coefficients', 'empty_mass_a': .9, 'empty_mass_c': -.05}):
+        p = validate_parameters(dict(AIRCRAFT_PRESETS['regional_turboprop'], **changes))
+        assert p['empty_mass_model'] == 'trend'
+        _, fit = mass_trend(p)
+        share, meta = empty_mass_law(p)
+        assert meta['mode'] == 'trend' and (meta['A'], meta['C']) == pytest.approx((fit['A'], fit['C']))
+        assert share(22000) == pytest.approx(fit['A'] * 22000 ** fit['C'])
 
 
-def test_auto_does_not_treat_a_weak_rising_fit_as_a_design_mass_law():
-    p = validate_parameters(dict(AIRCRAFT_PRESETS['ga_trainer']))
-    _, meta = empty_mass_law(p)
-    assert meta['mode'] == 'class_correlation'
-    assert 'nie spełnia' in meta['selection_reason']
+def test_a_weak_trend_is_used_and_reported_not_replaced():
+    r = run_bipol_project(dict(AIRCRAFT_PRESETS['ga_trainer']))
+    law, ta = r['mass']['empty_mass_law'], r['bipol_projects']['p1']['trend_analysis']
+    assert law['mode'] == 'trend' and (law['A'], law['C']) == (ta['two_point']['A'], ta['two_point']['C'])
 
 
 def test_applied_mass_law_remains_bound_to_the_selected_sample():
-    settings = dict(AIRCRAFT_PRESETS['regional_turboprop'], trend_nearest_count=50, mass_initial_guess=22000)
-    old = get_trend_suggestions('turboprop_regional', m0=22000, settings=settings)['suggestions']['me_m0']['apply']
-    assert old['empty_mass_model'] == 'trend'
-    changed = {**settings, **{k: v for k, v in old.items() if v is not None}, 'trend_nearest_count': 40}
-    _, fit = mass_trend(changed)
-    _, law = empty_mass_law(changed)
-    assert law['A'] == pytest.approx(fit['A'])
-    assert law['C'] == pytest.approx(fit['C'])
-    assert law['A'] != pytest.approx(old['empty_mass_trend_A'])
+    project = dict(AIRCRAFT_PRESETS['regional_turboprop'])
+    old = run_bipol_project(project)['mass']['empty_mass_law']
+    changed = run_bipol_project(dict(project, trend_nearest_count=30))
+    law, ta = changed['mass']['empty_mass_law'], changed['bipol_projects']['p1']['trend_analysis']
+    assert (law['A'], law['C']) == (ta['two_point']['A'], ta['two_point']['C'])
+    assert law['A'] != pytest.approx(old['A'])
 
 
 def test_selected_observations_and_weights_are_identical_for_all_entry_points():
-    p = validate_parameters({**AIRCRAFT_PRESETS['motoglider_aos'], 'trend_nearest_count': 24,
-                             'mass_initial_guess': 600, 'trend_weighting': 'family'})
-    analysis = analyze_trends(p, 600, 350)
-    wizard = get_trend_suggestions(p['aircraft_type'], m0=600, engine_type=p['engine_type'], settings=p)
-    assert wizard['suggestions'] == analysis['suggestions']
-    rows = select_references(p)
+    p = {**AIRCRAFT_PRESETS['motoglider_aos'], 'trend_nearest_count': 24, 'trend_weighting': 'family'}
+    result = run_bipol_project(p)
+    analysis = result['bipol_projects']['p1']['trend_analysis']
+    wizard = get_trend_suggestions(p['aircraft_type'], engine_type=p['engine_type'], project=p)
+    assert wizard['suggestions'] == analysis['suggestions'] and wizard['sample'] == analysis['sample']
+    rows = select_references(result['params'])
+    assert [r['id'] for r in rows] == [r['id'] for r in analysis['similar_aircraft']]
     weights = sample_weights(p['trend_weighting'])
     for metric in analysis['geometry_trends_analysis']['metrics']:
         subset = [r for r in rows if valid_value(metric['key'], r)]

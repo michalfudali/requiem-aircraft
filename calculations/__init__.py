@@ -30,8 +30,8 @@ def _size_airframe(params, param_states):
     # BIPOL_1, s. 1: one comparison sample of aircraft similar to the design for the P1 trend
     # analysis and the empty-mass law; its reference mass is computed once per project.
     from calculations.trends import SIMILAR_COUNT, similar_sample
-    if (params.get('trend_reference_mode') == 'design' and '_similar_count' not in params
-            and params.get('trend_aircraft_ids') is None and int(params.get('trend_nearest_count', 0) or 0)):
+    if ('_similar_count' not in params and params.get('trend_aircraft_ids') is None
+            and int(params.get('trend_nearest_count', SIMILAR_COUNT) or 0)):
         sample = similar_sample(params)
         params.update(_reference=sample, _reference_mass=sample['mass'], _similar_count=sample['count'])
     mass_res = calculate_mass_sizing(params)
@@ -135,8 +135,7 @@ def run_bipol_project(params: dict):
     import copy
     from calculations.design_solver import MASS_NOT_CLOSED
     from calculations.trends import EQ1_UNSOLVABLE, PAYLOAD_MARGIN, SIMILAR_COUNT, similar_sample
-    nearest = (params.get('trend_reference_mode') == 'design' and params.get('trend_aircraft_ids') is None
-               and int(params.get('trend_nearest_count', 0) or 0))
+    nearest = params.get('trend_aircraft_ids') is None and int(params.get('trend_nearest_count', SIMILAR_COUNT) or 0)
     initial, first, coupled_widening = copy.deepcopy((params, param_states)), 0, False
     while True:
         params, param_states = copy.deepcopy(initial)

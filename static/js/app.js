@@ -1925,13 +1925,46 @@ function escapeHtml(text) {
     .replace(/'/g, '&#039;');
 }
 
+// Projekty użytkownika są w bazie projektów na serwerze (data/projects/projects.sqlite3).
+// Strona dostaje je przy wczytaniu; każda zmiana listy jest zapisywana przez /api/projects.
+const validProject = p => p && p.id && p.params && typeof p.params === 'object';
+let projectsCache = (Array.isArray(window.BIPOL_PROJECTS) ? window.BIPOL_PROJECTS : []).filter(validProject);
+
+function persistProject(project) {
+  return fetch(`/api/projects/${encodeURIComponent(project.id)}`, {
+    method: 'PUT', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(project)
+  }).then(response => {
+    if (!response.ok) throw new Error('Nie zapisano projektu w bazie.');
+    document.dispatchEvent(new CustomEvent('bipol:storage'));
+  }).catch(() => showCalculationStatus?.('Nie udało się zapisać projektu w bazie projektów. Sprawdź połączenie z serwerem.', true));
+}
+
 function getProjectsList() {
-  const list = projectStore.read(STORAGE_PROJECTS_KEY, []);
-  return Array.isArray(list) ? list.filter(p => p && p.id && p.params && typeof p.params === 'object') : [];
+  return projectsCache.map(project => structuredClone(project));
 }
 
 function saveProjectsList(list) {
-  return projectStore.write(STORAGE_PROJECTS_KEY, list);
+  const previous = new Map(projectsCache.map(project => [project.id, JSON.stringify(project)]));
+  const next = list.filter(validProject);
+  for (const project of next) {
+    if (previous.get(project.id) !== JSON.stringify(project)) persistProject(project);
+  }
+  const kept = new Set(next.map(project => project.id));
+  for (const id of previous.keys()) {
+    if (!kept.has(id)) fetch(`/api/projects/${encodeURIComponent(id)}`, {method: 'DELETE'}).catch(() => {});
+  }
+  projectsCache = next.map(project => structuredClone(project));
+  return true;
+}
+
+// Jednorazowe przeniesienie projektów zapisanych dawniej w przeglądarce do bazy projektów.
+function migrateBrowserProjects() {
+  const stored = projectStore.read(STORAGE_PROJECTS_KEY, null);
+  if (!Array.isArray(stored) || !stored.length) return;
+  const known = new Set(projectsCache.map(project => project.id));
+  const moved = stored.filter(validProject).filter(project => !known.has(project.id));
+  if (moved.length) saveProjectsList([...moved, ...projectsCache]);
+  try { browserStorage?.removeItem(STORAGE_PROJECTS_KEY); } catch (_) {}
 }
 
 function getActiveProjectId() {
@@ -2330,15 +2363,8 @@ function closeSessionStarterModal() {
 }
 
 function initProjectSystem() {
+  migrateBrowserProjects();
   let list = getProjectsList();
-
-  // Usuń dawny przykładowy projekt wzorcowy (PZL-102B Kos) z listy projektów
-  const sampleIds = ['proj_pzl_kos'];
-  if (list.some(p => sampleIds.includes(p.id))) {
-    list = list.filter(p => !sampleIds.includes(p.id));
-    saveProjectsList(list);
-    if (sampleIds.includes(getActiveProjectId())) localStorage.removeItem(STORAGE_ACTIVE_PROJ_KEY);
-  }
 
   // Jeśli brak projektów (pierwsze uruchomienie), utwórz pusty projekt roboczy
   if (list.length === 0) {

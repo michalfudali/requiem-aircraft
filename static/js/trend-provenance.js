@@ -81,7 +81,7 @@
 
   // The comparison sample of the project: the wizard and the input panel must
   // propose values from the same aircraft as the P1 trend analysis.
-  const SAMPLE_KEYS = ['trend_source', 'trend_nearest_count', 'trend_reference_mode', 'mass_initial_guess', 'trend_engine_count', 'trend_year_min',
+  const SAMPLE_KEYS = ['trend_source', 'trend_nearest_count', 'trend_engine_count', 'trend_year_min',
     'trend_year_max', 'trend_weighting', 'trend_year_basis', 'trend_aircraft_ids', 'trend_observations', 'variable_sweep'];
 
   function sampleSettings(project, query) {
@@ -106,10 +106,10 @@
     const body = {};
     for (const [key, value] of Object.entries(query)) if (value) body[key] = value;
     Object.assign(body, sampleSettings(project, body));
-    if (body.trend_reference_mode === 'design') {
-      for (const [key,value] of Object.entries(project || {})) {
-        if (!key.startsWith('_') && !(key in body) && value != null && value !== '') body[key] = value;
-      }
+    // The sample is the one of the project's P1 analysis (aircraft nearest in MTOW to the design):
+    // the server calculates the whole project, so it gets the whole project.
+    for (const [key,value] of Object.entries(project || {})) {
+      if (!key.startsWith('_') && !(key in body) && value != null && value !== '' && !Number.isNaN(value)) body[key] = value;
     }
     const keyStr = JSON.stringify(body);
     if (cachedPromise && cachedQueryKey === keyStr) return cachedPromise;

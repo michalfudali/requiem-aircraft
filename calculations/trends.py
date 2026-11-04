@@ -110,8 +110,8 @@ def reference_catalog():
 # analysis and the empty-mass law select aircraft from these settings only.
 SAMPLE_KEYS = ('trend_source', 'trend_nearest_count', 'trend_engine_count', 'trend_year_min', 'trend_year_max',
                'trend_weighting', 'trend_year_basis', 'trend_aircraft_ids', 'trend_observations',
-               'mass_initial_guess', 'variable_sweep', 'trend_reference_mode')
-SAMPLE_CHOICES = {'trend_reference_mode': ('initial', 'design'), 'trend_source': ('all', 'fast', 'cado', 'motogliders', 'geometry_trends', 'user'),
+               'variable_sweep')
+SAMPLE_CHOICES = {'trend_source': ('all', 'fast', 'cado', 'motogliders', 'geometry_trends', 'user'),
                   'trend_weighting': ('family', 'variant'), 'trend_year_basis': ('production', 'certification')}
 
 
@@ -124,11 +124,6 @@ def sample_settings(data):
             if not value.is_integer() or value < 0:
                 raise ValueError(f'Pole {key}: wymagana nieujemna liczba całkowita.')
             settings[key] = int(value)
-    if data.get('mass_initial_guess') not in (None, ''):
-        mass = float(data['mass_initial_guess'])
-        if not math.isfinite(mass) or mass <= 0:
-            raise ValueError('Masa odniesienia doboru próby musi być dodatnia.')
-        settings['mass_initial_guess'] = mass
     for key, allowed in SAMPLE_CHOICES.items():
         if data.get(key) not in (None, ''):
             if data[key] not in allowed:
@@ -150,11 +145,9 @@ def sample_settings(data):
 
 def sample_reference_mass(params):
     """MTOW for narrowing: an initial assumption, or an explicitly chosen design fixed point."""
-    if not int(params.get('trend_nearest_count', 0) or 0) or params.get('trend_aircraft_ids') is not None:
+    if not int(params.get('trend_nearest_count', SIMILAR_COUNT) or 0) or params.get('trend_aircraft_ids') is not None:
         return None
-    if params.get('trend_reference_mode') == 'design':
-        return sample_size(params)[1]
-    return float(params.get('mass_initial_guess') or 5000)
+    return sample_size(params)[1]
 
 
 SIMILAR_COUNT = 50
@@ -267,7 +260,7 @@ def select_references(params):
     if reference is None:
         return sorted(pool, key=lambda r: r['id'])
     pool = sorted(pool, key=lambda r: (abs(math.log(r['m0'] / reference)), r['id']))
-    count = sample_size(params)[0] if params.get('trend_reference_mode') == 'design' else int(params['trend_nearest_count'])
+    count = sample_size(params)[0]
     return pool[:count] if count else pool
 
 
@@ -360,7 +353,7 @@ def describe_sample(params, rows):
     if params.get('trend_aircraft_ids') is not None:
         parts.append('konstrukcje zaznaczone ręcznie')
     elif reference:
-        parts.append(f"{len(rows)} konstrukcji najbliższych masie odniesienia {_pl(reference, 0)} kg")
+        parts.append(f"{len(rows)} konstrukcji o masie startowej najbliższej masie projektu {_pl(reference, 0)} kg")
     else:
         parts.append('wszystkie pasujące konstrukcje')
     if params.get('trend_source', 'all') != 'all':
@@ -1025,8 +1018,7 @@ def trend_suggestions(rows, params, m0, weights, mass_fit, forecast_year, sample
                     prov['warnings'].append('C ≥ 0: udział masy pustej nie maleje z masą startową. Sprawdź dobór próby i definicje mas.')
             else:
                 value, model, n = use_mean(f'{mean_label}; za mało zróżnicowanych mas do linii trendu')
-                item['apply'] = {'empty_mass_model': 'fixed_fraction', 'empty_mass_fraction': round(mean, digits),
-                                 'empty_mass_trend_A': None, 'empty_mass_trend_C': None}
+                item['apply'] = {'empty_mass_model': 'trend'}
                 prov['warnings'].append('Linia trendu wymaga co najmniej 3 konstrukcji o różnych masach.')
         else:
             value, model, n = use_mean(mean_label)
@@ -1061,11 +1053,10 @@ def get_trend_suggestions(aircraft_type, m0=None, wing_configuration=None, engin
     engine = engine_type or DEFAULT_ENGINE.get(aircraft_type, 'prop')
     if engine not in ENGINE_LABELS:
         raise ValueError(f"Unknown engine_type: '{engine_type}'")
-    # The fixed-point method needs the full mission; the initial-reference method needs only sample settings.
+    # The sample around the design mass needs the whole project (its mission); the wizard and the
+    # input panel send it and get the very analysis of the calculated project.
     settings = settings if settings is not None else project
-    if project is None and settings and settings.get('trend_reference_mode') == 'design':
-        project = settings
-    if project is not None and project.get('trend_reference_mode') == 'design':
+    if project is not None:
         from calculations import run_bipol_project
         result = run_bipol_project({**project, 'aircraft_type': aircraft_type, 'engine_type': engine,
                                    **({'wing_config': wing_configuration} if wing_configuration else {})})
@@ -1077,8 +1068,10 @@ def get_trend_suggestions(aircraft_type, m0=None, wing_configuration=None, engin
                 'suggestions': ta['suggestions'],
                 'charts': wizard_trend_charts(ta['similar_aircraft'], params, weights, ta['mass_fit'],
                                               ta['forecast_year'], ta['suggestions'])}
+    # Without the project m0 (if given) is the design mass; otherwise the whole class is the sample.
     params = {**sample_settings(settings or {}), 'aircraft_type': aircraft_type, 'engine_type': engine,
-              'wing_configuration': wing_configuration}
+              'wing_configuration': wing_configuration, '_reference_mass': m0,
+              '_similar_count': int((settings or {}).get('trend_nearest_count', SIMILAR_COUNT) or 0) if m0 else 0}
     rows = select_references(params)
     weights = sample_weights(params.get('trend_weighting', 'family'))
     valid_mass, mass_fit = mass_trend(params, rows)

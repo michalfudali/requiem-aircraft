@@ -71,8 +71,7 @@ def test_time_forecast_is_five_years_after_the_design_year():
 
 
 def test_supported_forecast_can_exceed_the_historical_sample_range():
-    ar = get_trend_suggestions('turboprop_regional', m0=22000,
-                               settings={'trend_nearest_count': 50, 'mass_initial_guess': 22000})['suggestions']['ar']
+    ar = get_trend_suggestions('turboprop_regional', m0=22000)['suggestions']['ar']
     fit = ar['provenance']['fit']
     assert fit['r2'] >= .2
     assert ar['model_type'] == 'time_trend'
@@ -81,16 +80,13 @@ def test_supported_forecast_can_exceed_the_historical_sample_range():
 
 
 def test_empty_mass_suggestion_inserts_equation_one_into_the_mass_balance():
-    # Similar aircraft: the 50 nearest to the 22 t reference mass (the whole class gives C > 0).
-    preset = {**AIRCRAFT_PRESETS['regional_turboprop'], 'trend_nearest_count': 50, 'mass_initial_guess': 22000}
-    me = run_bipol_project(preset)['bipol_projects']['p1']['trend_analysis']['suggestions']['me_m0']
-    apply = me['apply']
-    assert apply['empty_mass_fraction'] is None and apply['empty_mass_trend_C'] < 0
-    params = {**preset, 'empty_mass_trend_A': apply['empty_mass_trend_A'],
-              'empty_mass_trend_C': apply['empty_mass_trend_C'], 'variable_sweep': True}
-    mass = calculate_mass_sizing(validate_parameters(params))
-    assert mass['empty_mass_model'] == 'bipol1_trend'
-    expected = apply['empty_mass_trend_A'] * mass['m0'] ** apply['empty_mass_trend_C'] * 1.04
+    # BIPOL_1, s. 1 and 4: A and C of the P1 trend line are the ones of the mass balance.
+    r = run_bipol_project({**AIRCRAFT_PRESETS['regional_turboprop'], 'variable_sweep': True})
+    ta, mass = r['bipol_projects']['p1']['trend_analysis'], r['mass']
+    assert ta['mass_trend_decreasing'] and ta['suggestions']['me_m0']['apply']['empty_mass_trend_C'] < 0
+    assert mass['empty_mass_model'] == 'trend'
+    assert (mass['empty_mass_law']['A'], mass['empty_mass_law']['C']) == (ta['two_point']['A'], ta['two_point']['C'])
+    expected = ta['two_point']['A'] * mass['m0'] ** ta['two_point']['C'] * 1.04
     assert mass['empty_fraction'] == pytest.approx(expected, abs=1e-4)
 
 

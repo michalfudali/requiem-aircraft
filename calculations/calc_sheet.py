@@ -774,53 +774,30 @@ def _p2(s, r):
 def _p2_empty_law(s, r):
     p, mass = r['params'], r['mass']
     law = mass['empty_mass_law']
-    mode = law['mode']
     s.section('p2', 'empty', 'Udział masy własnej', SOURCES['B1'] + ', wzór (1)')
-    source = {'class_correlation': 'Korelacja klasy (robocza; do zastąpienia analizą własnej próby)',
-              'trend': f"Regresja próby P1 ({law.get('n', '—')} konstrukcji)",
-              'bipol1_trend': 'Współczynniki z analizy trendów P1', 'coefficients': 'Współczynniki podane przez autora',
-              'two_point': 'Dwa punkty odczytane z wykresu mₑ/m₀ = f(m₀)', 'fixed_fraction': 'Założenie autora'}[mode]
-    if mode == 'fixed_fraction':
-        s.given('e_m0', r'\frac{m_e}{m_0}', law['A'], '', 4, 'Stały udział masy własnej', source)
-        return
-    if mode == 'trend':
-        s.given('K_vs', 'K_{vs}', law['k_vs'], '', 2, 'Współczynnik stałości skosu', SOURCES['B1'] + ', s. 1')
-        s.calc('e_m0', r'\frac{m_e}{m_0}', r'A\,m_0^{C}K_{vs}',
-               r'[[tr_A]]\cdot[[m0]]^{[[tr_C]]}\cdot[[K_vs]]', mass['m_empty'] / mass['m0'], '', 4,
-               'Udział masy własnej z tej samej linii trendu P1', SOURCES['B1'] + ', wzór (1)',
-               check=lambda v: v.tr_A * v.m0 ** v.tr_C * v.K_vs)
-        return
-    if mode == 'two_point':
-        s.given('mp_x1', 'x_1', float(p['mass_point_x1']), KG, 0, 'Punkt 1 wykresu — masa startowa', source)
-        s.given('mp_y1', 'y_1', float(p['mass_point_y1']), '', 4, 'Punkt 1 wykresu — mₑ/m₀', source)
-        s.given('mp_x2', 'x_2', float(p['mass_point_x2']), KG, 0, 'Punkt 2 wykresu — masa startowa', source)
-        s.given('mp_y2', 'y_2', float(p['mass_point_y2']), '', 4, 'Punkt 2 wykresu — mₑ/m₀', source)
+    if law['mode'] == 'two_point' or 'tr_A' not in s.entries:
+        source = 'Dwa punkty odczytane z wykresu mₑ/m₀ = f(m₀)'
+        x1, x2 = (float(p['mass_point_x1']), float(p['mass_point_x2'])) if law['mode'] == 'two_point' else (law['points']['x1'], law['points']['x2'])
+        y1, y2 = (float(p['mass_point_y1']), float(p['mass_point_y2'])) if law['mode'] == 'two_point' else (law['points']['y1'], law['points']['y2'])
+        s.given('mp_x1', 'x_1', x1, KG, 0, 'Punkt 1 wykresu — masa startowa', source)
+        s.given('mp_y1', 'y_1', y1, '', 4, 'Punkt 1 wykresu — mₑ/m₀', source)
+        s.given('mp_x2', 'x_2', x2, KG, 0, 'Punkt 2 wykresu — masa startowa', source)
+        s.given('mp_y2', 'y_2', y2, '', 4, 'Punkt 2 wykresu — mₑ/m₀', source)
         s.calc('C_e', 'C', r'\frac{\log\left(y_1/y_2\right)}{\log\left(x_1/x_2\right)}',
                r'\frac{\log\left([[mp_y1]]/[[mp_y2]]\right)}{\log\left([[mp_x1]]/[[mp_x2]]\right)}', law['C'], '', 5,
                'Wykładnik C zależności masy pustej', SOURCES['B1'] + ', s. 1',
                check=lambda v: math.log(v.mp_y1 / v.mp_y2) / math.log(v.mp_x1 / v.mp_x2))
         s.calc('A_e', 'A', r'\frac{y_1}{x_1^{C}}', r'\frac{[[mp_y1]]}{[[mp_x1]]^{[[C_e]]}}', law['A'], '', 5,
                'Współczynnik A zależności masy pustej', SOURCES['B1'] + ', s. 1', check=lambda v: v.mp_y1 / v.mp_x1 ** v.C_e)
+        a_key, c_key = 'A_e', 'C_e'
     else:
-        s.given('A_e', 'A', law['A'], '', 5, 'Współczynnik A zależności masy pustej', source)
-        s.given('C_e', 'C', law['C'], '', 5, 'Wykładnik C zależności masy pustej', source)
+        # A i C wyznaczono w analizie trendów P1 z dwóch punktów tej samej linii trendu.
+        a_key, c_key = 'tr_A', 'tr_C'
     s.given('K_vs', 'K_{vs}', law['k_vs'], '', 2, 'Współczynnik stałości skosu (1,0 — stały; 1,04 — zmienny)', SOURCES['B1'] + ', s. 1')
-    m0, value = mass['m0'], mass['m_empty'] / mass['m0']
-    if mode == 'class_correlation':
-        s.given('K_kor', 'K_{kor}', law['structural_modifier'], '', 4, 'Poprawka konstrukcyjna korelacji klasy', 'Korelacja klasy')
-        raw = law['A'] * m0 ** law['C'] * law['k_vs'] * law['structural_modifier']
-        bounded = not .38 <= raw <= .74
-        formula, subst = r'A\,m_0^{C}K_{vs}K_{kor}', r'[[A_e]]\cdot[[m0]]^{[[C_e]]}\cdot[[K_vs]]\cdot[[K_kor]]'
-        if bounded:  # Korelacja klasy jest ograniczona do 0,38–0,74; zapis jawny, by podstawienie dawało wynik.
-            formula = r'\min\left(0{,}74;\;\max\left(0{,}38;\;' + formula + r'\right)\right)'
-            subst = r'\min\left(0{,}74;\;\max\left(0{,}38;\;' + subst + r'\right)\right)'
-        s.calc('e_m0', r'\frac{m_e}{m_0}', formula, subst,
-               value, '', 4, 'Udział masy własnej dla masy startowej projektu', SOURCES['B1'] + ', wzór (1)',
-               check=lambda v: min(.74, max(.38, v.A_e * v.m0 ** v.C_e * v.K_vs * v.K_kor)))
-    else:
-        s.calc('e_m0', r'\frac{m_e}{m_0}', r'A\,m_0^{C}K_{vs}', r'[[A_e]]\cdot[[m0]]^{[[C_e]]}\cdot[[K_vs]]', value, '', 4,
-               'Udział masy własnej dla masy startowej projektu', SOURCES['B1'] + ', wzór (1)',
-               check=lambda v: v.A_e * v.m0 ** v.C_e * v.K_vs)
+    s.calc('e_m0', r'\frac{m_e}{m_0}', r'A\,m_0^{C}K_{vs}',
+           '[[' + a_key + r']]\cdot[[m0]]^{[[' + c_key + r']]}\cdot[[K_vs]]', mass['m_empty'] / mass['m0'], '', 4,
+           'Udział masy własnej dla masy startowej projektu', SOURCES['B1'] + ', wzór (1)',
+           check=lambda v: getattr(v, a_key) * v.m0 ** getattr(v, c_key) * v.K_vs)
 
 
 def _p2_matching(s, r):

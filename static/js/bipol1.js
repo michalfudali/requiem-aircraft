@@ -1,12 +1,12 @@
 (function () {
   'use strict';
   const $=id=>document.getElementById(id);
-  const defaults={mass_method:'auto',empty_mass_model:'auto',
+  const defaults={mass_method:'auto',empty_mass_model:'trend',
     payload_drop_kg:0,return_range_km:0,max_power_time_min:0,climb_fraction_mode:'auto',
     climb_start_altitude_m:0,preliminary_polar_mode:'raymer',wetted_example:'',sketch_swet_ratio:4,
     raymer_kmax:15,cx0_reference_class:'',
-    empty_mass_a:.95,empty_mass_c:-.05,mass_point_x1:1000,mass_point_x2:2000,
-    mass_point_y1:.6,mass_point_y2:.55,empty_mass_fraction:.55,
+    mass_point_x1:1000,mass_point_x2:2000,
+    mass_point_y1:.6,mass_point_y2:.55,
     corke_start_ordinate:.99,corke_end_ordinate:.98,trend_year_basis:'certification'};
   function visibility() {
     const model=$('empty_mass_model').value;
@@ -24,6 +24,7 @@
     document.querySelectorAll('[data-bipol1]').forEach(el=>el.value=p[el.id]??defaults[el.id]??'');
     // C_x0 of project 1 always comes from Fig. 2; earlier projects measured S_wet/S on the sketch.
     if(!['raymer','reading'].includes($('preliminary_polar_mode').value)) $('preliminary_polar_mode').value='raymer';
+    if(!['trend','two_point'].includes($('empty_mass_model').value)) $('empty_mass_model').value='trend';
     if(!p.wetted_example&&['raymer','reading'].includes(p.preliminary_polar_mode)&&p.sketch_swet_ratio) $('wetted_example').value='sketch';
     visibility();
   }
@@ -37,10 +38,8 @@
     }
     if(data.wetted_example!=='sketch') delete data.sketch_swet_ratio;
     delete data.raymer_family;
-    if(!['auto','class_correlation'].includes(data.empty_mass_model)) {
-      delete data.empty_mass_trend_A;delete data.empty_mass_trend_C;
-    }
-    if(!['auto','fixed_fraction','class_correlation'].includes(data.empty_mass_model)) delete data.empty_mass_fraction;
+    // BIPOL_1, wzór (1): A i C zawsze z linii trendu (programu albo własnego odczytu dwóch punktów).
+    for(const key of ['empty_mass_trend_A','empty_mass_trend_C','empty_mass_fraction','empty_mass_a','empty_mass_c']) delete data[key];
     delete data.outbound_range_km;
     return data;
   }

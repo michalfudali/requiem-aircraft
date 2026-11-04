@@ -31,8 +31,7 @@
 </tbody></table>
 <p class="table-note">Wartości mas w fazach lotu odpowiadają wyznaczonej masie startowej. Faza startu uwzględnia rozruch i kołowanie; zniżanie połączono z dolotem.</p>
 <h3>Udział masy własnej</h3>
-{% if m.empty_mass_law.selection_reason %}<p>{{ m.empty_mass_law.selection_reason }} Kryteria jakości są założeniami analizy statystycznej.</p>{% endif %}
-<p>{% if m.empty_mass_model in ('bipol1_trend','trend','coefficients','two_point') %}Udział masy pustej obliczano w każdej iteracji z zależności \(m_e/m_0=A\,m_0^C K_{vs}\) wyznaczonej w analizie trendów (projekt 1), z masą startową w kilogramach.{% elif m.empty_mass_model == 'fixed_fraction' %}Przyjęto stały udział masy pustej, niezależny od masy startowej.{% else %}Ze względu na duży rozrzut danych w próbie udział masy pustej obliczano z korelacji statystycznej dla klasy samolotu z poprawkami konstrukcyjnymi {{ cite('raymer') }}.{% endif %}</p>
+<p>Udział masy pustej obliczano w każdej iteracji z zależności \(m_e/m_0=A\,m_0^C K_{vs}\){% if m.empty_mass_model == 'two_point' %} ze współczynnikami wyznaczonymi z dwóch punktów odczytanych z wykresu udziału masy pustej w analizie trendów (projekt 1){% else %} wyznaczonej w analizie trendów (projekt 1){% endif %}, z masą startową w kilogramach.</p>
 {{ c.section(sheet, 'p2.empty') }}
 <h3>Wyznaczenie masy startowej</h3>
 {% with trace = m.guideline_traces[m.primary_method], full = False %}{% include 'reports/mass_iteration.html' %}{% endwith %}

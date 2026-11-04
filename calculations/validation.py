@@ -79,8 +79,8 @@ DEFAULTS = {
     "mission_phase_model": "galinski", "mission_ld_factor": CRUISE_LD_FACTOR,
     "gear_attachment": "fuselage",
     "takeoff_distance_m": 0, "landing_distance_m": 0,
-    "mass_method": "auto", "empty_mass_model": "auto",
-    "mass_initial_guess": 5000, "payload_drop_kg": 0, "return_range_km": 0,
+    "mass_method": "auto", "empty_mass_model": "trend",
+    "payload_drop_kg": 0, "return_range_km": 0,
     "design_iteration_mode": "preliminary", "operating_surface": "land", "runway_surface": "paved",
     "cs22_gust_model": "amendment3",
     "profile_thickness_mode": "auto", "tc_ratio": 0.12,
@@ -94,11 +94,9 @@ def validate_parameters(data):
     if not isinstance(data, dict):
         raise ValueError("Parametry projektu muszą być obiektem JSON.")
     p = {**DEFAULTS, **data}
-    # Older locally saved designs used the iterative sample without an explicit selector.
-    # Migrate that choice, then discard all cached reference numbers below.
-    if 'trend_reference_mode' not in data and isinstance(data.get('_reference'), dict):
-        p['trend_reference_mode'] = 'design'
-        p.setdefault('trend_nearest_count', 50)
+    # One comparison sample: the aircraft nearest in MTOW to the design (BIPOL_1, s. 1).
+    for key in ('trend_reference_mode', 'mass_initial_guess'):
+        p.pop(key, None)
     if p['operating_surface'] not in ('land', 'water'):
         raise ValueError('Nieznane środowisko startu i lądowania.')
     if 'preliminary_polar_includes_configuration' in p and not isinstance(p['preliminary_polar_includes_configuration'], bool):
@@ -196,7 +194,6 @@ def validate_parameters(data):
         if key in p and not float(p[key]).is_integer():
             raise ValueError(f'Pole {key}: wymagana liczba całkowita.')
     for key, allowed in {'trend_source': ('all', 'fast', 'cado', 'motogliders', 'geometry_trends', 'user'),
-                         'trend_reference_mode': ('initial', 'design'),
                          'wing_input_mode': ('loading', 'span_aspect', 'span_area', 'area_aspect'),
                          'payload_input_mode': ('seats', 'total'),
                          'airfoil_criterion': ('auto', 'cruise', 'lift'),
@@ -258,6 +255,12 @@ def validate_parameters(data):
         p['wetted_example'] = 'sketch'
     # A saved calculation cannot authenticate the fixed-point reference of another design.
     for key in ('_reference_mass', '_reference', '_similar_count'):
+        p.pop(key, None)
+    # BIPOL_1, s. 1 i 4: masa pusta z równania (1) analizy trendów; korelacja klasy, stały udział
+    # i własne A, C nie należą do ścieżki projektu.
+    if p.get('empty_mass_model') != 'two_point':
+        p['empty_mass_model'] = 'trend'
+    for key in ('empty_mass_trend_A', 'empty_mass_trend_C', 'empty_mass_fraction', 'empty_mass_a', 'empty_mass_c'):
         p.pop(key, None)
     from calculations.bipol1 import validate_bipol1
     validate_bipol1(p)

@@ -61,21 +61,12 @@ def two_point_power_law(x1: float, y1: float, x2: float, y2: float) -> tuple[flo
     return a, c
 
 
-EMPTY_MASS_COEFFICIENTS = {
-    'glider': (0.82, -0.05),
-    'motoglider': (0.86, -0.05),
-    'piston_ga': (0.92, -0.06),
-    'turboprop_regional': (0.96, -0.05),
-    'jet_business': (1.02, -0.06),
-    'jet_transport': (0.95, -0.05),
-    'uav': (0.82, -0.04),
-}
 
 
 def validate_bipol1(p):
     options = {
         'mass_method': ('auto','proportion','proportions','iterative'),
-        'empty_mass_model': ('auto','class_correlation','fixed_fraction','trend','coefficients','two_point'),
+        'empty_mass_model': ('trend','two_point'),
         'preliminary_polar_mode': ('input','raymer','reading'),
         'raymer_family': tuple(RAYMER), 'cx0_reference_class': ('', *CX0_RANGES),
         'wetted_example': ('', 'sketch', *WETTED_EXAMPLES),
@@ -88,8 +79,7 @@ def validate_bipol1(p):
             raise ValueError(f'Nieznana opcja {key}.')
     requirements = []
     mode = p.get('empty_mass_model')
-    requirements += {'fixed_fraction':['empty_mass_fraction'], 'coefficients':['empty_mass_a','empty_mass_c'],
-                     'two_point':['mass_point_x1','mass_point_x2','mass_point_y1','mass_point_y2']}.get(mode,[])
+    requirements += {'two_point':['mass_point_x1','mass_point_x2','mass_point_y1','mass_point_y2']}.get(mode,[])
     if p.get('preliminary_polar_mode') in ('raymer','reading') and p.get('wetted_example') == 'sketch':
         requirements += ['sketch_swet_ratio']
     if p.get('preliminary_polar_mode') == 'reading':
@@ -207,76 +197,35 @@ def preliminary_polar(p):
 
 
 def empty_mass_law(p):
-    mode = p.get('empty_mass_model', 'class_correlation')
-    if mode == 'auto':
-        # Explicit assumptions always take precedence. Otherwise a well-supported
-        # trend of the actual project sample precedes the generic class correlation.
-        if p.get('empty_mass_trend_A') is not None or p.get('empty_mass_fraction') is not None:
-            return empty_mass_law(dict(p, empty_mass_model='class_correlation'))
-        from calculations.trends import mass_trend
-        rows, fit = mass_trend(p)
-        good = (fit is not None and fit['n'] >= 20 and len({r['family'] for r in rows}) >= 8
-                and fit['r2'] is not None and fit['r2'] >= .5 and fit['C'] < 0)
-        share, meta = empty_mass_law(dict(p, empty_mass_model='trend' if good else 'class_correlation'))
-        meta.update(selection_mode='auto', selection_reason=(
-            'Przyjęto trend wybranej próby: n ≥ 20, co najmniej 8 rodzin, R² ≥ 0,5 i C < 0.' if good else
-            'Próba nie spełnia przyjętych kryteriów automatycznego doboru trendu masowego '
-            '(n ≥ 20, co najmniej 8 rodzin, R² ≥ 0,5, C < 0); zastosowano korelację klasy.'),
-            selection_r2=fit['r2'] if fit else None)
-        return share, meta
-    if p.get('empty_mass_fraction') is not None and mode == 'class_correlation' and p.get('empty_mass_trend_A') is None:
-        mode = 'fixed_fraction'
+    """BIPOL_1, wzór (1): mₑ/m₀ = A·m₀^C·K_vs. A i C wynikają z dwóch punktów linii trendu
+    mₑ/m₀ = f(m₀) analizy trendów (odczyt programu) albo z dwóch punktów odczytanych przez autora."""
+    mode = p.get('empty_mass_model', 'trend')
     kvs = 1.04 if p.get('variable_sweep', False) else 1.
     meta = dict(mode=mode, unit='kg', k_vs=kvs, source='BIPOL_1.pdf, s. 1, wzór (1)')
-    if p.get('empty_mass_trend_A') is not None and mode == 'class_correlation':
-        a, c = p['empty_mass_trend_A'], p['empty_mass_trend_C']
-        mode = 'bipol1_trend'
-        meta['mode'] = mode
-    elif mode == 'trend':
-        from calculations.trends import mass_trend
-        rows, fit = mass_trend(p)
-        counts = Counter(r['family'] for r in rows)
-        if not fit:
-            raise ValueError('Masa pusta z trendu: potrzeba co najmniej 3 kompletnych konstrukcji o różnych masach. Uzupełnij dobór samolotów.')
-        from calculations.trends import two_point_coefficients
-        points = two_point_coefficients(fit)
-        a, c = points['A'], points['C']
-        meta['points'] = points
-        meta.update(n=len(rows), families=len(counts), aircraft_ids=[r['id'] for r in rows], r2=fit['r2'],
-                    valid_range=[fit['x_min'], fit['x_max']], definitions=sorted({r.get('empty_mass_definition') or 'nieokreślona' for r in rows}))
-    elif mode == 'two_point':
+    if mode == 'two_point':
         x1, x2, y1, y2 = (p[k] for k in ('mass_point_x1','mass_point_x2','mass_point_y1','mass_point_y2'))
         a, c = two_point_power_law(x1, y1, x2, y2)
         meta['valid_range'] = sorted([x1,x2])
-    elif mode == 'coefficients':
-        a, c = p['empty_mass_a'], p['empty_mass_c']
-    elif mode == 'fixed_fraction':
-        a, c, kvs = p['empty_mass_fraction'], 0., 1.
     else:
-        # Retained for existing projects; explicitly marked provisional in review.
-        a, c = EMPTY_MASS_COEFFICIENTS.get(p.get('aircraft_type','piston_ga'), (0.92, -0.06))
-        from calculations.polish_law import resolve_category, SUBCATEGORIES
-        basis = SUBCATEGORIES[resolve_category(p.get('category','normal'))]['load_basis']
-        mod = (.972 if p.get('wing_config') == 'braced_high' else 1)
-        mod *= 1.045 if basis == 'cs23_aerobatic' else 1.018 if basis in ('cs23_utility','cs22_utility') else 1
-        # LTF-UL / Annex I aircraft: two-seat 600 kg ULs weigh 290–330 kg empty (mₑ/m₀ ≈ 0.48–0.55),
-        # about 15 % below the certified light aircraft behind the piston class correlation.
-        mod *= .85 if basis == 'ltf_ul' else 1
-        mod *= 1 + .006*max(0, p.get('aspect_ratio',8)-9)
-        mod *= 1.012 if p.get('flap_type') in ('fowler','double_slotted') else 1
-        meta.update(structural_modifier=mod, source='Korelacja klasy; do zastąpienia analizą własnej próby.')
+        from calculations.trends import empty_mass_trend
+        rows, fit, points = empty_mass_trend(p)
+        if not fit:
+            raise ValueError('Równanie (1): linia trendu mₑ/m₀ = f(m₀) wymaga co najmniej 3 konstrukcji próby o różnych masach. '
+                             'Poszerz próbę porównawczą albo odczytaj dwa punkty z wykresu.')
+        a, c = points['A'], points['C']
+        counts = Counter(r['family'] for r in rows)
+        meta.update(mode='trend', n=len(rows), families=len(counts), aircraft_ids=[r['id'] for r in rows], points=points,
+                    r2=fit['r2'], valid_range=[fit['x_min'], fit['x_max']],
+                    definitions=sorted({r.get('empty_mass_definition') or 'nieokreślona' for r in rows}))
     meta.update(A=a, C=c, k_vs=kvs)
 
     def share(m):
         if m <= 0 or not math.isfinite(m):
             raise ValueError('Iteracja masy wymaga dodatniej, skończonej masy startowej.')
         try:
-            value = a*m**c*kvs
+            return a*m**c*kvs
         except OverflowError:
             return math.inf
-        if mode == 'class_correlation':
-            value = min(.74, max(.38, value*meta['structural_modifier']))
-        return value
     return share, meta
 
 

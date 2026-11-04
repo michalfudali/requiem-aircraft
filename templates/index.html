@@ -2507,6 +2507,8 @@
 
   <script>
     window.INITIAL_PORTAL_MODE = "{{ initial_portal_mode or '' }}";
+    // Projekty użytkownika z bazy projektów (serwer); przeglądarka trzyma tylko stan interfejsu.
+    window.BIPOL_PROJECTS = {{ (projects or [])|tojson }};
   </script>
   <script src="/static/vendor/katex/katex.min.js"></script>
   <script src="/static/vendor/katex/contrib/auto-render.min.js"></script>
@@ -2523,7 +2525,7 @@
   <script src="/static/js/studio-visuals.js?v=3"></script>
   <script src="/static/js/didactic_data.js?v=14"></script>
   <script src="/static/js/charts.js?v=20"></script>
-  <script src="/static/js/app.js?v=merge-20261104"></script>
+  <script src="/static/js/app.js?v=projects-db-20261104"></script>
   <script src="/static/js/didactic_modes.js?v=merge-20261104"></script>
   <script src="/static/js/constraints-ui.js?v=7"></script>
   <script src="/static/js/design-basis.js?v=8"></script>

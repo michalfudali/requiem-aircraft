@@ -199,10 +199,10 @@ def test_turbojet_uses_its_own_1970_engine_coefficient():
 
 
 def test_transport_topics_use_the_cargo_quality_control_factor_and_cost_inputs_are_validated():
-    from calculations.official_topics import build_official_topics, topic_parameters
-    topics = {t['num']: t for t in build_official_topics()}
-    assert topic_parameters(topics[68])['cost_qc_factor'] == 0.076
-    assert 'cost_qc_factor' not in topic_parameters(topics[78])
+    from calculations.official_topics import ALL_TOPICS
+    topics = {t['num']: t for t in ALL_TOPICS}
+    assert topics[68]['parameters']['cost_qc_factor'] == 0.076
+    assert 'cost_qc_factor' not in topics[78]['parameters']
     ok = validate_parameters({'cost_n_production': 300, 'cost_n_amortization': 250, 'cost_qc_factor': '0.076'})
     assert ok['cost_qc_factor'] == 0.076
     with pytest.raises(ValueError, match='N_am'):

@@ -1,4 +1,4 @@
-"""Both merged reference methods must share one sample across calculations and reports."""
+"""One comparison sample — the aircraft nearest in MTOW to the design — for every calculation and report."""
 import math
 
 import pytest
@@ -11,17 +11,16 @@ from calculations.validation import validate_parameters
 
 
 def design(**changes):
-    return dict(AIRCRAFT_PRESETS['motoglider_aos'], trend_reference_mode='design',
-                trend_nearest_count=50, empty_mass_model='trend', **changes)
+    return dict(AIRCRAFT_PRESETS['motoglider_aos'], **changes)
 
 
-def test_initial_reference_remains_an_independent_assumption():
-    p = dict(AIRCRAFT_PRESETS['motoglider_aos'], trend_reference_mode='initial',
-             trend_nearest_count=20, mass_initial_guess=700)
-    rows = select_references(p)
-    pool = sorted((r for r in load_aircraft() if r['aircraft_type'] == 'motoglider' and r['engine_type'] == 'prop'),
-                  key=lambda r: (abs(math.log(r['m0'] / 700)), r['id']))
-    assert [r['id'] for r in rows] == [r['id'] for r in pool[:20]]
+def test_an_assumed_reference_mass_is_not_a_second_sample_method():
+    # Projects saved with the former "initial" method get the one method of the guide path.
+    p = validate_parameters(design(trend_reference_mode='initial', mass_initial_guess=700, trend_nearest_count=20))
+    assert 'trend_reference_mode' not in p and 'mass_initial_guess' not in p
+    result = run_bipol_project(dict(p))
+    assert result['params']['_reference_mass'] != 700
+    assert len(result['bipol_projects']['p1']['trend_analysis']['similar_aircraft']) >= 20
 
 
 def test_design_reference_is_the_fixed_point_of_its_own_comparison_sample():
@@ -53,25 +52,14 @@ def test_project_suggestions_use_the_identical_fixed_point_and_sample(client):
     assert get_trend_suggestions('motoglider', engine_type='prop', project=params)['sample'] == analysis['sample']
 
 
-def test_migration_preserves_old_design_choice_but_recomputes_cached_values():
+def test_cached_reference_numbers_are_recomputed():
     params = design()
-    params.pop('trend_reference_mode')
     params.update(_reference={'mass': 999999}, _reference_mass=999999, _similar_count=1)
     p = validate_parameters(params)
-    assert p['trend_reference_mode'] == 'design'
     assert not {'_reference', '_reference_mass', '_similar_count'} & p.keys()
     result = run_bipol_project(params)
     assert result['params']['_reference_mass'] < 10000
     assert result['bipol_projects']['p1']['trend_analysis']['selected_n'] == 50
-
-
-def test_explicit_reference_choice_takes_precedence_over_old_cached_results():
-    params = design()
-    params.update(trend_reference_mode='initial', mass_initial_guess=700, empty_mass_model='auto',
-                  _reference={'mass': 999999})
-    result = run_bipol_project(params)
-    assert result['bipol_projects']['p1']['trend_analysis']['sample']['reference_mass'] == 700
-    assert '_reference' not in result['params']
 
 
 def test_catalog_engine_and_its_source_survive_iterative_sample_selection():
@@ -79,10 +67,4 @@ def test_catalog_engine_and_its_source_survive_iterative_sample_selection():
     assert result['engine_selection']['model'] == 'Rotax 912 UL'
     assert result['params']['sfc'] == pytest.approx(16.2 * .72 * 1000 / 43.5)
     assert result['sizing']['design_point']['power_kw'] == 58
-    assert result['params']['trend_reference_mode'] == 'design'
-
-
-@pytest.mark.parametrize('invalid', ['unknown', 1, False])
-def test_invalid_reference_method_is_rejected(invalid):
-    with pytest.raises(ValueError):
-        validate_parameters(dict(AIRCRAFT_PRESETS['motoglider_aos'], trend_reference_mode=invalid))
+    assert result['params']['_similar_count'] == 50

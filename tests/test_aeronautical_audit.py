@@ -129,13 +129,8 @@ def test_known_empty_mass_fraction_changes_the_closed_mass_balance():
     for r, fraction in [(light,.5),(heavy,.65)]:
         assert r['mass']['m_empty']/r['mass']['m0'] == pytest.approx(fraction, abs=.0002)
         assert r['mass']['empty_mass_model']=='two_point'
-    # A custom working assumption remains explicit; selecting a live trend supersedes it.
-    scalar = run_bipol_project(dict(base, empty_mass_fraction=.5))
-    assert scalar['mass']['empty_mass_model'] == 'fixed_fraction'
-    assert scalar['mass']['m_empty'] / scalar['mass']['m0'] == pytest.approx(.5)
-    trend = run_bipol_project(dict(base, empty_mass_fraction=.5, empty_mass_model='trend',
-                                  trend_reference_mode='design', trend_nearest_count=50))
-    assert trend['mass']['empty_mass_model'] == 'trend'
+    # A typed fraction is not a step of the project: it is replaced by eq. (1) of the sample.
+    assert run_bipol_project(dict(base, empty_mass_fraction=.5))['mass']['empty_mass_model'] == 'trend'
 
 
 def test_underpowered_aircraft_has_no_invented_level_flight_or_range():

@@ -244,7 +244,7 @@ def test_tier4_scenario1_student_ga_trainer_design_workflow(client):
     5. Verifies successful preliminary sizing results (geometry, aerodynamics, mass balance).
     """
     # Step 1 & 2: Fetch suggestions
-    res = client.get('/api/trends/suggestions?aircraft_type=piston_ga&m0=1150&trend_nearest_count=50&mass_initial_guess=1150')
+    res = client.get('/api/trends/suggestions?aircraft_type=piston_ga&m0=1150')
     if res.status_code != 200:
         pytest.skip("Suggestions API not yet implemented")
     
@@ -302,8 +302,13 @@ def test_tier4_scenario2_regional_turboprop_design_session(client):
     ws = sugg['ws']['suggested_value']
     ar = sugg['ar']['suggested_value']
     
-    # Regional turboprops typically have high wing loading (180-450 kg/m²) and AR 9-15
-    assert 180.0 <= ws <= 450.0, f"Turboprop W/S out of range: {ws}"
+    # BIPOL_1: the time trend of the similar aircraft is extrapolated five years ahead.
+    from calculations.trends import predict
+    item = sugg['ws']
+    if item['model_type'] == 'time_trend':
+        fit = item['provenance']['fit']
+        assert ws == pytest.approx(predict(fit, res.get_json()['forecast_year']), rel=1e-3)
+    assert 150.0 <= ws <= 700.0, f"Turboprop W/S out of range: {ws}"
     assert 9.0 <= ar <= 15.0, f"Turboprop AR out of range: {ar}"
     
     # Run calculation with regional turboprop preset updated with trend values

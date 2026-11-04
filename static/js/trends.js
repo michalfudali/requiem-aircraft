@@ -3,7 +3,7 @@
   'use strict';
   const {escape: esc, format: fmt, csv, filename} = BipolStudio;
   const $ = id => document.getElementById(id);
-  const defaults = {trend_source:'all', trend_nearest_count:0, trend_reference_mode:'initial', mass_initial_guess:5000, trend_engine_count:0, trend_year_min:0, trend_year_max:0,
+  const defaults = {trend_source:'all', trend_nearest_count:50, trend_engine_count:0, trend_year_min:0, trend_year_max:0,
     trend_weighting:'family', mission_phase_model:'galinski', fuel_reserve_factor:1.06, mission_ld_factor:0.94};
   let result, catalog, catalogPromise, page = 0, selected = new Set(), visible = [];
   let latestSuggestions = null;
@@ -21,10 +21,6 @@
 
   function syncControls() {
     for (const [key, fallback] of Object.entries(defaults)) if ($(key)) $(key).value = ['mission_phase_model','mission_ld_factor'].includes(key)?fallback:formBaseParams[key]??fallback;
-    if (!formBaseParams.trend_reference_mode && formBaseParams._reference) {
-      $('trend_reference_mode').value='design';
-      if (formBaseParams.trend_nearest_count == null) $('trend_nearest_count').value='50';
-    }
     if ($('trend_variable_sweep')) $('trend_variable_sweep').value = formBaseParams.variable_sweep ? 'true' : 'false';
   }
 
@@ -110,7 +106,6 @@
     if(!s) return false;
     // The alternative (sample mean) of eq. (1) is a fixed fraction, not the trend equation.
     const patch=BipolTrendInputs.patch(key,value??s.suggested_value,collectFormData(),currentResults?.mass?.m0,value==null?s:null);
-    if(key==='me_m0'&&!patch.empty_mass_model) patch.empty_mass_model='class_correlation';
     const previous={};
     for(const [field,fieldValue] of Object.entries(patch)) {
       previous[field]={base:formBaseParams[field],input:$(field)?.value};
@@ -275,7 +270,7 @@
     syncControls();if(currentResults)render(currentResults);
     document.querySelectorAll('[data-analysis-param]').forEach(input=>input.addEventListener('change',event=>{
       if(window.isDuplicateCalculatedChange?.(event))return;
-      if(input.id.startsWith('trend_')||input.id==='mass_initial_guess')delete formBaseParams.trend_aircraft_ids;
+      if(input.id.startsWith('trend_'))delete formBaseParams.trend_aircraft_ids;
       document.dispatchEvent(new CustomEvent('bipol:calculating'));status('Założenia zmienione — użyj „Przelicz analizę”.');
     }));
     for(const id of ['trendRecalculate','trendMissionApply'])$(id).addEventListener('click',()=>performCalculation());
