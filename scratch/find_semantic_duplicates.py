@@ -41,3 +41,4 @@ for group_name, patterns in param_groups.items():
                 lbl_m = re.search(r'<(?:label|span|th)[^>]*>([^<]+)</(?:label|span|th)>', context)
                 lbl = lbl_m.group(1).strip() if lbl_m else ''
                 print(f"  [{tpath}] ID: {fid} | Label: {lbl}")
+

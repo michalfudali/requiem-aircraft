@@ -17,3 +17,4 @@ for i, tm in enumerate(tab_matches):
         print(f"  Includes: {inc}")
     if inputs:
         print(f"  Direct Inputs ({len(inputs)}): {inputs[:10]}")
+

@@ -13,3 +13,4 @@ for p in glob.glob('templates/**/*.html', recursive=True):
             match = re.search(r'<(?:label|th|td)[^>]*for=[\'"]' + re.escape(pf) + r'[\'"][^>]*>([^<]+)', t)
             label = match.group(1).strip() if match else ''
             print(f"  id: {pf} | label: {label}")
+

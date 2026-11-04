@@ -19,3 +19,4 @@ for t in templates:
     print(f"\n--- {t} ({len(matches)} inputs) ---")
     for m in matches:
         print(f"  {m}")
+

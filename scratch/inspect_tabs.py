@@ -15,3 +15,4 @@ for t in tabs:
     print(f"\nTab: {t} (inputs: {len(inputs)})")
     if inputs:
         print("  Inputs:", inputs[:15])
+

@@ -38,3 +38,4 @@ for k, v in duplicates.items():
     print(f"\nID: '{k}'")
     for f, lbl, attrs in v:
         print(f"  file: {f} | label: {lbl} | attrs: {attrs}")
+
