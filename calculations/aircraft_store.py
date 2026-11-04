@@ -193,6 +193,12 @@ def connect(path=None):
         raise FileNotFoundError(f'Brak bazy samolotów: {path}')
     con = _open(path, 'rw')
     try:
+        # Both stores started at version 1: identify the file before migrating it.
+        required = {'aircraft', 'sources', 'catalog_state'}
+        tables = {row[0] for row in con.execute("SELECT name FROM sqlite_master WHERE type = 'table'")}
+        if not required <= tables:
+            raise RuntimeError('Plik nie jest bazą samolotów porównawczych: nieprawidłowa baza katalogu, '
+                               'brak tabel aircraft, sources lub catalog_state.')
         version = con.execute('PRAGMA user_version').fetchone()[0]
         # Upgrade in place: new tables only add data, existing records stay unchanged.
         for old, tables in ((1, REFERENCE_TABLES), (2, ENGINE_TABLES)):

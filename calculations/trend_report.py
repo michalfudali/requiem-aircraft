@@ -4,6 +4,37 @@ from markupsafe import Markup
 from calculations.trends import predict
 
 
+SCATTER_NOTE = ('Punkty o tej samej odciętej rozsunięto poziomo; '
+                'opisy i regresja używają danych źródłowych.')
+
+
+def _scatter_x_positions(points, project_x, left, right):
+    """Spread repeated x values in SVG units only; keep source coordinates intact.
+
+    Stable model order avoids a diagonal pattern along y. Limit each group to
+    12 units either side and 40% of the distance to its closest neighbour.
+    The browser uses the same layout in scatterXPositions.
+    """
+    positions = [project_x(p[0]) for p in points]
+    groups = {}
+    for i, point in enumerate(points):
+        groups.setdefault(point[0], []).append(i)
+    xs = sorted(groups)
+    for k, value in enumerate(xs):
+        indices = groups[value]
+        if len(indices) < 2:
+            continue
+        center = project_x(value)
+        spread = min(12, center - left - 4, right - center - 4)
+        for neighbour in xs[max(0, k - 1):k] + xs[k + 1:k + 2]:
+            spread = min(spread, abs(project_x(neighbour) - center) * .4)
+        spread = max(0, spread)
+        indices.sort(key=lambda i: (points[i][2], points[i][1]))
+        for rank, i in enumerate(indices):
+            positions[i] = center + spread * (2 * rank / (len(indices) - 1) - 1)
+    return positions
+
+
 def trend_chart(analysis, mode, marks=()):
     """marks: odczyty z wykresu [(x, y, opis)] zaznaczane czarnymi punktami."""
     if mode == 'mass':
@@ -36,7 +67,10 @@ def trend_chart(analysis, mode, marks=()):
     xmin -= padx; xmax += padx; ymin -= pady; ymax += pady
     def x(value): return 65+(value-xmin)/(xmax-xmin)*555
     def y(value): return 240-(value-ymin)/(ymax-ymin)*215
-    svg = [f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 650 290" role="img" aria-label="{html.escape(title)}" style="width:100%;max-height:290px"><title>{html.escape(title)}</title>']
+    positions = _scatter_x_positions(points, x, 65, 620)
+    spread = any(abs(px - x(p[0])) > 1e-6 for p, px in zip(points, positions))
+    height = 310 if spread else 290
+    svg = [f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 650 {height}" role="img" aria-label="{html.escape(title)}" style="width:100%;max-height:{height}px"><title>{html.escape(title)}</title>']
     for i in range(5):
         xv, yv = xmin+(xmax-xmin)*i/4, ymin+(ymax-ymin)*i/4
         xtick = f'{xv:.2f}' if abs(xv) < 10 else f'{xv:.0f}'
@@ -49,11 +83,15 @@ def trend_chart(analysis, mode, marks=()):
         svg.append(f'<path d="{" ".join(path)}" fill="none" stroke="#168c83" stroke-width="2"/>')
         if forecast:
             svg.append(f'<path d="M{x(fit["x_max"]):.2f} {y(predict(fit,fit["x_max"])):.2f}L{x(forecast[0]):.2f} {y(forecast[1]):.2f}" stroke="#a86621" stroke-dasharray="5 3" fill="none"/>')
-    for xv, yv, model in points:
-        svg.append(f'<circle cx="{x(xv):.2f}" cy="{y(yv):.2f}" r="3.5" fill="#5478a9"><title>{html.escape(model)}: {xv:g}; {yv:g}</title></circle>')
+    for (xv, yv, model), px in zip(points, positions):
+        svg.append(f'<circle cx="{px:.2f}" cy="{y(yv):.2f}" r="3.5" fill="#5478a9"><title>{html.escape(model)}: {xv:g}; {yv:g}</title></circle>')
     for xv, yv, label in marks:
+        at_right = x(xv) > 560
         svg.append(f'<circle cx="{x(xv):.2f}" cy="{y(yv):.2f}" r="5.5" fill="#1d1d1b" stroke="#fff" stroke-width="2"/>'
-                   f'<text x="{x(xv) + 8:.2f}" y="{y(yv) - 8:.2f}" font-size="11" font-weight="bold" '
+                   f'<text x="{x(xv) + (-8 if at_right else 8):.2f}" y="{y(yv) - 8:.2f}" text-anchor="{"end" if at_right else "start"}" font-size="11" font-weight="bold" '
                    f'stroke="#fff" stroke-width="3" paint-order="stroke">{html.escape(label)}</text>')
-    svg.append(f'<text x="340" y="284" text-anchor="middle" font-size="12">{html.escape(xlabel)}</text><text transform="translate(14 140) rotate(-90)" text-anchor="middle" font-size="12">{html.escape(ylabel)}</text></svg>')
+    svg.append(f'<text x="340" y="284" text-anchor="middle" font-size="12">{html.escape(xlabel)}</text><text transform="translate(14 140) rotate(-90)" text-anchor="middle" font-size="12">{html.escape(ylabel)}</text>')
+    if spread:
+        svg.append(f'<text x="340" y="304" text-anchor="middle" font-size="9" fill="#55544f">{SCATTER_NOTE}</text>')
+    svg.append('</svg>')
     return Markup(''.join(svg))

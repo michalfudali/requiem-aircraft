@@ -61,8 +61,7 @@ def test_tier3_interaction_crud_create_then_suggestions_recalculation(client, is
     """Interaction 1: Creating an aircraft via POST /api/aircraft increments N in suggestions."""
     # 1. Fetch initial suggestions for piston_ga
     res_before = client.get('/api/trends/suggestions?aircraft_type=piston_ga')
-    if res_before.status_code != 200:
-        pytest.skip("Suggestions API not yet implemented")
+    assert res_before.status_code == 200, res_before.get_data(as_text=True)
     
     data_before = res_before.get_json()
     n_before = data_before['sample']['selected_n']
@@ -96,8 +95,7 @@ def test_tier3_interaction_crud_create_then_suggestions_recalculation(client, is
         "dihedral_deg": 5.0
     }
     create_res = client.post('/api/aircraft', json=new_aircraft)
-    if create_res.status_code != 201:
-        pytest.skip("Aircraft CRUD POST not yet implemented")
+    assert create_res.status_code == 201, create_res.get_data(as_text=True)
     
     # 3. Fetch suggestions again - sample size N must have incremented by 1
     res_after = client.get('/api/trends/suggestions?aircraft_type=piston_ga')
@@ -134,8 +132,7 @@ def test_tier3_interaction_crud_update_then_catalog_and_regression_update(client
         "n_engines": 1
     }
     create_res = client.post('/api/aircraft', json=aircraft)
-    if create_res.status_code != 201:
-        pytest.skip("Aircraft CRUD POST not yet implemented")
+    assert create_res.status_code == 201, create_res.get_data(as_text=True)
         
     # 2. Update mass m0 from 1000 to 2000 kg
     update_res = client.put(f"/api/aircraft/{aircraft['id']}", json={"m0": 2000.0, "me": 1200.0})
@@ -153,8 +150,7 @@ def test_tier3_interaction_crud_update_then_catalog_and_regression_update(client
 def test_tier3_interaction_crud_delete_reverts_suggestions(client, isolated_db):
     """Interaction 3: Deleting an aircraft reverts suggestions sample size N and statistics."""
     res_orig = client.get('/api/trends/suggestions?aircraft_type=piston_ga')
-    if res_orig.status_code != 200:
-        pytest.skip("Suggestions API not yet implemented")
+    assert res_orig.status_code == 200, res_orig.get_data(as_text=True)
     n_orig = res_orig.get_json()['suggestions']['ws']['n']
     
     # Create then delete
@@ -179,8 +175,7 @@ def test_tier3_interaction_crud_delete_reverts_suggestions(client, isolated_db):
         "n_engines": 1
     }
     post_res = client.post('/api/aircraft', json=aircraft)
-    if post_res.status_code != 201:
-        pytest.skip("Aircraft CRUD not yet implemented")
+    assert post_res.status_code == 201, post_res.get_data(as_text=True)
     
     # Delete it
     del_res = client.delete(f"/api/aircraft/{aircraft['id']}")
@@ -220,8 +215,7 @@ def test_tier3_interaction_cross_class_engine_isolation(client, isolated_db):
         "n_engines": 2
     }
     create_res = client.post('/api/aircraft', json=jet)
-    if create_res.status_code != 201:
-        pytest.skip("Aircraft CRUD not yet implemented")
+    assert create_res.status_code == 201, create_res.get_data(as_text=True)
         
     cat_after = client.get('/api/aircraft').get_json()
     assert cat_after['counts']['piston_ga'] == piston_count_before
@@ -245,8 +239,7 @@ def test_tier4_scenario1_student_ga_trainer_design_workflow(client):
     """
     # Step 1 & 2: Fetch suggestions
     res = client.get('/api/trends/suggestions?aircraft_type=piston_ga&m0=1150')
-    if res.status_code != 200:
-        pytest.skip("Suggestions API not yet implemented")
+    assert res.status_code == 200, res.get_data(as_text=True)
     
     data = res.get_json()
     sugg = data['suggestions']
@@ -295,8 +288,7 @@ def test_tier4_scenario2_regional_turboprop_design_session(client):
     4. Submits parameters to sizing pipeline and checks twin-engine climb and field length.
     """
     res = client.get('/api/trends/suggestions?aircraft_type=turboprop_regional&m0=22000')
-    if res.status_code != 200:
-        pytest.skip("Suggestions API not yet implemented")
+    assert res.status_code == 200, res.get_data(as_text=True)
         
     sugg = res.get_json()['suggestions']
     ws = sugg['ws']['suggested_value']
@@ -361,8 +353,7 @@ def test_tier4_scenario3_fleet_database_manager_lifecycle(client, isolated_db):
         "v_h": 0.65
     }
     create_res = client.post('/api/aircraft', json=new_plane)
-    if create_res.status_code != 201:
-        pytest.skip("Aircraft CRUD not yet implemented")
+    assert create_res.status_code == 201, create_res.get_data(as_text=True)
         
     # 3. Review record
     get_res = client.get('/api/aircraft/e-falcon-200')
@@ -398,8 +389,7 @@ def test_tier4_scenario4_business_jet_high_speed_cruise_session(client):
     4. Evaluates preliminary sizing calculation with adopted suggestions.
     """
     res = client.get('/api/trends/suggestions?aircraft_type=jet_business&m0=18000')
-    if res.status_code != 200:
-        pytest.skip("Suggestions API not yet implemented")
+    assert res.status_code == 200, res.get_data(as_text=True)
         
     sugg = res.get_json()['suggestions']
     ws = sugg['ws']['suggested_value']
@@ -431,8 +421,7 @@ def test_tier4_scenario5_motoglider_cs22_soaring_sizing_session(client):
     4. Submits parameters to BIPOL calculation pipeline and verifies glide performance.
     """
     res = client.get('/api/trends/suggestions?aircraft_type=motoglider&m0=750')
-    if res.status_code != 200:
-        pytest.skip("Suggestions API not yet implemented")
+    assert res.status_code == 200, res.get_data(as_text=True)
         
     sugg = res.get_json()['suggestions']
     ws = sugg['ws']['suggested_value']

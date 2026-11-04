@@ -1,3 +1,4 @@
 # SQLite database: binary for merges; readable SQL diffs after
 #   git config diff.sqlite3.textconv "python tools/aircraft_db.py dump"
+# The dump opens both database types read-only and never runs schema migrations.
 *.sqlite3 binary diff=sqlite3

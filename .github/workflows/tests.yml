@@ -8,18 +8,106 @@ permissions:
   contents: read
 
 jobs:
-  test:
+  databases:
+    name: SQLite contracts before application import
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.11'
+      - run: python tools/check_databases.py
+
+  python:
+    name: Python ${{ matrix.python }} / ${{ matrix.os }}
+    needs: databases
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            python: '3.11'
+            coverage: --cov --cov-fail-under=90 --cov-report=xml:work/coverage.xml --cov-report=term:skip-covered
+          - os: ubuntu-latest
+            python: '3.13'
+            coverage: ''
+          - os: windows-latest
+            python: '3.11'
+            coverage: ''
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
+    env:
+      PYTHONUTF8: '1'
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: ${{ matrix.python }}
+          cache: pip
+          cache-dependency-path: |
+            requirements.txt
+            requirements-dev.txt
+            requirements-test-constraints.txt
+      - run: python -m pip install -r requirements-dev.txt -c requirements-test-constraints.txt
+      - name: All Python tests, worker isolation and coverage
+        run: python -m pytest -q -n 2 --dist=loadfile ${{ matrix.coverage }} --junitxml=work/pytest.xml
+      - name: Shipped databases remain unchanged
+        if: always()
+        run: git diff --exit-code -- data/aircraft/aircraft.sqlite3 data/projects/projects.sqlite3
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: python-${{ matrix.os }}-${{ matrix.python }}
+          path: |
+            work/pytest.xml
+            work/coverage.xml
+          if-no-files-found: warn
+
+  javascript:
+    name: All JavaScript tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.11'
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '24'
+      - run: python tools/run_js_tests.py
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: javascript
+          path: work/javascript.xml
+
+  browser:
+    name: Chromium / seven aircraft classes
+    needs: databases
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      PYTHONUTF8: '1'
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
         with:
           python-version: '3.11'
           cache: pip
           cache-dependency-path: requirements*.txt
-      - uses: actions/setup-node@v4
+      - run: python -m pip install -r requirements-browser.txt -c requirements-test-constraints.txt
+      - run: python -m playwright install --with-deps chromium
+      - run: python -m pytest tests/test_browser_acceptance.py --browser -q --junitxml=work/browser.xml
+      - name: Shipped databases remain unchanged
+        if: always()
+        run: git diff --exit-code -- data/aircraft/aircraft.sqlite3 data/projects/projects.sqlite3
+      - uses: actions/upload-artifact@v7
+        if: always()
         with:
-          node-version: '20'
-      - run: python -m pip install -r requirements-dev.txt
-      - run: python -m pytest tests -q
-      - run: node --test tests/studio_core.test.mjs tests/aircraft_project.test.mjs
+          name: chromium-traces-and-reports
+          path: |
+            work/browser.xml
+            work/browser/
+          if-no-files-found: warn

@@ -65,6 +65,14 @@ CSV próby zawiera jednostki, lokalizacje i atrybucję. JSON analizy zawiera par
 współczynniki, punkty, ograniczenia i źródła. P1 oraz pełny raport korzystają ze
 wspólnego szablonu; wykresy są osadzonym SVG i działają offline.
 
+Na wykresach w raportach, analizie i kreatorze punkty o identycznej odciętej
+rozsuwa się symetrycznie w poziomie, aby nie tworzyły pionowych kolumn.
+Rozsunięcie jest stałe dla danej próby, ograniczone do 12 jednostek SVG
+oraz 40% odległości do najbliższej innej odciętej. Dotyczy wyłącznie położenia
+znacznika; rzędne, opisy punktów, dane eksportowane, regresja i punkty odczytu
+pozostają oparte na wartościach źródłowych. Informacja o rozsunięciu jest częścią
+SVG, więc zachowuje się także w wydruku i eksporcie wykresu.
+
 Pochodzenie, licencje, przypięta rewizja i odtworzenie importu:
 [data/aircraft/README.md](../data/aircraft/README.md).
 

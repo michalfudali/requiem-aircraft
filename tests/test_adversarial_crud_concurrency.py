@@ -201,18 +201,20 @@ def test_stress_readers_during_continuous_writes(atomic_isolated_db):
     - Transactions guarantee reader isolation.
     """
     db = get_aircraft_database()
-    stop_event = threading.Event()
+    rounds = 25
+    baseline = len(load_aircraft())
+    # Start and finish each overlapping read/write round together. A fast writer
+    # cannot outrun a reader, and a busy runner cannot truncate the sample.
+    round_gate = threading.Barrier(5, timeout=30)
     writer_errors = []
     reader_errors = []
     read_counts = [0, 0, 0, 0]
+    completed_writes = []
 
     def writer_worker():
         try:
-            # SQLite writes take milliseconds: keep writing until every reader has
-            # overlapped several write cycles, not for a fixed number of cycles.
-            cycle = 0
-            while cycle < 25 or (min(read_counts) <= 5 and cycle < 2000):
-                cycle += 1
+            for cycle in range(1, rounds + 1):
+                round_gate.wait()
                 aid = f"stress-rw-plane-{cycle}"
                 payload = {
                     "id": aid,
@@ -232,31 +234,34 @@ def test_stress_readers_during_continuous_writes(atomic_isolated_db):
                 db.update(aid, {"m0": 1150.0 + cycle})
                 # Delete
                 db.delete(aid)
+                completed_writes.append(cycle)
+                round_gate.wait()
         except Exception as e:
             writer_errors.append((type(e).__name__, str(e)))
-        finally:
-            stop_event.set()
+            round_gate.abort()
 
     def reader_worker(reader_idx):
         try:
-            while not stop_event.is_set():
+            for _ in range(rounds):
+                round_gate.wait()
                 # Read all aircraft
                 all_ac = load_aircraft()
-                assert len(all_ac) >= 840
+                assert baseline <= len(all_ac) <= baseline + 1
                 
                 # Read catalog
                 cat = reference_catalog()
-                assert cat['total'] >= 840
+                assert baseline <= cat['total'] <= baseline + 1
                 
                 # Read raw rows directly, bypassing the cache
                 with aircraft_store.connect() as con:
-                    assert con.execute('SELECT COUNT(*) FROM aircraft').fetchone()[0] >= 840
+                    assert baseline <= con.execute('SELECT COUNT(*) FROM aircraft').fetchone()[0] <= baseline + 1
                     assert con.execute('PRAGMA quick_check').fetchone()[0] == 'ok'
 
                 read_counts[reader_idx] += 1
-                time.sleep(0.005)
+                round_gate.wait()
         except Exception as e:
             reader_errors.append((reader_idx, type(e).__name__, str(e)))
+            round_gate.abort()
 
     # Launch 1 writer and 4 readers
     writer_thread = threading.Thread(target=writer_worker)
@@ -266,14 +271,22 @@ def test_stress_readers_during_continuous_writes(atomic_isolated_db):
         t.start()
     writer_thread.start()
 
-    writer_thread.join(timeout=15.0)
-    stop_event.set()
-    for t in reader_threads:
-        t.join(timeout=5.0)
+    threads = [writer_thread, *reader_threads]
+    deadline = time.monotonic() + 120
+    try:
+        for t in threads:
+            t.join(timeout=max(0, deadline - time.monotonic()))
+    finally:
+        # Release peers on failure and join them before the fixture restores SQLite.
+        round_gate.abort()
+        for t in threads:
+            t.join(timeout=35)
 
-    assert len(writer_errors) == 0, f"Writer errors: {writer_errors}"
-    assert len(reader_errors) == 0, f"Reader errors during atomic writes: {reader_errors}"
-    assert all(c > 5 for c in read_counts), f"Readers did not execute sufficient iterations: {read_counts}"
+    assert not any(t.is_alive() for t in threads), 'Read/write workers did not terminate'
+    assert not (writer_errors or reader_errors), f"Read/write errors: writer={writer_errors}; readers={reader_errors}"
+    assert read_counts == [rounds] * 4, f"Incomplete read rounds: {read_counts}"
+    assert completed_writes == list(range(1, rounds + 1))
+    assert len(load_aircraft()) == baseline
 
 
 # ==============================================================================

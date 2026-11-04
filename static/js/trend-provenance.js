@@ -4,6 +4,31 @@
   const esc = value => String(value ?? '').replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
   const num = (value, digits = 3) => Number.isFinite(value) ? value.toLocaleString('pl-PL', {maximumFractionDigits: digits}) : '—';
   const unit = s => s.unit && s.unit !== '−' ? ` ${esc(s.unit)}` : '';
+  const scatterNote = 'Punkty o tej samej odciętej rozsunięto poziomo; opisy i regresja używają danych źródłowych.';
+
+  // Display coordinates only. Keep this in sync with _scatter_x_positions in trend_report.py.
+  function scatterXPositions(points, projectX, left, right) {
+    const positions = points.map(p => projectX(p.x)), groups = new Map();
+    points.forEach((p, i) => {
+      if (!groups.has(p.x)) groups.set(p.x, []);
+      groups.get(p.x).push(i);
+    });
+    const xs = [...groups.keys()].sort((a, b) => a - b);
+    xs.forEach((value, k) => {
+      const indices = groups.get(value);
+      if (indices.length < 2) return;
+      const center = projectX(value);
+      let spread = Math.min(12, center - left - 4, right - center - 4);
+      for (const neighbour of xs.slice(Math.max(0, k - 1), k).concat(xs.slice(k + 1, k + 2))) {
+        spread = Math.min(spread, Math.abs(projectX(neighbour) - center) * .4);
+      }
+      spread = Math.max(0, spread);
+      indices.sort((a, b) => points[a].model < points[b].model ? -1 :
+        points[a].model > points[b].model ? 1 : points[a].y - points[b].y);
+      indices.forEach((i, rank) => { positions[i] = center + spread * (2 * rank / (indices.length - 1) - 1); });
+    });
+    return positions;
+  }
 
   const CHART_SLOTS = [
     {
@@ -203,7 +228,9 @@
     const fmtY = y => num(y, Math.abs(ymax - ymin) < 0.2 ? 3 : Math.abs(ymax - ymin) < 12 ? 2 : 0);
     const unitSuffix = chart.unit && chart.unit !== '−' ? ` ${chart.unit}` : '';
 
-    let svg = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(chart.title)}"><title>${esc(chart.title)}</title>`;
+    const positions = scatterXPositions(pts, X, l, W - r);
+    const spread = pts.some((p, i) => Math.abs(positions[i] - X(p.x)) > 1e-6);
+    let svg = `<svg viewBox="0 0 ${W} ${H + (spread ? 20 : 0)}" role="img" aria-label="${esc(chart.title)}"><title>${esc(chart.title)}</title>`;
 
     if (Array.isArray(chart.typical_range) && chart.typical_range.length === 2) {
       const yTop = clampY(chart.typical_range[1]);
@@ -240,9 +267,9 @@
       svg += `<line x1="${l}" y1="${ym.toFixed(1)}" x2="${W - r}" y2="${ym.toFixed(1)}" stroke="#147f76" stroke-width="2.2" ${fit ? 'stroke-dasharray="7 4"' : ''}/>`;
     }
 
-    for (const p of pts) {
-      svg += `<circle cx="${X(p.x).toFixed(1)}" cy="${clampY(p.y).toFixed(1)}" r="3.8" fill="#5478a9" fill-opacity="0.75"><title>${esc(p.model)}: ${esc(fmtX(p.x))} → ${esc(num(p.y, 3))}${esc(unitSuffix)}</title></circle>`;
-    }
+    pts.forEach((p, i) => {
+      svg += `<circle cx="${positions[i].toFixed(2)}" cy="${clampY(p.y).toFixed(1)}" r="3.8" fill="#5478a9" fill-opacity="0.75"><title>${esc(p.model)}: ${esc(fmtX(p.x))} → ${esc(num(p.y, 3))}${esc(unitSuffix)}</title></circle>`;
+    });
 
     if (chart.forecast) {
       svg += `<circle cx="${X(chart.forecast.x).toFixed(1)}" cy="${clampY(chart.forecast.y).toFixed(1)}" r="5.5" fill="#a86621" stroke="#ffffff" stroke-width="1.8"><title>Prognoza ${chart.forecast.x} r.: ${esc(num(chart.forecast.y, 3))}${esc(unitSuffix)}</title></circle>`;
@@ -266,6 +293,7 @@
 
     svg += `<text x="${((l + W - r) / 2).toFixed(1)}" y="${H - 6}" text-anchor="middle" style="font-weight:600;">${esc(chart.x_label)}</text>`;
     svg += `<text transform="translate(15 ${((t + H - b) / 2).toFixed(1)}) rotate(-90)" text-anchor="middle" style="font-weight:600;">${esc(chart.y_label)}</text>`;
+    if (spread) svg += `<text x="${(l + W - r) / 2}" y="${H + 14}" text-anchor="middle" style="font-size:9px;">${scatterNote}</text>`;
     svg += '</svg>';
 
     const statsParts = [];
@@ -411,7 +439,8 @@
     });
   }
 
-  const api = {render, fetchSuggestions, applyInWizard, previewInWizard, refreshWizardCharts, renderWizardChartSvg};
+  const api = {render, fetchSuggestions, applyInWizard, previewInWizard, refreshWizardCharts, renderWizardChartSvg,
+    scatterXPositions, scatterNote};
   root.BipolTrendProvenance = api;
   if (typeof module !== 'undefined') module.exports = api;
 })(typeof globalThis !== 'undefined' ? globalThis : this);

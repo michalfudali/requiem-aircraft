@@ -1,6 +1,7 @@
 """SQLite catalogue: schema constraints, change detection, committed database and tools."""
 import json
 import os
+import shutil
 import sqlite3
 import subprocess
 import sys
@@ -9,7 +10,7 @@ from pathlib import Path
 
 import pytest
 
-from calculations import aircraft_store
+from calculations import aircraft_store, project_store
 from calculations.trends import SOURCES, load_aircraft
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -92,6 +93,24 @@ def test_missing_database_is_reported_and_not_created(tmp_path):
         with aircraft_store.connect(missing):
             pass
     assert not missing.exists()
+
+
+def test_projects_database_is_never_upgraded_into_a_catalogue(tmp_path):
+    """Both databases start at schema version 1; only the catalogue may receive aircraft tables."""
+    path = tmp_path / 'projects.sqlite3'
+    shutil.copyfile(project_store.DEFAULT_PATH, path)
+    with pytest.raises(RuntimeError, match='nie jest bazą samolotów'):
+        with aircraft_store.connect(path):
+            pass
+    with project_store.connect(path) as con:
+        assert con.execute('PRAGMA user_version').fetchone()[0] == project_store.SCHEMA_VERSION
+        assert not con.execute("SELECT 1 FROM sqlite_master WHERE name = 'engines'").fetchone()
+
+
+def test_committed_projects_database_has_its_own_schema():
+    with project_store.connect() as con:
+        tables = {row[0] for row in con.execute("SELECT name FROM sqlite_master WHERE type = 'table'")}
+    assert tables == {'presets', 'topic_categories', 'topics', 'projects'}
 
 
 def test_new_database_round_trips_sources_and_records(tmp_path):
