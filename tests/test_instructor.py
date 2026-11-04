@@ -106,9 +106,23 @@ def test_increasing_mass_trend_is_flagged_without_changing_the_fitted_observatio
         mass=500+i*100
         rows.append({**base,'id':str(i),'family':str(i),'m0':mass,'empty_fraction':.3+mass*.0001})
     monkeypatch.setattr(trends,'select_references',lambda params:rows)
-    a=analyze_trends({'aircraft_type':'piston_ga','engine_type':'prop'},1000,600)
+    a=analyze_trends({'aircraft_type':'piston_ga','engine_type':'prop', 'trend_mass_enforce_decreasing': False},1000,600)
     assert a['mass_fit']['C'] > 0 and not a['mass_trend_decreasing']
     assert any('nie jest malejący' in w for w in a['warnings'])
+
+
+def test_mass_trend_must_decrease_by_default(monkeypatch):
+    import calculations.trends as trends
+    rows=[]
+    base=next(r for r in load_aircraft() if r['aircraft_type']=='piston_ga')
+    for i in range(8):
+        mass=500+i*100
+        rows.append({**base,'id':str(i),'family':str(i),'m0':mass,'empty_fraction':.3+mass*.0001})
+    monkeypatch.setattr(trends,'select_references',lambda params:rows)
+    a=analyze_trends({'aircraft_type':'piston_ga','engine_type':'prop'},1000,600)
+    assert a['mass_fit']['C'] < 0 and a['mass_trend_decreasing']
+    assert a['mass_fit']['physically_constrained']
+    assert any('musi maleć' in w for w in a['warnings'])
 
 
 def test_csv_supplements_are_validated_persisted_and_do_not_mutate_shared_catalogue():

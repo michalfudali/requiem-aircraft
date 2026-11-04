@@ -85,3 +85,33 @@ def test_report_includes_lp_column_and_numbered_points(client):
     # Check data-point-num on SVG charts
     assert 'data-point-num=' in html
 
+
+def test_mass_trend_relationship_must_decrease():
+    """Verify that me/m0 = f(m0) strictly decreases (C < 0) for motogliders and across presets."""
+    from calculations.trends import mass_trend
+    # Test on the 12 WTLK motogliders explicitly
+    with connect() as con:
+        wtlk_rows = [dict(r) for r in con.execute("SELECT * FROM aircraft WHERE source_id = 'motogliders' AND id LIKE 'mg-wtlk-%'").fetchall()]
+    assert len(wtlk_rows) == 12
+    from calculations.trends import derived
+    wtlk_derived = [derived(r) for r in wtlk_rows]
+    sub, fit = mass_trend({'aircraft_type': 'motoglider', 'engine_type': 'prop'}, wtlk_derived)
+    assert fit is not None
+    assert fit['C'] < 0, f"Expected C < 0, got {fit['C']}"
+    assert fit['physically_constrained']
+    # Verify strict monotonicity: me/m0 decreases as m0 increases
+    y_low = fit['A'] * (200.0 ** fit['C'])
+    y_high = fit['A'] * (700.0 ** fit['C'])
+    assert y_low > y_high, "Empty mass fraction must strictly decrease with takeoff mass"
+
+    # Verify across all standard aircraft presets that instructor review passed and C < 0
+    for preset_name, preset_params in AIRCRAFT_PRESETS.items():
+        res = run_bipol_project(preset_params)
+        ta = res['bipol_projects']['p1']['trend_analysis']
+        m_fit = ta.get('mass_fit')
+        assert m_fit is not None, f"Missing mass_fit for {preset_name}"
+        assert m_fit['C'] < 0, f"Preset {preset_name} has non-negative C: {m_fit['C']}"
+        assert ta['mass_trend_decreasing'] is True
+        rev = next(c for c in res['instructor_review']['checks'] if c['key'] == 'mass_trend')
+        assert rev['passed'] is True, f"Instructor review check 'mass_trend' failed for {preset_name}"
+

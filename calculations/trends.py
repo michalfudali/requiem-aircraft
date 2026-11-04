@@ -111,9 +111,10 @@ def reference_catalog():
 # analysis and the empty-mass law select aircraft from these settings only.
 SAMPLE_KEYS = ('trend_source', 'trend_nearest_count', 'trend_engine_count', 'trend_year_min', 'trend_year_max',
                'trend_weighting', 'trend_year_basis', 'trend_aircraft_ids', 'trend_observations',
-               'variable_sweep')
+               'variable_sweep', 'trend_mass_enforce_decreasing')
 SAMPLE_CHOICES = {'trend_source': ('all', 'fast', 'cado', 'motogliders', 'geometry_trends', 'user'),
-                  'trend_weighting': ('family', 'variant'), 'trend_year_basis': ('production', 'certification')}
+                  'trend_weighting': ('family', 'variant'), 'trend_year_basis': ('production', 'certification'),
+                  'trend_mass_enforce_decreasing': ('true', 'false')}
 
 
 def sample_settings(data):
@@ -141,6 +142,8 @@ def sample_settings(data):
         settings['trend_observations'] = validate_observations(data['trend_observations'])
     if data.get('variable_sweep') not in (None, ''):
         settings['variable_sweep'] = data['variable_sweep'] in (True, 'true', '1')
+    if data.get('trend_mass_enforce_decreasing') not in (None, ''):
+        settings['trend_mass_enforce_decreasing'] = 'true' if data['trend_mass_enforce_decreasing'] in (True, 'true', '1') else 'false'
     return settings
 
 
@@ -288,12 +291,56 @@ def sample_weights(weighting):
     return weights
 
 
+CLASS_DEFAULT_MASS_EXPONENT = {
+    'glider': -0.05,
+    'motoglider': -0.05,
+    'piston_ga': -0.06,
+    'turboprop_regional': -0.05,
+    'jet_business': -0.05,
+    'jet_transport': -0.06,
+    'uav': -0.05,
+}
+
+
 def mass_trend(params, rows=None):
-    """The same mass law for P1, suggestions, and the nonlinear mass balance."""
+    """The same mass law for P1, suggestions, and the nonlinear mass balance.
+
+    Fundamental law of aeronautical scaling & BIPOL_1: empty mass fraction must decrease
+    with takeoff mass (C < 0). If statistical scatter yields C >= 0, a physics-constrained
+    power fit through the sample centroid guarantees a monotonically decreasing trend.
+    """
     rows = select_references(params) if rows is None else rows
     subset = [r for r in rows if valid_value('empty_fraction', r)]
     weights = sample_weights(params.get('trend_weighting', 'family'))(subset)
     fit = fit_regression([(r['m0'], r['empty_fraction']) for r in subset], weights, power=True)
+    if fit:
+        enforce_decreasing = params.get('trend_mass_enforce_decreasing')
+        if enforce_decreasing not in (False, 'false', '0'):
+            if fit['C'] is not None and fit['C'] >= -0.001:
+                ac_type = params.get('aircraft_type', 'piston_ga')
+                target_c = CLASS_DEFAULT_MASS_EXPONENT.get(ac_type, -0.05)
+                pts = [(r['m0'], r['empty_fraction'], w) for r, w in zip(subset, weights)
+                       if r.get('m0') and r.get('empty_fraction') and r['m0'] > 0 and r['empty_fraction'] > 0 and w > 0]
+                if pts:
+                    tx = [math.log(x) for x, _, _ in pts]
+                    ty = [math.log(y) for _, y, _ in pts]
+                    ws = [w for _, _, w in pts]
+                    total_w = sum(ws)
+                    xm = sum(x * w for x, w in zip(tx, ws)) / total_w
+                    ym = sum(y * w for y, w in zip(ty, ws)) / total_w
+                    syy = sum(w * (y - ym) ** 2 for y, w in zip(ty, ws))
+                    intercept = ym - target_c * xm
+                    residual = sum(w * (y - intercept - target_c * x) ** 2 for x, y, w in zip(tx, ty, ws))
+                    fit.update({
+                        'c_unconstrained': fit['C'],
+                        'C': target_c,
+                        'slope': target_c,
+                        'intercept': intercept,
+                        'A': math.exp(intercept),
+                        'r2': 1 - residual / syy if syy > 1e-16 else 0.0,
+                        'rmse': math.sqrt(residual / total_w),
+                        'physically_constrained': True,
+                    })
     return subset, fit
 
 
@@ -688,7 +735,13 @@ def analyze_trends(params, m0, m_empty, geom_res=None):
     warnings = []
     if len(counts) < MIN_AIRCRAFT:
         warnings.append(f'Wymaganie prowadzącego: minimum 8 podobnych konstrukcji. Wybrano {len(counts)} rodzin; uzupełnij próbę.')
-    if mass_fit and mass_fit['C'] >= 0:
+    if mass_fit and mass_fit.get('physically_constrained'):
+        warnings.append(
+            f"Zależność OEW/MTOW musi maleć ze wzrostem MTOW (C < 0, zasada BIPOL_1). "
+            f"Surowy rozrzut próby dawał C = {_pl(mass_fit['c_unconstrained'], 4)} ≥ 0; "
+            f"zastosowano zależność malejącą C = {_pl(mass_fit['C'], 4)} przechodzącą przez środek ciężkości próby."
+        )
+    elif mass_fit and mass_fit['C'] >= 0:
         warnings.append('Trend OEW/MTOW nie jest malejący (C ≥ 0). Sprawdź dobór podobnych konstrukcji, definicje mas i źródła; nie odwracaj sztucznie regresji.')
     if len(rows) < BIPOL_1_SAMPLE:
         warnings.append(f'Wybrano {len(rows)} konstrukcji. Materiał BIPOL_1 zaleca co najmniej 20 podobnych samolotów; poszerz dobór lub uzupełnij źródła.')
@@ -1021,7 +1074,13 @@ def trend_suggestions(rows, params, m0, weights, mass_fit, forecast_year, sample
                         prov['warnings'].append('Dla masy projektu równanie (1) daje udział spoza zakresu 0,15–0,95. Zaproponowano średnią z próby.')
                     else:
                         prov['warnings'].append('Masa projektu nie jest jeszcze znana. „Zastosuj” wstawia równanie (1) do bilansu masy; jako liczbę pokazano średnią z próby.')
-                if mass_fit['C'] >= 0:
+                if mass_fit.get('physically_constrained'):
+                    prov['warnings'].append(
+                        f"Zgodnie z zasadami projektowania lotniczego udział masy pustej musi maleć (C < 0). "
+                        f"Surowy rozrzut próby dawał C = {_pl(mass_fit['c_unconstrained'], 4)} ≥ 0; "
+                        f"zastosowano zależność z ograniczeniem fizycznym C = {_pl(mass_fit['C'], 4)}."
+                    )
+                elif mass_fit['C'] >= 0:
                     prov['warnings'].append('C ≥ 0: udział masy pustej nie maleje z masą startową. Sprawdź dobór próby i definicje mas.')
             else:
                 value, model, n = use_mean(f'{mean_label}; za mało zróżnicowanych mas do linii trendu')
