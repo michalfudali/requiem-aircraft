@@ -156,7 +156,7 @@ function syncFormPropulsionUI(triggerAutoSfc = false) {
       if (labelSfc) labelSfc.innerHTML = 'Zużycie TSFC c_j [1/h]';
       sfcEl.min = '0.25';
       sfcEl.max = '1.80';
-      sfcEl.step = 'any';
+      sfcEl.step = '0.01';
       if (triggerAutoSfc || isNaN(curVal) || curVal > 4.0) {
         sfcEl.value = (acType === 'jet_transport') ? '0.58' : '0.62';
       }
@@ -164,7 +164,7 @@ function syncFormPropulsionUI(triggerAutoSfc = false) {
       if (labelSfc) labelSfc.innerHTML = 'Zużycie SFC c_p [g/(kW&bull;h)]';
       sfcEl.min = '140';
       sfcEl.max = '500';
-      sfcEl.step = 'any';
+      sfcEl.step = '1';
       if (triggerAutoSfc || isNaN(curVal) || curVal < 50.0) {
         if (!triggerAutoSfc && curVal >= 0.15 && curVal <= 1.5) {
           sfcEl.value = String(Math.round(curVal * 1000));
@@ -1005,9 +1005,22 @@ function showCalculationStatus(message, error = false) {
 function validateNumericFields(root) {
   for (const input of root.querySelectorAll('input[type="number"]')) {
     if (input.disabled || input.readOnly) continue;
-    if (input.value.trim() === '' || !Number.isFinite(Number(input.value)) || !input.checkValidity()) {
+    const v = input.value.trim();
+    if (v === '' && input.required) {
       const label = document.querySelector(`label[for="${input.id}"]`)?.textContent.trim() || input.id;
-      throw new Error(`Sprawdź pole „${label}”. ${input.validationMessage || 'Podaj liczbę.'}`);
+      throw new Error(`Sprawdź pole „${label}”. Podaj liczbę.`);
+    }
+    if (v !== '') {
+      const num = Number(v);
+      if (!Number.isFinite(num)) {
+        const label = document.querySelector(`label[for="${input.id}"]`)?.textContent.trim() || input.id;
+        throw new Error(`Sprawdź pole „${label}”. Podaj prawidłową liczbę.`);
+      }
+      const val = input.validity;
+      if (val && (val.badInput || val.rangeUnderflow || val.rangeOverflow || val.valueMissing)) {
+        const label = document.querySelector(`label[for="${input.id}"]`)?.textContent.trim() || input.id;
+        throw new Error(`Sprawdź pole „${label}”. ${input.validationMessage || 'Wartość poza dopuszczalnym zakresem.'}`);
+      }
     }
   }
 }
@@ -2603,7 +2616,7 @@ function syncWizardPropulsionUI(triggerAutoSfc = false) {
       }
       sfcEl.min = '0.25';
       sfcEl.max = '1.80';
-      sfcEl.step = 'any';
+      sfcEl.step = '0.01';
       if (triggerAutoSfc || isNaN(curVal) || curVal > 4.0) {
         sfcEl.value = (acType === 'jet_transport') ? '0.58' : '0.62';
       }
@@ -2613,7 +2626,7 @@ function syncWizardPropulsionUI(triggerAutoSfc = false) {
       }
       sfcEl.min = '140';
       sfcEl.max = '500';
-      sfcEl.step = 'any';
+      sfcEl.step = '1';
       if (triggerAutoSfc || isNaN(curVal) || curVal < 50.0) {
         if (!triggerAutoSfc && curVal >= 0.15 && curVal <= 1.5) {
           sfcEl.value = String(Math.round(curVal * 1000));

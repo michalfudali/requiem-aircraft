@@ -36,16 +36,16 @@
   </div>
   <div class="input-group" data-water-scope="{{ prefix }}" hidden>
     <label for="{{ prefix }}water_displacement_volume_m3">Objętość wypornościowa kadłuba i pływaków [m³]</label>
-    <input id="{{ prefix }}water_displacement_volume_m3" type="number" min="0" max="10000" step="any" value="0">
+    <input id="{{ prefix }}water_displacement_volume_m3" type="number" min="0" max="10000" step="0.1" value="0">
     <p class="basis-note">Wpisz wartość z projektu kadłuba/pływaków. Zero oznacza brak danych. Sprawdzenie wyporności nie zastępuje stateczności ani startu i lądowania na wodzie.</p>
   </div>
   <p class="basis-note" id="{{ prefix }}basis_note">Pola wynikające z wybranych założeń są obliczane automatycznie.</p>
   <div data-cargo-scope="{{ prefix }}" hidden>
     <p class="basis-note">Wymiary użytkowe ładowni wpływają na przekrój i długość kadłuba. Wpisz wszystkie trzy wartości; zera oznaczają brak projektu ładowni. Dopasowanie konkretnego ładunku, rampa i nośność podłogi wymagają osobnego sprawdzenia.</p>
     <div class="input-row">
-      <div class="input-group"><label for="{{ prefix }}cargo_bay_length_m">Długość ładowni [m]</label><input id="{{ prefix }}cargo_bay_length_m" type="number" min="0" max="100" step="any" value="0"></div>
-      <div class="input-group"><label for="{{ prefix }}cargo_bay_width_m">Szerokość ładowni [m]</label><input id="{{ prefix }}cargo_bay_width_m" type="number" min="0" max="20" step="any" value="0"></div>
-      <div class="input-group"><label for="{{ prefix }}cargo_bay_height_m">Wysokość ładowni [m]</label><input id="{{ prefix }}cargo_bay_height_m" type="number" min="0" max="20" step="any" value="0"></div>
+      <div class="input-group"><label for="{{ prefix }}cargo_bay_length_m">Długość ładowni [m]</label><input id="{{ prefix }}cargo_bay_length_m" type="number" min="0" max="100" step="0.05" value="0"></div>
+      <div class="input-group"><label for="{{ prefix }}cargo_bay_width_m">Szerokość ładowni [m]</label><input id="{{ prefix }}cargo_bay_width_m" type="number" min="0" max="20" step="0.05" value="0"></div>
+      <div class="input-group"><label for="{{ prefix }}cargo_bay_height_m">Wysokość ładowni [m]</label><input id="{{ prefix }}cargo_bay_height_m" type="number" min="0" max="20" step="0.05" value="0"></div>
     </div>
   </div>
 </div>

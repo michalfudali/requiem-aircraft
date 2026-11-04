@@ -16,7 +16,7 @@
       <details class="p2-option-group" id="design-group-{{ group.id }}"><summary>{{ group.title }}</summary>
         <div class="cost-controls">
         {% for field in group.fields %}
-          <label class="studio-field" for="{{ field.id }}">{{ field.label }}<input id="{{ field.id }}" data-analysis-param data-optional-param type="number" min="{{ field.min }}" max="{{ field.max }}" step="any" placeholder="Wartość wg metody"></label>
+          <label class="studio-field" for="{{ field.id }}">{{ field.label }}<input id="{{ field.id }}" data-analysis-param data-optional-param type="number" min="{{ field.min }}" max="{{ field.max }}" step="{{ field.step }}" placeholder="Wartość wg metody"></label>
         {% endfor %}
         </div>
       </details>

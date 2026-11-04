@@ -30,47 +30,47 @@
   </div>
   <p class="studio-fine-print" data-bipol1-group="trend">Linia trendu pochodzi z próby porównawczej z zakładki „Baza i analiza trendów”; ta sama linia jest w raporcie z analizy trendów.</p>
   <div class="trend-controls" data-bipol1-group="two_point">
-    <label>x₁: masa [kg]<input id="mass_point_x1" data-bipol1 type="number" min="1" value="1000"></label>
-    <label>y₁: mₑ/m₀<input id="mass_point_y1" data-bipol1 type="number" min="0.01" max="0.99" step="any" value="0.60"></label>
-    <label>x₂: masa [kg]<input id="mass_point_x2" data-bipol1 type="number" min="1" value="2000"></label>
-    <label>y₂: mₑ/m₀<input id="mass_point_y2" data-bipol1 type="number" min="0.01" max="0.99" step="any" value="0.55"></label>
+    <label>x₁: masa [kg]<input id="mass_point_x1" data-bipol1 type="number" step="1" min="1" value="1000"></label>
+    <label>y₁: mₑ/m₀<input id="mass_point_y1" data-bipol1 type="number" min="0.01" max="0.99" step="0.01" value="0.60"></label>
+    <label>x₂: masa [kg]<input id="mass_point_x2" data-bipol1 type="number" step="1" min="1" value="2000"></label>
+    <label>y₂: mₑ/m₀<input id="mass_point_y2" data-bipol1 type="number" min="0.01" max="0.99" step="0.01" value="0.55"></label>
   </div>
   <label data-bipol1-group="two_point">Źródło odczytu i definicja masy pustej<input id="mass_law_source" data-bipol1 type="text" maxlength="4000" placeholder="Dokument, strona, próba; co obejmuje masa pusta"></label>
   <details open><summary>Przebieg misji</summary>
     <p>Zasięg projektu oznacza całą trasę. Dolot = zasięg całkowity − powrót. Zrzut dotyczy cargo; pasażerowie i załoga pozostają na pokładzie.</p>
     <div class="trend-controls">
-      <label>Odcinek powrotny [km]<input id="return_range_km" data-bipol1 type="number" min="0" value="0"></label>
-      <label>Zrzucany ładunek cargo [kg]<input id="payload_drop_kg" data-bipol1 type="number" min="0" value="0"></label>
-      <label>Prędkość krążenia TAS [km/h]<input id="loiter_speed_kmh" data-bipol1 type="number" min="1" max="1200" placeholder="Jak przelotowa, jeśli puste"></label>
-      <label>Czas maksymalnej mocy / ciągu [min]<input id="max_power_time_min" data-bipol1 type="number" min="0" max="1440" value="0"></label>
+      <label>Odcinek powrotny [km]<input id="return_range_km" data-bipol1 type="number" step="1" min="0" value="0"></label>
+      <label>Zrzucany ładunek cargo [kg]<input id="payload_drop_kg" data-bipol1 type="number" step="1" min="0" value="0"></label>
+      <label>Prędkość krążenia TAS [km/h]<input id="loiter_speed_kmh" data-bipol1 type="number" step="1" min="1" max="1200" placeholder="Jak przelotowa, jeśli puste"></label>
+      <label>Czas maksymalnej mocy / ciągu [min]<input id="max_power_time_min" data-bipol1 type="number" step="1" min="0" max="1440" value="0"></label>
     </div>
     <div class="trend-controls" data-bipol1-task>
       <div style="grid-column: 1 / -1; font-size: 0.8rem; color: #475569; background: #f1f5f9; padding: 0.45rem 0.65rem; border-radius: 4px; margin-bottom: 0.35rem; border-left: 3px solid #0284c7;">
         ℹ️ <strong>Dodatkowa faza na mocy maksymalnej:</strong> Poniższe parametry dotyczą wyłącznie opcjonalnego etapu misji na mocy maksymalnej (np. 5 min wznoszenia lub zrzutu). Główne przelotowe SFC samolotu oraz nominalną moc silnika konfiguruje się w <strong>Module 4 (Założenia)</strong>.
       </div>
-      <label data-bipol1-prop>Maksymalna moc łączna na etapie zadania [kW]<input id="max_power_kw" data-bipol1 type="number" min="0" step="any" placeholder="0 = z mocy silników"></label>
-      <label data-bipol1-jet>Maksymalny ciąg łączny na etapie zadania [kN]<input id="max_thrust_kn" data-bipol1 type="number" min="0" step="any" placeholder="0 = z ciągu silników"></label>
-      <label>SFC etapu maksymalnego (np. start/wznoszenie) <span id="bipol1SfcUnit"></span><input id="max_power_sfc" data-bipol1 type="number" min="0.001" max="1000" step="any" placeholder="Domyślnie z SFC przelotowego"></label>
+      <label data-bipol1-prop>Maksymalna moc łączna na etapie zadania [kW]<input id="max_power_kw" data-bipol1 type="number" min="0" step="1" placeholder="0 = z mocy silników"></label>
+      <label data-bipol1-jet>Maksymalny ciąg łączny na etapie zadania [kN]<input id="max_thrust_kn" data-bipol1 type="number" min="0" step="0.1" placeholder="0 = z ciągu silników"></label>
+      <label>SFC etapu maksymalnego (np. start/wznoszenie) <span id="bipol1SfcUnit"></span><input id="max_power_sfc" data-bipol1 type="number" min="0.001" max="1000" step="0.01" placeholder="Domyślnie z SFC przelotowego"></label>
     </div>
   </details>
   <details><summary>Wznoszenie i rozpędzanie — Corke</summary>
     <div class="trend-controls">
       <label>Metoda<select id="climb_fraction_mode" data-bipol1><option value="auto">Wykres; poza zakresem oznaczone przybliżenie</option><option value="corke">Tylko wykres — bez ekstrapolacji</option><option value="reading">Własne odczyty rzędnych</option></select></label>
-      <label>Wysokość początkowa [m]<input id="climb_start_altitude_m" data-bipol1 type="number" min="0" max="20000" value="0"></label>
-      <label>Początkowa TAS [km/h]<input id="climb_start_speed_kmh" data-bipol1 type="number" min="1" max="1200" placeholder="Jak przelotowa, jeśli puste"></label>
+      <label>Wysokość początkowa [m]<input id="climb_start_altitude_m" data-bipol1 type="number" step="10" min="0" max="20000" value="0"></label>
+      <label>Początkowa TAS [km/h]<input id="climb_start_speed_kmh" data-bipol1 type="number" step="1" min="1" max="1200" placeholder="Jak przelotowa, jeśli puste"></label>
     </div>
     <div class="trend-controls" data-bipol1-corke-reading>
-      <label>Rzędna początkowa Wₚ/W₀,₁<input id="corke_start_ordinate" data-bipol1 type="number" min="0.001" max="1" step="any" value="0.99"></label>
-      <label>Rzędna końcowa Wₘ/W₀,₁<input id="corke_end_ordinate" data-bipol1 type="number" min="0.001" max="1" step="any" value="0.98"></label>
+      <label>Rzędna początkowa Wₚ/W₀,₁<input id="corke_start_ordinate" data-bipol1 type="number" min="0.001" max="1" step="0.005" value="0.99"></label>
+      <label>Rzędna końcowa Wₘ/W₀,₁<input id="corke_end_ordinate" data-bipol1 type="number" min="0.001" max="1" step="0.005" value="0.98"></label>
     </div>
     <p>Proporcja masy jest ilorazem rzędnych wykresu. Macha wyznaczamy z TAS i atmosfery ISA na obu wysokościach. <a href="/static/images/bipol1-corke.png" target="_blank" rel="noopener">Wykres źródłowy</a>.</p>
   </details>
   <details><summary>Szkic, powierzchnia omywana i biegunowa wstępna</summary>
     <div class="trend-controls">
       <label>S<sub>wet</sub>/S — układ z rys. 1<select id="wetted_example" data-bipol1><option value="">Automatycznie: układ najbliższy klasie samolotu</option>{% for key, row in wetted_examples.items() %}<option value="{{ key }}">{{ row.label[:1]|upper }}{{ row.label[1:] }} — {{ row.swet_ratio|reportnum(2) }}</option>{% endfor %}<option value="sketch">Własny pomiar na szkicu</option></select></label>
-      <label data-bipol1-sketch>S<sub>wet</sub>/S zmierzony na szkicu<input id="sketch_swet_ratio" data-bipol1 type="number" min="1" max="20" step="any" value="4"></label>
+      <label data-bipol1-sketch>S<sub>wet</sub>/S zmierzony na szkicu<input id="sketch_swet_ratio" data-bipol1 type="number" min="1" max="20" step="0.05" value="4"></label>
       <label>K<sub>max</sub> z rys. 2<select id="preliminary_polar_mode" data-bipol1><option value="raymer">Odczyt programu z krzywej</option><option value="reading">Własny odczyt z wykresu</option></select></label>
-      <label data-bipol1-raymer-reading>Własny odczyt K<sub>max</sub><input id="raymer_kmax" data-bipol1 type="number" min="1" max="150" step="any" value="15"></label>
+      <label data-bipol1-raymer-reading>Własny odczyt K<sub>max</sub><input id="raymer_kmax" data-bipol1 type="number" min="1" max="150" step="0.5" value="15"></label>
       <label>Klasa do porównania C<sub>x0</sub><select id="cx0_reference_class" data-bipol1><option value="">Automatycznie wg klasy samolotu</option><option value="single_fixed">Jednosilnikowy, stałe podwozie</option><option value="single_retractable">Jednosilnikowy, chowane podwozie</option><option value="small_twin">Mały dwusilnikowy</option><option value="transport">Duży transportowy</option><option value="military">Bojowy</option><option value="agricultural">Rolniczy</option><option value="motoglider">Motoszybowiec</option></select></label>
     </div>
     <p>Metoda BIPOL_1, s. 2–3: S<sub>wet</sub>/S ze szkicu lub z rys. 1 → Λ<sub>wet</sub> = Λ/(S<sub>wet</sub>/S) → K<sub>max</sub> z krzywej rys. 2 dla rodzaju samolotu (szybowce, śmigłowe z podwoziem stałym lub chowanym, cywilne odrzutowe) → C<sub>x0</sub> = π·Λ·e/(4·K<sub>max</sub>²) → porównanie z tabelą wartości typowych. Odczyt poza narysowaną krzywą przedłuża się zgodnie z jej kształtem (K<sub>max</sub> ∝ √Λ<sub>wet</sub>) i oznacza do potwierdzenia. <a href="/static/images/bipol1-wetted-area.png" target="_blank" rel="noopener">Rys. 1 — S<sub>wet</sub>/S</a> · <a href="/static/images/bipol1-raymer.png" target="_blank" rel="noopener">Rys. 2 i tabela C<sub>x0</sub></a>.</p>

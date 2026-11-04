@@ -50,7 +50,8 @@ GROUPS = [
 
 
 def controls():
-    from calculations.validation import NUMERIC_LIMITS
+    from calculations.validation import NUMERIC_LIMITS, NUMERIC_STEPS
     return [{'id': group, 'title': title, 'fields': [
-        {'id': key, 'label': label, 'min': NUMERIC_LIMITS[key][0], 'max': NUMERIC_LIMITS[key][1]}
+        {'id': key, 'label': label, 'min': NUMERIC_LIMITS[key][0], 'max': NUMERIC_LIMITS[key][1],
+         'step': NUMERIC_STEPS.get(key, 'any')}
         for key, label in fields]} for group, title, fields in GROUPS]

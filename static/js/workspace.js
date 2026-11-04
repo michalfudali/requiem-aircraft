@@ -293,7 +293,7 @@
       if(revealBtn)requestAnimationFrame(()=>{const target=$(revealBtn.dataset.reveal);target?.scrollIntoView({block:'center',behavior:'instant'});target?.focus({preventScroll:true});});
       if(event.target.closest('[data-toggle-explanations]'))$('toggleDidacticHintsBtn').click();
       if(event.target.closest('[data-studio-target="tab-inputs"]')&&$('calculationStatus').classList.contains('is-error')) {
-        const invalid=[...$('designForm').querySelectorAll('input[type=number]')].find(input=>!input.value.trim()||!Number.isFinite(Number(input.value))||!input.checkValidity());
+        const invalid=[...$('designForm').querySelectorAll('input[type=number]')].find(input=>{ if(input.disabled||input.readOnly)return false; const v=input.value.trim(); if(!v||!Number.isFinite(Number(v)))return true; const val=input.validity; return val&&(val.badInput||val.rangeUnderflow||val.rangeOverflow||val.valueMissing); });
         if(invalid) {
           invalid.closest('.module-body')?.classList.remove('collapsed');
           if(invalid.closest('.advanced-only'))setSidebarMode('advanced');

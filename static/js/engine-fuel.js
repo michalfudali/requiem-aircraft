@@ -92,7 +92,7 @@
     for (const key of keys) {
       const el = $(key);
       if (!el || el.disabled || !el.value.trim()) { delete data[key]; continue; }
-      if (!el.checkValidity()) throw Error(`Dane silnika: ${el.closest('label')?.textContent.trim() || key}. ${el.validationMessage}`);
+      const val=el.validity; if(val&&(val.badInput||val.rangeUnderflow||val.rangeOverflow||val.valueMissing)) throw Error(`Dane silnika: ${el.closest('label')?.textContent.trim() || key}. ${el.validationMessage}`);
       data[key] = el.type === 'number' ? Number(el.value) : el.value;
     }
     if (data.engine_fuel_mode === 'custom') {
