@@ -21,6 +21,7 @@ from calculations.trends import (
     SOURCES,
     get_trend_suggestions,
     load_aircraft,
+    select_references,
 )
 
 G0 = 9.80665
@@ -221,16 +222,21 @@ class TestDatabaseConsistencyOracle:
             rec['thrust_to_weight'] = (t_kn * 1000 / (mass * G0)) if (t_kn and mass and mass > 0) else None
             cls.raw_records.append(rec)
 
+    def selected_records(self, ac_class, engine):
+        ids = {r['id'] for r in select_references(dict(aircraft_type=ac_class, engine_type=engine,
+                                                      trend_nearest_count=0))}
+        # Verify values with independent SQL-derived records after choosing one variant per family.
+        return [r for r in self.raw_records if r['id'] in ids]
+
     @pytest.mark.parametrize("ac_class", list(CLASSES.keys()))
     def test_sample_counts_match_database_records(self, client, ac_class):
-        """Without m0 the sample is the whole class with its default propulsion; counts match raw SQL."""
+        """Without m0 the sample contains one best variant of each matching family."""
         res = client.get(f'/api/trends/suggestions?aircraft_type={ac_class}')
         assert res.status_code == 200
         data = res.get_json()
         suggestions = data['suggestions']
 
-        class_records = [r for r in self.raw_records if r.get('aircraft_type') == ac_class
-                         and r.get('engine_type') == data['engine_type']]
+        class_records = self.selected_records(ac_class, data['engine_type'])
         assert data['sample']['selected_n'] == len(class_records)
         for item in suggestions.values():
             # Every value is traceable: n equals the observations listed in its provenance.
@@ -293,8 +299,7 @@ class TestDatabaseConsistencyOracle:
         res = client.get(f'/api/trends/suggestions?aircraft_type={ac_class}')
         data = res.get_json()
         suggestions = data['suggestions']
-        class_records = [r for r in self.raw_records if r.get('aircraft_type') == ac_class
-                         and r.get('engine_type') == data['engine_type']]
+        class_records = self.selected_records(ac_class, data['engine_type'])
 
         # Check wing loading stats if sample exists
         ws_vals = [r['wing_loading_kg_m2'] for r in class_records if r.get('m0') and r.get('wing_loading_kg_m2')]

@@ -395,9 +395,17 @@ def test_tier4_scenario4_business_jet_high_speed_cruise_session(client):
     ws = sugg['ws']['suggested_value']
     ar = sugg['ar']['suggested_value']
     
-    # Business jets typically have W/S in 250-650 kg/m² and AR in 5.5-11.0
+    # An accepted forecast for independent families can exceed historical typical AR.
     assert 250.0 <= ws <= 650.0, f"Business jet W/S out of range: {ws}"
-    assert 5.5 <= ar <= 11.0, f"Business jet AR out of range: {ar}"
+    from calculations.trends import PHYSICAL_BOUNDS, predict
+    assert PHYSICAL_BOUNDS['ar'][0] < ar < PHYSICAL_BOUNDS['ar'][1]
+    origin = sugg['ar']['provenance']
+    if sugg['ar']['model_type'] == 'time_trend':
+        expected = predict(origin['fit'], res.get_json()['forecast_year'])
+    else:
+        observations = origin['observations']
+        expected = sum(o['value'] * o['weight'] for o in observations) / sum(o['weight'] for o in observations)
+    assert ar == pytest.approx(expected, abs=.01)
     
     jet_payload = copy.deepcopy(AIRCRAFT_PRESETS['vlj_jet'])
     jet_payload['wing_loading'] = ws

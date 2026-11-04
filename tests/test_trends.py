@@ -106,7 +106,7 @@ def test_similar_aircraft_are_the_nearest_in_mass_to_the_design():
     reference = r['params']['_reference_mass']
     sample = r['bipol_projects']['p1']['trend_analysis']['similar_aircraft']
     assert len(sample) == SIMILAR_COUNT and reference == design_reference(r['params'], SIMILAR_COUNT)['mass']
-    pool = sorted((x for x in load_aircraft() if x['aircraft_type']=='motoglider' and x['engine_type']=='prop'),
+    pool = sorted(whole,
                   key=lambda x: (abs(math.log(x['m0']/reference)), x['id']))
     assert [x['id'] for x in sample] == [x['id'] for x in pool[:SIMILAR_COUNT]]
     # m0 only evaluates eq. (1): the same project parameters give the same sample.

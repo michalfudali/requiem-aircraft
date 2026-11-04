@@ -14,6 +14,7 @@ from calculations.trends import (
     CLASSES,
     get_trend_suggestions,
     load_aircraft,
+    select_references,
     predict,
     fit_regression,
     compute_vector_stats,
@@ -86,8 +87,8 @@ def test_empirical_estimation_correctness(ac_class):
     # All 12 parameters must be present
     assert set(s.keys()) == set(REQUIRED_KEYS)
 
-    # Verify sample sizes are consistent with raw catalog (class and its default propulsion)
-    all_ac = [r for r in load_aircraft() if r.get('aircraft_type') == ac_class and r.get('engine_type') == res['engine_type']]
+    # Verify the independent-family sample of this class and its default propulsion.
+    all_ac = select_references(dict(aircraft_type=ac_class, engine_type=res['engine_type'], trend_nearest_count=0))
     n_total = len(all_ac)
     assert n_total > 0, f"Class {ac_class} has 0 records in catalog"
     assert res['sample']['selected_n'] == n_total
