@@ -67,6 +67,11 @@ całkowane krokami 1 km, masę skrzydła ze wzoru Raymera, prędkości JAR 22.33
 | Tematy | Kategoria akrobacyjna niezgodna po przejściu na klucze JAR; temat 25 bez układu tandem | Porównanie po kategorii, poprawka katalogu |
 | Raport | Założenia misji opisane jako wymagania tematu; brak kropek mnożenia; `prop`, `land`; opis klap przy klapolotkach | Etykieta „Założenie misji”, poprawione wzory i nazwy |
 | Import | Plik samych parametrów odrzucany mimo opisu „importowalny” | Import przyjmuje taki plik |
+| Profil | P3 liczył płat zawsze danymi NACA 23012 | Opcja `airfoil_model` z danymi wybranego profilu: gradient, α₀, Cm i parabola oporu |
+| JAR 25.121 | Gradient z jednym silnikiem niepracującym nie był liczony | Liczony z biegunowej startowej P4 przy V2; dobór mocy i ciągu go uwzględnia |
+| Dobór napędu | Wymagana Vmax nie wchodziła do mocy z biegunowej P4 | Wchodzi; tematy wyścigowe osiągają wymaganą prędkość |
+| Przykłady | Presety bez domknięcia z biegunową P4 i bez przejścia do właściwej kategorii | Otwierane w aplikacji działają jak tematy oficjalne |
+| Próba | Samoloty ultralekkie porównywane z cięższymi tej samej klasy | Próba ograniczona do 660 kg, gdy jest co najmniej 8 rodzin |
 
 ## Otwarte sprawy
 

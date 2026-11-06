@@ -166,7 +166,8 @@ def delete_user_project(project_id):
 @app.route('/api/presets', methods=['GET'])
 def get_presets():
     # An example opened in the studio closes its mass with the P4 polar, like a course topic.
-    return jsonify({key: {'design_iteration_mode': 'coupled', **preset} for key, preset in AIRCRAFT_PRESETS.items()})
+    return jsonify({key: {'design_iteration_mode': 'coupled', 'topic_origin': 'example', 'category_seed': preset.get('category'),
+                          **preset} for key, preset in AIRCRAFT_PRESETS.items()})
 
 
 @app.post('/api/preliminary-polar')

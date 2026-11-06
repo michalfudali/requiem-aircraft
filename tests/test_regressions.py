@@ -145,12 +145,13 @@ def test_passengers_are_not_silently_removed_to_make_project_compliant():
     assert result['easa_compliance']['n_errors'] > 0
 
 
-def test_unverified_one_engine_inoperative_climb_is_warning_in_api_and_report(client):
-    # JAR 25.121 needs an engine-out analysis the preliminary design does not make: reported, not hidden.
+def test_one_engine_inoperative_climb_comes_from_the_take_off_polar_and_sizes_the_power(client):
+    # JAR 25.121, second segment: two engines need 2,4% at V2 with the remaining one.
     result = client.post('/api/calculate', json=AIRCRAFT_PRESETS['regional_turboprop']).json
     check = next(c for c in result['compliance_checks'] if 'jednym silnikiem niepracującym' in c['parameter'])
-    assert check['severity'] == 'warning' and check['rule'] == 'jar25.121'
-    assert '<td>do oceny</td>' in client.get('/report?preset=regional_turboprop').get_data(as_text=True)
+    assert check['rule'] == 'jar25.121' and check['passed']
+    gradient = result['performance']['oei_gradient_pct']
+    assert check['actual'] == f'{gradient:.1f} %' and gradient >= 2.4
 
 
 @pytest.mark.parametrize('url', ['/', '/holistic', '/projekty', '/report', '/report/project/folder_cover'] + [f'/report/project/p{i}' for i in range(1,7)])

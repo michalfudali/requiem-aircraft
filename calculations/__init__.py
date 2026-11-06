@@ -21,7 +21,7 @@ from calculations.runway import refine_takeoff_sizing
 from calculations.instructor import review_coursework
 from calculations.official_topics import validate_topic_geometry, check_topic_requirements, fixed_occupants
 from calculations.design_solver import resolve_design, refine_flight_sizing
-from calculations.flight_model import level_flight_envelope
+from calculations.flight_model import level_flight_envelope, one_engine_out_gradient
 from calculations.model_scope import assessment, is_water
 from calculations.profile_geometry import resolve_profile_geometry
 from calculations.constraints import resolve_and_lock_parameters, finalize_parameter_states, get_initial_constraint_suggestions, WING_PLANFORMS
@@ -123,7 +123,7 @@ def _size_airframe(params, param_states):
 def _scope_category(params, m0):
     """Kategoria wymagana przez JAR 23.1 dla tematu oficjalnego w przydzielonej mu kategorii, inaczej None."""
     from calculations.polish_law import resolve_category, scope_category
-    if params.get('topic_origin') != 'official' or not params.get('category_seed'):
+    if params.get('topic_origin') not in ('official', 'example') or not params.get('category_seed'):
         return None
     if resolve_category(params.get('category')) != resolve_category(params['category_seed']):
         return None
@@ -200,6 +200,8 @@ def run_bipol_project(params: dict):
     # Etap P5: Osiągi samolotu (prędkości, wznoszenie, pułap, start, lądowanie)
     perf_res = calculate_performance(m0, geom_res, aero_res, sizing_res, params, mass_result=mass_res)
     perf_res["glide"] = calculate_glide_polar(m0, geom_res, aero_res, params["cruise_altitude_m"], params=params)
+    perf_res["oei_gradient_pct"] = one_engine_out_gradient(params, sizing_res, m0, geom_res['wing']['S'], aero_res['cz_max_to'],
+                                                           aero_res['cx0_to'], aero_res['k_to'])
     
     # Etap P6: Obwiednia obciążeń dopuszczalnych V-n
     envelope_res = calculate_vn_envelope(m0, geom_res, aero_res, perf_res, params)

@@ -75,6 +75,27 @@ def propeller_efficiency(params, speed_ms):
     return float(params.get('prop_efficiency', .82)) * max(.45, 1 - .18 * (speed_ms / design - 1) ** 2)
 
 
+def one_engine_out_drag(mass, area, cz_max_to, cd0_to, k_to):
+    """V2 = 1,2 VS (take-off configuration, sea level) and the drag there, in the second segment."""
+    weight = mass * G0
+    v2 = 1.2 * (2 * weight / (1.225 * area * cz_max_to)) ** .5
+    q = .5 * 1.225 * v2 ** 2
+    cl = weight / (q * area)
+    return v2, q * area * (cd0_to + k_to * cl ** 2)
+
+
+def one_engine_out_gradient(params, sizing, mass, area, cz_max_to, cd0_to, k_to):
+    """Climb gradient [%] with one engine inoperative, or None for a single engine."""
+    engines = int(float(params.get('n_engines', 1) or 1))
+    if engines < 2 or params.get('engine_type') == 'none':
+        return None
+    v2, drag = one_engine_out_drag(mass, area, cz_max_to, cd0_to, k_to)
+    dp, lapse = sizing['design_point'], propulsion_lapse(params, 0, v2)
+    thrust = ((dp.get('thrust_kn') or 0) * 1000 * lapse if params.get('engine_type') == 'jet'
+              else (dp.get('power_kw') or 0) * 1000 * lapse * propeller_efficiency(params, v2) / v2)
+    return 100 * (thrust * (engines - 1) / engines - drag) / (mass * G0)
+
+
 def flight_point(params, sizing, mass, area, cd0, k, altitude, speed):
     """Force/power balance at one TAS, at the stated mass and altitude."""
     atmosphere = isa_atmosphere(altitude)

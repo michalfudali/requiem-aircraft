@@ -255,6 +255,10 @@ def select_references(params):
     engines = int(params.get('trend_engine_count', 0))
     if engines:
         pool = [r for r in pool if r['n_engines'] == engines]
+    # Samoloty podobne do ultralekkiego to ultralekkie: cięższe konstrukcje tej samej klasy mają inny udział masy.
+    if params.get('category') in ('easa_optout_ul', 'cs_lsa'):
+        light = [r for r in pool if r['m0'] <= 660]
+        pool = light if len({r['family'] for r in light}) >= 8 else pool
     ymin, ymax = int(params.get('trend_year_min', 0)), int(params.get('trend_year_max', 0))
     if ymin or ymax:
         pool = [r for r in pool if r.get('year') is not None and (not ymin or r.get('year') >= ymin) and (not ymax or r.get('year') <= ymax)]

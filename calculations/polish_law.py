@@ -614,6 +614,14 @@ def regulation_values(params, mass_res, envelope_res=None):
     return out
 
 
+def oei_gradient_required(params):
+    """JAR 25.121: gradient [%] drugiego odcinka startu z jednym silnikiem niepracującym, inaczej None."""
+    engines = int(float(params.get("n_engines", 1) or 1))
+    if SUBCATEGORIES[resolve_category(params.get("category"))]["regulation"] != "JAR-25" or engines < 2:
+        return None
+    return {2: 2.4, 3: 2.7}.get(engines, 3.0)
+
+
 def climb_requirement(params, m0):
     """Wymaganie wznoszenia przy wszystkich silnikach pracujących, jeśli przepisy je podają."""
     cat = resolve_category(params.get("category"))
@@ -677,8 +685,9 @@ def check_compliance(params: dict, mass_res: dict, geom_res: dict = None, perf_r
         checks.append(_chk("Osoby na pokładzie (UAS)", "0 os. (pilot w GCS)", f"{occupants} os.", occupants == 0, scope))
     else:
         crew_min = sub.get("crew_min", 1)
-        checks.append(_chk("Minimalna załoga lotnicza", f"≥ {crew_min} os.", f"{n_crew} os.", n_crew >= crew_min, None,
+        checks.append(_chk("Minimalna załoga lotnicza", f"≥ {crew_min} os.", f"{n_crew} os.", n_crew >= crew_min or bool(params.get("_crew_fixed")), None,
                            "warning" if params.get("topic_origin") == "official" else "error",
+                           note="Liczbę osób narzuca tytuł tematu." if params.get("_crew_fixed") else "",
                            source=("Założenie programu: 2 pilotów (minimalna załoga ustalana w certyfikacji, "
                                    "JAR 25.1523 poza wyjątkami)") if sub["regulation"] == "JAR-25"
                            else "Założenie programu: co najmniej jeden pilot"))
@@ -742,10 +751,13 @@ def check_compliance(params: dict, mass_res: dict, geom_res: dict = None, perf_r
         else:
             checks.append(_chk(climb["label"], f"≥ {climb['value']:g} m/s", f"{rate:.2f} m/s", rate >= climb["value"],
                                climb["rule"], note="Największa prędkość wznoszenia na poziomie morza."))
-    if sub["regulation"] == "JAR-25" and n_engines >= 2:
-        required = {2: 2.4, 3: 2.7}.get(n_engines, 3.0)
-        checks.append(_chk("Gradient wznoszenia z jednym silnikiem niepracującym (drugi odcinek startu)",
-                           f"≥ {required:g} %", "nie wyznaczono w projekcie wstępnym", False, "jar25.121", "warning"))
+    required = oei_gradient_required(params)
+    gradient = (perf_res or {}).get("oei_gradient_pct")
+    if required:
+        name = "Gradient wznoszenia z jednym silnikiem niepracującym (drugi odcinek startu)"
+        checks.append(_chk(name, f"≥ {required:g} %", f"{gradient:.1f} %", gradient >= required, "jar25.121",
+                           note="Konfiguracja startowa, V2 = 1,2 VS, poziom morza, biegunowa startowa P4.") if gradient is not None
+                      else _chk(name, f"≥ {required:g} %", "nie wyznaczono", False, "jar25.121", "warning"))
 
     # Motoszybowiec: W/b², start, opadanie.
     if sub.get("w_b2_max") and b > 0:

@@ -2,7 +2,8 @@
 import math
 
 from calculations.atmosphere import G0, isa_atmosphere
-from calculations.flight_model import mission_masses, propeller_efficiency, propulsion_lapse
+from calculations.polish_law import oei_gradient_required
+from calculations.flight_model import mission_masses, one_engine_out_drag, propeller_efficiency, propulsion_lapse
 
 # Finer than the course's 0.1% mass criterion, but above the precision of
 # tabulated component correlations. Final range is independently checked in P5.
@@ -113,8 +114,22 @@ def refine_flight_sizing(sizing, geom, aero, params, mass):
             left = a
     climb = climb_rating((left+right)/2)
     cruise = cruise_thrust if engine == 'jet' else cruise_thrust*speed/propeller_efficiency(params, speed)
-    requirement = max(climb, cruise)
-    governing = 'przelot (biegunowa P4)' if cruise >= climb else 'wznoszenie (biegunowa P4)'
+
+    def rating_at(needed, v):
+        needed /= max(propulsion_lapse(params, 0, v), 1e-12)
+        return needed if engine == 'jet' else needed*v/propeller_efficiency(params, v)
+    # Maximum speed of the topic, from the P4 polar rather than the preliminary one.
+    required_top = float(params.get('v_max_required_kmh') or 0)/3.6
+    top = rating_at(drag(mass['m0'], 1.225, required_top), required_top) if required_top else 0.
+    # JAR 25.121: the remaining engines carry the second segment.
+    gradient, engines, one_out = oei_gradient_required(params), int(float(params.get('n_engines', 1) or 1)), 0.
+    if gradient and engines >= 2:
+        v2, drag_v2 = one_engine_out_drag(mass['m0'], area, aero['cz_max_to'], aero['cx0_to'], aero['k_to'])
+        one_out = rating_at(drag_v2+weight*gradient/100, v2)*engines/(engines-1)
+    candidates = {'przelot (biegunowa P4)': cruise, 'wznoszenie (biegunowa P4)': climb,
+                  'prędkość maksymalna (biegunowa P4)': top, 'wznoszenie z jednym silnikiem niepracującym': one_out}
+    governing = max(candidates, key=candidates.get)
+    requirement = candidates[governing]
     sizing['flight_model_requirement'] = dict(engine_type=engine, cruise_entry_mass_kg=cruise_mass,
         cruise_rating=cruise, climb_rating=climb, required_rating=requirement,
         unit='N' if engine == 'jet' else 'W', cx0=aero['cx0_clean'], k=aero['k_clean'],
