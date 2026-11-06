@@ -6,9 +6,9 @@
       <!-- Wizard Header -->
       <div class="wizard-header">
         <div>
-          <span class="wizard-eyebrow">OD ZAŁOŻEŃ DO SAMOLOTU · BIPOL I</span>
+          <span class="wizard-eyebrow">PRACOWNIA PROJEKTOWA · BIPOL I</span>
           <h3 id="wizardWorkspaceTitle">Kreator projektu</h3>
-          <div class="wizard-subtitle">Ustal misję, wybierz napęd i zbuduj konfigurację. Program pokaże, co z niej wynika.</div>
+          <div class="wizard-subtitle">Zbuduj samolot od pierwszych założeń. Wybierz misję, napęd i aerodynamikę, sprawdź zależności, a następnie oblicz cały projekt.</div>
         </div>
         <div class="wizard-header-actions">
           <button type="button" class="btn btn-outline" id="wizRestoreSaved" hidden>Wczytaj zapisane założenia</button>
@@ -17,28 +17,35 @@
         </div>
       </div>
 
+      <div class="wizard-dashboard">
+        <div><span class="wizard-eyebrow">AKTUALNY ETAP</span><strong id="wizardStageLabel">01 / 05 · Temat i założenia</strong></div>
+        <div class="wizard-readiness"><span id="wizardReadinessLabel">Sprawdzanie danych wejściowych…</span><progress id="wizardReadinessProgress" max="4" value="0" aria-label="Etapy z poprawnymi danymi liczbowymi"></progress><small>Kontrola pól; wykonalność projektu sprawdzisz po obliczeniu.</small></div>
+        <button type="button" class="btn btn-outline" id="wizReviewBtn">Przejrzyj założenia <span aria-hidden="true">↗</span></button>
+      </div>
+
       <!-- Stepper Tabs -->
       <aside class="wizard-navigation" aria-label="Etapy projektu">
+      <div class="wizard-navigation-sticky">
       <div class="wizard-stepper">
         <button type="button" class="wizard-step-tab active" data-step="1" aria-controls="wizardPane1">
           <span class="step-circle">1</span>
-          <span class="step-title">Temat i założenia</span>
+          <span class="step-title">Temat i założenia<small>Klasa, geometria, ładunek</small><span class="wizard-step-status" data-step-status="1"></span></span>
         </button>
         <button type="button" class="wizard-step-tab" data-step="2" aria-controls="wizardPane2">
           <span class="step-circle">2</span>
-          <span class="step-title">Misja i osiągi</span>
+          <span class="step-title">Misja i osiągi<small>Zasięg, prędkość, lotnisko</small><span class="wizard-step-status" data-step-status="2"></span></span>
         </button>
         <button type="button" class="wizard-step-tab" data-step="3" aria-controls="wizardPane3">
           <span class="step-circle">3</span>
-          <span class="step-title">Napęd i paliwo</span>
+          <span class="step-title">Napęd i paliwo<small>Silnik, moc, zużycie paliwa</small><span class="wizard-step-status" data-step-status="3"></span></span>
         </button>
         <button type="button" class="wizard-step-tab" data-step="4" aria-controls="wizardPane4">
           <span class="step-circle">4</span>
-          <span class="step-title">Płat i aerodynamika</span>
+          <span class="step-title">Płat i aerodynamika<small>Opór, obrys, mechanizacja</small><span class="wizard-step-status" data-step-status="4"></span></span>
         </button>
         <button type="button" class="wizard-step-tab" data-step="5" aria-controls="wizardPane5">
           <span class="step-circle">5</span>
-          <span class="step-title">Sprawdź i oblicz</span>
+          <span class="step-title">Sprawdź i oblicz<small>Przegląd przed obliczeniem</small></span>
         </button>
       </div>
       <div class="wizard-context">
@@ -48,10 +55,12 @@
         <p id="wizardDraftStatus" role="status" aria-live="polite">Szkic gotowy do edycji</p>
         <small>Zmiany zastosujesz do projektu po przeliczeniu w ostatnim etapie.</small>
       </div>
+      </div>
       </aside>
 
       <!-- Wizard Body with Step Panes -->
       <div class="wizard-body">
+      <div class="wizard-form">
 
         <!-- KROK 1: Przeznaczenie, Klasa i Kategoria Zdatności -->
         <div class="wizard-pane active" id="wizardPane1">
@@ -453,6 +462,8 @@
             <p>Sprawdź wprowadzone założenia projektowe przed uruchomieniem pełnego ciągu obliczeń BIPOL I.</p>
           </div>
 
+          <section id="wizardReviewIssues" class="wizard-review-issues" aria-label="Pola wymagające poprawy" hidden></section>
+
           <div class="table-responsive">
             <table class="b-table">
               <thead>
@@ -467,12 +478,32 @@
 
       </div>
 
+      <aside class="wizard-insight-panel" aria-label="Podgląd aerodynamiki szkicu">
+        <div class="wizard-insight-sticky">
+          <span class="wizard-eyebrow">PODGLĄD OBLICZEŃ · P1 / P2</span>
+          <h5>Biegunowa Twojego projektu</h5>
+          <p id="wizardPolarBasis">Na podstawie bieżących założeń kreatora.</p>
+          <div id="wizardPolarMetrics" class="wizard-polar-metrics" aria-live="polite"></div>
+          <div id="wizardPolarChart" class="wizard-polar-chart"></div>
+          <div class="wizard-polar-probe" id="wizardPolarProbe" hidden>
+            <label for="wizPolarCl">Sprawdź punkt biegunowej: C<sub>L</sub> = <output id="wizPolarClValue" for="wizPolarCl">0,50</output></label>
+            <input id="wizPolarCl" type="range" min="0" max="2" step="0.01" value="0.5">
+            <p id="wizardPolarPoint"></p>
+          </div>
+          <details class="wizard-polar-equations"><summary>Wzory i wyniki pośrednie</summary><div id="wizardPolarEquations"></div></details>
+          <p class="wizard-method-note">Model paraboliczny, konfiguracja gładka. Zakres C<sub>L</sub> na wykresie nie stanowi granicy przeciągnięcia. Podgląd nie uwzględnia trymowania ani oporu falowego.</p>
+        </div>
+      </aside>
+
+      </div>
+
       <!-- Wizard Footer Controls -->
       <div id="wizardValidationStatus" class="wizard-validation-status" role="alert"></div>
       <div class="wizard-footer">
         <button type="button" class="btn btn-outline" id="wizBackBtn" style="visibility:hidden;">
           ⬅️ Wstecz
         </button>
+        <span class="wizard-footer-hint" id="wizardFooterHint">Zmiany w szkicu zapisują się automatycznie.</span>
         <div style="display:flex; gap:0.6rem; align-items:center;">
           <button type="button" class="btn btn-outline" id="wizCancelBtn">
             Zobacz wyniki

@@ -2761,7 +2761,7 @@ function openWizard(mode = 'create') {
     if (wizNameInput) wizNameInput.value = `Projekt Samolotu #${list.length + 1}`;
   } else {
     if (wizardModalTitle) {
-      wizardModalTitle.textContent = 'Edytuj założenia projektu';
+      wizardModalTitle.textContent = 'Kreator projektu';
     }
     syncFormToWizard();
     const active = getActiveProject();

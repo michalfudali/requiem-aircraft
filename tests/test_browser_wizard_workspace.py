@@ -194,3 +194,81 @@ def test_stage_navigation_reveals_heading_and_moves_keyboard_focus(studio, width
     assert stage.evaluate('el => el.tagName') == 'BUTTON'
     stage.focus(); page.keyboard.press('Space')
     assert_heading_visible(2)
+
+
+@pytest.mark.parametrize('width', [1680, 390])
+def test_live_polar_chart_matches_equations_and_probe_does_not_edit_project(studio, width):
+    page, _, output = studio
+    page.set_viewport_size({'width':width, 'height':1000})
+    step(page, 4)
+    page.locator('[name="wiz_drag_basis"][value="input"]').check()
+    page.locator('#wiz_cx0').fill('0.032')
+    page.locator('#wiz_oswald_e').fill('0.82')
+    expect(page.locator('#wizardPolarMetrics')).to_contain_text('0,03200')
+    expect(page.locator('#wizardPolarChart svg')).to_be_visible()
+    ar = float(page.locator('#wiz_aspect_ratio').input_value())
+    k = 1/(math.pi*ar*.82)
+    before = page.evaluate('JSON.stringify(projectStore.read("bipol_wizard_drafts_v1", {}))')
+    saved_cd0 = page.evaluate('currentResults.params.cx0')
+    page.locator('#wizPolarCl').fill('1')
+    expect(page.locator('#wizardPolarPoint')).to_contain_text(f'{.032+k:.5f}'.replace('.', ','))
+    expect(page.locator('#wizardPolarPoint')).to_contain_text(f'{1/(.032+k):.2f}'.replace('.', ','))
+    assert page.evaluate('JSON.stringify(projectStore.read("bipol_wizard_drafts_v1", {}))') == before
+    assert page.evaluate('currentResults.params.cx0') == saved_cd0
+    page.locator('.wizard-polar-equations summary').click()
+    expect(page.locator('#wizardPolarEquations .katex').first).to_be_visible()
+    # The plotted optimum must be the analytic maximum of C_L / C_D.
+    svg = page.locator('#wizardPolarChart svg')
+    clmax = float(page.locator('#wizPolarCl').get_attribute('max'))
+    optimal_y = float(svg.locator('.polar-optimum').get_attribute('cy'))
+    assert (190-optimal_y)/162*clmax == pytest.approx(math.sqrt(.032/k))
+    page.screenshot(path=str(output/'wizard-engineering-preview.png'), full_page=True)
+    # Moving between responsive layouts keeps one plot and its controls.
+    page.set_viewport_size({'width':390 if width > 1000 else 1680, 'height':1000})
+    assert page.locator('#wizardPolarChart').count() == 1
+    expect(page.locator('#wizardPolarChart svg')).to_be_visible()
+
+
+def test_review_links_focus_invalid_field_and_preview_clears_stale_results(studio):
+    page, _, _ = studio
+    step(page, 4)
+    page.locator('[name="wiz_drag_basis"][value="input"]').check()
+    page.locator('#wiz_cx0').fill('0.034')
+    expect(page.locator('#wizardPolarMetrics')).to_contain_text('0,03400')
+    page.locator('#wiz_cx0').fill('')
+    expect(page.locator('#wizardPolarChart')).to_be_empty()
+    expect(page.locator('#wizardPolarMetrics')).to_be_empty()
+    expect(page.locator('#wizardPolarProbe')).to_be_hidden()
+    expect(page.locator('#wizardReadinessProgress')).to_have_attribute('value', '3')
+    page.locator('#wizReviewBtn').click()
+    expect(page.locator('#wizardPane5')).to_be_visible()
+    page.locator('[data-invalid-field="wiz_cx0"]').click()
+    expect(page.locator('#wizardPane4')).to_be_visible()
+    expect(page.locator('#wiz_cx0')).to_be_focused()
+    page.locator('#wiz_cx0').fill('0.03')
+    expect(page.locator('#wizardReadinessProgress')).to_have_attribute('value', '4')
+    expect(page.locator('#wizardPolarMetrics')).to_contain_text('0,03000')
+
+
+def test_preview_ignores_late_response_from_previous_drag_basis(studio):
+    page, base, _ = studio
+    step(page, 4)
+    pending = []
+    page.route('**/api/preliminary-polar', lambda route: pending.append(route))
+    page.locator('[name="wiz_drag_basis"][value="input"]').check()
+    page.locator('#wiz_cx0').fill('0.031')
+    page.wait_for_timeout(400)
+    assert pending
+    previous = pending[-1]
+    page.locator('[name="wiz_drag_basis"][value="raymer"]').check()
+    page.locator('#wiz_wetted_example').select_option('sketch')
+    page.locator('#wiz_sketch_swet_ratio').fill('4.6')
+    page.wait_for_timeout(400)
+    current = pending[-1]
+    assert current != previous
+    current.fulfill(response=page.request.post(base+'/api/preliminary-polar', data=current.request.post_data_json))
+    expect(page.locator('#wizardPolarBasis')).to_contain_text('wykres Raymera')
+    expected = page.locator('#wizardPolarMetrics').inner_text()
+    # An aborted request can still finish at the server. It must not replace the new basis.
+    previous.fulfill(response=page.request.post(base+'/api/preliminary-polar', data=previous.request.post_data_json))
+    expect(page.locator('#wizardPolarMetrics')).to_have_text(expected, use_inner_text=True)

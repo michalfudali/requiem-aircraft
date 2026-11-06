@@ -16,13 +16,7 @@ CASES = [('ga_trainer', 'piston_ga'), ('regional_turboprop', 'turboprop_regional
          ('glider_pw5', 'glider'), ('uav_tactical', 'uav'), ('transport', 'jet_transport')]
 
 
-@pytest.mark.parametrize('preset,aircraft_type', CASES, ids=[case[1] for case in CASES])
-def test_every_aircraft_class_calculates_in_browser_and_renders_offline_report(studio, chromium, preset, aircraft_type):
-    page, base, output = studio
-    params = dict(AIRCRAFT_PRESETS['vlj_jet' if preset == 'transport' else preset])
-    if preset == 'transport':
-        params.update(aircraft_type='jet_transport', category='cs25_transport', n_pax=120,
-                      range_km=3500, cruise_speed_kmh=750, cruise_altitude_m=10000, v_stall_kmh=200)
+def normalized_params(page, base, params):
     # Presets and saved projects may predate the current design rules. Start from
     # the API-normalized design (crew mass, take-off requirement and category),
     # then use the actual edit/calculate controls with that valid baseline.
@@ -33,6 +27,17 @@ def test_every_aircraft_class_calculates_in_browser_and_renders_offline_report(s
     takeoff_limit = ui_limits(resolve_category(params['category'])).get('takeoff_distance_m', {}).get('max')
     if takeoff_limit is not None:
         params['takeoff_distance_m'] = min(params.get('takeoff_distance_m', takeoff_limit), takeoff_limit)
+    return params
+
+
+@pytest.mark.parametrize('preset,aircraft_type', CASES, ids=[case[1] for case in CASES])
+def test_every_aircraft_class_calculates_in_browser_and_renders_offline_report(studio, chromium, preset, aircraft_type):
+    page, base, output = studio
+    params = dict(AIRCRAFT_PRESETS['vlj_jet' if preset == 'transport' else preset])
+    if preset == 'transport':
+        params.update(aircraft_type='jet_transport', category='cs25_transport', n_pax=120,
+                      range_km=3500, cruise_speed_kmh=750, cruise_altitude_m=10000, v_stall_kmh=200)
+    params = normalized_params(page, base, params)
     page.evaluate('params => loadProjectIntoForm({name:"CI acceptance",params})', params)
     field = edit_inputs(page, 'aspect_ratio')
     field.fill(str(params['aspect_ratio']))
@@ -188,9 +193,10 @@ def test_calculation_graph_mouse_pan_and_real_formula(studio):
 
 
 def test_engine_proposal_drives_fuel_and_survives_reload(studio):
-    page, _, _ = studio
+    page, base, _ = studio
+    params = normalized_params(page, base, AIRCRAFT_PRESETS['motoglider_aos'])
     page.evaluate('async params => {loadProjectIntoForm({name:"Engine acceptance",params}); await performCalculation();}',
-                  AIRCRAFT_PRESETS['motoglider_aos'])
+                  params)
     navigate(page, 'tab-inputs')
     reveal_details(page.locator('#engineFuelPanel'))
     page.locator('#engine_fuel_mode').select_option('catalog')
