@@ -51,7 +51,7 @@ charakterystyk rzeczywistego profilu ani zgodności certyfikacyjnej.
 |---|---|---|
 | P1, koncepcja i misja | Właściwy temat, rzeczywisty silnik i źródło SFC; raport z analizą porównawczą | Własny szkic i konsultacja misji; uzasadnienie wstępnej biegunowej |
 | P2, dobór | 58 kW dostępne; moc wymagana jest dużo mniejsza | Dobór lżejszej lub lepiej dopasowanej instalacji i konkretnego śmigła; uzasadnienie punktu przelotu |
-| P3, masy | P1 daje ok. 215 kg masy pustej, niezależny model zespołów ok. 562 kg po użyciu rzeczywistej geometrii i obwiedni | Zweryfikowanie stosowalności modelu Raymera GA do motoszybowca oraz mas struktury i rzeczywistej instalacji. Normalizacja procentów nie rozwiązuje sprzeczności |
+| P3, masy | P1 daje ok. 212 kg masy pustej, niezależny model zespołów ok. 562 kg po użyciu rzeczywistej geometrii, obwiedni i rozszerzonej bazy porównawczej | Zweryfikowanie stosowalności modelu Raymera GA do motoszybowca oraz mas struktury i rzeczywistej instalacji. Normalizacja procentów nie rozwiązuje sprzeczności |
 | P3, geometria | Zakres ŚC mieści się w założeniach kursowych; audyt wykazuje za mały kąt ochrony ogona i kąt podwozia za ŚC | Rzeczywista geometria podwozia, ugięcia i punkty kontaktu; ponowna kontrola rysunku |
 | P3/P4, profil i przeciągnięcie | Aktualne t/c = 0,12 jest założeniem, nie zatwierdzonym profilem; oderwanie wypada w obszarze klapolotki | Wybór i porównanie profili, dane dla właściwego Re/Macha, zwichrzenie i skuteczność lotek |
 | P4/P5, śmigło | Wspólna średnica i obroty z wyboru użytkownika albo doboru wstępnego | Mapa konkretnego śmigła; wstępny model sprawności nie jest pomiarem |
@@ -77,6 +77,12 @@ Zakładka P3 i raport rozdzielają niezależne masy zespołów od ich rozkładu
 przeskalowanego do masy pustej P1. Rozkład do wyważenia zachowuje proporcje
 poszczególnych usterzeń i instalacji. Nadal jest warunkowym oszacowaniem;
 nie zastępuje rzeczywistych mas ani ich rozmieszczenia w konstrukcji.
+Przykładowo [producent Rotax 912 UL](https://www.flyrotax.com/products/912-ul-a-f)
+podaje 55,4 kg dla silnika z przekładnią; wydech i pozostałe elementy instalacji
+są wymienione osobno. Tymczasem przeskalowany zespół napędowy tego studium
+jest lżejszy nawet od samego silnika. To dodatkowy, niezależny powód, aby
+nie zatwierdzać takiego rozkładu jako rzeczywistych mas ani wyważenia gotowej
+konstrukcji. Potrzebne są masy konkretnej konfiguracji i jej osprzętu.
 Audyt informuje też, gdy wykładnik prawa masy P1 narzucono z założenia klasy,
 ponieważ regresja próby nie dała malejącego udziału masy pustej. Raportowany
 surowy wykładnik pozostaje dostępny, a taki model wymaga uzasadnienia.

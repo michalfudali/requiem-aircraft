@@ -132,11 +132,12 @@ body[data-workspace-view=semester] .quiet-return { display:flex; }
 @media(max-width:760px) {
   .studio-layout .app-container { padding:12px 16px 32px; }
   .studio-layout .bipol-navbar { padding:12px 16px; }
-  .studio-layout .navbar-inner { flex-direction:row; flex-wrap:nowrap; align-items:center; }
-  .studio-layout .navbar-actions { width:auto; margin-left:auto; }
-  .studio-layout .studio-topbar-left { margin:0; }
-  .studio-breadcrumb { font-size:11px; }
-  .studio-breadcrumb b { font-size:13px; }
+  .studio-layout .bipol-navbar .navbar-inner { flex-direction:column; align-items:stretch; gap:8px; }
+  .studio-layout .navbar-actions { width:100%; margin:0; display:flex; flex-wrap:wrap; gap:6px; }
+  .studio-layout .studio-topbar-left { margin:0; min-width:0; }
+  .studio-layout .studio-save-line { flex-wrap:wrap; gap:4px 12px; }
+  .studio-breadcrumb { font-size:11px; min-width:0; overflow-wrap:anywhere; line-height:1.4; }
+  .studio-breadcrumb b { display:block; font-size:13px; }
   .studio-layout .project-bar-container { flex-direction:row; align-items:center; flex-wrap:nowrap; padding:9px; }
   .studio-layout .project-bar-left { width:auto; }
   .studio-layout .project-bar-right { width:auto; }

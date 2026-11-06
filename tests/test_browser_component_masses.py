@@ -12,6 +12,11 @@ def test_class2_comparison_is_visible_in_p3_and_in_the_actual_report(studio,widt
     page,base,output=studio
     page.set_viewport_size({'width':width,'height':1000})
     navigate(page,'tab-p3')
+    # A long active-tab title must not push report/search/theme actions off-screen.
+    assert page.locator('.bipol-navbar').evaluate('el => el.scrollWidth <= el.clientWidth+1')
+    for action in ('btnNavSearch','navRecalcPill','openReportBtn','themeToggleBtn','btnShortcutsNav'):
+        rect=page.locator('#'+action).bounding_box()
+        assert rect and 0 <= rect['x'] and rect['x']+rect['width'] <= width+1
     expect(page.locator('#p3MassEstimateNote')).to_contain_text('Niezależne oszacowanie zespołów')
     reveal_details(page.locator('#p3ComponentComparison'))
     page.locator('#p3ComponentComparison > summary').click()
