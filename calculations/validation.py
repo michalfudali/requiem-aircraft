@@ -265,6 +265,15 @@ def validate_parameters(data):
     if 'propeller_rpm' in p or 'prop_rpm' in p:
         p['propeller_rpm'] = shaft_rpm(p)
         p.pop('prop_rpm', None)
+    if p.get('airfoil_model'):
+        section = p['airfoil_model']
+        limits = dict(a_inf_rad=(3, 8), alpha_0_deg=(-12, 6), cm_ac=(-.4, .2), cx_min=(.002, .05), re_ref=(1e4, 1e9),
+                      cz_cx_min=(-1, 2), cx_quad=(0, .1))
+        if not isinstance(section, dict):
+            raise ValueError('Dane profilu muszą być obiektem z wielkościami profilu.')
+        for key, (low, high) in limits.items():
+            if key in section and not low <= float(section[key]) <= high:
+                raise ValueError(f'Dane profilu: {key} poza zakresem {low:g}–{high:g}.')
     if 'cx0_deviation_reason' in p and (not isinstance(p['cx0_deviation_reason'], str) or len(p['cx0_deviation_reason']) > 2000):
         raise ValueError('Uzasadnienie odchylenia Cx₀ musi być tekstem do 2000 znaków.')
     if 'airfoil_source' in p and (not isinstance(p['airfoil_source'], str) or len(p['airfoil_source']) > 4000):

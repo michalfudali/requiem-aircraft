@@ -67,10 +67,10 @@
 <h3>Charakterystyki aerodynamiczne płata</h3>
 {% set p2=res.aerodynamics.paturski_p2 %}
 <p>Charakterystyki aerodynamiczne płata \(C_z(\alpha)\), \(C_m(\alpha)\) i \(C_x(C_z)\) wyznaczono metodą klasyczną {{ cite('paturski') }} na podstawie danych tunelowych profilu{{ xref('tab-airfoil-data') }} z uwzględnieniem skończonego wydłużenia i poprawek Glauerta{{ xref('fig-glauert') }}.</p>
-<table class="compact-table" id="tab-airfoil-data"><caption>Charakterystyki profilu przyjęte do obliczeń płata (badania tunelowe profilu NACA 23012 {{ cite('paturski') }})</caption><thead><tr><th>Wielkość</th><th>Symbol i wartość</th></tr></thead><tbody>
+<table class="compact-table" id="tab-airfoil-data"><caption>Charakterystyki profilu przyjęte do obliczeń płata ({% if p2w.section_source %}{{ p2w.section_source }}{% else %}badania tunelowe profilu NACA 23012 {{ cite('paturski') }}{% endif %})</caption><thead><tr><th>Wielkość</th><th>Symbol i wartość</th></tr></thead><tbody>
 <tr><td>Gradient siły nośnej profilu</td><td>\(a_\infty={{ p2w.a_inf_rad|texnum(3) }}\;\mathrm{rad^{-1}}\)</td></tr>
 <tr><td>Kąt zerowej siły nośnej</td><td>\(\alpha_0={{ p2w.alpha_0_deg|texnum(2) }}{}^{\circ}\)</td></tr>
-<tr><td>Najmniejszy współczynnik oporu (Re = 10⁷)</td><td>\(C'_{x\,min}={{ p2w.cx_min_1_tunnel|texnum(4) }}\)</td></tr>
+<tr><td>Najmniejszy współczynnik oporu ({{ 'Re = 10⁷' if p2w.re_ref_cx == 10000000 else 'Re = ' ~ p2w.re_ref_cx|reportnum(0) }})</td><td>\(C'_{x\,min}={{ p2w.cx_min_1_tunnel|texnum(4) }}\)</td></tr>
 <tr><td>Współczynnik momentu względem środka aerodynamicznego</td><td>\(C_{m,SA}={{ p2w.cm_sa_profile|texnum(3) }}\)</td></tr>
 <tr><td>Położenie środka aerodynamicznego</td><td>\(\bar x_{SA}={{ p2w.x_sa_bar|texnum(3) }}\)</td></tr>
 <tr><td>Maksymalny współczynnik siły nośnej</td><td>\(c_{z\,max}={{ p2w.cz_max_clean|texnum(2) }}\)</td></tr>

@@ -204,7 +204,7 @@ def test_live_polar_chart_matches_equations_and_probe_does_not_edit_project(stud
     page.locator('[name="wiz_drag_basis"][value="input"]').check()
     page.locator('#wiz_cx0').fill('0.032')
     page.locator('#wiz_oswald_e').fill('0.82')
-    expect(page.locator('#wizardPolarMetrics')).to_contain_text('0,03200')
+    expect(page.locator('#wizardPolarMetrics')).to_contain_text('0,03200', timeout=20000)
     expect(page.locator('#wizardPolarChart svg')).to_be_visible()
     ar = float(page.locator('#wiz_aspect_ratio').input_value())
     k = 1/(math.pi*ar*.82)

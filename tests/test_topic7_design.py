@@ -1,12 +1,14 @@
 """Temat 7: wynik programu sprawdzony rachunkiem ręcznym, niezależnym od modułów obliczeniowych."""
 import json
 import math
+import statistics
 from pathlib import Path
 
 import pytest
 
 from calculations import run_bipol_project
-from calculations.mass import group_masses
+from calculations.mass import estimate_component_masses, group_masses
+from calculations.trends import load_aircraft
 
 G, RHO0 = 9.80665, 1.225
 CASE = Path(__file__).parents[1] / 'data/design_cases/topic7_motoszybowiec_21m.json'
@@ -78,8 +80,9 @@ def test_wing_mass_from_the_equation_of_analiza_masowa(design):
     p, m, w = design['params'], design['mass'], design['geometry']['wing']
     lb, ft2, psf = 2.2046226, 10.76391, .0208854
     q = .5 * isa_density(p['cruise_altitude_m']) * (p['cruise_speed_kmh'] / 3.6) ** 2 * psf
+    n_z = m['component_closure']['n_ult']
     wing = (.036 * (w['S'] * ft2) ** .758 * (m['m_fuel'] * lb) ** .0035 * p['aspect_ratio'] ** .6 * q ** .006
-            * p['taper_ratio'] ** .04 * (100 * w['tc_ratio']) ** -.3 * (1.5 * 5.3 * m['m0'] * lb) ** .49 * .85) / lb
+            * p['taper_ratio'] ** .04 * (100 * w['tc_ratio']) ** -.3 * (n_z * m['m0'] * lb) ** .49 * .85) / lb
     assert m['detailed_breakdown']['wing'] == pytest.approx(wing, rel=1e-3)
 
 
@@ -118,4 +121,34 @@ def test_engine_keeps_its_mass_and_airframe_absorbs_the_difference():
 
 
 def test_component_masses_use_the_ultimate_factor_of_the_envelope(design):
-    assert design['mass']['component_closure']['n_ult'] == pytest.approx(design['envelope']['limits']['n_ult_pos'])
+    limits = design['envelope']['limits']
+    assert design['mass']['component_closure']['n_ult'] == pytest.approx(max(limits['n_ult_pos'], abs(limits['n_ult_neg'])))
+
+
+REAL_MOTOGLIDERS = ('mg-hoffmann-h36-dimona', 'mg-scheibe-sf-28a-tandem-falke', 'mg-hb-flugtechnik-hb-23-hobbyliner',
+                    'mg-valentin-taifun-17s', 'mod-pl-21', 'mod-pl-22', 'mod-pl-23', 'mod-pl-24', 'mod-pl-10', 'mod-pl-14', 'mod-pl-11',
+                    'mg-avo-68-samburo', 'mg-fournier-rf5b', 'mg-grob-g109b', 'mg-stemme-s10vt', 'mg-szd-45-ogar', 'mg-vivat-l13se',
+                    'mg-schleicher-ash31mi', 'mg-scheibe-sf25c-rotax', 'mg-diamond-hk36ts', 'mg-fournier-rf4d')
+
+
+def test_mass_equations_reproduce_real_motogliders():
+    """Wzory Raymera z korektą kompozytową a masa własna 21 konstrukcji z bazy: bez błędu systematycznego."""
+    rows = {r['id']: r for r in load_aircraft()}
+    ratios = []
+    for key in REAL_MOTOGLIDERS:
+        r = rows[key]
+        area, span, m0 = r['s'], r['b'], r['m0']
+        length = max(5.5, min(.45 * span, 8.5))
+        arm, diameter = .55 * length, .85
+        geom = dict(wing=dict(S=area, AR=span ** 2 / area, b=span, tc_ratio=.14, sweep_deg=0, eta=.5),
+                    fuselage=dict(length=length, diameter=diameter, S_wet=math.pi * diameter * length * .75),
+                    horizontal_tail=dict(S_h=.55 * area * area / span / arm, AR_h=4.5, l_h=arm),
+                    vertical_tail=dict(S_v=.03 * area * span / arm, AR_v=1.5))
+        params = dict(aircraft_type='motoglider', engine_type='prop', n_engines=1, engine_power_kw=r['p_kw'], m_fuel=.07 * m0,
+                      n_crew=1, n_pax=1, technology='composite', cruise_speed_kmh=140, cruise_altitude_m=2000,
+                      landing_gear_type='tailwheel')
+        estimate = estimate_component_masses(m0, params, geom=geom, flight_envelope=dict(n_ult=7.95))
+        engine = estimate['breakdown']['propulsion']
+        ratios.append((r['me'] - engine) / (estimate['m_empty'] - engine))
+    assert statistics.median(ratios) == pytest.approx(1, abs=.03)
+    assert .84 < min(ratios) and max(ratios) < 1.22

@@ -239,16 +239,21 @@ def paturski_project_2_wing(geom_res: dict, params: dict, m0: float = None) -> d
     re_ref_tunnel = 3.0e6
 
     # Dane bazowe profilu wg Tabeli 2.1 (NACA 23012 / NACA 2412 / SC(2)-0412)
-    a_inf_rad = 6.18 if engine_type != "jet" else 6.28  # [1/rad] wg Tabeli 2.1 str. II-3
+    # Dane wybranego profilu (airfoil_model) zastępują profil wzorcowy tabeli.
+    section = params.get("airfoil_model") or {}
+    a_inf_rad = float(section.get("a_inf_rad", 6.18 if engine_type != "jet" else 6.28))  # [1/rad] wg Tabeli 2.1 str. II-3
     a_inf_deg = a_inf_rad * (math.pi / 180.0)
-    alpha_0_deg = -1.8 if engine_type != "jet" else -1.5
-    cm_sa_profile = -0.065 if engine_type != "jet" else -0.075
+    alpha_0_deg = float(section.get("alpha_0_deg", -1.8 if engine_type != "jet" else -1.5))
+    cm_sa_profile = float(section.get("cm_ac", -0.065 if engine_type != "jet" else -0.075))
     x_sa_bar = 0.246
     z_sa_bar = -0.070
-    cx_min_1 = 0.0065 if engine_type == "jet" else 0.0078
+    cx_min_1 = float(section.get("cx_min", 0.0065 if engine_type == "jet" else 0.0078))
+    re_ref_cx = float(section.get("re_ref", 1.0e7))
+    cz_cx_min = float(section.get("cz_cx_min", 0.15))
+    cx_quad = float(section.get("cx_quad", 0.0042))
 
     # Korekta współczynnika oporu profilu związana z liczbą Reynoldsa (wzory 2.7 – 2.9)
-    cx_min_2 = cx_min_1 * math.pow(re_1 / 1.0e7, 0.11)
+    cx_min_2 = cx_min_1 * math.pow(re_1 / re_ref_cx, 0.11)
 
     # 3. Współczynniki korekcyjne Glauerta tau i delta (wzory 2.14 – 2.20)
     u_ratio = AR / a_inf_rad
@@ -300,6 +305,10 @@ def paturski_project_2_wing(geom_res: dict, params: dict, m0: float = None) -> d
         "vs1_kmh": round(v_s1_ms * 3.6, 1),
         "re_1_stall": round(re_1),
         "cx_min_1_tunnel": round(cx_min_1, 5),
+        "re_ref_cx": re_ref_cx,
+        "cz_cx_min": cz_cx_min,
+        "cx_quad": cx_quad,
+        "section_source": section.get("source"),
         "cx_min_2_corrected": round(cx_min_2, 5),
         "delta_cx_tech": round(delta_cx_tech, 5),
         "tau_glauert": round(tau_glauert, 4),
@@ -342,7 +351,8 @@ def trimmed_polar(model: dict, x_cg_bar: float, rounded=True) -> list:
     for idx, cz_inf in enumerate(model["cz_grid"], start=1):
         alpha_inf_deg = alpha_0_deg + (cz_inf / a_inf_deg)
         stall_proximity = max(0.0, (abs(cz_inf) / cz_max_clean) - 0.75)
-        cx_inf_1 = cx_min_1 + 0.0042 * ((cz_inf - 0.15) ** 2) + 0.045 * (stall_proximity ** 2)
+        cx_inf_1 = (cx_min_1 + model.get("cx_quad", 0.0042) * ((cz_inf - model.get("cz_cx_min", 0.15)) ** 2)
+                    + 0.045 * (stall_proximity ** 2))
         delta_cx_re = (cx_min_2 - cx_min_1) * (1.0 - min(1.0, abs(cz_inf) / cz_max_clean))
         cx_inf_prime = max(0.0040, cx_inf_1 + delta_cx_re)
 
@@ -717,6 +727,8 @@ def paturski_project_3_aircraft_aero(geom_res: dict, params: dict, m0: float = N
         "alpha_0_deg": p2_wing["alpha_0_deg"],
         "cx_min_1": p2_wing["cx_min_1_tunnel"],
         "cx_min_2": p2_wing["cx_min_2_corrected"],
+        "cx_quad": p2_wing["cx_quad"],
+        "cz_cx_min": p2_wing["cz_cx_min"],
         "delta_cx_tech": p2_wing["delta_cx_tech"],
         "tau_glauert": p2_wing["tau_glauert"],
         "delta_glauert": p2_wing["delta_glauert"],

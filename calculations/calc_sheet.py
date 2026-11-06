@@ -1684,11 +1684,14 @@ def _p3_wing_aero(s, r):
     s.calc('Re_1', 'Re_1', r'\frac{V_{S1}\,\bar c}{\nu_0}', r'\frac{[[V_S1w]]\cdot[[mac]]}{[[nu0]]}', t['re_1'], '', 0,
            'Liczba Reynoldsa przy przeciągnięciu', SOURCES['ML'] + ', wzór (2.6a)', check=lambda v: v.V_S1w * v.mac / v.nu0,
            tolerance=.003 * t['re_1'])
-    s.given('Cx_min1', r"C'_{x\,min,1}", p2['cx_min_1_tunnel'], '', 5, 'Minimalny opór profilu w tunelu (Re = 10⁷)', SOURCES['ML'] + ', tab. 2.1')
-    s.calc('Cx_min2', r"C'_{x\,min,2}", r"C'_{x\,min,1}\left(\frac{Re_1}{10^{7}}\right)^{0{,}11}", r'[[Cx_min1]]\cdot\left(\frac{[[Re_1]]}{10^{7}}\right)^{0{,}11}',
+    re_ref = float(p2.get('re_ref_cx', 1e7))
+    re_exp = round(math.log10(re_ref))
+    section_source = p2.get('section_source') or SOURCES['ML'] + ', tab. 2.1'
+    s.given('Cx_min1', r"C'_{x\,min,1}", p2['cx_min_1_tunnel'], '', 5, f'Minimalny opór profilu (Re = 10^{re_exp})', section_source)
+    s.calc('Cx_min2', r"C'_{x\,min,2}", rf"C'_{{x\,min,1}}\left(\frac{{Re_1}}{{10^{{{re_exp}}}}}\right)^{{0{{,}}11}}", rf'[[Cx_min1]]\cdot\left(\frac{{[[Re_1]]}}{{10^{{{re_exp}}}}}\right)^{{0{{,}}11}}',
            p2['cx_min_2_corrected'], '', 5, 'Opór profilu przeliczony na liczbę Reynoldsa płata', SOURCES['ML'] + ', wzory (2.7)–(2.9)',
-           check=lambda v: v.Cx_min1 * (v.Re_1 / 1e7) ** .11)
-    s.given('a_inf', r'a_\infty', p2['a_inf_rad'], RAD, 3, 'Gradient siły nośnej profilu', SOURCES['ML'] + ', tab. 2.1')
+           check=lambda v: v.Cx_min1 * (v.Re_1 / re_ref) ** .11)
+    s.given('a_inf', r'a_\infty', p2['a_inf_rad'], RAD, 3, 'Gradient siły nośnej profilu', section_source)
     if r['geometry']['wing']['wing_planform'] == 'elliptical' and abs(t['sweep_deg']) < 1e-9:
         s.given('tau_G', r'\tau', 0.0, '', 4, 'Poprawka Glauerta (płat eliptyczny bez skosu)', SOURCES['ML'])
         s.given('delta_G', r'\delta', 0.0, '', 4, 'Poprawka Glauerta (płat eliptyczny bez skosu)', SOURCES['ML'])
