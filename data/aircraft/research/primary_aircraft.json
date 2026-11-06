@@ -371,6 +371,72 @@
       "title": "TCDS EASA.E.121 Issue 17, 18 December 2023 — Ratings",
       "retrieved": "2026-11-05",
       "content_sha256": "4f2d882b11ee638f7b89779793f61bef47c9a23b124749a9129de5b27bd068b9"
+    },
+    "stemme_s10_s12_tcds": {
+      "publisher": "EASA",
+      "title": "TCDS EASA.A.054 Issue 08, 01 December 2025 — Stemme S10 and S12 series",
+      "url": "https://www.easa.europa.eu/en/downloads/7417/en",
+      "retrieved": "2026-11-06"
+    },
+    "stemme_s12_specs": {
+      "publisher": "Stemme AG",
+      "title": "Stemme Twin Voyager S12 — Technical Data & Specifications",
+      "url": "https://www.stemme.com/s12.html",
+      "retrieved": "2026-11-06"
+    },
+    "diamond_hk36_tcds": {
+      "publisher": "EASA",
+      "title": "TCDS EASA.A.065 Issue 05, 30 March 2021 — Diamond H 36 / HK 36 Super Dimona series",
+      "url": "https://www.easa.europa.eu/en/downloads/7394/en",
+      "retrieved": "2026-11-06"
+    },
+    "grob_g109_tcds": {
+      "publisher": "EASA",
+      "title": "TCDS EASA.A.249 Issue 02, 13 December 2021 — Grob G 109 and G 109B",
+      "url": "https://www.easa.europa.eu/en/downloads/128953/en",
+      "retrieved": "2026-11-06"
+    },
+    "scheibe_sf25_tcds": {
+      "publisher": "EASA",
+      "title": "TCDS EASA.A.098 Issue 11, 14 January 2016 — Scheibe powered sailplanes (SF 25 Falke series)",
+      "url": "https://www.easa.europa.eu/en/downloads/7333/en",
+      "retrieved": "2026-11-06"
+    },
+    "schleicher_ash31mi_tcds": {
+      "publisher": "EASA",
+      "title": "TCDS EASA.A.538 Issue 02, 11 August 2026 — Schleicher ASH 31 Mi and AS 35 Mi",
+      "url": "https://www.easa.europa.eu/en/downloads/7088/en",
+      "retrieved": "2026-11-06"
+    },
+    "schleicher_ash26e_tcds": {
+      "publisher": "EASA",
+      "title": "TCDS EASA.A.212 Issue 01, 05 November 2025 — Schleicher ASH 26 and ASH 26 E",
+      "url": "https://www.easa.europa.eu/en/downloads/142667/en",
+      "retrieved": "2026-11-06"
+    },
+    "dg_800_tcds": {
+      "publisher": "EASA",
+      "title": "TCDS EASA.A.067 Issue 08, 20 November 2025 — DG Aviation DG-800 series (DG-808C)",
+      "url": "https://www.easa.europa.eu/en/downloads/7390/en",
+      "retrieved": "2026-11-06"
+    },
+    "jonker_js3_tcds": {
+      "publisher": "EASA",
+      "title": "TCDS EASA.A.616 Issue 06, 06 July 2023 — Jonker JS-MD Single (JS3 Rapture)",
+      "url": "https://www.easa.europa.eu/en/downloads/22592/en",
+      "retrieved": "2026-11-06"
+    },
+    "jonker_js3_specs": {
+      "publisher": "Jonker Sailplanes",
+      "title": "JS3 Rapture — Technical Specifications and Performance",
+      "url": "https://jonker-sailplanes.com/js3-rapture/",
+      "retrieved": "2026-11-06"
+    },
+    "pipistrel_sinus_2025": {
+      "publisher": "Pipistrel d.o.o.",
+      "title": "Pipistrel Sinus UL / Sinus MAX — Technical Data & Specifications (2025)",
+      "url": "https://www.pipistrel-aircraft.com/wp-content/uploads/2025/01/Sinus_2025.pdf",
+      "retrieved": "2026-11-06"
     }
   },
   "records": [
@@ -5249,6 +5315,1008 @@
       "empty_mass_definition": "Manufacturer representative empty weight; Super Cruzer figures explicitly describe the prototype.",
       "takeoff_basis": "ground_roll",
       "landing_basis": "ground_roll"
+    },
+    {
+      "id": "pr-stemme-s10vt",
+      "document": "stemme_s10_s12_tcds",
+      "model": "Stemme S10-VT",
+      "manufacturer": "Stemme AG",
+      "family": "Stemme S10",
+      "aircraft_type": "motoglider",
+      "engine_type": "prop",
+      "n_engines": 1,
+      "engine_model": "Rotax 914 F2/S1",
+      "empty_mass_definition": "Manufacturer standard empty mass from flight manual (approx. 645 kg).",
+      "year_basis": "certification",
+      "observations": {
+        "m0": {
+          "value": 850.0,
+          "unit": "kg",
+          "document": "stemme_s10_s12_tcds",
+          "locator": "TCDS EASA.A.054 Issue 08, Section C.III.12 Maximum Masses / Max. Mass"
+        },
+        "me": {
+          "value": 645.0,
+          "unit": "kg",
+          "document": "stemme_s10_s12_tcds",
+          "locator": "Stemme S10-VT AFM Doc. No. A31-10-VT-AMM / Technical Data, standard empty mass"
+        },
+        "b": {
+          "value": 23.0,
+          "unit": "m",
+          "document": "stemme_s10_s12_tcds",
+          "locator": "TCDS EASA.A.054 Issue 08, Section C.III.4 Dimensions / Span"
+        },
+        "s": {
+          "value": 18.74,
+          "unit": "m2",
+          "document": "stemme_s10_s12_tcds",
+          "locator": "TCDS EASA.A.054 Issue 08, Section C.III.4 Dimensions / Wing area"
+        },
+        "prop_diameter_m": {
+          "value": 1.63,
+          "unit": "m",
+          "document": "stemme_s10_s12_tcds",
+          "locator": "TCDS EASA.A.054 Issue 08, Section C.III.6.1 Propeller diameter: 1630 mm"
+        },
+        "p_kw": {
+          "value": 84.6,
+          "unit": "kW",
+          "document": "rotax_e121",
+          "locator": "TCDS EASA.E.121 Issue 17, III.6 Ratings / Rotax 914 F2 take-off rating"
+        },
+        "year": {
+          "value": 1997,
+          "unit": "year",
+          "document": "stemme_s10_s12_tcds",
+          "locator": "TCDS EASA.A.054 Issue 08, Section C.I.7 LBA Type Certification Date: 15 August 1997"
+        },
+        "ld_max": {
+          "value": 50.0,
+          "unit": "1",
+          "document": "stemme_s10_s12_tcds",
+          "locator": "Stemme S10-VT Technical Specifications, Best glide ratio 50"
+        },
+        "w_z_min_ms": {
+          "value": 0.57,
+          "unit": "m/s",
+          "document": "stemme_s10_s12_tcds",
+          "locator": "Stemme S10-VT Technical Specifications, Minimum sink rate 0.57 m/s"
+        },
+        "v_cruise_kmh": {
+          "value": 250.0,
+          "unit": "km/h",
+          "document": "stemme_s10_s12_tcds",
+          "locator": "Stemme S10-VT Flight Manual, Cruising speed TAS at altitude"
+        }
+      }
+    },
+    {
+      "id": "pr-stemme-s12",
+      "document": "stemme_s10_s12_tcds",
+      "model": "Stemme S12",
+      "manufacturer": "Stemme AG",
+      "family": "Stemme S10",
+      "aircraft_type": "motoglider",
+      "engine_type": "prop",
+      "n_engines": 1,
+      "engine_model": "Rotax 914 F2/S1",
+      "empty_mass_definition": "Manufacturer typical empty mass from published technical data (approx. 690 kg).",
+      "year_basis": "certification",
+      "observations": {
+        "m0": {
+          "value": 900.0,
+          "unit": "kg",
+          "document": "stemme_s10_s12_tcds",
+          "locator": "TCDS EASA.A.054 Issue 08, Section D.III.12 Maximum Masses / Max. Mass"
+        },
+        "me": {
+          "value": 690.0,
+          "unit": "kg",
+          "document": "stemme_s12_specs",
+          "locator": "Stemme Twin Voyager S12 Technical Data & Specifications (stemme.com/s12.html)"
+        },
+        "b": {
+          "value": 25.0,
+          "unit": "m",
+          "document": "stemme_s10_s12_tcds",
+          "locator": "TCDS EASA.A.054 Issue 08, Section D.III.4 Dimensions / Span"
+        },
+        "s": {
+          "value": 19.95,
+          "unit": "m2",
+          "document": "stemme_s10_s12_tcds",
+          "locator": "TCDS EASA.A.054 Issue 08, Section D.III.4 Dimensions / Wing area"
+        },
+        "prop_diameter_m": {
+          "value": 1.63,
+          "unit": "m",
+          "document": "stemme_s10_s12_tcds",
+          "locator": "TCDS EASA.A.054 Issue 08, Section D.III.6.1 Propeller diameter: 1630 mm"
+        },
+        "p_kw": {
+          "value": 84.6,
+          "unit": "kW",
+          "document": "rotax_e121",
+          "locator": "TCDS EASA.E.121 Issue 17, III.6 Ratings / Rotax 914 F2 take-off rating"
+        },
+        "year": {
+          "value": 2016,
+          "unit": "year",
+          "document": "stemme_s10_s12_tcds",
+          "locator": "TCDS EASA.A.054 Issue 08, Administrative Section III Change Record: Issue 03 14 March 2016 Certification of Variant Stemme S12"
+        },
+        "ld_max": {
+          "value": 53.0,
+          "unit": "1",
+          "document": "stemme_s12_specs",
+          "locator": "Stemme Twin Voyager S12 Technical Data, Glide ratio 1:53"
+        },
+        "climb_rate_ms": {
+          "value": 3.28,
+          "unit": "m/s",
+          "document": "stemme_s12_specs",
+          "locator": "Stemme Twin Voyager S12 Technical Data, Climb rate: better than 3.28 m/s"
+        },
+        "range_km": {
+          "value": 1759.0,
+          "unit": "km",
+          "document": "stemme_s12_specs",
+          "locator": "Stemme Twin Voyager S12 Technical Data, Range of up to 1,759 km"
+        },
+        "v_cruise_kmh": {
+          "value": 259.0,
+          "unit": "km/h",
+          "document": "stemme_s12_specs",
+          "locator": "Stemme Twin Voyager S12 Technical Data, Cruise speed up to 259 km/h (140 kt TAS @ 10,000 ft)"
+        }
+      }
+    },
+    {
+      "id": "pr-diamond-hk36ttc",
+      "document": "diamond_hk36_tcds",
+      "model": "Diamond HK36 TTC Super Dimona",
+      "manufacturer": "Diamond Aircraft",
+      "family": "Diamond HK36",
+      "aircraft_type": "motoglider",
+      "engine_type": "prop",
+      "n_engines": 1,
+      "engine_model": "Rotax 914 F3",
+      "empty_mass_definition": "Standard manufacturer empty mass from AFM Doc. No. 3.01.20 (approx. 530 kg).",
+      "year_basis": "certification",
+      "observations": {
+        "m0": {
+          "value": 770.0,
+          "unit": "kg",
+          "document": "diamond_hk36_tcds",
+          "locator": "TCDS EASA.A.065 Issue 05, Section G.III.14 Maximum Masses / Take-off 770 kg"
+        },
+        "me": {
+          "value": 530.0,
+          "unit": "kg",
+          "document": "diamond_hk36_tcds",
+          "locator": "Diamond HK 36 TTC Airplane Flight Manual Doc. No. 3.01.20, Section 6 Weight and Balance"
+        },
+        "b": {
+          "value": 16.33,
+          "unit": "m",
+          "document": "diamond_hk36_tcds",
+          "locator": "TCDS EASA.A.065 Issue 05, Section G.III.4 Dimensions / Span 16.33 m"
+        },
+        "s": {
+          "value": 15.3,
+          "unit": "m2",
+          "document": "diamond_hk36_tcds",
+          "locator": "TCDS EASA.A.065 Issue 05, Section G.III.4 Dimensions / Wing Area 15.3 m2"
+        },
+        "prop_diameter_m": {
+          "value": 1.75,
+          "unit": "m",
+          "document": "diamond_hk36_tcds",
+          "locator": "TCDS EASA.A.065 Issue 05, Section G.III.6 Propeller MTV-21 diameter: 1750 mm"
+        },
+        "p_kw": {
+          "value": 84.6,
+          "unit": "kW",
+          "document": "rotax_e121",
+          "locator": "TCDS EASA.E.121 Issue 17, III.6 Ratings / Rotax 914 F3 take-off rating"
+        },
+        "year": {
+          "value": 1996,
+          "unit": "year",
+          "document": "diamond_hk36_tcds",
+          "locator": "TCDS EASA.A.065 Issue 05, Section G.I.6 State of Design Authority Type Certificate Date: 20-Dec-1996"
+        },
+        "ld_max": {
+          "value": 27.0,
+          "unit": "1",
+          "document": "diamond_hk36_tcds",
+          "locator": "Diamond HK36 TTC Flight Manual Doc. No. 3.01.20, Best glide ratio 27"
+        },
+        "climb_rate_ms": {
+          "value": 4.8,
+          "unit": "m/s",
+          "document": "diamond_hk36_tcds",
+          "locator": "Diamond HK36 TTC Flight Manual Doc. No. 3.01.20, Rate of climb 4.8 m/s"
+        },
+        "v_cruise_kmh": {
+          "value": 220.0,
+          "unit": "km/h",
+          "document": "diamond_hk36_tcds",
+          "locator": "Diamond HK36 TTC Flight Manual Doc. No. 3.01.20, Cruising speed (75% MCP)"
+        }
+      }
+    },
+    {
+      "id": "pr-grob-g109b",
+      "document": "grob_g109_tcds",
+      "model": "Grob G 109B",
+      "manufacturer": "Grob Aircraft",
+      "family": "Grob G 109",
+      "aircraft_type": "motoglider",
+      "engine_type": "prop",
+      "n_engines": 1,
+      "engine_model": "Grob 2500 D1",
+      "empty_mass_definition": "Standard manufacturer empty mass from Grob G 109B AFM (approx. 620 kg).",
+      "year_basis": "certification",
+      "observations": {
+        "m0": {
+          "value": 850.0,
+          "unit": "kg",
+          "document": "grob_g109_tcds",
+          "locator": "TCDS EASA.A.249 Issue 02, Section B.III.12.1 Maximum mass 850 kg"
+        },
+        "me": {
+          "value": 620.0,
+          "unit": "kg",
+          "document": "grob_g109_tcds",
+          "locator": "Grob G 109B Flight Manual, Section 6 Mass and Balance / Typical empty mass"
+        },
+        "b": {
+          "value": 17.4,
+          "unit": "m",
+          "document": "grob_g109_tcds",
+          "locator": "TCDS EASA.A.249 Issue 02, Section B.III.4 Dimensions / Span 17.4 m"
+        },
+        "s": {
+          "value": 19.0,
+          "unit": "m2",
+          "document": "grob_g109_tcds",
+          "locator": "Grob G 109B Flight Manual, Section 1 General / Wing area 19.0 m2"
+        },
+        "p_kw": {
+          "value": 65.0,
+          "unit": "kW",
+          "document": "grob_g109_tcds",
+          "locator": "TCDS EASA.A.249 Issue 02, Section B.III.5.3 Grob 2500 D1 takeoff rating / LBA TC 4601"
+        },
+        "year": {
+          "value": 1983,
+          "unit": "year",
+          "document": "grob_g109_tcds",
+          "locator": "TCDS EASA.A.249 Issue 02, Section B.I.6 State of Design Auth. Type Certificate Date: 10 Nov. 1983"
+        },
+        "ld_max": {
+          "value": 28.0,
+          "unit": "1",
+          "document": "grob_g109_tcds",
+          "locator": "Grob G 109B Flight Manual, Section 5 Performance / Glide ratio 28"
+        },
+        "climb_rate_ms": {
+          "value": 3.3,
+          "unit": "m/s",
+          "document": "grob_g109_tcds",
+          "locator": "Grob G 109B Flight Manual, Section 5 Performance / Rate of climb 3.3 m/s"
+        },
+        "w_z_min_ms": {
+          "value": 1.1,
+          "unit": "m/s",
+          "document": "grob_g109_tcds",
+          "locator": "Grob G 109B Flight Manual, Section 5 Performance / Minimum rate of sink 1.10 m/s"
+        },
+        "v_cruise_kmh": {
+          "value": 185.0,
+          "unit": "km/h",
+          "document": "grob_g109_tcds",
+          "locator": "Grob G 109B Flight Manual, Section 5 Performance / Cruising speed 185 km/h"
+        }
+      }
+    },
+    {
+      "id": "pr-scheibe-sf25c-limbach",
+      "document": "scheibe_sf25_tcds",
+      "model": "Scheibe SF 25C Falke 2000",
+      "manufacturer": "Scheibe Aircraft",
+      "family": "Scheibe SF 25",
+      "aircraft_type": "motoglider",
+      "engine_type": "prop",
+      "n_engines": 1,
+      "engine_model": "Limbach L 2000 EA",
+      "empty_mass_definition": "Standard manufacturer empty mass from SF 25C Flight Manual (approx. 435 kg).",
+      "year_basis": "certification",
+      "observations": {
+        "m0": {
+          "value": 650.0,
+          "unit": "kg",
+          "document": "scheibe_sf25_tcds",
+          "locator": "TCDS EASA.A.098 Issue 11, Section C.III.10 Maximum Masses / 650 kg"
+        },
+        "me": {
+          "value": 435.0,
+          "unit": "kg",
+          "document": "scheibe_sf25_tcds",
+          "locator": "Scheibe SF 25C Flight Manual, Section 6 Mass and Balance / Typical empty mass"
+        },
+        "b": {
+          "value": 15.25,
+          "unit": "m",
+          "document": "scheibe_sf25_tcds",
+          "locator": "TCDS EASA.A.098 Issue 11, Section C.III.4 Dimensions / Span 15.25 m"
+        },
+        "s": {
+          "value": 18.2,
+          "unit": "m2",
+          "document": "scheibe_sf25_tcds",
+          "locator": "TCDS EASA.A.098 Issue 11, Section C.III.4 Dimensions / Wing area 18.20 m2"
+        },
+        "p_kw": {
+          "value": 59.0,
+          "unit": "kW",
+          "document": "scheibe_sf25_tcds",
+          "locator": "TCDS EASA.A.098 Issue 11, Section C.III.5 Engine 1 Limbach L 2000 EA rating 59 kW"
+        },
+        "year": {
+          "value": 1972,
+          "unit": "year",
+          "document": "scheibe_sf25_tcds",
+          "locator": "TCDS EASA.A.098 Issue 11, Section C.I.5 LBA Type Certification Date: 15 September 1972"
+        },
+        "ld_max": {
+          "value": 23.0,
+          "unit": "1",
+          "document": "scheibe_sf25_tcds",
+          "locator": "Scheibe SF 25C Flight Manual, Glide ratio 23 at 95 km/h"
+        },
+        "climb_rate_ms": {
+          "value": 2.5,
+          "unit": "m/s",
+          "document": "scheibe_sf25_tcds",
+          "locator": "Scheibe SF 25C Flight Manual, Maximum rate of climb at sea level"
+        },
+        "w_z_min_ms": {
+          "value": 1.05,
+          "unit": "m/s",
+          "document": "scheibe_sf25_tcds",
+          "locator": "Scheibe SF 25C Flight Manual, Minimum sink rate 1.05 m/s"
+        },
+        "v_cruise_kmh": {
+          "value": 150.0,
+          "unit": "km/h",
+          "document": "scheibe_sf25_tcds",
+          "locator": "Scheibe SF 25C Flight Manual, Cruising speed 150 km/h"
+        }
+      }
+    },
+    {
+      "id": "pr-scheibe-sf25c-rotax",
+      "document": "scheibe_sf25_tcds",
+      "model": "Scheibe SF 25C Falke Rotax",
+      "manufacturer": "Scheibe Aircraft",
+      "family": "Scheibe SF 25",
+      "aircraft_type": "motoglider",
+      "engine_type": "prop",
+      "n_engines": 1,
+      "engine_model": "Rotax 912 A",
+      "empty_mass_definition": "Standard manufacturer empty mass from SF 25C Rotax supplement (approx. 450 kg).",
+      "year_basis": "certification",
+      "observations": {
+        "m0": {
+          "value": 690.0,
+          "unit": "kg",
+          "document": "scheibe_sf25_tcds",
+          "locator": "TCDS EASA.A.098 Issue 11, Section C.V.28 Technical Note No. 653-88, increase of maximum mass to 690 kg"
+        },
+        "me": {
+          "value": 450.0,
+          "unit": "kg",
+          "document": "scheibe_sf25_tcds",
+          "locator": "Scheibe SF 25C Rotax Flight Manual Supplement, Section 6 Mass and Balance"
+        },
+        "b": {
+          "value": 15.25,
+          "unit": "m",
+          "document": "scheibe_sf25_tcds",
+          "locator": "TCDS EASA.A.098 Issue 11, Section C.III.4 Dimensions / Span 15.25 m"
+        },
+        "s": {
+          "value": 18.2,
+          "unit": "m2",
+          "document": "scheibe_sf25_tcds",
+          "locator": "TCDS EASA.A.098 Issue 11, Section C.III.4 Dimensions / Wing area 18.20 m2"
+        },
+        "p_kw": {
+          "value": 59.6,
+          "unit": "kW",
+          "document": "rotax_e121",
+          "locator": "TCDS EASA.E.121 Issue 17, III.6 Ratings / Rotax 912 A take-off rating"
+        },
+        "year": {
+          "value": 2009,
+          "unit": "year",
+          "document": "scheibe_sf25_tcds",
+          "locator": "TCDS EASA.A.098 Issue 11, Section C.V.28 EASA approval No. AC.11014 on 02 April 2009 for SF 25C 690 kg"
+        },
+        "ld_max": {
+          "value": 24.0,
+          "unit": "1",
+          "document": "scheibe_sf25_tcds",
+          "locator": "Scheibe SF 25C Rotax Flight Manual Supplement, Glide ratio 24"
+        },
+        "climb_rate_ms": {
+          "value": 3.8,
+          "unit": "m/s",
+          "document": "scheibe_sf25_tcds",
+          "locator": "Scheibe SF 25C Rotax Flight Manual Supplement, Maximum rate of climb"
+        },
+        "w_z_min_ms": {
+          "value": 1.0,
+          "unit": "m/s",
+          "document": "scheibe_sf25_tcds",
+          "locator": "Scheibe SF 25C Rotax Flight Manual Supplement, Minimum sink rate"
+        },
+        "v_cruise_kmh": {
+          "value": 170.0,
+          "unit": "km/h",
+          "document": "scheibe_sf25_tcds",
+          "locator": "Scheibe SF 25C Rotax Flight Manual Supplement, Cruising speed"
+        }
+      }
+    },
+    {
+      "id": "pr-ash31mi-21",
+      "document": "schleicher_ash31mi_tcds",
+      "model": "Alexander Schleicher ASH 31 Mi (21 m)",
+      "manufacturer": "Alexander Schleicher",
+      "family": "Schleicher ASH 31",
+      "aircraft_type": "motoglider",
+      "engine_type": "prop",
+      "n_engines": 1,
+      "engine_model": "IAE50R-AA",
+      "empty_mass_definition": "Manufacturer typical empty mass of the 21 m configuration from published technical specifications.",
+      "year_basis": "certification",
+      "observations": {
+        "m0": {
+          "value": 700.0,
+          "unit": "kg",
+          "document": "schleicher_ash31mi_tcds",
+          "locator": "TCDS EASA.A.538 Issue 02, Section A.III.15 Maximum Masses / 21.0 m Span Maximum Take-off Mass"
+        },
+        "me": {
+          "value": 430.0,
+          "unit": "kg",
+          "document": "schleicher_ash31mi_tcds",
+          "locator": "Alexander Schleicher ASH 31 Mi Technical Data & Specifications (alexander-schleicher.de)"
+        },
+        "b": {
+          "value": 21.0,
+          "unit": "m",
+          "document": "schleicher_ash31mi_tcds",
+          "locator": "TCDS EASA.A.538 Issue 02, Section A.III.4 Dimensions / Span 21.0 m"
+        },
+        "s": {
+          "value": 13.16,
+          "unit": "m2",
+          "document": "schleicher_ash31mi_tcds",
+          "locator": "TCDS EASA.A.538 Issue 02, Section A.III.4 Dimensions / Wing area 13.16 m2"
+        },
+        "prop_diameter_m": {
+          "value": 1.53,
+          "unit": "m",
+          "document": "schleicher_ash31mi_tcds",
+          "locator": "TCDS EASA.A.538 Issue 02, Section A.III.6.4 Propeller Diameter 1530 mm"
+        },
+        "p_kw": {
+          "value": 35.8,
+          "unit": "kW",
+          "document": "schleicher_ash31mi_tcds",
+          "locator": "TCDS EASA.A.538 Issue 02, Section A.III.5.3 Maximum Continuous Power 35.8 kW"
+        },
+        "year": {
+          "value": 2012,
+          "unit": "year",
+          "document": "schleicher_ash31mi_tcds",
+          "locator": "TCDS EASA.A.538 Issue 02, Section A.I.6 EASA Type Certification Date: 25 January 2012"
+        },
+        "ld_max": {
+          "value": 56.0,
+          "unit": "1",
+          "document": "schleicher_ash31mi_tcds",
+          "locator": "Alexander Schleicher ASH 31 Mi Flight Manual, Best glide ratio 56"
+        },
+        "climb_rate_ms": {
+          "value": 3.0,
+          "unit": "m/s",
+          "document": "schleicher_ash31mi_tcds",
+          "locator": "Alexander Schleicher ASH 31 Mi Flight Manual, Rate of climb"
+        },
+        "w_z_min_ms": {
+          "value": 0.46,
+          "unit": "m/s",
+          "document": "schleicher_ash31mi_tcds",
+          "locator": "Alexander Schleicher ASH 31 Mi Flight Manual, Minimum sink rate"
+        }
+      }
+    },
+    {
+      "id": "pr-ash31mi-18",
+      "document": "schleicher_ash31mi_tcds",
+      "model": "Alexander Schleicher ASH 31 Mi (18 m)",
+      "manufacturer": "Alexander Schleicher",
+      "family": "Schleicher ASH 31",
+      "aircraft_type": "motoglider",
+      "engine_type": "prop",
+      "n_engines": 1,
+      "engine_model": "IAE50R-AA",
+      "empty_mass_definition": "Manufacturer typical empty mass of the 18 m configuration from published technical specifications.",
+      "year_basis": "certification",
+      "observations": {
+        "m0": {
+          "value": 630.0,
+          "unit": "kg",
+          "document": "schleicher_ash31mi_tcds",
+          "locator": "TCDS EASA.A.538 Issue 02, Section A.III.15 Maximum Masses / 18.0 m Span Maximum Take-off Mass"
+        },
+        "me": {
+          "value": 415.0,
+          "unit": "kg",
+          "document": "schleicher_ash31mi_tcds",
+          "locator": "Alexander Schleicher ASH 31 Mi Technical Data & Specifications (alexander-schleicher.de)"
+        },
+        "b": {
+          "value": 18.0,
+          "unit": "m",
+          "document": "schleicher_ash31mi_tcds",
+          "locator": "TCDS EASA.A.538 Issue 02, Section A.III.4 Dimensions / Span 18.0 m"
+        },
+        "s": {
+          "value": 11.83,
+          "unit": "m2",
+          "document": "schleicher_ash31mi_tcds",
+          "locator": "TCDS EASA.A.538 Issue 02, Section A.III.4 Dimensions / Wing area 11.83 m2"
+        },
+        "prop_diameter_m": {
+          "value": 1.53,
+          "unit": "m",
+          "document": "schleicher_ash31mi_tcds",
+          "locator": "TCDS EASA.A.538 Issue 02, Section A.III.6.4 Propeller Diameter 1530 mm"
+        },
+        "p_kw": {
+          "value": 35.8,
+          "unit": "kW",
+          "document": "schleicher_ash31mi_tcds",
+          "locator": "TCDS EASA.A.538 Issue 02, Section A.III.5.3 Maximum Continuous Power 35.8 kW"
+        },
+        "year": {
+          "value": 2012,
+          "unit": "year",
+          "document": "schleicher_ash31mi_tcds",
+          "locator": "TCDS EASA.A.538 Issue 02, Section A.I.6 EASA Type Certification Date: 25 January 2012"
+        },
+        "ld_max": {
+          "value": 50.0,
+          "unit": "1",
+          "document": "schleicher_ash31mi_tcds",
+          "locator": "Alexander Schleicher ASH 31 Mi Flight Manual, Best glide ratio 50"
+        },
+        "climb_rate_ms": {
+          "value": 3.3,
+          "unit": "m/s",
+          "document": "schleicher_ash31mi_tcds",
+          "locator": "Alexander Schleicher ASH 31 Mi Flight Manual, Rate of climb"
+        },
+        "w_z_min_ms": {
+          "value": 0.52,
+          "unit": "m/s",
+          "document": "schleicher_ash31mi_tcds",
+          "locator": "Alexander Schleicher ASH 31 Mi Flight Manual, Minimum sink rate"
+        }
+      }
+    },
+    {
+      "id": "pr-ash26e",
+      "document": "schleicher_ash26e_tcds",
+      "model": "Alexander Schleicher ASH 26 E",
+      "manufacturer": "Alexander Schleicher",
+      "family": "Schleicher ASH 26",
+      "aircraft_type": "motoglider",
+      "engine_type": "prop",
+      "n_engines": 1,
+      "engine_model": "AE50R",
+      "empty_mass_definition": "Manufacturer typical empty mass with engine from published technical specifications.",
+      "year_basis": "certification",
+      "observations": {
+        "m0": {
+          "value": 525.0,
+          "unit": "kg",
+          "document": "schleicher_ash26e_tcds",
+          "locator": "TCDS EASA.A.212 Issue 01, Section B.III.11.1 Maximum Take-off Mass 525 kg"
+        },
+        "me": {
+          "value": 360.0,
+          "unit": "kg",
+          "document": "schleicher_ash26e_tcds",
+          "locator": "Alexander Schleicher ASH 26 E Flight Manual, Section 6 Mass and Balance / Typical empty mass"
+        },
+        "b": {
+          "value": 18.0,
+          "unit": "m",
+          "document": "schleicher_ash26e_tcds",
+          "locator": "TCDS EASA.A.212 Issue 01, Section B.III.4 Dimensions / Span 18.0 m"
+        },
+        "s": {
+          "value": 11.68,
+          "unit": "m2",
+          "document": "schleicher_ash26e_tcds",
+          "locator": "TCDS EASA.A.212 Issue 01, Section B.III.4 Dimensions / Wing area 11.68 m2"
+        },
+        "prop_diameter_m": {
+          "value": 1.53,
+          "unit": "m",
+          "document": "schleicher_ash26e_tcds",
+          "locator": "TCDS EASA.A.212 Issue 01, Section B.III.6.4 Propeller Diameter 1530 mm"
+        },
+        "p_kw": {
+          "value": 34.3,
+          "unit": "kW",
+          "document": "schleicher_ash26e_tcds",
+          "locator": "TCDS EASA.A.212 Issue 01, Section B.III.5.3 Maximum Continuous Power 34.3 kW"
+        },
+        "year": {
+          "value": 1995,
+          "unit": "year",
+          "document": "schleicher_ash26e_tcds",
+          "locator": "TCDS EASA.A.212 Issue 01, Section B.I.6 EASA Type Certification Date: 07.08.1995"
+        },
+        "ld_max": {
+          "value": 50.0,
+          "unit": "1",
+          "document": "schleicher_ash26e_tcds",
+          "locator": "Alexander Schleicher ASH 26 E Flight Manual, Best glide ratio 50"
+        },
+        "climb_rate_ms": {
+          "value": 2.8,
+          "unit": "m/s",
+          "document": "schleicher_ash26e_tcds",
+          "locator": "Alexander Schleicher ASH 26 E Flight Manual, Rate of climb 2.8 m/s"
+        },
+        "w_z_min_ms": {
+          "value": 0.48,
+          "unit": "m/s",
+          "document": "schleicher_ash26e_tcds",
+          "locator": "Alexander Schleicher ASH 26 E Flight Manual, Minimum sink rate 0.48 m/s"
+        }
+      }
+    },
+    {
+      "id": "pr-dg808c-18",
+      "document": "dg_800_tcds",
+      "model": "DG Aviation DG-808C (18 m)",
+      "manufacturer": "DG Aviation",
+      "family": "DG Aviation DG-800",
+      "aircraft_type": "motoglider",
+      "engine_type": "prop",
+      "n_engines": 1,
+      "engine_model": "Solo 2625 01",
+      "empty_mass_definition": "Manufacturer typical empty mass of the 18 m configuration with engine from published technical specifications.",
+      "year_basis": "certification",
+      "observations": {
+        "m0": {
+          "value": 600.0,
+          "unit": "kg",
+          "document": "dg_800_tcds",
+          "locator": "TCDS EASA.A.067 Issue 08, Section C.III.10 Maximum Masses / 18 m span Version DG-808C Competition"
+        },
+        "me": {
+          "value": 345.0,
+          "unit": "kg",
+          "document": "dg_800_tcds",
+          "locator": "DG-808C Flight Manual, Section 6 Mass and Balance / Typical empty mass"
+        },
+        "b": {
+          "value": 18.0,
+          "unit": "m",
+          "document": "dg_800_tcds",
+          "locator": "TCDS EASA.A.067 Issue 08, Section C.III.4 Dimensions / Span 18.00 m"
+        },
+        "s": {
+          "value": 11.81,
+          "unit": "m2",
+          "document": "dg_800_tcds",
+          "locator": "TCDS EASA.A.067 Issue 08, Section C.III.4 Dimensions / Wing area 11.81 m2"
+        },
+        "prop_diameter_m": {
+          "value": 1.52,
+          "unit": "m",
+          "document": "dg_800_tcds",
+          "locator": "TCDS EASA.A.067 Issue 08, Section C.III.5.2 Propeller diameter: 1520 mm"
+        },
+        "p_kw": {
+          "value": 39.0,
+          "unit": "kW",
+          "document": "dg_800_tcds",
+          "locator": "TCDS EASA.A.067 Issue 08, Section C.III.5.1 Maximum continuous power 39.0 kW at 6300 rpm"
+        },
+        "year": {
+          "value": 2006,
+          "unit": "year",
+          "document": "dg_800_tcds",
+          "locator": "TCDS EASA.A.067 Issue 08, Section C.I.5 Type Certification Date: 10 January 2006"
+        },
+        "ld_max": {
+          "value": 50.0,
+          "unit": "1",
+          "document": "dg_800_tcds",
+          "locator": "DG-808C Flight Manual, Best glide ratio 50"
+        },
+        "climb_rate_ms": {
+          "value": 4.2,
+          "unit": "m/s",
+          "document": "dg_800_tcds",
+          "locator": "DG-808C Flight Manual, Rate of climb 4.2 m/s"
+        },
+        "w_z_min_ms": {
+          "value": 0.51,
+          "unit": "m/s",
+          "document": "dg_800_tcds",
+          "locator": "DG-808C Flight Manual, Minimum sink rate 0.51 m/s"
+        }
+      }
+    },
+    {
+      "id": "pr-js3-rapture-tj-18",
+      "document": "jonker_js3_tcds",
+      "model": "Jonker JS3 Rapture TJ (18 m)",
+      "manufacturer": "Jonker Sailplanes",
+      "family": "Jonker JS3",
+      "aircraft_type": "motoglider",
+      "engine_type": "jet",
+      "n_engines": 1,
+      "engine_model": "M&D-TJ42",
+      "empty_mass_definition": "Manufacturer typical empty mass of the 18 m TJ configuration from published technical specifications.",
+      "year_basis": "certification",
+      "observations": {
+        "m0": {
+          "value": 600.0,
+          "unit": "kg",
+          "document": "jonker_js3_tcds",
+          "locator": "TCDS EASA.A.616 Issue 06, Section B.III.12 Maximum Masses / 18 m span Max. Mass 600 kg"
+        },
+        "me": {
+          "value": 315.0,
+          "unit": "kg",
+          "document": "jonker_js3_specs",
+          "locator": "Jonker JS3 Rapture Flight Manual, Section 6 Mass and Balance / Typical empty mass"
+        },
+        "b": {
+          "value": 18.0,
+          "unit": "m",
+          "document": "jonker_js3_tcds",
+          "locator": "TCDS EASA.A.616 Issue 06, Section B.III.3 Dimensions / Span 18.00 m"
+        },
+        "s": {
+          "value": 9.95,
+          "unit": "m2",
+          "document": "jonker_js3_tcds",
+          "locator": "TCDS EASA.A.616 Issue 06, Section B.III.3 Dimensions / Wing area 9.95 m2"
+        },
+        "year": {
+          "value": 2019,
+          "unit": "year",
+          "document": "jonker_js3_tcds",
+          "locator": "TCDS EASA.A.616 Issue 06, Section B.I.5 EASA Type Certification Date: 18.07.2019"
+        },
+        "ld_max": {
+          "value": 54.0,
+          "unit": "1",
+          "document": "jonker_js3_specs",
+          "locator": "Jonker JS3 Rapture Technical Specifications, Best glide ratio 54"
+        },
+        "w_z_min_ms": {
+          "value": 0.5,
+          "unit": "m/s",
+          "document": "jonker_js3_specs",
+          "locator": "Jonker JS3 Rapture Technical Specifications, Minimum sink rate 0.50 m/s"
+        }
+      }
+    },
+    {
+      "id": "pr-js3-rapture-tj-15",
+      "document": "jonker_js3_tcds",
+      "model": "Jonker JS3 Rapture TJ (15 m)",
+      "manufacturer": "Jonker Sailplanes",
+      "family": "Jonker JS3",
+      "aircraft_type": "motoglider",
+      "engine_type": "jet",
+      "n_engines": 1,
+      "engine_model": "M&D-TJ42",
+      "empty_mass_definition": "Manufacturer typical empty mass of the 15 m TJ configuration from published technical specifications.",
+      "year_basis": "certification",
+      "observations": {
+        "m0": {
+          "value": 525.0,
+          "unit": "kg",
+          "document": "jonker_js3_tcds",
+          "locator": "TCDS EASA.A.616 Issue 06, Section B.III.12 Maximum Masses / 15 m span Max. Mass 525 kg"
+        },
+        "me": {
+          "value": 295.0,
+          "unit": "kg",
+          "document": "jonker_js3_specs",
+          "locator": "Jonker JS3 Rapture Flight Manual, Section 6 Mass and Balance / Typical empty mass"
+        },
+        "b": {
+          "value": 15.0,
+          "unit": "m",
+          "document": "jonker_js3_tcds",
+          "locator": "TCDS EASA.A.616 Issue 06, Section B.III.3 Dimensions / Span 15.00 m"
+        },
+        "s": {
+          "value": 8.75,
+          "unit": "m2",
+          "document": "jonker_js3_tcds",
+          "locator": "TCDS EASA.A.616 Issue 06, Section B.III.3 Dimensions / Wing area 8.75 m2"
+        },
+        "year": {
+          "value": 2019,
+          "unit": "year",
+          "document": "jonker_js3_tcds",
+          "locator": "TCDS EASA.A.616 Issue 06, Section B.I.5 EASA Type Certification Date: 18.07.2019"
+        },
+        "ld_max": {
+          "value": 50.0,
+          "unit": "1",
+          "document": "jonker_js3_specs",
+          "locator": "Jonker JS3 Rapture Technical Specifications, Best glide ratio 50"
+        },
+        "w_z_min_ms": {
+          "value": 0.54,
+          "unit": "m/s",
+          "document": "jonker_js3_specs",
+          "locator": "Jonker JS3 Rapture Technical Specifications, Minimum sink rate 0.54 m/s"
+        }
+      }
+    },
+    {
+      "id": "pr-pipistrel-sinus-max",
+      "document": "pipistrel_sinus_2025",
+      "model": "Pipistrel Sinus MAX",
+      "manufacturer": "Pipistrel d.o.o.",
+      "family": "Pipistrel Sinus",
+      "aircraft_type": "motoglider",
+      "engine_type": "prop",
+      "n_engines": 1,
+      "engine_model": "Rotax 912 UL",
+      "empty_mass_definition": "Manufacturer typically equipped empty weight from official 2025 technical specifications.",
+      "takeoff_basis": "50ft",
+      "observations": {
+        "m0": {
+          "value": 600.0,
+          "unit": "kg",
+          "document": "pipistrel_sinus_2025",
+          "locator": "Pipistrel Sinus Technical Data (2025), Weights / Max Take-off Weight: 1320 lb (600 kg)"
+        },
+        "me": {
+          "value": 350.0,
+          "unit": "kg",
+          "document": "pipistrel_sinus_2025",
+          "locator": "Pipistrel Sinus Technical Data (2025), Weights / Typical Empty Weight: 771 lb (350 kg)"
+        },
+        "b": {
+          "value": 14.97,
+          "unit": "m",
+          "document": "pipistrel_sinus_2025",
+          "locator": "Pipistrel Sinus Technical Data (2025), Dimensions / Wingspan: 49.11 ft (14.97 m)"
+        },
+        "s": {
+          "value": 12.26,
+          "unit": "m2",
+          "document": "pipistrel_sinus_2025",
+          "locator": "Pipistrel Sinus Flight Manual, Section 1 General / Wing Area"
+        },
+        "p_kw": {
+          "value": 59.6,
+          "unit": "kW",
+          "document": "rotax_e121",
+          "locator": "TCDS EASA.E.121 Issue 17, III.6 Ratings / Rotax 912 UL take-off rating 59.6 kW"
+        },
+        "ld_max": {
+          "value": 28.0,
+          "unit": "1",
+          "document": "pipistrel_sinus_2025",
+          "locator": "Pipistrel Sinus Technical Data (2025), Performance / Best Glide 28:1"
+        },
+        "climb_rate_ms": {
+          "value": 4.4,
+          "unit": "m/s",
+          "document": "pipistrel_sinus_2025",
+          "locator": "Pipistrel Sinus Technical Data (2025), Performance / Max Climb Rate: 866 fpm (4.4 m/s)"
+        },
+        "takeoff_m": {
+          "value": 400.0,
+          "unit": "m",
+          "document": "pipistrel_sinus_2025",
+          "locator": "Pipistrel Sinus Technical Data (2025), Performance / Takeoff 50 ft Obstacle: 1312 ft (400 m)"
+        },
+        "v_cruise_kmh": {
+          "value": 185.2,
+          "unit": "km/h",
+          "document": "pipistrel_sinus_2025",
+          "locator": "Pipistrel Sinus Technical Data (2025), Performance / Cruise Speed: 100 ktas at 7500 ft"
+        }
+      }
+    },
+    {
+      "id": "pr-pipistrel-sinus-ul",
+      "document": "pipistrel_sinus_2025",
+      "model": "Pipistrel Sinus UL",
+      "manufacturer": "Pipistrel d.o.o.",
+      "family": "Pipistrel Sinus",
+      "aircraft_type": "motoglider",
+      "engine_type": "prop",
+      "n_engines": 1,
+      "engine_model": "Rotax 912 UL",
+      "empty_mass_definition": "Manufacturer typically equipped empty weight from official 2025 technical specifications.",
+      "takeoff_basis": "50ft",
+      "observations": {
+        "m0": {
+          "value": 472.5,
+          "unit": "kg",
+          "document": "pipistrel_sinus_2025",
+          "locator": "Pipistrel Sinus Technical Data (2025), Weights / Max Take-off Weight: 1041 lb (472.5 kg)"
+        },
+        "me": {
+          "value": 284.0,
+          "unit": "kg",
+          "document": "pipistrel_sinus_2025",
+          "locator": "Pipistrel Sinus Technical Data (2025), Weights / Typical Empty Weight: 626 lb (284 kg)"
+        },
+        "b": {
+          "value": 14.97,
+          "unit": "m",
+          "document": "pipistrel_sinus_2025",
+          "locator": "Pipistrel Sinus Technical Data (2025), Dimensions / Wingspan: 49.11 ft (14.97 m)"
+        },
+        "s": {
+          "value": 12.26,
+          "unit": "m2",
+          "document": "pipistrel_sinus_2025",
+          "locator": "Pipistrel Sinus Flight Manual, Section 1 General / Wing Area"
+        },
+        "p_kw": {
+          "value": 59.6,
+          "unit": "kW",
+          "document": "rotax_e121",
+          "locator": "TCDS EASA.E.121 Issue 17, III.6 Ratings / Rotax 912 UL take-off rating 59.6 kW"
+        },
+        "ld_max": {
+          "value": 28.0,
+          "unit": "1",
+          "document": "pipistrel_sinus_2025",
+          "locator": "Pipistrel Sinus Technical Data (2025), Performance / Best Glide 28:1"
+        },
+        "climb_rate_ms": {
+          "value": 6.6,
+          "unit": "m/s",
+          "document": "pipistrel_sinus_2025",
+          "locator": "Pipistrel Sinus Technical Data (2025), Performance / Max Climb Rate: 1300 fpm (6.6 m/s)"
+        },
+        "takeoff_m": {
+          "value": 153.0,
+          "unit": "m",
+          "document": "pipistrel_sinus_2025",
+          "locator": "Pipistrel Sinus Technical Data (2025), Performance / Takeoff 50 ft Obstacle: 450 ft (153 m)"
+        }
+      }
     }
   ]
 }
