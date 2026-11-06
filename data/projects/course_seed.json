@@ -994,7 +994,7 @@
         "climb_rate_ms": 3.0
       },
       "parameters": {
-        "id": "motoglider_aos",
+        "id": "topic_7",
         "name": "Temat 7: Motoszybowiec jednomiejscowy, rozpiętość dowolna, większa niż 20m, zespół napędowy stały, ciągnący",
         "aircraft_type": "motoglider",
         "category": "cs22_motoglider",

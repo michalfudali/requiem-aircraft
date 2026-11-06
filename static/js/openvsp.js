@@ -575,7 +575,7 @@ int main()
                     <div class="vsp-arg-type">${escapeHtml(p.descript || p.id)}</div>
                 </td>
                 <td>
-                    <input type="number" step="any" class="vsp-parm-val-input" data-parm-input="${escapeHtml(p.id)}" value="${escapeHtml(valNum)}">
+                    <input type="number" step="0.01" class="vsp-parm-val-input" data-parm-input="${escapeHtml(p.id)}" value="${escapeHtml(valNum)}">
                 </td>
                 <td><small>${escapeHtml(minStr)} .. ${escapeHtml(maxStr)}</small></td>
                 <td>

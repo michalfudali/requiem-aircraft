@@ -154,7 +154,7 @@
     }
     const label=node('label');label.append(node('span',title));let input;
     if(typeof value==='boolean'){input=node('input');input.type='checkbox';input.checked=value;}
-    else if(typeof value==='number'){input=node('input');input.type='number';input.step='any';input.value=value;}
+    else if(typeof value==='number'){input=node('input');input.type='number';input.step=Number.isInteger(value)?'1':'0.01';input.value=value;}
     else if(typeof value==='string'&&choices[key]){input=node('select');for(const choice of choices[key])input.append(new Option(choice,choice));if(!choices[key].includes(value))input.append(new Option(value,value));input.value=value;}
     else if(typeof value==='string'){input=node('input');input.type='text';input.value=value;}
     else {input=node('textarea');input.dataset.kind='json';input.value=JSON.stringify(value,null,2);input.spellcheck=false;label.className='wide';if(Array.isArray(value))input.className='data';}
