@@ -483,7 +483,8 @@ def _build_propulsion(
         is_symmetric = n_engines >= 2
         _set_parm(vsp, prop_id, "Sym_Planar_Flag", "Sym", vsp.SYM_XZ if is_symmetric else vsp.SYM_NONE)
 
-        prop_diam = float(params.get("propeller_diameter_m", max(1.5, 0.17 * b)))
+        prop_diam = float(params.get("propeller_diameter_m") or geom_res.get('propeller',{}).get('diameter_m')
+                          or max(1.5, 0.17 * b))
         n_blades = int(params.get("propeller_blades", 3 if engine_type == "turboprop" else 2))
         _set_parm(vsp, prop_id, "Diameter", "Design", prop_diam)
         _set_parm(vsp, prop_id, "NumBlade", "Design", n_blades)

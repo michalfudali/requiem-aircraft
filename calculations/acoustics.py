@@ -1,19 +1,24 @@
 """
-Moduł analizy hałasu i zdatności akustycznej (BiPOL Requiem).
-Zgodny z wytycznymi ICAO Annex 16 (Vol. 1) oraz EASA CS-36:
+Wstępny, dydaktyczny model porównawczy hałasu (BiPOL Requiem).
+Porównuje oszacowania z wybranymi limitami ICAO Annex 16 (Vol. 1):
 - Rozdział 10: Samoloty napędzane silnikami śmigłowymi o MTOW <= 8618 kg,
 - Rozdział 14: Samoloty odrzutowe i komunikacyjne,
-- Zależności Hubbarda, Gutierreza i Stone'a (NASA RP-1258 / Raymer rozdz. 10.6).
+Nie stanowi metody wykazania zgodności ani danych do świadectwa hałasu.
 """
 import math
 from calculations.atmosphere import RHO0, isa_atmosphere
 from calculations.polish_law import resolve_category
+from calculations.propeller import shaft_rpm, helical_tip_mach
+
+MODEL_LIMITATIONS = ('Model dydaktyczny bez kalibracji do widma i kierunkowości konkretnego zespołu napędowego. '
+                    'Wynik porównania nie wykazuje zgodności certyfikacyjnej; wymagane są dane i procedura '
+                    'dla rzeczywistego samolotu. M_tip jest oszacowaniem kinematycznym bez prędkości indukowanej.')
 
 
 def estimate_aircraft_noise(params: dict, sizing: dict, perf: dict, geom: dict, mass: dict) -> dict:
     """
     Szacuje poziomy hałasu w locie (przelot flyover, linia boczna sideline, podejście approach)
-    oraz zgodność z limitami certyfikacyjnymi ICAO Annex 16 / CS-36.
+    i porównuje oszacowania z limitami. Nie wykazuje zgodności certyfikacyjnej.
     """
     engine_type = params.get("engine_type", "prop")
     m0 = float(mass.get("m0", 1000.0))
@@ -35,6 +40,8 @@ def estimate_aircraft_noise(params: dict, sizing: dict, perf: dict, geom: dict, 
             "limit_flyover": None,
             "margin_flyover": None,
             "compliant": True,
+            "certification_compliant": None,
+            "assessment_scope": 'not_applicable',
             "propeller_tip_mach": None,
             "acoustic_category": "Nie dotyczy",
             "didactic_advice": "Bez jednostki napędowej certyfikacja hałasu nie obowiązuje; jedynym źródłem dźwięku jest opływ płatowca."
@@ -46,25 +53,25 @@ def estimate_aircraft_noise(params: dict, sizing: dict, perf: dict, geom: dict, 
         n_engines = max(1, int(params.get("n_engines", 1) or 1))
         p_per_eng_kw = power_kw / n_engines
 
-        # Średnica śmigła i obroty
-        prop_dia = float(geom.get("propeller", {}).get("diameter_m", 1.85))
-        prop_rpm = float(params.get("propeller_rpm", 2400.0))
-        n_rps = prop_rpm / 60.0
-        v_tip = math.pi * prop_dia * n_rps
-        a_sound = 340.3  # m/s SL
-        m_tip = round(v_tip / a_sound, 3)
-
         # Wznoszenie i wysokość nad punktem pomiarowym flyover (2500 m od punktu startu)
         wy_ms = max(2.0, float(climb.get("wy_max_ms", 4.5) or 4.5))
-        v_climb_ms = max(25.0, float(speeds.get("v_lof_kmh", 110.0) or 110.0) / 3.6)
+        v_climb_ms = float(climb.get('v_wy_max_kmh') or speeds.get('v_2_kmh') or speeds.get('v_lof_kmh') or 110.0) / 3.6
+        # The same diameter and shaft RPM as the actual P4/P5 selection.
+        prop = geom.get('propeller') or {}
+        from calculations.empennage import size_propeller_diameter
+        prop_dia = float(params.get('propeller_diameter_m') or prop.get('diameter_m') or size_propeller_diameter(p_per_eng_kw))
+        prop_rpm = shaft_rpm(params) if 'propeller_rpm' in params or 'prop_rpm' in params else float(prop.get('rpm') or shaft_rpm(params))
+        a_sound = isa_atmosphere(0)['a']
+        m_tip_raw = helical_tip_mach(prop_dia, prop_rpm, v_climb_ms, a_sound)
+        m_tip = round(m_tip_raw, 3)
         climb_angle = math.atan2(wy_ms, v_climb_ms)
         h_flyover = max(100.0, min(800.0, 2500.0 * math.tan(climb_angle)))
 
         # Zależność akustyczna Gutierreza / Hubbarda dla hałasu łopat
         # Im większe M_tip powyżej 0.65, tym gwałtowniejszy wzrost hałasu obrotowego i wirowego
         base_dba = 66.0 + 10.0 * math.log10(max(20.0, power_kw))
-        if m_tip > 0.65:
-            delta_tip = 45.0 * math.log10(m_tip / 0.65)
+        if m_tip_raw > 0.65:
+            delta_tip = 45.0 * math.log10(m_tip_raw / 0.65)
         else:
             delta_tip = 0.0
 
@@ -79,7 +86,7 @@ def estimate_aircraft_noise(params: dict, sizing: dict, perf: dict, geom: dict, 
         single_engine_land = n_engines == 1 and params.get("operating_surface", "land") != "water"
         limit = round(chapter10_limit(m0, single_engine_land), 1)
         limit_basis = "10.4 b) jednosilnikowe" if single_engine_land else "10.4 a)"
-        # 10.1.1: rozdział nie obejmuje samolotów akrobacyjnych, rolniczych, pożarniczych i motoszybowców samostartujących.
+        # 10.1.1: wyjątek dotyczy motoszybowców samoutrzymujących się, nie samostartujących.
         if resolve_category(params.get("category")) == "jar23_aerobatic":
             limit, limit_basis = None, "nie dotyczy samolotów akrobacyjnych (10.1.1)"
         elif m0 > 8618.0:
@@ -89,12 +96,16 @@ def estimate_aircraft_noise(params: dict, sizing: dict, perf: dict, geom: dict, 
         margin = round(limit - noise_flyover, 1) if limit is not None else None
         compliant = limit is None or noise_flyover <= limit
 
-        if m_tip <= 0.72:
-            advice = "Doskonała akustyka: prędkość końcówki śmigła M_tip <= 0.72 gwarantuje cichą pracę i niski poziom hałasu zewnętrznego."
-        elif m_tip <= 0.85:
-            advice = f"Poziom hałasu mieści się w normie. M_tip = {m_tip:.2f}. Aby zredukować hałas, rozważ śmigło 3-łopatowe o mniejszej średnicy."
+        if m_tip_raw <= 0.72:
+            advice = f'M_tip = {m_tip:.3f}: mała prędkość końcówki ogranicza jedno ze źródeł hałasu, ale nie gwarantuje cichej pracy.'
+        elif m_tip_raw <= 0.85:
+            advice = f'M_tip = {m_tip:.3f}: hałas zależy również od obciążenia, liczby łopat, wydechu i toru lotu.'
         else:
-            advice = f"Ostrzeżenie: M_tip = {m_tip:.2f} > 0.85! Generuje silny hałas aerodynamiczny i fale uderzeniowe. Zredukuj RPM lub średnicę śmigła."
+            advice = f"Ostrzeżenie: M_tip = {m_tip:.2f} > 0.85. Wzrasta ryzyko silnego hałasu i lokalnych efektów ściśliwości. Sprawdź RPM, średnicę i dane profilu łopaty."
+        if margin is not None:
+            advice += (f' Szacunek poniżej porównywanego limitu o {margin:.1f} dBA.' if margin >= 0 else
+                       f' Szacunek przekracza porównywany limit o {-margin:.1f} dBA.')
+        advice += ' To porównanie wstępne, nie ocena certyfikacyjna.'
 
         return {
             "status": "success",
@@ -107,10 +118,18 @@ def estimate_aircraft_noise(params: dict, sizing: dict, perf: dict, geom: dict, 
             "limit_flyover": limit,
             "margin_flyover": margin,
             "compliant": compliant,
+            "estimate_within_limit": compliant if limit is not None else None,
+            "certification_compliant": None,
+            "assessment_scope": 'preliminary_comparison',
+            "limitations": MODEL_LIMITATIONS,
             "propeller_tip_mach": m_tip,
+            "propeller_diameter_m": prop_dia,
+            "propeller_rpm": prop_rpm,
+            "evaluation_speed_ms": v_climb_ms,
+            "evaluation_speed_of_sound_ms": a_sound,
             "flyover_altitude_m": round(h_flyover, 1),
-            "acoustic_category": ("Nie oceniono" if limit is None else "Zgodny z ICAO Ch. 10" if compliant
-                                  else "Przekroczenie normy ICAO"),
+            "acoustic_category": ("Nie oceniono" if limit is None else "Szacunek poniżej limitu" if compliant
+                                  else "Szacunek powyżej limitu"),
             "didactic_advice": advice
         }
 
@@ -144,11 +163,15 @@ def estimate_aircraft_noise(params: dict, sizing: dict, perf: dict, geom: dict, 
         "limit_flyover": limit_epn,
         "margin_flyover": margin_epn,
         "compliant": compliant,
+        "estimate_within_limit": compliant,
+        "certification_compliant": None,
+        "assessment_scope": 'preliminary_comparison',
+        "limitations": MODEL_LIMITATIONS,
         "bypass_ratio": bpr,
         "limits_epndb": {key: round(value, 1) for key, value in limits.items()},
         "margins_epndb": margins,
         "cumulative_margin_epndb": cumulative,
-        "acoustic_category": "Zgodny z ICAO Ch. 14" if compliant else "Wymaga wyższego BPR",
+        "acoustic_category": "Szacunek poniżej limitów" if compliant else "Szacunek powyżej limitów",
         "didactic_advice": (
             f"Silnik turbowentylatorowy o BPR = {bpr:.1f}. "
             + ("Wysoki stopień dwuprzepływowości skutecznie tłumi hałas strumienia gazów wylotowych (prawo Lighthilla V^8)." if bpr >= 3.0 else

@@ -2,7 +2,7 @@
 (function () {
   'use strict';
   const $ = id => document.getElementById(id);
-  const keys = ['engine_fuel_mode','engine_model_id','engine_fuel_point','fuel_density_kg_l',
+  const keys = ['engine_fuel_mode','engine_model_id','engine_fuel_point','fuel_density_kg_l','propeller_diameter_m','propeller_rpm',
     'engine_custom_sfc','engine_custom_model','engine_custom_power_kw','engine_custom_thrust_kn','engine_fuel_source','engine_fuel_conditions',
     'engine_max_fuel_source','engine_max_fuel_conditions'];
   let engines = [], lastResult = null;
@@ -35,6 +35,7 @@
     for (const el of document.querySelectorAll('[data-engine-shaft]')) el.hidden = jet;
     for (const el of document.querySelectorAll('[data-engine-jet]')) el.hidden = !jet;
     for (const el of document.querySelectorAll('[data-engine-density]')) el.hidden = !isVol;
+    for (const el of document.querySelectorAll('[data-engine-prop]')) el.hidden = none || jet;
     for (const el of document.querySelectorAll('[data-engine-field]')) el.disabled = none || !!el.closest('[hidden]');
 
     // SINGLE AUTHORITATIVE SFC FIELD (#sfc):
@@ -77,6 +78,7 @@
         el.value = key === 'fuel_density_kg_l' ? 0.72 : key.includes('_power_') || key.includes('_thrust_') ? 0 : '';
       }
     }
+    if (params.propeller_rpm == null && params.prop_rpm != null) $('propeller_rpm').value=params.prop_rpm;
     const curSfc = params.sfc ?? ($('sfc')?.value || (kind() === 'jet' ? 0.62 : 265));
     if ($('engine_custom_sfc')) $('engine_custom_sfc').value = curSfc;
     if ($('sfc') && params.sfc !== undefined) $('sfc').value = params.sfc;
@@ -88,6 +90,7 @@
   function collect(data) {
     if (!$('engineFuelPanel')) return data;
     delete data._engine_fuel;
+    delete data.prop_rpm; // The editable canonical field replaces the legacy alias.
     delete data.engine_static_thrust_kn;
     for (const key of keys) {
       const el = $(key);

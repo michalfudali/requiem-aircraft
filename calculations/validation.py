@@ -11,6 +11,7 @@ NUMERIC_LIMITS = {
     'cost_rate_production_per_month': (0.000001, 100000),
     'fuel_density_kg_l': (.5, 1.0), 'engine_custom_power_kw': (0, 100000),
     'engine_custom_thrust_kn': (0, 10000), 'engine_static_thrust_kn': (0, 10000),
+    'propeller_rpm': (100, 6000), 'propeller_diameter_m': (.1, 8),
     "n_pax": (0, 1000), "n_crew": (0, 20), "m_pax": (0, 500),
     "m_bag": (0, 500), "m_cargo": (0, 500000), "m_crew_person": (0, 500),
     "range_km": (0, 30000), "cruise_altitude_m": (0, 20000),
@@ -66,6 +67,7 @@ NUMERIC_LIMITS = {
     "airfoil_cz_max": (0, 4),  # 0 = nie podano (P3: Cz_max płata ze Schrenka)
 }
 NUMERIC_STEPS = {
+    'propeller_diameter_m': .01, 'propeller_rpm': 1,
     # Aerodynamic coefficients & efficiencies
     "taper_ratio": 0.01,
     "tc_ratio": 0.005,
@@ -253,6 +255,10 @@ def validate_parameters(data):
     if not isinstance(data, dict):
         raise ValueError("Parametry projektu muszą być obiektem JSON.")
     p = {**DEFAULTS, **data}
+    from calculations.propeller import shaft_rpm
+    if 'propeller_rpm' in p or 'prop_rpm' in p:
+        p['propeller_rpm'] = shaft_rpm(p)
+        p.pop('prop_rpm', None)
     if 'airfoil_source' in p and (not isinstance(p['airfoil_source'], str) or len(p['airfoil_source']) > 4000):
         raise ValueError('Źródło profilu: podaj tekst do 4000 znaków.')
     # One comparison sample: the aircraft nearest in MTOW to the design (BIPOL_1, s. 1).

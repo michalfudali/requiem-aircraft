@@ -325,6 +325,12 @@ def run_bipol_project(params: dict):
         }
     }
 
+    propeller = bipol_projects_res['p4']['paturski_propulsion'].get('propeller_selection')
+    if propeller:
+        # Publish geometry before review signatures freeze the calculated design.
+        geom_res['propeller'] = dict(diameter_m=propeller['diameter_unrounded_m'],
+                                    rpm=propeller['rpm_unrounded'], basis=propeller['diameter_basis'])
+
     result["instructor_review"] = review_coursework(result)
     from calculations.bipol1 import review_bipol1
     result['bipol1_review'] = review_bipol1(result)

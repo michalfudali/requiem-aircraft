@@ -5,7 +5,7 @@
   const extraKeys = ['gear_attachment','gear_retraction','wing_input_mode','payload_input_mode','power_input_mode','wingspan_m',
     'takeoff_distance_m','landing_distance_m','wing_area_m2','m_payload','engine_power_kw','n_engines','wing_planform','dihedral_deg','aileron_type',
     'operating_surface','design_iteration_mode','water_displacement_volume_m3',
-    'cargo_bay_length_m','cargo_bay_width_m','cargo_bay_height_m'];
+    'cargo_bay_length_m','cargo_bay_width_m','cargo_bay_height_m','propeller_diameter_m','propeller_rpm'];
   const wingSources = {loading:['aspect_ratio'],span_aspect:['wingspan_m','aspect_ratio'],
     span_area:['wingspan_m','wing_area_m2'],area_aspect:['wing_area_m2','aspect_ratio']};
   let wizardBase = {};
@@ -40,6 +40,7 @@
     const legacySketch = !wizardBase.wetted_example && ['raymer','reading'].includes(wizardBase.preliminary_polar_mode) && wizardBase.sketch_swet_ratio;
     set('wiz_','wetted_example',wizardBase.wetted_example || (legacySketch ? 'sketch' : ''));
     set('wiz_','sketch_swet_ratio',wizardBase.sketch_swet_ratio ?? 4);
+    for (const key of ['propeller_diameter_m','propeller_rpm']) set('wiz_',key,wizardBase[key] ?? (key==='propeller_rpm' ? wizardBase.prop_rpm : null) ?? '');
     wettedVisibility();
   }
   function derived(prefix, key, isDerived, formula='', result) {
@@ -101,10 +102,10 @@
   function propulsion(prefix='') {
     const engine=value(prefix,'engine_type'), none=engine==='none', prop=engine==='prop';
     if (!prop) set(prefix,'power_input_mode','sized');
-    for (const key of ['engine_location','sfc','prop_efficiency','engine_power_kw','power_input_mode','loiter_time_min','prop_eff_to','takeoff_run_m','takeoff_distance_m','climb_rate_ms']) {
+    for (const key of ['engine_location','sfc','prop_efficiency','engine_power_kw','power_input_mode','loiter_time_min','prop_eff_to','takeoff_run_m','takeoff_distance_m','climb_rate_ms','propeller_diameter_m','propeller_rpm']) {
       const input=$(prefix+key);if(!input)continue;
       if(key==='takeoff_run_m')input.closest('.legacy-runway')?.toggleAttribute('hidden',none);
-      const hide=none||(!prop&&['prop_efficiency','engine_power_kw','power_input_mode','prop_eff_to'].includes(key));
+      const hide=none||(!prop&&['prop_efficiency','engine_power_kw','power_input_mode','prop_eff_to','propeller_diameter_m','propeller_rpm'].includes(key));
       const group=input.closest('.input-group'); if(group){group.hidden=hide;group.style.display=hide?'none':'';}
       input.disabled=hide;
       if(['sfc','takeoff_run_m','takeoff_distance_m','climb_rate_ms'].includes(key))input.readOnly=none;
@@ -222,6 +223,10 @@
     const p={...wizardBase};
     const keys=new Set([...Object.keys(collectFormData()),...extraKeys]);
     keys.forEach(key=>{const input=$('wiz_'+key);if(!input)return;p[key]=input.type==='number'?Number(input.value):input.value;});
+    for (const key of ['propeller_diameter_m','propeller_rpm']) {
+      if (value('wiz_','engine_type') !== 'prop' || !$('wiz_'+key).value.trim()) delete p[key];
+    }
+    delete p.prop_rpm;
     const direct = document.querySelector('[name="wiz_drag_basis"]:checked')?.value === 'input';
     p.preliminary_polar_mode = direct ? 'input' : value('wiz_','raymer_reading');
     p.cx0 = direct ? number('wiz_','cx0') : (wizardBase.cx0 ?? .025);

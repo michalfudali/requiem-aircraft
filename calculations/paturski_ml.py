@@ -1014,12 +1014,15 @@ def paturski_project_5_propulsion(geom_res: dict, sizing_res: dict, params: dict
         rho_d = isa_d["rho"]
         a_dd = isa_d["a"]
         v_d_ms = max(35.0, float(params.get("cruise_speed_kmh", 220.0)) * 1.15 / 3.6)
-        rpm_prop = 2000.0 if ac_type == "turboprop_regional" else 2400.0
+        from calculations.propeller import shaft_rpm
+        rpm_prop = shaft_rpm(params)
         n_sd_rps = rpm_prop / 60.0
 
         c_d_prop = v_d_ms * math.pow(rho_d / max(1.0, n_d_single_w * (n_sd_rps ** 2)), 0.2)
         j_opt = max(0.45, min(1.35, 0.52 * math.pow(max(0.2, c_d_prop), 0.78)))
         d_prop_m = max(1.10, min(3.80, v_d_ms / (j_opt * n_sd_rps)))
+        if params.get('propeller_diameter_m') is not None:
+            d_prop_m = float(params['propeller_diameter_m'])
 
         v_max_dop_ms = 1.2 * (float(params.get("cruise_speed_kmh", 220.0)) * 1.25 / 3.6)
         ma_kl = math.sqrt((v_max_dop_ms ** 2) + ((math.pi * n_sd_rps * d_prop_m) ** 2)) / a_dd
@@ -1080,9 +1083,12 @@ def paturski_project_5_propulsion(geom_res: dict, sizing_res: dict, params: dict
                 "n_d_kw": round(n_d_single_w / 1000.0, 1),
                 "n_sd_rps": round(n_sd_rps, 2),
                 "rpm_prop": round(rpm_prop),
+                "rpm_unrounded": rpm_prop,
                 "cd_dimensionless": round(c_d_prop, 3),
                 "j_opt": round(j_opt, 3),
                 "diameter_m": round(d_prop_m, 2),
+                "diameter_unrounded_m": d_prop_m,
+                "diameter_basis": 'input' if 'propeller_diameter_m' in params else 'preliminary_sizing',
                 "cn_design": round(c_n_0, 4),
                 "ma_tip_kl": round(ma_kl, 3),
                 "ma_limit_wood_comp": 0.80,

@@ -109,7 +109,8 @@ def calculate_propulsion_clearance(params: dict) -> dict:
     default_blades = 4 if ac_type == "turboprop_regional" else 2
     blade_count = int(params.get("blade_count", default_blades))
     gear_type = params.get("gear_type", "tricycle")
-    rpm = float(params.get("prop_rpm", 2400.0))
+    from calculations.propeller import shaft_rpm
+    rpm = shaft_rpm(params)
     pitch_type = params.get("prop_pitch_type", "variable")
     alt_m = float(params.get("altitude_m", 1000.0))
 

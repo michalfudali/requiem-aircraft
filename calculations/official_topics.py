@@ -6,8 +6,28 @@ only the checks of a project against the requirements of its topic.
 """
 from calculations.project_store import load_categories, load_topics
 
+
+def explicit_topic_requirements(topic):
+    """Include configuration constraints stated in the official topic title.
+
+    Older course databases omit some constraints from the requirements object,
+    while retaining both the official wording and its configuration in defaults.
+    Normalize the read model, without rewriting anyone's saved project inputs.
+    """
+    required = dict(topic['requirements'])
+    title = topic['title'].casefold()
+    if 'jednomiejscow' in title:
+        required['occupants_exact'] = 1
+    elif 'dwumiejscow' in title:
+        required['occupants_exact'] = 2
+    if 'zespół napędowy' in title and any(word in title for word in ('ciągnący', 'pchający', 'chowany')):
+        required['engine_location'] = ('nose' if 'ciągnący' in title else
+                                       'rear' if 'pchający' in title else 'retractable')
+    return required
+
+
 OFFICIAL_CATEGORIES = load_categories()
-ALL_TOPICS = load_topics()
+ALL_TOPICS = [dict(topic, requirements=explicit_topic_requirements(topic)) for topic in load_topics()]
 
 
 def _topic(params):
@@ -40,11 +60,18 @@ def check_topic_requirements(params, sizing):
     requirements = topic['requirements']
     labels = dict(n_pax='Liczba pasażerów', n_engines='Liczba silników', engine_type='Rodzaj napędu',
                   operating_surface='Środowisko startu i lądowania', category='Przeznaczenie akrobacyjne',
-                  wing_config='Układ skrzydła', seats_config='Rozmieszczenie miejsc')
+                  wing_config='Układ skrzydła', seats_config='Rozmieszczenie miejsc',
+                  engine_location='Zabudowa zespołu napędowego')
     checks = [dict(parameter=f"[Temat {topic['num']}] {labels[key]}", required=str(expected),
                    actual=str(params.get(key)), passed=params.get(key) == expected,
                    note='Wymaganie oficjalnego tematu. Odstępstwo wymaga zmiany tematu lub projektu własnego.')
               for key, expected in requirements.items() if key in labels]
+    if 'occupants_exact' in requirements:
+        occupants = int(params.get('n_crew', 0)) + int(params.get('n_pax', 0))
+        checks.append(dict(parameter=f"[Temat {topic['num']}] Liczba osób na pokładzie",
+                           required=str(requirements['occupants_exact']), actual=str(occupants),
+                           passed=occupants == requirements['occupants_exact'],
+                           note='Liczba miejsc z treści tematu obejmuje załogę i pasażerów.'))
     if 'power_per_engine_max_kw' in requirements:
         power = sizing['design_point'].get('power_kw')
         limit = requirements['power_per_engine_max_kw'] * requirements['n_engines']

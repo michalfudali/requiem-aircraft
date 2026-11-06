@@ -1161,7 +1161,8 @@ def build_model_from_bipol(payload: dict[str, Any] | None = None) -> dict[str, A
 
         # 4. ZESPÓŁ NAPĘDOWY (PROP / POD)
         if engine_type != "none":
-            prop_diam = float(params.get("propeller_diameter_m") or max(1.3, min(2.4, 0.15 * b)))
+            prop_diam = float(params.get("propeller_diameter_m") or geom.get('propeller',{}).get('diameter_m')
+                              or max(1.3, min(2.4, 0.15 * b)))
             blade_cnt = int(params.get("blade_count") or 3)
             if engine_type == "prop":
                 if engine_loc == "nose" or (engine_count == 1 and engine_loc not in ("rear", "wing", "retractable")):

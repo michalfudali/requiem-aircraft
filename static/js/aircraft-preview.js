@@ -198,7 +198,7 @@
 
     if (p.engine_type && p.engine_type!=='none' && p.engine_location!=='none') {
       const jet=p.engine_type==='jet', loc=p.engine_location || 'nose';
-      const diameter=finite(result.bipol_projects?.p4?.paturski_propulsion?.propeller_selection?.diameter_m, Math.min(3,w.b*.2));
+      const diameter=finite(result.geometry?.propeller?.diameter_m, finite(result.bipol_projects?.p4?.paturski_propulsion?.propeller_selection?.diameter_m, Math.min(3,w.b*.2)));
       const propRadius=Math.max(.1,diameter/2,concept?fw*(passenger ? .78 : .72):0);
       const length=Math.max(fw*1.1,L*(jet ? .12 : passenger ? .105 : .10));
       let engines;

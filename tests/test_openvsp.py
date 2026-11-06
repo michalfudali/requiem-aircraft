@@ -94,6 +94,19 @@ def test_openvsp_build_from_bipol_and_model_state():
     assert mesh["bbox"]["max_y"] > 3.0
 
 
+@pytest.mark.parametrize('diameter',[None,1.7])
+def test_native_propeller_matches_the_calculated_topic7_geometry(diameter):
+    from calculations import run_bipol_project
+    from calculations.official_topics import ALL_TOPICS
+    from calculations.openvsp_bridge import build_model_from_bipol
+    params=dict(next(t['parameters'] for t in ALL_TOPICS if t['num']==7),propeller_rpm=2100)
+    if diameter is not None:params['propeller_diameter_m']=diameter
+    result=run_bipol_project(params)
+    build_model_from_bipol(result)
+    prop=next(g for g in vsp.FindGeoms() if vsp.GetGeomName(g)=='Smiglo_Ciagnace')
+    assert vsp.GetParmVal(prop,'Diameter','Design')==pytest.approx(result['geometry']['propeller']['diameter_m'])
+
+
 def test_openvsp_live_parameter_and_geometry_modifications():
     client = app.test_client()
     model = client.get("/api/openvsp/model").get_json()

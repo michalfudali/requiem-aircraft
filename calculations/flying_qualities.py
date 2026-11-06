@@ -29,6 +29,31 @@ import math
 from calculations.atmosphere import G0, isa_atmosphere
 
 
+def short_period_poles(omega_n, zeta):
+    """Poles of s² + 2 ζω_n s + ω_n², including the aperiodic case.
+
+    The half time describes a modal exponential (the envelope for a complex
+    pair), not the complete state response for arbitrary initial conditions.
+    See MIT 2.14, Handout PoleZero.pdf, second-order pole locations.
+    """
+    if not math.isfinite(omega_n) or not math.isfinite(zeta) or omega_n<=0 or zeta<0:
+        raise ValueError('Model krótkookresowy wymaga dodatniego omega_n i nieujemnego zeta.')
+    if zeta < 1:
+        dominant=fast=-zeta*omega_n
+        imaginary=omega_n*math.sqrt(1-zeta*zeta)
+        regime='underdamped'
+    else:
+        factor=zeta+math.sqrt(zeta*zeta-1)
+        # Rationalized slow root avoids cancellation for large zeta.
+        dominant=-omega_n/factor
+        fast=-omega_n*factor
+        imaginary=0.0
+        regime='critically_damped' if zeta==1 else 'overdamped'
+    return dict(regime=regime,dominant_pole_real_s1=dominant,fast_pole_real_s1=fast,
+                pole_imaginary_rad_s=imaginary,
+                modal_half_time_s=math.log(2)/-dominant if dominant<0 else None)
+
+
 def evaluate_flying_qualities(params: dict, geom: dict, aero: dict, mass: dict, balance: dict, perf: dict) -> dict:
     """
     Wyznacza charakterystyki dynamiczne i ocenia własności lotne (Flying Qualities)
@@ -132,9 +157,8 @@ def evaluate_flying_qualities(params: dict, geom: dict, aero: dict, mass: dict, 
     zeta_sp = max(0.01, (damping_tail + damping_wing) / (2.0 * omega_n_sp))
 
     # Częstość tłumiona i czas stłumienia do połowy amplitudy (Handout 11_1, slajd 2 i 4)
-    xi_sp = -zeta_sp * omega_n_sp  # część rzeczywista wartości własnej
-    eta_sp = omega_n_sp * math.sqrt(max(0.001, abs(1.0 - zeta_sp ** 2))) if zeta_sp < 1.0 else 0.0
-    t_half_sp = math.log(2.0) / abs(xi_sp) if xi_sp < 0 else math.inf
+    sp_poles = short_period_poles(omega_n_sp,zeta_sp)
+    t_half_sp = sp_poles['modal_half_time_s']
 
     # Przyspieszenie normalne na jednostkę kąta natarcia n_z_alpha [g/rad] (slajd 3 i 5)
     # n_z_alpha = (q * S * a_w) / (m0 * G0)
@@ -320,7 +344,9 @@ def evaluate_flying_qualities(params: dict, geom: dict, aero: dict, mass: dict, 
         "short_period": {
             "omega_n_rad_s": round(omega_n_sp, 3),
             "damping_ratio_zeta": round(zeta_sp, 3),
-            "t_half_amplitude_s": round(t_half_sp, 3) if t_half_sp != math.inf else None,
+            "t_half_amplitude_s": round(t_half_sp, 3) if t_half_sp is not None and math.isfinite(t_half_sp) else None,
+            "poles": sp_poles,
+            "half_time_basis": "Obwiednia oscylacji dla zeta < 1; dominujący mod wykładniczy dla zeta >= 1. Nie jest to czas zaniku całej odpowiedzi dla dowolnych warunków początkowych.",
             "n_z_alpha_g_rad": round(n_z_alpha, 2),
             "cap_rad_s2_per_g": round(cap, 4),
             "cap_level": cap_level,

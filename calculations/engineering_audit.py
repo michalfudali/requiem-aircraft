@@ -48,6 +48,26 @@ def perform_engineering_audit(result: dict) -> dict:
     checks = []
     metrics = {}
 
+    # Independent component estimates must not be hidden by distributing P1's
+    # empty mass in the same percentages. Reconcile both mass models first.
+    components = mass.get('component_masses') or {}
+    component_empty = components.get('m_empty')
+    adopted_empty = mass.get('m_empty')
+    if component_empty is not None and adopted_empty is not None:
+        difference = component_empty - adopted_empty
+        reconciled = component_empty <= adopted_empty + .001 * max(1,adopted_empty)
+        metrics.update(parametric_empty_mass_kg=component_empty,adopted_empty_mass_kg=adopted_empty,
+                       empty_mass_model_difference_kg=difference)
+        checks.append(dict(id='empty_mass_crosscheck',category='Bilans mas i zakres modeli',
+            title='Masy zespołów a masa pusta przyjęta w P1',
+            value=f"Σ m_i = {component_empty:.1f} kg; P1: {adopted_empty:.1f} kg",
+            required='Oszacowane zespoły muszą mieścić się w przyjętej masie pustej',
+            passed=reconciled,severity='ok' if reconciled else 'warning',
+            didactic_simple='Domknięcie sumy mas w P1 nie dowodzi, że skrzydło, silnik i wyposażenie zmieszczą się w tej masie.',
+            engineering_note=(f"Niezależne oszacowanie ({components.get('method','model parametryczny')}) różni się od P1 o {difference:+.1f} kg. "
+                'Samo przeskalowanie procentów do masy P1 nie usuwa tej rozbieżności. Sprawdź zakres stosowalności modelu, '
+                'zwłaszcza dla szybowców i motoszybowców, oraz udokumentuj masy zespołów przed zatwierdzeniem projektu.')))
+
     # =========================================================================
     # 1. KĄT PRZEWROTKI BOCZNEJ PODWOZIA (Tipover Angle) - Raymer §11.2 / Torenbeek
     # =========================================================================
@@ -502,7 +522,7 @@ def perform_engineering_audit(result: dict) -> dict:
         checks.append({
             "id": "noise_compliance_check",
             "category": "Ochrona środowiska i zdatność akustyczna",
-            "title": f"Certyfikacja hałasu ({acoustics.get('icao_standard', 'ICAO Annex 16')})",
+            "title": f"Wstępne porównanie hałasu ({acoustics.get('icao_standard', 'ICAO Annex 16')})",
             "value": f"{noise_flyover:.1f} {noise_unit} (zapas: {noise_margin:+.1f} {noise_unit})",
             "required": (f"Rozdz. 14.4: suma zapasów w 3 punktach ≥ 17 EPNdB (jest {cumulative:.1f}), w każdym ≥ 1; przelot ≤ {noise_limit:.1f} EPNdB"
                          if cumulative is not None else f"≤ {noise_limit:.1f} {noise_unit} (limit przy starcie)" if noise_limit
@@ -533,6 +553,7 @@ def perform_engineering_audit(result: dict) -> dict:
         dr = fq.get("dutch_roll", {})
         cap_val = sp.get("cap_rad_s2_per_g", 0.0)
         cap_lvl = sp.get("cap_level", 1)
+        zeta_sp = sp.get('damping_ratio_zeta',0.0)
         dr_passed = dr.get("cs23_criterion_passed", True)
         fq_passed = (cap_lvl <= 2) and dr_passed
 
@@ -544,9 +565,9 @@ def perform_engineering_audit(result: dict) -> dict:
             "id": "flying_qualities_cap_check",
             "category": "Dynamika lotu i pilotaż (Flying Qualities)",
             "title": "Sterowność podłużna CAP i tłumienie holendrowania (Handout 11)",
-            "value": f"CAP = {cap_val:.3f} rad/(s²·g) (Level {cap_lvl}), Dutch Roll: {'Zgodny z CS-23' if dr_passed else 'Niewystarczające tłumienie'}",
+            "value": f"CAP = {cap_val:.3f} rad/(s²·g), ζ = {zeta_sp:.3f} (Level {cap_lvl}), Dutch Roll: {'Zgodny z CS-23' if dr_passed else 'Niewystarczające tłumienie'}",
             "required": ("Faza B wg MIL-F-8785C/MIL-STD-1797 (wykład 11): CAP 0,085–3,6 rad/(s²·g) na poziom 1, "
-                         "0,038–10 na poziom 2; holendrowanie −ξ/η ≥ 0,0523 (JAR/CS-23)"),
+                         "0,038–10 na poziom 2; odpowiednio ζ = 0,30–2,00 i 0,20–2,00; holendrowanie −ξ/η ≥ 0,0523 (JAR/CS-23)"),
             "passed": fq_passed,
             "severity": "ok" if fq_passed else "warning",
             "didactic_simple": (
@@ -555,7 +576,7 @@ def perform_engineering_audit(result: dict) -> dict:
                 "oscylacje PIO. Jeśli jest za niski — samolot reaguje jak kloc lodu."
             ),
             "engineering_note": (
-                f"Krótkookresowy parametr CAP = {cap_val:.4f} rad/(s²·g) kwalifikuje samolot do Poziomu {cap_lvl} (Handout 11_1). "
+                f"Wspólna ocena CAP = {cap_val:.4f} rad/(s²·g) i tłumienia ζ = {zeta_sp:.3f} daje Poziom {cap_lvl} (Handout 11_1). "
                 f"Tłumienie holendrowania -ξ/η = {dr.get('damping_criterion_ratio', 0.0):.4f} (wymagane ≥ 0.0523 wg JAR/CS-23.181). "
                 + ("Płatowiec wykazuje prawidłowe właściwości dynamiczne i pilotażowe." if fq_passed else
                    "Właściwości dynamiczne wymagają optymalizacji: skoryguj zapas stateczności statycznej lub powierzchnię usterzeń.")

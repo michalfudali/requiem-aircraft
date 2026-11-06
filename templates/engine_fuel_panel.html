@@ -37,6 +37,12 @@
       <label>Warunki maksymalnego ustawienia <input id="engine_max_fuel_conditions" data-engine-field type="text" maxlength="2000"></label>
     </details>
   </div>
+  <details data-engine-prop style="margin-top:0.6rem;">
+    <summary>Śmigło: średnica i obroty wału</summary>
+    <p>Puste pola oznaczają wstępny dobór średnicy i typowe obroty klasy. Podaj dane dobranego śmigła, aby użyć ich w tabelach P4/P5 i porównaniu hałasu. Obroty wału śmigła uwzględniają przekładnię silnika.</p>
+    <label>Średnica śmigła [m] <input id="propeller_diameter_m" data-engine-field type="number" min="0.1" max="8" step="0.01" placeholder="Automatyczny dobór"></label>
+    <label>Obroty wału śmigła [obr/min] <input id="propeller_rpm" data-engine-field type="number" min="100" max="6000" step="1" placeholder="Typowe dla klasy"></label>
+  </details>
   <button type="button" class="btn btn-outline-primary btn-sm btn-block" id="applyEngineFuel" style="margin-top:0.5rem;font-weight:600;">
     Zastosuj dane silnika i przelicz
   </button>
