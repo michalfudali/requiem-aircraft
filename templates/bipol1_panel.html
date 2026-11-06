@@ -26,6 +26,7 @@
   <p>Wprowadź przebieg lotu, wybierz źródło masy pustej i sprawdź bilans misji. Zgodnie z czystą merytoryką bilans oparty jest na pełnym domknięciu projektu z biegunowej aerodynamicznej P4 przy zadanej prędkości TAS i wysokości.</p>
   <div class="trend-controls">
     <label>Metoda masowa<select id="mass_method" data-bipol1><option value="auto">Automatycznie według zrzutu</option><option value="proportion">Proporcji — bez zrzutu</option><option value="iterative">Iteracyjna — bilans kolejnych faz</option></select></label>
+    <label>Masa własna w bilansie<select id="empty_mass_closure" data-bipol1 title="BIPOL_3: wynik analizy masowej może wymagać powtórzenia projektu."><option value="trend">Z zależności statystycznej (BIPOL_1, wzór 1)</option><option value="components">Domknięta sumą mas zespołów P3 (współczynnik K_P3)</option></select></label>
     <label>Punkty linii trendu mₑ/m₀ = f(m₀)<select id="empty_mass_model" data-bipol1><option value="trend">Odczyt programu z linii trendu próby</option><option value="two_point">Własny odczyt dwóch punktów z wykresu</option></select></label>
   </div>
   <p class="studio-fine-print" data-bipol1-group="trend">Linia trendu pochodzi z próby porównawczej z zakładki „Baza i analiza trendów”; ta sama linia jest w raporcie z analizy trendów.</p>
@@ -80,6 +81,7 @@
     <label>Daty trendów<select id="trend_year_basis" data-bipol1><option value="certification">Certyfikacja — obecna baza</option><option value="production">Produkcja — według PDF</option></select></label>
     <p>Znaczenie roku wybierzesz w edytorze samolotu w bazie. Daty produkcji i certyfikacji są analizowane osobno.</p>
     <label>Odniesienie do uzgodnionego szkicu odręcznego<input id="sketch_reference" data-bipol1 type="text" maxlength="4000" placeholder="Nazwa pliku / arkusza i data uzgodnienia"></label>
+    <label>Uzasadnienie odchylenia Cx₀ od tabeli klas<input id="cx0_deviation_reason" data-bipol1 type="text" maxlength="2000" placeholder="Dlaczego odczyt z wykresu leży poza przedziałem klasy"></label>
     <label>Uzgodnienie misji i wymagań z prowadzącym<input id="mission_approval_reference" data-bipol1 type="text" maxlength="4000" placeholder="Data i zakres uzgodnienia"></label>
   </details>
   <button type="button" class="btn btn-primary" id="bipol1Calculate">Oblicz masę i sprawdź projekt</button>

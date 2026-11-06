@@ -11,6 +11,8 @@ Autor metodyki i kryteriów:
 - Wymagania przepisów zdatności CS-23, CS-25, CS-22, LTF-UL.
 """
 import math
+
+from calculations.geometry import axis_height_m, cg_height_m
 from calculations.atmosphere import G0, RHO0
 from calculations.paturski_ml import wing_alpha_deg
 
@@ -84,8 +86,9 @@ def perform_engineering_audit(result: dict) -> dict:
     # =========================================================================
     track = float(gear.get("track", 0.24 * b))
     x_gear = float(balance.get("arms", {}).get("gear", 0.45 * l_f))
-    x_nose = max(0.5, 0.12 * l_f)
-    wheelbase = max(0.8, x_gear - x_nose)
+    tailwheel = params.get("landing_gear_type") == "tailwheel"
+    x_aux = float(balance.get("arms", {}).get("gear_aux", max(0.5, 0.12 * l_f)))
+    wheelbase = max(0.8, abs(x_gear - x_aux))
 
     wing_config = params.get("wing_config", "low")
     if wing_config in ("high", "braced_high"):
@@ -95,8 +98,11 @@ def perform_engineering_audit(result: dict) -> dict:
     else:
         z_cg_fuse = -0.10 * d_f
 
-    z_ground = -0.80 * d_f
-    h_cg_ground = max(0.4, z_cg_fuse - z_ground)
+    # Wysokość osi kadłuba z prześwitu śmigła dobranego w P4 (BIPOL_3, krok 10).
+    propeller = (result.get("bipol_projects", {}).get("p3", {}).get("blueprint_checks", {}).get("propeller_diameter_m")
+                 or params.get("propeller_diameter_m"))
+    z_ground = -axis_height_m(params, d_f, propeller)
+    h_cg_ground = cg_height_m(params, d_f, propeller)
 
     # Odległość prostopadła od punktu styku do linii koło przednie - koło główne
     d_n = (track / 2.0) / math.sqrt(1.0 + (track / (2.0 * wheelbase)) ** 2)
@@ -156,7 +162,56 @@ def perform_engineering_audit(result: dict) -> dict:
     metrics["tailstrike_required_deg"] = round(tail_required, 1)
 
     tailstrike_ok = tailstrike_angle_deg >= tail_required
-    checks.extend([] if sailplane else [{
+    if tailwheel and not sailplane:
+        # Wykład 4 (układ z kółkiem ogonowym): przy trzech punktach podparcia kąt postojowy 10°–15°, czyli
+        # kąt natarcia dla Cz ≈ 0,9 Cz,max; przednie ŚC 13° za pionem przez punkt styku koła, tylne o 7° dalej.
+        x_lemac_tw = float(balance.get("x_lemac_m", 0.0))
+        cg_range = balance.get("cg_range", {})
+        angle_of = lambda pct: math.degrees(math.atan2(x_lemac_tw + pct / 100.0 * mac - x_gear, h_cg_ground))  # noqa: E731
+        fwd_angle, aft_angle = angle_of(cg_range.get("forward_pct", 25.0)), angle_of(cg_range.get("aft_pct", 35.0))
+        three_point = math.degrees(math.atan2(-z_ground - 0.15, max(0.5, x_aux - x_gear)))
+        # Oś kadłuba jest pozioma w przelocie, więc płat stoi na ziemi pod kątem postojowym plus kąt zaklinowania.
+        terms = result.get("sizing", {}).get("terms", {})
+        cz_cruise_tw = float(result.get("sizing", {}).get("design_point", {}).get("ws") or 0) / max(1.0, float(terms.get("q_cr") or 1.0))
+        setting = wing_alpha_deg(trim_model, cz_cruise_tw) if trim_model else 0.0
+        required_attitude = max(10.0, min(15.0, alpha_09 if alpha_09 is not None else 10.0)) - setting
+        metrics.update(tailwheel_cg_fwd_deg=round(fwd_angle, 1), tailwheel_cg_aft_deg=round(aft_angle, 1),
+                       three_point_attitude_deg=round(three_point, 1), three_point_required_deg=round(required_attitude, 1))
+        band_ok = 12.5 <= fwd_angle and aft_angle <= 20.5
+        checks.append({
+            "id": "tailwheel_cg_band",
+            "category": "Podwozie i bezpieczeństwo naziemne",
+            "title": "Położenie koła głównego przed środkiem ciężkości (kółko ogonowe)",
+            "value": f"{deg(fwd_angle)}–{deg(aft_angle)}",
+            "required": "przednie ŚC 13°, tylne 20° za pionem przez punkt styku koła (wykład 4)",
+            "passed": band_ok,
+            "severity": "ok" if band_ok else "warning",
+            "didactic_simple": (
+                "W układzie z kółkiem ogonowym koła główne stoją przed środkiem ciężkości. Za blisko ŚC — samolot "
+                "stanie na nosie przy hamowaniu; za daleko — trudno podnieść ogon na rozbiegu."
+            ),
+            "engineering_note": (
+                f"Zakres ŚC widziany z punktu styku koła: {deg(fwd_angle)}–{deg(aft_angle)} przy wysokości ŚC "
+                f"{metres(h_cg_ground)}. " + ("Mieści się w zakresie z wykładu." if band_ok else
+                "Przesuń koła główne albo zmień wysokość goleni.")
+            ),
+        })
+        attitude_ok = three_point >= required_attitude - 0.5
+        checks.append({
+            "id": "tailwheel_attitude",
+            "category": "Podwozie i bezpieczeństwo naziemne",
+            "title": "Kąt postojowy na trzech punktach",
+            "value": deg(three_point),
+            "required": f"≥ {deg(required_attitude)}: z kątem zaklinowania {deg(setting)} daje kąt natarcia dla Cz ≈ 0,9 Cz,max (10°–15°, wykład 4)",
+            "passed": attitude_ok,
+            "severity": "ok" if attitude_ok else "warning",
+            "didactic_simple": (
+                "Samolot z kółkiem ogonowym ląduje na trzech punktach. Kąt postojowy powinien odpowiadać kątowi "
+                "natarcia bliskiemu przeciągnięciu, inaczej przyziemienie wymaga większej prędkości."
+            ),
+            "engineering_note": f"Oś kadłuba {metres(-z_ground)} nad ziemią, baza podwozia {metres(wheelbase)}.",
+        })
+    checks.extend([] if sailplane or tailwheel else [{
         "id": "tailstrike_clearance",
         "category": "Geometria kadłuba i lądowanie",
         "title": "Kąt ochrony ogona (Tailstrike clearance angle)",
@@ -183,7 +238,7 @@ def perform_engineering_audit(result: dict) -> dict:
     # 2a. KĄT MIĘDZY PIONEM PRZEZ ŚC A KOŁEM GŁÓWNYM (wykład 7, slajd 17)
     # =========================================================================
     x_lemac = balance.get("x_lemac_m")
-    if not sailplane and x_lemac is not None:
+    if not sailplane and not tailwheel and x_lemac is not None:
         # BIPOL_3, krok 10: przy rysowaniu podwozia przyjąć ŚC w 35% SCA (albo dalej, jeśli tak wynika z wyważenia).
         cg_ref_pct = max(35.0, float(balance.get("cg_range", {}).get("aft_pct", 30.0)))
         x_cg_aft = float(x_lemac) + cg_ref_pct / 100.0 * mac
@@ -235,6 +290,8 @@ def perform_engineering_audit(result: dict) -> dict:
     eta_aileron = (1.0 - (partition.get("tip_clearance_pct", 0.0) + partition.get("aileron_span_pct", 0.0)) / 100.0
                    if partition.get("aileron_span_pct") else 0.65)
     eta_aileron = geom.get("control_surfaces", {}).get("ailerons", {}).get("eta_in", eta_aileron)
+    if geom.get("control_surfaces", {}).get("layout") == "flaperon":
+        eta_aileron = 0.65  # klapolotka zajmuje całą krawędź; sterowność zachowuje jej część zewnętrzna
     metrics["aileron_inner_eta"] = round(eta_aileron, 3)
     stall_safe = stall_eta < eta_aileron
     eta_txt = lambda v: f"{v:.2f}".replace(".", ",")  # noqa: E731
@@ -329,13 +386,16 @@ def perform_engineering_audit(result: dict) -> dict:
     metrics["cz_opt_kmax"] = round(cz_opt, 3)
     metrics["cruise_matching_ratio"] = round(ratio_cr, 2)
 
-    cruise_match_ok = 0.65 <= ratio_cr <= 1.35
+    # Napęd śmigłowy: największy zasięg przy Kmax; K ≥ 0,94 Kmax to Cz/Cz,opt ≈ 0,70–1,42.
+    # Napęd odrzutowy: największy zasięg przy Cz = Cz,opt/√3 ≈ 0,58 Cz,opt.
+    match_low, match_high = (0.45, 1.05) if engine_type == "jet" else (0.65, 1.35)
+    cruise_match_ok = match_low <= ratio_cr <= match_high
     checks.append({
         "id": "cruise_aerodynamic_matching",
         "category": "Osiągi i ekonomia przelotu",
         "title": "Dopasowanie aerodynamiczne skrzydła w przelocie (Cz,przelot / Cz,opt)",
         "value": f"{cz_cr:.2f} / {cz_opt:.2f} ({ratio_cr:.2f} Cz,opt)",
-        "required": "0.65 – 1.35 Cz,opt (przelot blisko Kmax)",
+        "required": f"{match_low:.2f} – {match_high:.2f} Cz,opt (przelot blisko najlepszego zasięgu)",
         "passed": cruise_match_ok,
         "severity": "ok" if cruise_match_ok else "warning",
         "didactic_simple": (
@@ -347,7 +407,7 @@ def perform_engineering_audit(result: dict) -> dict:
             f"W przelocie Cz = {cz_cr:.3f}, podczas gdy optymalny współczynnik wynosi Cz,opt = {cz_opt:.3f} (stosunek: {ratio_cr:.2f}). "
             + ("Skrzydło pracuje w reżimie wysokiej doskonałości aerodynamicznej." if cruise_match_ok else
                ("Zbyt małe obciążenie powierzchni W/S lub za duża prędkość: skrzydło leci na zbyt niskim Cz. "
-                "Zmniejszenie powierzchni skrzydła S zredukowałoby opór tarcia." if ratio_cr < 0.65 else
+                "Zmniejszenie powierzchni skrzydła S zredukowałoby opór tarcia." if ratio_cr < match_low else
                 "Zbyt duże obciążenie powierzchni lub za mała prędkość: skrzydło pracuje w reżimie wysokiego oporu indukcyjnego."))
         )
     })

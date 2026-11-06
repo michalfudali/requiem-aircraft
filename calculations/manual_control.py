@@ -19,7 +19,7 @@ import re
 from calculations.report_document import TITLES
 from calculations.report_origin import CATEGORY, classify, origin_text
 
-GATED = ('req', 'ass', 'bc', 'lit')
+GATED = ('req', 'mis', 'ass', 'bc', 'lit')
 
 # Dane arkusza, które są parametrami projektu: wpisana wartość trafia do obliczeń.
 PARAM = {

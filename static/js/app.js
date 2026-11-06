@@ -2246,6 +2246,9 @@ function importProjectFromFile(file) {
         importedProj = data.project;
       } else if (data.params && data.name) {
         importedProj = data;
+      } else if (data.name && data.aircraft_type) {
+        // Same parameter file as data/design_cases and tools/audit_topic7.py.
+        importedProj = {name: data.name, aircraft_type: data.aircraft_type, category: data.category, params: data};
       } else {
         throw new Error('Plik nie zawiera poprawnej struktury projektu BIPOL.');
       }

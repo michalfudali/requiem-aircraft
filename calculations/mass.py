@@ -12,7 +12,7 @@ import math
 from typing import Any, Dict, Optional, Union
 
 from calculations.bipol1 import mission_model, solve_mass
-from calculations.polish_law import is_unmanned
+from calculations.polish_law import TURBINE_TYPES, is_unmanned
 
 
 # ---------------------------------------------------------------------------
@@ -488,7 +488,8 @@ def estimate_component_masses(
     # 5. Landing Gear Structural Weight (lbs)
     gear_geom = geom.get("gear", {}) if geom else {}
     l_m_m = float(gear_geom.get("length_main_m", params.get("gear_length_main_m", 0.71)))
-    l_n_m = float(gear_geom.get("length_nose_m", params.get("gear_length_nose_m", 0.51)))
+    l_n_m = float(gear_geom.get("length_nose_m", params.get(
+        "gear_length_nose_m", 0.25 if params.get("landing_gear_type") == "tailwheel" else 0.51)))
     l_m_ft = max(0.5, l_m_m * M_TO_FT)
     l_n_ft = max(0.5, l_n_m * M_TO_FT)
 
@@ -512,9 +513,9 @@ def estimate_component_masses(
             w_en = float(params["engine_dry_weight_lb"])
         elif "engine_mass_kg" in params:
             w_en = (float(params["engine_mass_kg"]) * KG_TO_LB) / n_en
-        elif float(params.get("engine_power_kw") or params.get("power_kw") or 0) > 0:
-            p_kw = float(params.get("engine_power_kw") or params.get("power_kw") or 0)
-            w_en = (p_kw * 0.94 * KG_TO_LB) / n_en
+        elif float(params.get("engine_power_kw") or params.get("power_kw") or 0.0) > 0.0:
+            p_kw = float(params.get("engine_power_kw") or params.get("power_kw"))
+            w_en = (engine_dry_mass_kg(p_kw, ac_type) * KG_TO_LB) / n_en
         else:
             w_en = (280.0 * (w_dg / (1150.0 * KG_TO_LB))) / n_en
 
@@ -555,7 +556,8 @@ def estimate_component_masses(
     )
     m_flight_controls = w_fc * LB_TO_KG
 
-    w_uav = float(params.get("m_avionics_uninstalled_lb", params.get("m_avionics_uninstalled", 50.0)))
+    w_uav = float(params.get("m_avionics_uninstalled_lb", params.get(
+        "m_avionics_uninstalled", 10.0 if ac_type in ("glider", "motoglider") else 50.0)))
     w_av = 2.117 * (w_uav ** 0.933)
     m_avionics = w_av * LB_TO_KG
 
@@ -613,6 +615,42 @@ def estimate_component_masses(
     }
 
 
+def engine_dry_mass_kg(power_kw: float, aircraft_type: str = "piston_ga") -> float:
+    """Dry mass of the engines from their total power when no real engine has been chosen.
+
+    Piston engines about 0,94 kg/kW (Rotax 912 UL: 56 kg, 58 kW), turboprops about 0,35 kg/kW
+    (PT6A-60A: 216 kg, 783 kW). W_en of the installed-engine equation, Analiza_masowa.pdf, p. 5.
+    """
+    return power_kw * (0.35 if aircraft_type in TURBINE_TYPES else 0.94)
+
+
+def group_masses(detail, m_empty: float):
+    """Component masses that add up exactly to the empty mass of the balance (BIPOL_1, eq. 1).
+
+    Analiza_masowa.pdf gives every component from its own dimensions, while the balance gives
+    m_e from the sample. The engine is a bought unit of known mass, so the difference between
+    the two goes to the airframe only. Returns the scaled components, groups and that factor.
+    """
+    engine = detail["propulsion"]
+    airframe = sum(value for key, value in detail.items() if key != "propulsion")
+    # An engine too heavy for the sample's m_e cannot stay whole: every component is scaled then.
+    engine_fixed = airframe > 0.0 and engine < 0.5 * m_empty
+    k_airframe = (m_empty - engine) / airframe if engine_fixed else m_empty / max(1e-9, engine + airframe)
+    scaled = {key: value * (1.0 if engine_fixed and key == "propulsion" else k_airframe)
+              for key, value in detail.items()}
+    groups = {
+        "m_wing": scaled["wing"],
+        "m_tail": scaled["horizontal_tail"] + scaled["vertical_tail"],
+        "m_gear": scaled["landing_gear"],
+        "m_propulsion": scaled["propulsion"],
+        "m_systems": (scaled["fuel_system"] + scaled["flight_controls"] + scaled["avionics"]
+                      + scaled["electrical"] + scaled["furnishings"]),
+    }
+    groups["m_fuselage"] = m_empty - sum(groups.values())
+    scaled["fuselage"] = groups["m_fuselage"]
+    return scaled, MacroBreakdown(groups), k_airframe
+
+
 def refine_component_allocation(mass, sizing, geometry, params, envelope):
     """Use the actual airframe, propulsion and envelope for the provisional P3 distribution.
 
@@ -620,20 +658,17 @@ def refine_component_allocation(mass, sizing, geometry, params, envelope):
     P1's empty mass supplies a conditional CG calculation, not mass substantiation.
     """
     context=dict(params,m_fuel=mass['m_fuel'])
+    power_kw=None
     if params['engine_type']=='prop':
-        context['engine_power_kw']=sizing['design_point']['power_kw']
+        power_kw=sizing['design_point']['power_kw']
+        context['engine_power_kw']=power_kw
     estimate=estimate_component_masses(mass['m0'],context,geom=geometry,flight_envelope=envelope)
     detail=estimate['breakdown']
-    factor=mass['m_empty']/estimate['m_empty']
-    macro=MacroBreakdown({
-        'm_wing':detail['wing']*factor,
-        'm_tail':(detail['horizontal_tail']+detail['vertical_tail'])*factor,
-        'm_gear':detail['landing_gear']*factor,
-        'm_propulsion':(detail['propulsion']+detail['fuel_system'])*factor,
-        'm_systems':(detail['flight_controls']+detail['avionics']+detail['electrical']+detail['furnishings'])*factor,
-    })
-    macro['m_fuselage']=mass['m_empty']-math.fsum(macro.values())
-    mass.update(breakdown=macro,component_masses=estimate,detailed_breakdown=detail,parametric_breakdown=detail,
+    scaled,groups,factor=group_masses(detail,mass['m_empty'])
+    mass.update(breakdown=groups,component_masses=estimate,detailed_breakdown=detail,parametric_breakdown=detail,
+                scaled_components=scaled,installed_power_kw=power_kw,
+                component_closure=dict(sum_kg=estimate['m_empty'],m_empty_kg=mass['m_empty'],k_airframe=factor,
+                                       n_ult=estimate['inputs']['ultimate_load_factor'],engine_kg=scaled['propulsion']),
                 component_allocation=dict(basis='provisional_cg_at_p1_empty_mass',normalization_factor=factor,
                                           independent_empty_mass_kg=estimate['m_empty'],adopted_empty_mass_kg=mass['m_empty']))
 
@@ -670,39 +705,7 @@ def calculate_mass_sizing(params: dict) -> dict:
 
     if has_geom:
         est = estimate_component_masses(m0, params, geom=geom, flight_envelope=envelope, m_empty=m_empty)
-        bd_det = est["breakdown"]
-        m_wing = bd_det["wing"]
-        m_tail = bd_det["horizontal_tail"] + bd_det["vertical_tail"]
-        m_gear = bd_det["landing_gear"]
-        m_prop = bd_det["propulsion"] + bd_det["fuel_system"]
-        m_sys = bd_det["flight_controls"] + bd_det["avionics"] + bd_det["electrical"] + bd_det["furnishings"]
-        m_fus = bd_det["fuselage"]
-
-        raw_macro_sum = m_wing + m_tail + m_gear + m_prop + m_sys + m_fus
-        if raw_macro_sum > 0:
-            k_norm = m_empty / raw_macro_sum
-            m_wing_norm = m_wing * k_norm
-            m_tail_norm = m_tail * k_norm
-            m_gear_norm = m_gear * k_norm
-            m_prop_norm = m_prop * k_norm
-            m_sys_norm = m_sys * k_norm
-            m_fus_norm = m_empty - (m_wing_norm + m_tail_norm + m_gear_norm + m_prop_norm + m_sys_norm)
-        else:
-            m_wing_norm = m_empty * 0.28
-            m_tail_norm = m_empty * 0.05
-            m_gear_norm = m_empty * 0.12
-            m_prop_norm = m_empty * 0.21
-            m_sys_norm = m_empty * 0.10
-            m_fus_norm = m_empty - (m_wing_norm + m_tail_norm + m_gear_norm + m_prop_norm + m_sys_norm)
-
-        mass_components = MacroBreakdown({
-            "m_wing": m_wing_norm,
-            "m_fuselage": m_fus_norm,
-            "m_tail": m_tail_norm,
-            "m_gear": m_gear_norm,
-            "m_propulsion": m_prop_norm,
-            "m_systems": m_sys_norm,
-        })
+        scaled, mass_components, k_airframe = group_masses(est["breakdown"], m_empty)
     else:
         shares = dict(BREAKDOWN_SHARES.get(ac_type, BREAKDOWN_SHARES["piston_ga"]))
         if ac_type == "glider" or engine_type == "none":
@@ -728,12 +731,16 @@ def calculate_mass_sizing(params: dict) -> dict:
             "m_systems": m_s,
         })
         est = estimate_component_masses(m0, params, geom=None, flight_envelope=None, m_empty=m_empty)
+        scaled, k_airframe = dict(est["breakdown"]), 1.0
 
     result.update(
         breakdown=mass_components,
         component_masses=est,
         detailed_breakdown=est["breakdown"],
         parametric_breakdown=est["breakdown"],
+        scaled_components=scaled,
+        component_closure=dict(sum_kg=est["m_empty"], m_empty_kg=m_empty, k_airframe=k_airframe, n_ult=None,
+                               engine_kg=scaled["propulsion"]),
         n_pax=n_pax,
         n_crew=n_crew,
         unmanned=unmanned,

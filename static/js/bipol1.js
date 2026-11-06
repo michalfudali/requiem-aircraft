@@ -1,7 +1,7 @@
 (function () {
   'use strict';
   const $=id=>document.getElementById(id);
-  const defaults={mass_method:'auto',empty_mass_model:'trend',
+  const defaults={mass_method:'auto',empty_mass_model:'trend',empty_mass_closure:'trend',cx0_deviation_reason:'',
     payload_drop_kg:0,return_range_km:0,max_power_time_min:0,climb_fraction_mode:'auto',
     climb_start_altitude_m:0,preliminary_polar_mode:'raymer',wetted_example:'',sketch_swet_ratio:4,
     raymer_kmax:15,cx0_reference_class:'',

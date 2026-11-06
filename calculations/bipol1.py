@@ -216,13 +216,15 @@ def empty_mass_law(p):
         meta.update(constrained=constrained,raw_exponent=fit.get('c_unconstrained',fit['C']),
                     unconstrained_r2=fit.get('r2_unconstrained',fit['r2']),
                     exponent_basis='declared_class_prior' if constrained else 'empirical_power_fit')
-    meta.update(A=a, C=c, k_vs=kvs)
+    # BIPOL_3: wynik analizy masowej może wymagać powtórzenia projektu; K_P3 przenosi sumę mas zespołów do bilansu.
+    k_p3 = float(p.get('_k_empty_p3', 1.) or 1.)
+    meta.update(A=a, C=c, k_vs=kvs, k_p3=k_p3)
 
     def share(m):
         if m <= 0 or not math.isfinite(m):
             raise ValueError('Iteracja masy wymaga dodatniej, skończonej masy startowej.')
         try:
-            return a*m**c*kvs
+            return a*m**c*kvs*k_p3
         except OverflowError:
             return math.inf
     return share, meta
@@ -307,8 +309,10 @@ def mission_model(p, kmax):
             return end / mass if end is not None else 0.0
         return math.exp(-km*1000/scale) if powered else 1.
     loiter_speed = p.get('loiter_speed_kmh',p.get('cruise_speed_kmh',250))/3.6
-    # p. 6 is not superseded by the lecture's CRUISE-only factor .94.
-    loiter = math.exp(-p.get('loiter_time_min',45)*60 * (ct if engine == 'jet' else loiter_speed*cp*G0/eta)/(.8*kmax)) if powered else 1.
+    # p. 6 is not superseded by the lecture's CRUISE-only factor .94. Once the balance runs on the
+    # P4 polar, Kmax of the holding phase is that polar's too, not the preliminary reading.
+    mission_kmax = 1/(2*math.sqrt(p['_mission_polar']['cx0']*p['_mission_polar']['k'])) if coupled else kmax
+    loiter = math.exp(-p.get('loiter_time_min',45)*60 * (ct if engine == 'jet' else loiter_speed*cp*G0/eta)/(.8*mission_kmax)) if powered else 1.
     task_time = p.get('max_power_time_min',0)/60
     task_fuel = 0.
     if powered and task_time:
@@ -361,7 +365,7 @@ def mission_model(p, kmax):
         return dict(phases=phases,landing_mass=current,burn=fuel_burn,
                     fuel=reserve*fuel_burn,reserve=(reserve-1)*fuel_burn)
     return simulate, dict(method=method,corke=corke,factors=factors,range_scale=scale,
-                         ld=ld,loiter_ld=.8*kmax,loiter_speed_kmh=loiter_speed*3.6,
+                         ld=ld,loiter_ld=.8*mission_kmax,loiter_speed_kmh=loiter_speed*3.6,
                          task_fuel=task_fuel,reserve=reserve,drop=drop)
 
 
@@ -500,8 +504,10 @@ def review_bipol1(result):
         polar['mode'] == 'raymer' and not polar['extrapolated'] or polar['mode'] == 'reading' and bool(p.get('graph_source','').strip()),
         f"Metoda: {polar['mode']}; Kmax={polar['kmax']:.3f}, Cx₀={polar['cx0']:.5f}. " +
         ('Λ_wet poza narysowaną krzywą: potwierdź odczyt z prowadzącym.' if polar['extrapolated'] else 'Odczyty wykresów mają dokładność graficzną.'))
-    add('cx0','Cx₀ względem tabeli siedmiu klas',polar['cx0_in_range'],
-        f"Cx₀={polar['cx0']:.5f}; przedział {polar['cx0_bounds'][0]}–{polar['cx0_bounds'][1]}. Odchylenie wymaga uzasadnienia, nie automatycznej korekty.")
+    reason = str(p.get('cx0_deviation_reason') or '').strip()
+    add('cx0','Cx₀ względem tabeli siedmiu klas',polar['cx0_in_range'] or bool(reason),
+        f"Cx₀={polar['cx0']:.5f}; przedział {polar['cx0_bounds'][0]}–{polar['cx0_bounds'][1]}. " +
+        (('Uzasadnienie autora: ' + reason) if reason and not polar['cx0_in_range'] else 'Odchylenie wymaga uzasadnienia, nie automatycznej korekty.'))
     if p['engine_type']!='none':
         from calculations.engine_fuel import fuel_check
         fuel = fuel_check(result['engine_selection'])

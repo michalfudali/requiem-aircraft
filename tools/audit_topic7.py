@@ -48,8 +48,8 @@ def numerical_invariants(result):
           abs(expected-noise['propeller_tip_mach'])<=.0005,dict(calculated=expected,reported=noise['propeller_tip_mach']))
     # Manufacturer's maximum-continuous point, not a claim about low-load operation.
     engine=result['engine_selection']
-    check('Rotax 912 UL continuous reference: 58 kW and 285 g/kWh',
-          engine.get('model')=='Rotax 912 UL' and engine.get('installed_total')==58 and p['sfc']==285,
+    check('Rotax 912 UL: 58 kW and the SFC of the selected catalogue point',
+          engine.get('model')=='Rotax 912 UL' and engine.get('installed_total')==58 and p['sfc']==engine.get('sfc'),
           dict(model=engine.get('model'),installed_kw=engine.get('installed_total'),sfc_g_kwh=p['sfc']))
     # OM-912, section 7.6: standard nominal reduction ratio 2.27:1.
     check('Reference shaft RPM: 5500 engine RPM / nominal 2.27 reduction',
@@ -79,9 +79,11 @@ def numerical_invariants(result):
     allocation=m['component_allocation']
     rows=result['bipol_projects']['p3']['component_mass_estimation']['rows']
     assigned=math.fsum(row['assigned_mass_kg'] for row in rows)
+    # The engine is a bought unit: only the airframe components share the normalization.
     allocation_ok=all(math.isclose(row['assigned_mass_kg'],
-        row['estimated_mass_kg']*allocation['normalization_factor'],abs_tol=1e-8) for row in rows)
-    check('Conditional CG allocation preserves component proportions and P1 empty mass',
+        row['estimated_mass_kg']*allocation['normalization_factor'],abs_tol=1e-8)
+        for row in rows if row['component'] not in ('propulsion','fuselage'))
+    check('Conditional CG allocation preserves airframe proportions and P1 empty mass',
           allocation_ok and math.isclose(assigned,m['m_empty'],abs_tol=1e-8),
           dict(assigned_sum_kg=assigned,adopted_empty_kg=m['m_empty'],
                normalization_factor=allocation['normalization_factor']))

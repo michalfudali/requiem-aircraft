@@ -67,7 +67,7 @@ def guideline_trace(p, payload, crew, method, start=None):
                            ('3·(m_zał + m_ład)' if payload else '3·m_zał') + ', zaokrąglone w górę do 10 kg'),
                 powered=p.get('engine_type', 'prop') != 'none',
                 payload=payload, crew=crew, useful=useful, drop=drop, reserve_factor=mission['reserve'],
-                tolerance=TOLERANCE, law=dict(mode=law['mode'], A=law['A'], C=law['C'], k_vs=law['k_vs']),
+                tolerance=TOLERANCE, law=dict(mode=law['mode'], A=law['A'], C=law['C'], k_vs=law['k_vs'], k_p3=law.get('k_p3', 1.0)),
                 factors={k: v for k, v in mission['factors'].items()}, kmax=polar['kmax'],
                 cruise_ld=mission['ld'], task_fuel=mission['task_fuel'])
     rows = []

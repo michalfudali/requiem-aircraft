@@ -65,6 +65,16 @@ def mission_masses(mass):
     return phases
 
 
+def propeller_efficiency(params, speed_ms):
+    """eta(V) of the P4 speed characteristic: variable-pitch propeller, Paturski, tab. 5.1.
+
+    Maximum at the propeller design speed, 1,15 V_cr (not below 35 m/s); the same curve fills
+    the P4 table, so P5 balances power with the efficiency that table shows at each speed.
+    """
+    design = max(35.0, float(params.get('cruise_speed_kmh', 220.0)) * 1.15 / 3.6)
+    return float(params.get('prop_efficiency', .82)) * max(.45, 1 - .18 * (speed_ms / design - 1) ** 2)
+
+
 def flight_point(params, sizing, mass, area, cd0, k, altitude, speed):
     """Force/power balance at one TAS, at the stated mass and altitude."""
     atmosphere = isa_atmosphere(altitude)
@@ -77,7 +87,7 @@ def flight_point(params, sizing, mass, area, cd0, k, altitude, speed):
     if params.get('engine_type') == 'jet':
         available = (dp.get('thrust_kn') or 0) * 1000 * lapse * speed
     else:
-        available = (dp.get('power_kw') or 0) * 1000 * lapse * params.get('prop_efficiency', .82)
+        available = (dp.get('power_kw') or 0) * 1000 * lapse * propeller_efficiency(params, speed)
     return {'cl': cl, 'drag_n': drag, 'required_w': drag * speed,
             'available_w': available, 'climb_ms': (available - drag * speed) / weight}
 

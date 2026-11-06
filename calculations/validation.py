@@ -12,6 +12,7 @@ NUMERIC_LIMITS = {
     'fuel_density_kg_l': (.5, 1.0), 'engine_custom_power_kw': (0, 100000),
     'engine_custom_thrust_kn': (0, 10000), 'engine_static_thrust_kn': (0, 10000),
     'propeller_rpm': (100, 6000), 'propeller_diameter_m': (.1, 8),
+    'fuselage_length_m': (0, 100), 'gear_height_m': (0, 10),
     "n_pax": (0, 1000), "n_crew": (0, 20), "m_pax": (0, 500),
     "m_bag": (0, 500), "m_cargo": (0, 500000), "m_crew_person": (0, 500),
     "range_km": (0, 30000), "cruise_altitude_m": (0, 20000),
@@ -67,7 +68,7 @@ NUMERIC_LIMITS = {
     "airfoil_cz_max": (0, 4),  # 0 = nie podano (P3: Cz_max płata ze Schrenka)
 }
 NUMERIC_STEPS = {
-    'propeller_diameter_m': .01, 'propeller_rpm': 1,
+    'propeller_diameter_m': .01, 'propeller_rpm': 1, 'fuselage_length_m': .01, 'gear_height_m': .01,
     # Aerodynamic coefficients & efficiencies
     "taper_ratio": 0.01,
     "tc_ratio": 0.005,
@@ -210,6 +211,9 @@ ENUM_CHOICES = {
     'airfoil_criterion': ('auto', 'cruise', 'lift'),
     'power_input_mode': ('sized', 'fixed'),
     'gear_attachment': ('fuselage', 'wing'),
+    'landing_gear_type': ('tricycle', 'tailwheel'),
+    'empty_mass_closure': ('trend', 'components'),
+    'technology': ('metallic', 'composite', 'wood', 'steel_tube'),
     'runway_surface': ('paved', 'grass'),
     'cs22_gust_model': ('amendment3', 'pratt'),
     'profile_thickness_mode': ('auto', 'assumed'),
@@ -259,6 +263,8 @@ def validate_parameters(data):
     if 'propeller_rpm' in p or 'prop_rpm' in p:
         p['propeller_rpm'] = shaft_rpm(p)
         p.pop('prop_rpm', None)
+    if 'cx0_deviation_reason' in p and (not isinstance(p['cx0_deviation_reason'], str) or len(p['cx0_deviation_reason']) > 2000):
+        raise ValueError('Uzasadnienie odchylenia Cx₀ musi być tekstem do 2000 znaków.')
     if 'airfoil_source' in p and (not isinstance(p['airfoil_source'], str) or len(p['airfoil_source']) > 4000):
         raise ValueError('Źródło profilu: podaj tekst do 4000 znaków.')
     # One comparison sample: the aircraft nearest in MTOW to the design (BIPOL_1, s. 1).

@@ -25,6 +25,10 @@ JAR23_LIGHT_PISTON_KG = 2721.0
 LAW_REF = "t.j. Dz. U. z 2025 r. poz. 1137"
 EASA_REF = "Wyjątki z przepisów JAR-22/23/25/VLA (ZSiS MEiL PW); CS-LSA; UE 2018/1139; UE 2019/947"
 TURBINE_TYPES = ("turboprop_regional", "jet_business", "jet_transport")
+ENGINE_NAMES = {"prop": "śmigłowy", "jet": "odrzutowy", "none": "bez napędu"}
+TYPE_NAMES = {"piston_ga": "samolot tłokowy", "motoglider": "motoszybowiec", "glider": "szybowiec", "uav": "bezzałogowiec",
+              "turboprop_regional": "samolot turbośmigłowy", "jet_business": "odrzutowiec dyspozycyjny",
+              "jet_transport": "odrzutowiec komunikacyjny"}
 
 # Kategorie zdatności wg Tabeli nr 2 t.j. Dz. U. z 2025 r. poz. 1137
 K_CATEGORIES = {
@@ -240,7 +244,7 @@ def stored_category(params) -> str:
     jet = params.get("engine_type") == "jet" or params.get("aircraft_type") in ("jet_business", "jet_transport")
     if new == "jar23_commuter" and (jet or engines != 2):
         new = "jar23_normal" if pax <= 9 else "cs25_transport"
-    if new == "jar23_normal" and not jet and engines == 2 and pax > 9:
+    if new == "jar23_normal" and not jet and engines == 2 and (pax > 9 or params.get("category") == "cs23_level3"):
         new = "jar23_commuter"
     return new
 
@@ -404,7 +408,7 @@ def normalize_occupants(params: dict):
             notes.append("UAV bez ładunku – przyjęto domyślnie 80 kg wyposażenia zadaniowego (sensory, łącze C2).")
     else:
         crew_min = sub.get("crew_min", 1)
-        if n_crew < crew_min:
+        if n_crew < crew_min and not p.get("_crew_fixed"):
             basis = (f"{sub['easa_code']}: minimalna załoga 2 pilotów (założenie programu; JAR 25.1523 poza wyjątkami)"
                      if sub["regulation"] == "JAR-25" else f"{sub['easa_code']}: wymagany co najmniej {crew_min} pilot")
             notes.append(f"{basis} – skorygowano.")
@@ -661,7 +665,8 @@ def check_compliance(params: dict, mass_res: dict, geom_res: dict = None, perf_r
 
     checks = []
     allowed_types = AIRCRAFT_TYPE_ALLOWED.get(cat_key, [])
-    checks.append(_chk("Klasa konstrukcyjna objęta zakresem stosowania przepisów", ", ".join(allowed_types), ac_type,
+    checks.append(_chk("Klasa konstrukcyjna objęta zakresem stosowania przepisów",
+                       ", ".join(TYPE_NAMES.get(t, t) for t in allowed_types), TYPE_NAMES.get(ac_type, ac_type),
                        ac_type in allowed_types, scope, "warning"))
 
     mtom_max = sub.get("mtom_max_water") if (seaplane and sub.get("mtom_max_water")) else sub.get("mtom_max")
@@ -673,6 +678,7 @@ def check_compliance(params: dict, mass_res: dict, geom_res: dict = None, perf_r
     else:
         crew_min = sub.get("crew_min", 1)
         checks.append(_chk("Minimalna załoga lotnicza", f"≥ {crew_min} os.", f"{n_crew} os.", n_crew >= crew_min, None,
+                           "warning" if params.get("topic_origin") == "official" else "error",
                            source=("Założenie programu: 2 pilotów (minimalna załoga ustalana w certyfikacji, "
                                    "JAR 25.1523 poza wyjątkami)") if sub["regulation"] == "JAR-25"
                            else "Założenie programu: co najmniej jeden pilot"))
@@ -701,13 +707,13 @@ def check_compliance(params: dict, mass_res: dict, geom_res: dict = None, perf_r
         kind = "śmigłowe" if sub.get("propeller_only") else ("tłokowy" if sub.get("piston_only") else "")
         checks.append(_chk("Liczba silników", f"{exact} {kind}".strip(), f"{n_engines}", n_engines == exact, scope))
     if sub.get("propeller_only"):
-        checks.append(_chk("Rodzaj napędu: śmigłowy", "śmigło", engine_type, engine_type == "prop", scope))
+        checks.append(_chk("Rodzaj napędu: śmigłowy", "śmigło", ENGINE_NAMES.get(engine_type, engine_type), engine_type == "prop", scope))
     if sub.get("piston_only"):
         checks.append(_chk("Rodzaj silnika: tłokowy (zapłon iskrowy lub samoczynny) ze śmigłem", "tłokowy",
-                           f"{engine_type} ({ac_type})",
+                           f"{ENGINE_NAMES.get(engine_type, engine_type)} ({TYPE_NAMES.get(ac_type, ac_type)})",
                            engine_type == "prop" and ac_type in ("piston_ga", "motoglider"), scope))
     if sub.get("turbine_only"):
-        checks.append(_chk("Rodzaj napędu: turbinowy", "turbinowy (odrzutowy lub turbośmigłowy)", ac_type,
+        checks.append(_chk("Rodzaj napędu: turbinowy", "turbinowy (odrzutowy lub turbośmigłowy)", TYPE_NAMES.get(ac_type, ac_type),
                            ac_type in TURBINE_TYPES, scope))
 
     # Prędkość przeciągnięcia w konfiguracji do lądowania przy ciężarze maksymalnym.
@@ -746,6 +752,13 @@ def check_compliance(params: dict, mass_res: dict, geom_res: dict = None, perf_r
         wb2 = m0 / (b * b)
         checks.append(_chk("Iloraz ciężaru i kwadratu rozpiętości W/b²", f"≤ {sub['w_b2_max']:.1f} kg/m²",
                            f"{wb2:.2f} kg/m²", wb2 <= sub["w_b2_max"], scope))
+    if sub.get("takeoff_15m_max_m") and engine_type != "none":
+        # JAR 22.25(a)(2): ciężar maksymalny motoszybowca obejmuje paliwo na 0,5 h przy mocy maksymalnej ciągłej.
+        power_kw = float(params.get("engine_power_kw") or 0)
+        needed_fuel = .5 * power_kw * float(params.get("sfc") or 0) / 1000
+        if needed_fuel > 0:
+            checks.append(_chk("Paliwo na 0,5 h lotu przy mocy maksymalnej ciągłej", f"≥ {needed_fuel:.1f} kg", f"{m_fuel:.1f} kg",
+                               m_fuel >= needed_fuel, rules.get("occupant_mass")))
     if sub.get("takeoff_15m_max_m"):
         distance = ((perf_res or {}).get("takeoff") or {}).get("distance_to_15m")
         if distance is not None:

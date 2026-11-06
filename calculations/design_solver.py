@@ -2,7 +2,7 @@
 import math
 
 from calculations.atmosphere import G0, isa_atmosphere
-from calculations.flight_model import mission_masses, propulsion_lapse
+from calculations.flight_model import mission_masses, propeller_efficiency, propulsion_lapse
 
 # Finer than the course's 0.1% mass criterion, but above the precision of
 # tabulated component correlations. Final range is independently checked in P5.
@@ -15,6 +15,7 @@ MASS_NOT_CLOSED = 'Nie osiągnięto tolerancji domknięcia'
 def resolve_design(params, states, size_airframe):
     # Recompute internal aerodynamics after every input edit or imported project.
     params.pop('_mission_polar', None)
+    params.pop('_k_empty_p3', None)
     coupled = params.get('design_iteration_mode') == 'coupled' and params['engine_type'] != 'none'
     history, previous, last_mass, failure = [], None, None, None
     converged = not coupled
@@ -39,6 +40,11 @@ def resolve_design(params, states, size_airframe):
             # Small changes between iterates alone do not establish closure of
             # an under-relaxed polar. Check its actual use in the fuel balance.
             relative = max(relative, *(abs(polar[k]-used[k])/polar[k] for k in ('cx0', 'k')))
+        # BIPOL_3: the sum of the component masses replaces the sample's m_e when the author asks for it.
+        close_components = coupled and params.get('empty_mass_closure') == 'components'
+        ratio = mass['component_closure']['sum_kg']/mass['m_empty'] if close_components else 1.
+        if close_components and relative is not None:
+            relative = max(relative, abs(ratio-1))
         history.append(dict(iteration=step, m0=mass['m0'], **polar, relative_error=relative))
         if not coupled or relative is not None and relative <= DESIGN_TOLERANCE:
             converged = True
@@ -47,6 +53,13 @@ def resolve_design(params, states, size_airframe):
             break
         last_params = dict(params)
         previous, last_mass = polar, mass['m0']
+        if close_components:
+            # m_0 reacts violently to K in eq. (5), so K is taken from the mass the components imply.
+            law, components = mass['empty_mass_law'], mass['component_closure']['sum_kg']
+            target = (components+mass['m_crew']+mass['m_payload'])/(1-mass['m_fuel']/mass['m0'])
+            wanted = components/target/(law['A']*target**law['C']*law['k_vs'])
+            current = float(params.get('_k_empty_p3', 1.))
+            params['_k_empty_p3'] = current+.7*(wanted-current)
         # A direct replacement can jump from the small preliminary aircraft to
         # a distant, unstable mass branch. Relax drag coefficients from the
         # preliminary polar on the first step, then from the last used polar.
@@ -89,7 +102,7 @@ def refine_flight_sizing(sizing, geom, aero, params, mass):
     def climb_rating(v):
         needed = drag(mass['m0'], 1.225, v) + weight*params['climb_rate_ms']/v
         needed /= max(propulsion_lapse(params, 0, v), 1e-12)
-        return needed if engine == 'jet' else needed*v/params['prop_efficiency']
+        return needed if engine == 'jet' else needed*v/propeller_efficiency(params, v)
 
     left, right = stall*1.05, max(stall*4, speed*1.5)
     for _ in range(55):
@@ -99,7 +112,7 @@ def refine_flight_sizing(sizing, geom, aero, params, mass):
         else:
             left = a
     climb = climb_rating((left+right)/2)
-    cruise = cruise_thrust if engine == 'jet' else cruise_thrust*speed/params['prop_efficiency']
+    cruise = cruise_thrust if engine == 'jet' else cruise_thrust*speed/propeller_efficiency(params, speed)
     requirement = max(climb, cruise)
     governing = 'przelot (biegunowa P4)' if cruise >= climb else 'wznoszenie (biegunowa P4)'
     sizing['flight_model_requirement'] = dict(engine_type=engine, cruise_entry_mass_kg=cruise_mass,

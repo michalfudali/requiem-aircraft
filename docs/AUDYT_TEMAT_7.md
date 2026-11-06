@@ -1,5 +1,8 @@
 # Temat 7 — audyt i odtwarzalne studium P1–P6
 
+> Stan z 06.11.2026: model mas, podwozia i bilans mocy poprawiono; projekt z domkniętą masą opisuje
+> [PROJEKT_TEMAT_7_2026-11-06.md](PROJEKT_TEMAT_7_2026-11-06.md). Liczby poniżej dotyczą studium Rotax 912 UL sprzed tych zmian.
+
 ## Wymaganie i stan projektu
 
 `BIPOL1_samoloty.pdf`, temat 7: motoszybowiec **jednomiejscowy**, rozpiętość

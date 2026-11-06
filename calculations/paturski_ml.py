@@ -1008,21 +1008,12 @@ def paturski_project_5_propulsion(geom_res: dict, sizing_res: dict, params: dict
         }
     else:
         p0_total_w = float(dp.get("pw") or 12.0) * m0 * G0
-        n_d_single_w = p0_total_w / n_engines
-        h_d_m = h_cr if ac_type in ["turboprop_regional", "twin_piston"] else 0.0
-        isa_d = isa_atmosphere(h_d_m)
-        rho_d = isa_d["rho"]
-        a_dd = isa_d["a"]
-        v_d_ms = max(35.0, float(params.get("cruise_speed_kmh", 220.0)) * 1.15 / 3.6)
-        from calculations.propeller import shaft_rpm
-        rpm_prop = shaft_rpm(params)
-        n_sd_rps = rpm_prop / 60.0
-
-        c_d_prop = v_d_ms * math.pow(rho_d / max(1.0, n_d_single_w * (n_sd_rps ** 2)), 0.2)
-        j_opt = max(0.45, min(1.35, 0.52 * math.pow(max(0.2, c_d_prop), 0.78)))
-        d_prop_m = max(1.10, min(3.80, v_d_ms / (j_opt * n_sd_rps)))
-        if params.get('propeller_diameter_m') is not None:
-            d_prop_m = float(params['propeller_diameter_m'])
+        from calculations.propeller import design_propeller
+        propeller = design_propeller(params, p0_total_w)
+        n_d_single_w, h_d_m, rho_d, a_dd = propeller['power_w'], propeller['altitude_m'], propeller['rho'], propeller['a']
+        v_d_ms, n_sd_rps = propeller['speed_ms'], propeller['revolutions_s']
+        rpm_prop = n_sd_rps * 60.0
+        c_d_prop, j_opt, d_prop_m = propeller['speed_coefficient'], propeller['advance'], propeller['diameter_m']
 
         v_max_dop_ms = 1.2 * (float(params.get("cruise_speed_kmh", 220.0)) * 1.25 / 3.6)
         ma_kl = math.sqrt((v_max_dop_ms ** 2) + ((math.pi * n_sd_rps * d_prop_m) ** 2)) / a_dd

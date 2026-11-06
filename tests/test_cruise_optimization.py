@@ -58,7 +58,7 @@ def test_stall_boundary_can_be_the_range_optimum():
 
 def test_available_power_can_limit_optimum_to_upper_speed_boundary():
     params, sizing = inputs('prop')
-    sizing['design_point']['power_kw']=30
+    sizing['design_point']['power_kw']=33  # with eta(V) of P4 the propeller gives less below its design speed
     result = optimize_cruise(params,sizing,1000,800,16,.03,.05,1.5,0)
     assert result['available']
     assert result['max_range']['speed_kmh'] == pytest.approx(result['max_speed_kmh'], rel=1e-8)

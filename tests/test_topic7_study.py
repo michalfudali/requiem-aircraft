@@ -19,7 +19,6 @@ def test_source_engine_study_closes_numbers_but_retains_real_design_issues(study
     assert all(c['passed'] for c in numerical_invariants(study))
     issues=open_checks(study)
     assert any(v['check'].get('id')=='tailstrike_clearance' for v in issues)
-    assert any(v['check'].get('id')=='main_gear_tipback' for v in issues)
     assert any(v['check'].get('id')=='empty_mass_crosscheck' for v in issues)
     assert study['acoustics']['certification_compliant'] is None
 

@@ -5,10 +5,16 @@ przeliczenie na % ŚDA (MAC), wyznaczenie punktu neutralnego oraz zapasu statecz
 """
 import math
 from calculations.flight_model import mission_masses
+from calculations.geometry import axis_height_m, cg_height_m
+from calculations.paturski_ml import wing_alpha_deg
+from calculations.propeller import design_propeller
 
 MIN_STATIC_MARGIN_PCT = 5.0
 # Upper end of usual horizontal tail volumes (Raymer, tab. 6.4: up to 1.0 for transports).
 MAX_TAIL_VOLUME = 1.2
+
+
+GEAR_MAIN_SHARE = 0.85
 
 
 def calculate_balance_and_stability(m_sizing: dict, geom: dict, aero: dict, params: dict):
@@ -39,6 +45,22 @@ def calculate_balance_and_stability(m_sizing: dict, geom: dict, aero: dict, para
     x_fus = 0.44 * l_f
     x_tail = 0.91 * l_f
     x_sys = 0.40 * l_f
+    # Raymer, tab. 15.2 (Analiza_masowa.pdf, s. 1): 85% masy podwozia to podwozie główne, 15% przednie.
+    # Z kółkiem ogonowym podwozie główne stoi przed ŚC, a kółko na końcu kadłuba.
+    tailwheel = params.get("landing_gear_type") == "tailwheel"
+    # Wykład 4: koło główne przed ŚC, przednie ŚC 13° za pionem przez punkt styku koła z ziemią.
+    power_kw = m_sizing.get("installed_power_kw")
+    propeller = design_propeller(params, power_kw * 1000.0)["diameter_m"] if power_kw else params.get("propeller_diameter_m")
+    main_gear_mac = (0.25 - axis_height_m(params, d_f, propeller) * math.tan(math.radians(13.0)) / mac) if tailwheel else 0.45
+    # BIPOL_3, krok 10 i wykład 7: koła główne dobiera się do tylnego ŚC w 35% ŚCA, tak by kąt między pionem
+    # przez ŚC a prostą do punktu styku koła był nie mniejszy niż α przy 0,9·Cz,max + 3°.
+    trim_model = (aero.get("paturski_p3") or {}).get("trim_model")
+    if trim_model and not tailwheel and params.get("aircraft_type") != "glider":
+        tipback = math.radians(wing_alpha_deg(trim_model, 0.9 * trim_model["cz_max_clean"]) + 3.0)
+        main_gear_mac = max(main_gear_mac, 0.35 + cg_height_m(params, d_f, propeller) * math.tan(tipback) / mac + 0.005)
+    x_aux_gear = (0.96 if tailwheel else 0.12) * l_f
+    m_main_gear = GEAR_MAIN_SHARE * bd["m_gear"]
+    mom_aux_gear = (1.0 - GEAR_MAIN_SHARE) * bd["m_gear"] * x_aux_gear
 
     if engine_loc == "nose":
         x_prop_fixed = 0.10 * l_f
@@ -47,10 +69,11 @@ def calculate_balance_and_stability(m_sizing: dict, geom: dict, aero: dict, para
             bd["m_fuselage"] * x_fus +
             bd["m_tail"] * x_tail +
             bd["m_systems"] * x_sys +
-            bd["m_propulsion"] * x_prop_fixed
+            bd["m_propulsion"] * x_prop_fixed +
+            mom_aux_gear
         )
-        m_wing_group = bd["m_wing"] + bd["m_gear"]
-        mom_wing_offset = (bd["m_wing"] * 0.38 + bd["m_gear"] * 0.45) * mac
+        m_wing_group = bd["m_wing"] + m_main_gear
+        mom_wing_offset = (bd["m_wing"] * 0.38 + m_main_gear * main_gear_mac) * mac
     elif engine_loc == "rear":
         x_prop_fixed = 0.76 * l_f
         target_oew_mac = 0.27
@@ -58,24 +81,27 @@ def calculate_balance_and_stability(m_sizing: dict, geom: dict, aero: dict, para
             bd["m_fuselage"] * x_fus +
             bd["m_tail"] * x_tail +
             bd["m_systems"] * x_sys +
-            bd["m_propulsion"] * x_prop_fixed
+            bd["m_propulsion"] * x_prop_fixed +
+            mom_aux_gear
         )
-        m_wing_group = bd["m_wing"] + bd["m_gear"]
-        mom_wing_offset = (bd["m_wing"] * 0.38 + bd["m_gear"] * 0.45) * mac
+        m_wing_group = bd["m_wing"] + m_main_gear
+        mom_wing_offset = (bd["m_wing"] * 0.38 + m_main_gear * main_gear_mac) * mac
     else: # wing
         target_oew_mac = 0.25
         mom_fus_fixed = (
             bd["m_fuselage"] * x_fus +
             bd["m_tail"] * x_tail +
-            bd["m_systems"] * x_sys
+            bd["m_systems"] * x_sys +
+            mom_aux_gear
         )
-        m_wing_group = bd["m_wing"] + bd["m_gear"] + bd["m_propulsion"]
-        mom_wing_offset = (bd["m_wing"] * 0.38 + bd["m_gear"] * 0.45 - bd["m_propulsion"] * 0.15) * mac
+        m_wing_group = bd["m_wing"] + m_main_gear + bd["m_propulsion"]
+        mom_wing_offset = (bd["m_wing"] * 0.38 + m_main_gear * main_gear_mac - bd["m_propulsion"] * 0.15) * mac
 
     denom_m = max(1.0, m_empty - m_wing_group)
     x_lemac_raw = (mom_fus_fixed + mom_wing_offset - target_oew_mac * mac * m_empty) / denom_m
     # Light tractor aircraft carry the wing leading edge from about a quarter of the fuselage length.
-    x_lemac_bounds = 0.25 * l_f, 0.56 * l_f
+    # Z ciężkim silnikiem w nosie skrzydło przechodzi nad kabinę: dolna granica jest wtedy tuż za silnikiem.
+    x_lemac_bounds = (0.15 if engine_loc == "nose" else 0.25) * l_f, 0.56 * l_f
     x_lemac_initial = max(x_lemac_bounds[0], min(x_lemac_bounds[1], x_lemac_raw))
 
     unmanned = bool(m_sizing.get("unmanned", False)) or params.get("aircraft_type") == "uav"
@@ -98,7 +124,8 @@ def calculate_balance_and_stability(m_sizing: dict, geom: dict, aero: dict, para
             "wing": x_lemac + 0.38 * mac,
             "tail": x_tail,
             "propulsion": x_prop,
-            "gear": x_lemac + 0.45 * mac,
+            "gear": x_lemac + main_gear_mac * mac,
+            "gear_aux": x_aux_gear,
             "systems": x_sys,
             "crew": x_lemac - 0.18 * mac,
             "pax_front": x_lemac + 0.12 * mac,
@@ -108,14 +135,21 @@ def calculate_balance_and_stability(m_sizing: dict, geom: dict, aero: dict, para
         }
 
         # 1. Moment masy pustej (OEW)
-        mom_empty = (
-            bd["m_fuselage"] * x_arms["fuselage"] +
-            bd["m_wing"] * x_arms["wing"] +
-            bd["m_tail"] * x_arms["tail"] +
-            bd["m_propulsion"] * x_arms["propulsion"] +
-            bd["m_gear"] * x_arms["gear"] +
-            bd["m_systems"] * x_arms["systems"]
-        )
+        def empty_moment():
+            x_arms["gear_group"] = GEAR_MAIN_SHARE * x_arms["gear"] + (1.0 - GEAR_MAIN_SHARE) * x_aux_gear
+            return (
+                bd["m_fuselage"] * x_arms["fuselage"] +
+                bd["m_wing"] * x_arms["wing"] +
+                bd["m_tail"] * x_arms["tail"] +
+                bd["m_propulsion"] * x_arms["propulsion"] +
+                bd["m_gear"] * x_arms["gear_group"] +
+                bd["m_systems"] * x_arms["systems"]
+            )
+        mom_empty = empty_moment()
+        # BIPOL_3, pkt 7: rzut ŚC na ziemię leży między kołami także dla samolotu pustego.
+        if not tailwheel and mom_empty / m_empty > x_arms["gear"] - 0.05 * mac:
+            x_arms["gear"] = mom_empty / m_empty + 0.05 * mac
+            mom_empty = empty_moment()
 
         if unmanned:
             # UAV: wyposażenie zadaniowe (głowica optoelektroniczna w dziobie/pod kadłubem + awionika misji w okolicy ŚM)
@@ -143,6 +177,8 @@ def calculate_balance_and_stability(m_sizing: dict, geom: dict, aero: dict, para
                     "xcg_mac_pct": to_percent_mac(x_cg), "_payload": payload, "_fuel": fuel, "_released":released}
 
         # Warianty wg BIPOL_3: MTOW, lądowanie, start i lądowanie bez ładunku płatnego, samolot pusty.
+        # Masą płatną szybowca i motoszybowca jest druga osoba, nie ładunek.
+        no_payload = "drugiej osoby" if params.get("aircraft_type") in ("glider", "motoglider") else "ładunku płatnego"
         # MTOW pozostaje ostatni (odczytują go widoki rysunku).
         states = [state("oew", "Masa pusta (OEW)")]
         if not unmanned:
@@ -162,8 +198,8 @@ def calculate_balance_and_stability(m_sizing: dict, geom: dict, aero: dict, para
                        state('after_drop','Po zrzucie',crew=m_crew,payload=True,fuel=max(0,fuel_at_drop),released=dropped)]
         if m_fuel > 0 and m_payload > 0:
             if not unmanned:
-                states.append(state("tow_no_payload", "Start bez ładunku płatnego", crew=m_crew, fuel=m_fuel))
-            states.append(state("mlw_no_payload", "Lądowanie bez ładunku płatnego", crew=m_crew, fuel=m_fuel_res))
+                states.append(state("tow_no_payload", f"Start bez {no_payload}", crew=m_crew, fuel=m_fuel))
+            states.append(state("mlw_no_payload", f"Lądowanie bez {no_payload}", crew=m_crew, fuel=m_fuel_res))
         states.append(state("mtow", "Masa startowa (MTOW)", crew=m_crew, payload=True, fuel=m_fuel))
 
         # BIPOL_3, Tab. 3.1–3.2: obliczenia powtarza się dla lekkiego (55 kg) i ciężkiego (110 kg) pilota.
@@ -243,6 +279,16 @@ def calculate_balance_and_stability(m_sizing: dict, geom: dict, aero: dict, para
 
     cg_span = cg_aft_limit - cg_forward_limit
     forward_ok, aft_ok = criterion(cg_forward_limit, cg_aft_limit)
+    # BIPOL_3, pkt 7: wszystkie stany, także samolot pusty, stoją na kołach, nie na ogonie ani nosie.
+    gear_limits = sorted((x_arms["gear"], x_arms["gear_aux"]))
+    ground_cgs = [state["xcg_m"] for state in loading_states]
+    ground_check = {
+        "required": "Rzut ŚC między kołami podwozia we wszystkich stanach, także dla samolotu pustego",
+        "source": "BIPOL_3.pdf (T. Grabowski, C. Galiński), analiza masowa, pkt 7",
+        "x_front_m": gear_limits[0], "x_rear_m": gear_limits[1],
+        "x_cg_min_m": min(ground_cgs), "x_cg_max_m": max(ground_cgs),
+        "passed": gear_limits[0] < min(ground_cgs) and max(ground_cgs) < gear_limits[1],
+    }
     cg_check = {
         "required": "25–35% ŚDA w locie; przednie przed 25% dopuszczalne przy zakresie > 10% ŚDA",
         "source": "BIPOL_3.pdf (T. Grabowski, C. Galiński), analiza masowa, pkt 7–8",
@@ -292,6 +338,7 @@ def calculate_balance_and_stability(m_sizing: dict, geom: dict, aero: dict, para
             "basis": "stany w locie (bez samolotu pustego), z lekkim i ciężkim pilotem"
         },
         "cg_check": cg_check,
+        "ground_check": ground_check,
         "neutral_point": {
             "x_n_m": neutral_point_m,
             "x_n_mac_pct": neutral_point_pct,
@@ -474,8 +521,8 @@ def calculate_balance_envelope(params: dict) -> dict:
             ("2. Kadłub (struktura kadłuba)", bd["m_fuselage"], arms["fuselage"], 0.0, 0.0),
             ("3. Usterzenie poziome", bd["m_tail"] * 0.65, arms["htail"], 0.0, 0.35),
             ("4. Usterzenie pionowe", bd["m_tail"] * 0.35, arms["vtail"], 0.0, 0.75),
-            ("5. Podwozie główne", bd["m_gear"] * 0.80, arms["gear_main"], 0.0, -0.85),
-            ("6. Podwozie przednie", bd["m_gear"] * 0.20, arms["gear_nose"], 0.0, -0.80),
+            ("5. Podwozie główne", bd["m_gear"] * GEAR_MAIN_SHARE, arms["gear_main"], 0.0, -0.85),
+            ("6. Podwozie przednie", bd["m_gear"] * (1.0 - GEAR_MAIN_SHARE), arms["gear_nose"], 0.0, -0.80),
             ("7. Zespół napędowy", bd["m_propulsion"], arms["propulsion"], 0.0, 0.05),
             ("8. Instalacje i awionika", bd["m_systems"], arms["systems"], 0.0, 0.0),
         ]

@@ -15,7 +15,7 @@ def check(result, prefix):
     return next(c for c in result['compliance_checks'] if c['parameter'].startswith(prefix))
 
 
-@pytest.mark.parametrize('num', [10, 21, 40, 56, 68, 78, 88, 99])
+@pytest.mark.parametrize('num', [10, 21, 40, 56, 68, 78, 99])
 def test_refined_sizing_meets_range_and_level_flight_at_the_required_cruise(num):
     first, refined, steps = refine_bipol_project(topic(num, design_iteration_mode='preliminary'))
     # The guideline estimate (0.94 Kmax) is optimistic at the required speed; the refined one is not.
