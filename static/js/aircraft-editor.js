@@ -9,22 +9,22 @@
     field('family','Rodzina konstrukcji',0,'text'), field('year','Rok według źródła',0,'number',{min:1900,max:2100,step:1}),
     field('year_basis','Znaczenie daty',0,'select',{options:[['certification','Certyfikacja wariantu'],['production','Produkcja (BIPOL_1)']]}),
     field('aircraft_type','Klasa konstrukcyjna *',0,'select',{options:[['piston_ga','Tłokowy GA'],['turboprop_regional','Turbośmigłowy'],['jet_business','Odrzutowiec biznesowy'],['jet_transport','Odrzutowiec transportowy'],['glider','Szybowiec'],['motoglider','Motoszybowiec'],['uav','Bezzałogowy']]}),
-    field('m0','Maksymalna masa startowa [kg] *',1,'number',{required:true,min:0.001}),
-    field('me','Masa pusta OEW [kg]',1), field('s','Powierzchnia skrzydła [m²]',1), field('b','Rozpiętość [m]',1),
+    field('m0','Maksymalna masa startowa [kg] *',1,'number',{required:true,min:0.001,step:0.5}),
+    field('me','Masa pusta OEW [kg]',1,'number',{min:0.001,step:0.5}), field('s','Powierzchnia skrzydła [m²]',1,'number',{min:0.01,step:0.01}), field('b','Rozpiętość [m]',1,'number',{min:0.1,step:0.01}),
     field('engine_type','Rodzaj napędu *',2,'select',{options:[['prop','Śmigłowy (tłokowy / turbośmigłowy)'],['jet','Odrzutowy'],['none','Bez napędu']]}),
     field('n_engines','Liczba silników',2,'number',{min:0,max:8,step:1}),
-    field('p_kw','Łączna moc silników [kW]',2), field('t_kn','Łączny ciąg silników [kN]',2), field('prop_diameter_m','Średnica śmigła [m]',2),
-    field('v_cruise_kmh','Prędkość przelotowa [km/h]',3), field('cruise_mach','Liczba Macha przelotu',3),
-    field('v_stall_kmh','Prędkość przeciągnięcia [km/h]',3), field('range_km','Zasięg [km]',3,'number',{min:0}),
-    field('climb_rate_ms','Wznoszenie [m/s]',3,'number',{min:0,max:150}), field('ld_max','Doskonałość maksymalna',3),
-    field('takeoff_m','Długość startu [m]',3), field('takeoff_basis','Definicja długości startu',3,'select',{options:distances}),
-    field('landing_m','Długość lądowania [m]',3), field('landing_basis','Definicja długości lądowania',3,'select',{options:distances}),
-    field('v_h','Cecha objętościowa V_H',4,'number',{max:2}), field('v_v','Cecha objętościowa V_V',4,'number',{max:0.5}),
-    field('dihedral_deg','Wznios skrzydła [°]',4,'number',{min:-15,max:20}),
-    field('aileron_span_fraction','Udział rozpiętości lotek',4,'number',{max:1}),
-    field('aileron_chord_ratio','Względna cięciwa lotki',4,'number',{max:1}),
-    field('elevator_chord_ratio','Względna cięciwa steru wysokości',4,'number',{max:1}),
-    field('rudder_chord_ratio','Względna cięciwa steru kierunku',4,'number',{max:1}),
+    field('p_kw','Łączna moc silników [kW]',2,'number',{min:0,step:0.1}), field('t_kn','Łączny ciąg silników [kN]',2,'number',{min:0,step:0.01}), field('prop_diameter_m','Średnica śmigła [m]',2,'number',{min:0,step:0.01}),
+    field('v_cruise_kmh','Prędkość przelotowa [km/h]',3,'number',{min:0,step:1}), field('cruise_mach','Liczba Macha przelotu',3,'number',{min:0,max:3,step:0.01}),
+    field('v_stall_kmh','Prędkość przeciągnięcia [km/h]',3,'number',{min:0,step:1}), field('range_km','Zasięg [km]',3,'number',{min:0,step:1}),
+    field('climb_rate_ms','Wznoszenie [m/s]',3,'number',{min:0,max:150,step:0.1}), field('ld_max','Doskonałość maksymalna',3,'number',{min:1,step:0.1}),
+    field('takeoff_m','Długość startu [m]',3,'number',{min:0,step:1}), field('takeoff_basis','Definicja długości startu',3,'select',{options:distances}),
+    field('landing_m','Długość lądowania [m]',3,'number',{min:0,step:1}), field('landing_basis','Definicja długości lądowania',3,'select',{options:distances}),
+    field('v_h','Cecha objętościowa V_H',4,'number',{min:0,max:2,step:0.01}), field('v_v','Cecha objętościowa V_V',4,'number',{min:0,max:0.5,step:0.001}),
+    field('dihedral_deg','Wznios skrzydła [°]',4,'number',{min:-15,max:20,step:0.1}),
+    field('aileron_span_fraction','Udział rozpiętości lotek',4,'number',{min:0,max:1,step:0.01}),
+    field('aileron_chord_ratio','Względna cięciwa lotki',4,'number',{min:0,max:1,step:0.01}),
+    field('elevator_chord_ratio','Względna cięciwa steru wysokości',4,'number',{min:0,max:1,step:0.01}),
+    field('rudder_chord_ratio','Względna cięciwa steru kierunku',4,'number',{min:0,max:1,step:0.01}),
     field('source_locator','Dokument / strona / lokalizacja',5,'text'),
     field('source_references','Źródło i warunki pomiaru *',5,'textarea',{required:true}),
     field('empty_mass_definition','Definicja masy pustej',5,'textarea')
@@ -62,7 +62,7 @@
       const attrs = `id="ac_${spec.key}" ${spec.required?'required':''}`;
       if (spec.type === 'select') return `<select ${attrs}>${spec.options.map(([v,t])=>`<option value="${v}">${esc(t)}</option>`).join('')}</select>`;
       if (spec.type === 'textarea') return `<textarea ${attrs} maxlength="4000"></textarea>`;
-      return `<input ${attrs} type="${spec.type}" ${spec.type==='number'?`step="${spec.step||'any'}" min="${spec.min??0.000001}" ${spec.max!=null?`max="${spec.max}"`:''}`:'maxlength="2000"'}>`;
+      return `<input ${attrs} type="${spec.type}" ${spec.type==='number'?`step="${spec.step||'0.01'}" min="${spec.min??0.000001}" ${spec.max!=null?`max="${spec.max}"`:''}`:'maxlength="2000"'}>`;
     }
     $('aircraftEditorFields').innerHTML = groups.map((title,index)=>`<details ${index<2?'open':''}><summary>${title}</summary><div class="aircraft-editor-fields">${fields.filter(s=>s.group===index).map(s=>`<label class="${s.type==='textarea'?'aircraft-wide-field':''}" for="ac_${s.key}">${esc(s.label)}${control(s)}</label>`).join('')}</div></details>`).join('');
 
