@@ -110,3 +110,24 @@ decyduje wolniejszy rzeczywisty pierwiastek, a nie średnia obu pierwiastków
 `-ζω_n`. Obecny moduł zwraca oba pierwiastki i podstawę czasu połowicznego
 zaniku. Tego czasu nie należy utożsamiać z zanikiem całej odpowiedzi dla
 dowolnych warunków początkowych. Podstawa: [MIT 2.14, Pole and Zero Locations](https://web.mit.edu/2.14/www/Handouts/PoleZero.pdf).
+
+## Weryfikacja implementacji — 6 listopada 2026
+
+Po scaleniu rozszerzonej bazy porównawczej z `origin/master`:
+
+- Pełny zestaw backendu: **2401 zaliczonych, 8 pominiętych**; osiem pominięć
+  dotyczy biblioteki natywnej OpenVSP niedostępnej w interpreterze Python 3.11.
+- OpenVSP 3.55 w osobnym środowisku Python 3.13: **9 zaliczonych**.
+- JavaScript: **54 zaliczone**.
+- Chromium: **37 różnych scenariuszy** obejmujących kreator, siedem klas
+  samolotów, źródła danych, zapis i otwieranie, wyważenie oraz widok mobilny.
+  Po poprawce nagłówka i walidacji edytora ponowiono odpowiednie scenariusze.
+- Bazy SQLite: zgodny schemat, integralność i klucze obce; testy nie zmieniły
+  dostarczonych baz.
+- Studium tematu 7: **12/12 kontroli liczbowych**, 19 wpisów otwartych uwag
+  projektowych. Wszystkie sześć aktualnych raportów otwarto offline w Chromium;
+  wzory i wykresy renderują się bez błędów JavaScript i KaTeX. Zapisano także
+  model OpenVSP z siedmioma elementami geometrii.
+
+Wyniki testów dotyczą implementacji i wskazanych kontroli spójności. Otwarte
+wymagania konstrukcyjne z tabeli powyżej pozostają częścią audytu.
