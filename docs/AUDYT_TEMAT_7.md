@@ -36,10 +36,12 @@ Skrypt używa osobnych baz tymczasowych. Zapisuje wejścia, pełne wyniki,
 Kod wyjścia **1 jest oczekiwany przy otwartych kontrolach projektu**; raporty
 zostają zapisane. Opcja `--no-reports` pomija wyłącznie generowanie HTML.
 
-Osiem niezależnych kontroli sprawdza konfigurację tematu, sumę mas,
+Dwanaście niezależnych kontroli sprawdza konfigurację tematu, sumę mas,
 geometrię AR = b²/S, ciągłość mas faz misji, zapas stateczności,
 kinematykę końcówki śmigła, wybrany punkt danych silnika oraz przeliczenie
-obrotów silnika przez nominalną przekładnię.
+obrotów silnika przez nominalną przekładnię. Kontrole analizy masowej obejmują
+zgodność wejść z obliczoną geometrią, paliwem i mocą, obciążenie niszczące
+z końcowej obwiedni oraz sumy niezależnych i przeskalowanych mas zespołów.
 Ich przejście potwierdza spójność tych obliczeń. Nie potwierdza wytrzymałości,
 charakterystyk rzeczywistego profilu ani zgodności certyfikacyjnej.
 
@@ -49,7 +51,7 @@ charakterystyk rzeczywistego profilu ani zgodności certyfikacyjnej.
 |---|---|---|
 | P1, koncepcja i misja | Właściwy temat, rzeczywisty silnik i źródło SFC; raport z analizą porównawczą | Własny szkic i konsultacja misji; uzasadnienie wstępnej biegunowej |
 | P2, dobór | 58 kW dostępne; moc wymagana jest dużo mniejsza | Dobór lżejszej lub lepiej dopasowanej instalacji i konkretnego śmigła; uzasadnienie punktu przelotu |
-| P3, masy | P1 daje ok. 215 kg masy pustej, niezależny model zespołów ok. 574 kg | Zweryfikowanie stosowalności modelu Raymera GA do motoszybowca oraz mas struktury i rzeczywistej instalacji. Normalizacja procentów nie rozwiązuje sprzeczności |
+| P3, masy | P1 daje ok. 215 kg masy pustej, niezależny model zespołów ok. 562 kg po użyciu rzeczywistej geometrii i obwiedni | Zweryfikowanie stosowalności modelu Raymera GA do motoszybowca oraz mas struktury i rzeczywistej instalacji. Normalizacja procentów nie rozwiązuje sprzeczności |
 | P3, geometria | Zakres ŚC mieści się w założeniach kursowych; audyt wykazuje za mały kąt ochrony ogona i kąt podwozia za ŚC | Rzeczywista geometria podwozia, ugięcia i punkty kontaktu; ponowna kontrola rysunku |
 | P3/P4, profil i przeciągnięcie | Aktualne t/c = 0,12 jest założeniem, nie zatwierdzonym profilem; oderwanie wypada w obszarze klapolotki | Wybór i porównanie profili, dane dla właściwego Re/Macha, zwichrzenie i skuteczność lotek |
 | P4/P5, śmigło | Wspólna średnica i obroty z wyboru użytkownika albo doboru wstępnego | Mapa konkretnego śmigła; wstępny model sprawności nie jest pomiarem |
@@ -63,6 +65,21 @@ parametrami gotowego samolotu. `audit.json` zachowuje także niezaliczone
 kontrole i ich ścieżki, nawet gdy ta sama uwaga pojawia się w kilku częściach.
 
 ## Poprawione obliczenia
+
+Model mas zespołów otrzymuje końcowe t/c, skos i zbieżność skrzydła,
+ramię usterzenia, wymiary kadłuba, paliwo misji oraz dobraną moc zamiast
+wartości zastępczych. Współczynnik obciążenia niszczącego pochodzi z obwiedni;
+współczynnika bezpieczeństwa nie mnoży się powtórnie. Gęstość paliwa służy
+do przeliczenia masy na galony US wymagane przez korelację instalacji.
+Definicje i jednostki: `Analiza_masowa.pdf`, s.5–7.
+
+Zakładka P3 i raport rozdzielają niezależne masy zespołów od ich rozkładu
+przeskalowanego do masy pustej P1. Rozkład do wyważenia zachowuje proporcje
+poszczególnych usterzeń i instalacji. Nadal jest warunkowym oszacowaniem;
+nie zastępuje rzeczywistych mas ani ich rozmieszczenia w konstrukcji.
+Audyt informuje też, gdy wykładnik prawa masy P1 narzucono z założenia klasy,
+ponieważ regresja próby nie dała malejącego udziału masy pustej. Raportowany
+surowy wykładnik pozostaje dostępny, a taki model wymaga uzasadnienia.
 
 Hałas nie korzysta już z niezależnej, stałej średnicy 1,85 m. Współdzieli
 średnicę P4/P5, a śrubowa liczba Macha wynosi:

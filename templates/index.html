@@ -11,7 +11,7 @@
   <link rel="stylesheet" href="/static/css/studio.css?v=3">
   <link rel="stylesheet" href="/static/css/trends.css?v=2">
   <link rel="stylesheet" href="/static/css/aircraft-editor.css?v=2">
-  <link rel="stylesheet" href="/static/css/workspace.css?v=3">
+  <link rel="stylesheet" href="/static/css/workspace.css?v=component-mass-20261106">
   <link rel="stylesheet" href="/static/css/calculation-graph.css?v=1">
   <link rel="stylesheet" href="/static/css/pilot-loading.css?v=2">
   <link rel="stylesheet" href="/static/css/experience.css?v=3">
@@ -452,6 +452,8 @@
               </div>
             </div>
           </div>
+
+          <div class="subpoint-card"><div class="subpoint-header"><h4>Oszacowanie mas zespołów i masa pusta P1</h4></div><div class="subpoint-body">{% with prefix='p3' %}{% include 'component_mass_comparison.html' %}{% endwith %}</div></div>
 
           <div class="subpoint-card" id="pilotLoadingCard">
             <div class="subpoint-header"><h4>Wyważenie przy zmiennej masie załogi i dobór balastu</h4></div>
@@ -1497,11 +1499,12 @@
                 <div class="subpoint-header">
                   <h4><span class="subpoint-badge required">Podpunkt 3.2</span> Analiza Masowa, Wyważenie i Twierdzenie Steinera (5 pkt)</h4>
                   <div style="display:flex; gap:0.5rem; align-items:center;">
-                    <button type="button" class="btn btn-outline-sm" onclick="toggleMassTable31()">Pokaż / Ukryj Tabelę 3.1 (15 zespołów)</button>
+                    <button type="button" class="btn btn-outline-sm" onclick="toggleMassTable31()">Pokaż / ukryj masy i ramiona</button>
                     <span class="badge badge-success">Obowiązkowe</span>
                   </div>
                 </div>
                 <div class="subpoint-body">
+                  {% with prefix='courseP3' %}{% include 'component_mass_comparison.html' %}{% endwith %}
                   <div id="massTable31Box" style="display:none; overflow-x:auto; margin-bottom:1rem;">
                     <table class="b-table">
                       <thead>
@@ -2112,7 +2115,7 @@
   <script src="/static/js/studio-visuals.js?v=3"></script>
   <script src="/static/js/didactic_data.js?v=14"></script>
   <script src="/static/js/charts.js?v=p2-ui-20261104"></script>
-  <script src="/static/js/app.js?v=wizard-design-20261105"></script>
+  <script src="/static/js/app.js?v=component-mass-20261106"></script>
   <script src="/static/js/didactic_modes.js?v=merge-20261104"></script>
   <script src="/static/js/constraints-ui.js?v=7"></script>
   <script src="/static/js/regulation-limits.js?v=occupants-20261105"></script>

@@ -3711,6 +3711,16 @@ function hydrateSemesterProjectsData(res) {
       el.dataset.mismatch = String(Boolean(profileGeometry?.mismatch));
     });
 
+    const componentEstimate=p3.component_mass_estimation;
+    document.querySelectorAll('[data-component-mass-note]').forEach(massNote=>{
+      massNote.textContent='';
+      if(componentEstimate?.normalization_factor==null)return;
+      massNote.textContent=`Niezależne oszacowanie zespołów: ${componentEstimate.independent_empty_mass_kg.toFixed(1)} kg; masa pusta P1: ${componentEstimate.adopted_empty_mass_kg.toFixed(1)} kg. Współczynnik rozkładu do wyważenia: ${componentEstimate.normalization_factor.toFixed(4)}. To warunkowe wyważenie; rozbieżność mas wymaga uzgodnienia.`;
+      if(componentEstimate.applicability!=='general_aviation_reference')massNote.textContent+=' Korelacje GA wymagają uzasadnienia dla tej klasy konstrukcji.';
+    });
+    document.querySelectorAll('[data-component-estimate-body]').forEach(comparison=>{
+      comparison.innerHTML=(componentEstimate?.rows||[]).map(row=>`<tr><td>${escapeHtml(row.label)}</td><td>${row.estimated_mass_kg.toFixed(2)}</td><td>${row.assigned_mass_kg==null?'—':row.assigned_mass_kg.toFixed(2)}</td></tr>`).join('');
+    });
     const t31Tbody = document.getElementById('p3_table31_tbody');
     if (t31Tbody && Array.isArray(p3.table_3_1_components)) {
       t31Tbody.innerHTML = p3.table_3_1_components.map(c => `

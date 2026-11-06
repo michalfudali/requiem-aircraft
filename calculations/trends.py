@@ -305,9 +305,9 @@ CLASS_DEFAULT_MASS_EXPONENT = {
 def mass_trend(params, rows=None):
     """The same mass law for P1, suggestions, and the nonlinear mass balance.
 
-    Fundamental law of aeronautical scaling & BIPOL_1: empty mass fraction must decrease
-    with takeoff mass (C < 0). If statistical scatter yields C >= 0, a physics-constrained
-    power fit through the sample centroid guarantees a monotonically decreasing trend.
+    The course expects a decreasing mass law. When enabled, the fallback uses
+    a declared class prior through the sample centroid. It is not evidence that
+    the observed aircraft show a decreasing empirical relationship.
     """
     rows = select_references(params) if rows is None else rows
     subset = [r for r in rows if valid_value('empty_fraction', r)]
@@ -333,6 +333,7 @@ def mass_trend(params, rows=None):
                     residual = sum(w * (y - intercept - target_c * x) ** 2 for x, y, w in zip(tx, ty, ws))
                     fit.update({
                         'c_unconstrained': fit['C'],
+                        'r2_unconstrained': fit['r2'],
                         'C': target_c,
                         'slope': target_c,
                         'intercept': intercept,

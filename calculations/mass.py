@@ -328,8 +328,14 @@ def estimate_component_masses(
     w_dg = m0 * KG_TO_LB
 
     # Ultimate structural maneuvering load factor Nz = 1.5 * n_pos
-    if flight_envelope and "n_ult" in flight_envelope:
+    final_limits = (flight_envelope or {}).get('limits',{})
+    ultimate_values = [abs(float(final_limits[k])) for k in ('n_ult_pos','n_ult_neg') if final_limits.get(k) is not None]
+    if ultimate_values:
+        n_z = max(ultimate_values)
+        load_basis = 'final_envelope_limits'
+    elif flight_envelope and "n_ult" in flight_envelope:
         n_z = float(flight_envelope["n_ult"])
+        load_basis = 'explicit_ultimate'
     elif flight_envelope and "n_pos" in flight_envelope:
         n_z = 1.5 * float(flight_envelope["n_pos"])
     elif "n_ult" in params:
@@ -338,6 +344,8 @@ def estimate_component_masses(
         n_z = 1.5 * float(params["n_pos"])
     else:
         n_z = 5.7  # Standard CS-23 normal/commuter default: 1.5 * 3.8
+    if not ultimate_values and not (flight_envelope and 'n_ult' in flight_envelope):
+        load_basis = 'limit_factor_or_legacy_default'
 
     # Dynamic pressure at cruise speed q [psf]
     if flight_envelope and "q_max_pa" in flight_envelope:
@@ -359,7 +367,7 @@ def estimate_component_masses(
     s_w_ft2 = s_w_m2 * M2_TO_FT2
     wing_geom = geom.get("wing", {}) if geom else {}
     ar = float(wing_geom.get("AR", params.get("aspect_ratio", 7.5)))
-    sweep_25 = float(
+    sweep_25 = math.radians(float(wing_geom['sweep_deg'])) if 'sweep_deg' in wing_geom else float(
         wing_geom.get(
             "sweep_25",
             wing_geom.get(
@@ -369,19 +377,10 @@ def estimate_component_masses(
         )
     )
     cos_sweep = max(0.1, math.cos(sweep_25))
-    taper = max(0.01, float(wing_geom.get("taper_ratio", params.get("taper_ratio", 0.65))))
-    tc = max(
-        0.01,
-        float(
-            wing_geom.get(
-                "thickness_ratio",
-                wing_geom.get(
-                    "tc",
-                    params.get("thickness_ratio", params.get("tc", 0.15)),
-                ),
-            )
-        ),
-    )
+    taper = max(0.01, float(wing_geom.get('eta',wing_geom.get("taper_ratio", params.get("taper_ratio", 0.65)))))
+    thickness = next((source[key] for source in (wing_geom,params)
+                      for key in ('tc_ratio','thickness_ratio','tc') if source.get(key) is not None),.15)
+    tc = max(.01,float(thickness))
 
     # Fuel weight in wing tanks [lb] (with singularity guard max(1.0, W_fw))
     if is_glider:
@@ -459,7 +458,7 @@ def estimate_component_masses(
     s_f_m2 = float(fus_geom.get("S_wet", params.get("fuselage_swet_m2", 0.75 * math.pi * d_f_m * l_f_m)))
     s_f_ft2 = max(1.0, s_f_m2 * M2_TO_FT2)
 
-    l_t_m = float(ht_geom.get("arm", params.get("l_h", 0.55 * l_f_m)))
+    l_t_m = float(ht_geom.get('l_h',ht_geom.get("arm", params.get("l_h", 0.55 * l_f_m))))
     l_t_ft = max(3.0, l_t_m * M_TO_FT)
     l_over_d = max(1.0, l_f_m / max(0.1, d_f_m))
 
@@ -513,8 +512,8 @@ def estimate_component_masses(
             w_en = float(params["engine_dry_weight_lb"])
         elif "engine_mass_kg" in params:
             w_en = (float(params["engine_mass_kg"]) * KG_TO_LB) / n_en
-        elif "engine_power_kw" in params or "power_kw" in params:
-            p_kw = float(params.get("engine_power_kw", params.get("power_kw", 0.0)))
+        elif float(params.get("engine_power_kw") or params.get("power_kw") or 0) > 0:
+            p_kw = float(params.get("engine_power_kw") or params.get("power_kw") or 0)
             w_en = (p_kw * 0.94 * KG_TO_LB) / n_en
         else:
             w_en = (280.0 * (w_dg / (1150.0 * KG_TO_LB))) / n_en
@@ -528,7 +527,10 @@ def estimate_component_masses(
             v_t_gal = float(params["v_t_gal"])
         else:
             m_fuel = float(params.get("m_fuel", 120.0))
-            v_t_gal = max(1.0, m_fuel * 0.3674)
+            density = float(params.get('fuel_density_kg_l',.72))
+            if not math.isfinite(density) or density<=0:
+                raise ValueError('Gęstość paliwa do wymiarowania instalacji musi być dodatnia i skończona.')
+            v_t_gal = max(1.0, m_fuel / density / 3.785411784)
         v_i_over_v_t = float(params.get("integral_tank_ratio", 1.0))
         n_t = max(1, int(params.get("n_fuel_tanks", 2)))
 
@@ -599,7 +601,41 @@ def estimate_component_masses(
         "breakdown": bd,
         "percentages": pcts,
         "method": "raymer_ga_parametric",
+        "reference": 'Analiza_masowa.pdf, s.5: General-Aviation Weights; s.6–7: jednostki i definicje',
+        "applicability": 'general_aviation_reference' if ac_type=='piston_ga' else 'class_extrapolation_requires_validation',
+        "inputs": dict(m0_kg=m0,wing_area_m2=s_w_m2,aspect_ratio=ar,tc_ratio=tc,
+                       sweep_quarter_rad=sweep_25,taper_ratio=taper,ultimate_load_factor=n_z,
+                       ultimate_load_basis=load_basis,dynamic_pressure_pa=q_pa,
+                       dynamic_pressure_psf=q_psf,fuselage_length_m=l_f_m,
+                       fuselage_wetted_area_m2=s_f_m2,horizontal_tail_arm_m=l_t_m,
+                       mission_fuel_mass_kg=float(params.get('m_fuel',120)),
+                       engine_total_power_kw=float(params.get('engine_power_kw') or params.get('power_kw') or 0)),
     }
+
+
+def refine_component_allocation(mass, sizing, geometry, params, envelope):
+    """Use the actual airframe, propulsion and envelope for the provisional P3 distribution.
+
+    The independent Class-II empty mass stays visible. Scaling its groups to
+    P1's empty mass supplies a conditional CG calculation, not mass substantiation.
+    """
+    context=dict(params,m_fuel=mass['m_fuel'])
+    if params['engine_type']=='prop':
+        context['engine_power_kw']=sizing['design_point']['power_kw']
+    estimate=estimate_component_masses(mass['m0'],context,geom=geometry,flight_envelope=envelope)
+    detail=estimate['breakdown']
+    factor=mass['m_empty']/estimate['m_empty']
+    macro=MacroBreakdown({
+        'm_wing':detail['wing']*factor,
+        'm_tail':(detail['horizontal_tail']+detail['vertical_tail'])*factor,
+        'm_gear':detail['landing_gear']*factor,
+        'm_propulsion':(detail['propulsion']+detail['fuel_system'])*factor,
+        'm_systems':(detail['flight_controls']+detail['avionics']+detail['electrical']+detail['furnishings'])*factor,
+    })
+    macro['m_fuselage']=mass['m_empty']-math.fsum(macro.values())
+    mass.update(breakdown=macro,component_masses=estimate,detailed_breakdown=detail,parametric_breakdown=detail,
+                component_allocation=dict(basis='provisional_cg_at_p1_empty_mass',normalization_factor=factor,
+                                          independent_empty_mass_kg=estimate['m_empty'],adopted_empty_mass_kg=mass['m_empty']))
 
 
 def mission_loads(params: dict):

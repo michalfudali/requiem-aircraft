@@ -55,6 +55,36 @@ def numerical_invariants(result):
     check('Reference shaft RPM: 5500 engine RPM / nominal 2.27 reduction',
           math.isclose(noise['propeller_rpm']*2.27,5500,abs_tol=.5),
           dict(propeller_rpm=noise['propeller_rpm'],nominal_reduction=2.27))
+    estimate=m['component_masses']
+    used=estimate['inputs']
+    geometry=result['geometry']
+    expected_inputs=dict(wing_area_m2=wing['S'],aspect_ratio=wing['AR'],tc_ratio=wing['tc_ratio'],
+        sweep_quarter_rad=math.radians(wing['sweep_deg']),taper_ratio=wing['eta'],
+        fuselage_length_m=geometry['fuselage']['length'],
+        fuselage_wetted_area_m2=geometry['fuselage']['S_wet'],
+        horizontal_tail_arm_m=geometry['horizontal_tail']['l_h'],mission_fuel_mass_kg=m['m_fuel'],
+        engine_total_power_kw=result['sizing']['design_point']['power_kw'])
+    check('Component estimate uses the solved geometry, mission fuel and installed power',
+          all(math.isclose(used[k],v,rel_tol=1e-8,abs_tol=1e-8) for k,v in expected_inputs.items()),
+          dict(used={k:used[k] for k in expected_inputs},expected=expected_inputs))
+    limits=result['envelope']['limits']
+    ultimate=max(abs(limits['n_ult_pos']),abs(limits['n_ult_neg']))
+    check('Component ultimate load comes from the final envelope without a second safety factor',
+          math.isclose(used['ultimate_load_factor'],ultimate,rel_tol=1e-8),
+          dict(used=used['ultimate_load_factor'],envelope=ultimate))
+    independent_total=math.fsum(estimate['breakdown'].values())
+    check('Independent component masses sum to their unscaled empty-mass estimate',
+          math.isclose(independent_total,estimate['m_empty'],abs_tol=1e-8),
+          dict(component_sum_kg=independent_total,independent_empty_kg=estimate['m_empty']))
+    allocation=m['component_allocation']
+    rows=result['bipol_projects']['p3']['component_mass_estimation']['rows']
+    assigned=math.fsum(row['assigned_mass_kg'] for row in rows)
+    allocation_ok=all(math.isclose(row['assigned_mass_kg'],
+        row['estimated_mass_kg']*allocation['normalization_factor'],abs_tol=1e-8) for row in rows)
+    check('Conditional CG allocation preserves component proportions and P1 empty mass',
+          allocation_ok and math.isclose(assigned,m['m_empty'],abs_tol=1e-8),
+          dict(assigned_sum_kg=assigned,adopted_empty_kg=m['m_empty'],
+               normalization_factor=allocation['normalization_factor']))
     return checks
 
 

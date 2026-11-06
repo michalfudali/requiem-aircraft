@@ -5,7 +5,7 @@ import math
 
 from calculations.atmosphere import G0, RHO0
 from calculations.high_lift import high_lift, stall_requirement
-from calculations.mass import calculate_mass_sizing
+from calculations.mass import calculate_mass_sizing, refine_component_allocation
 from calculations.sizing import calculate_matching_chart
 from calculations.geometry import calculate_geometry
 from calculations.aerodynamics import calculate_aerodynamics
@@ -20,7 +20,8 @@ from calculations.glide import calculate_glide_polar
 from calculations.runway import refine_takeoff_sizing
 from calculations.instructor import review_coursework
 from calculations.official_topics import validate_topic_geometry, check_topic_requirements
-from calculations.design_solver import resolve_design
+from calculations.design_solver import resolve_design, refine_flight_sizing
+from calculations.flight_model import level_flight_envelope
 from calculations.model_scope import assessment, is_water
 from calculations.profile_geometry import resolve_profile_geometry
 from calculations.constraints import resolve_and_lock_parameters, finalize_parameter_states, get_initial_constraint_suggestions, WING_PLANFORMS
@@ -81,6 +82,18 @@ def _size_airframe(params, param_states):
     # margin at the aft centre of gravity (X-plot), unless the designer fixed V_H.
     tail_volume_free = 'v_h' not in params.get('locked_params', [])
     for _ in range(20):
+        # P3 component estimates must use this geometry, actual installed power,
+        # mission fuel and the applicable envelope, before they locate the wing.
+        refine_takeoff_sizing(sizing_res, geom_res, aero_res, params, m0)
+        refine_flight_sizing(sizing_res, geom_res, aero_res, params, mass_res)
+        max_level = 0.0
+        if params['engine_type'] != 'none':
+            level = level_flight_envelope(params,sizing_res,m0,geom_res['wing']['S'],
+                                         aero_res['cx0_clean'],aero_res['k_clean'],aero_res['cz_max_clean'],0)
+            max_level = level['max_ms'] or 0.0
+        envelope = calculate_vn_envelope(m0,geom_res,aero_res,
+            dict(speeds={'v_cruise_kmh':params['cruise_speed_kmh']},terms={'v_max_sl':max_level}),params)
+        refine_component_allocation(mass_res,sizing_res,geom_res,params,envelope)
         balance_res = calculate_balance_and_stability(mass_res, geom_res, aero_res, params)
         wing_ac = balance_res['x_lemac_m'] + .25 * geom_res['wing']['mac']
         arms = {key: geom_res[name]['x_ac_m'] - wing_ac for key, name in
@@ -104,7 +117,6 @@ def _size_airframe(params, param_states):
     else:
         raise ValueError('Nie uzyskano spójnego położenia skrzydła i ramion usterzenia; zmień układ lub założenia geometrii.')
     
-    refine_takeoff_sizing(sizing_res, geom_res, aero_res, params, m0)
     return mass_res, sizing_res, geom_res, aero_res
 
 

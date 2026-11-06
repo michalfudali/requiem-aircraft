@@ -317,8 +317,14 @@ def calculate_all_bipol_projects(mass_res: dict, sizing_res: dict, geom_res: dic
     x_lemac = bal_res["x_lemac_m"]
     arms = bal_res["arms"]
     bd = mass_res["breakdown"]
+    allocation = mass_res.get('component_allocation')
+    component_estimate = mass_res.get('component_masses',{})
+    detail = component_estimate.get('breakdown',{})
+    component_factor = allocation['normalization_factor'] if allocation else None
+    def assigned(key,fallback):
+        return detail[key]*component_factor if component_factor is not None and key in detail else fallback
     
-    # Szczegółowa tabela masowa 3.1 (30-40 pozycji wg programu BIPOL)
+    # Tabela mas zespołów 3.1 i ich przybliżonych położeń.
     prop_item_7 = "7. Zespół napędowy (silniki turboodrzutowe / dwuprzepływowe)" if engine_type == "jet" else "7. Silnik ze śmigłem i osprzętem"
     prop_item_8 = "8. Gondole silnikowe, pylony i układ wylotowy" if engine_type == "jet" else "8. Łoże silnika, osłony i chłodnice"
     table_3_1 = [
@@ -335,6 +341,16 @@ def calculate_all_bipol_projects(mass_res: dict, sizing_res: dict, geom_res: dic
         {"item": "11. Przyrządy pokładowe i awionika" if not unmanned_ac else "11. Autopilot, awionika i łącze danych C2 (UAV)", "mass_kg": bd["m_systems"] * 0.25, "x_m": round(arms["crew"] + 0.3, 2), "y_m": 0.0, "z_m": 0.25},
         {"item": "12. Wyposażenie kabiny, fotele i pasy" if not unmanned_ac else "12. Instalacja elektryczna, zasilanie i okablowanie misji (UAV)", "mass_kg": bd["m_systems"] * 0.25, "x_m": arms["crew"], "y_m": 0.0, "z_m": -0.1},
     ]
+    if component_factor is not None:
+        # Keep each actual Class-II component rather than manufacturing four
+        # equal equipment masses or a fixed 65/35 tail split.
+        for index,key in ((2,'horizontal_tail'),(3,'vertical_tail'),(6,'propulsion'),(7,'fuel_system'),
+                          (8,'flight_controls'),(9,'avionics'),(10,'electrical'),(11,'furnishings')):
+            table_3_1[index]['mass_kg']=assigned(key,table_3_1[index]['mass_kg'])
+        for index,label in ((6,'7. Zabudowany zespół napędowy'),(7,'8. Instalacja paliwowa'),
+                            (8,'9. Instalacja sterowania płatowcem'),(9,'10. Przyrządy pokładowe i awionika'),
+                            (10,'11. Instalacja elektryczna'),(11,'12. Wyposażenie kabiny')):
+            table_3_1[index]['item']=label
     if unmanned_ac:
         table_3_1 += [
             {"item": "13. Głowica optoelektroniczna / sensory (60% ładunku)", "mass_kg": m_payload * 0.60, "x_m": arms.get("payload_sensor", arms["crew"]), "y_m": 0.0, "z_m": -0.35},
@@ -367,7 +383,7 @@ def calculate_all_bipol_projects(mass_res: dict, sizing_res: dict, geom_res: dic
         row['y_m'] = 0.0
     # Only components this aircraft has: a sailplane lists no engine, engine mount, fuel or payload.
     if engine_type == "none":
-        table_3_1[8]['item'] = "9. Hamulce aerodynamiczne i instalacje płatowca"
+        table_3_1[8]['item'] = "9. Sterowanie i hamulce aerodynamiczne" if component_factor is not None else "9. Hamulce aerodynamiczne i instalacje płatowca"
     if not unmanned_ac and int(mass_res.get("n_crew", 1) or 0) <= 1:
         table_3_1[12]['item'] = "13. Pilot"
     table_3_1 = [row for row in table_3_1 if row['mass_kg'] > 1e-9]
@@ -424,7 +440,16 @@ def calculate_all_bipol_projects(mass_res: dict, sizing_res: dict, geom_res: dic
     h_cg_g = max(0.4, zcg_mtow - (-0.80 * d_f))
     dn_g = (track_g / 2.0) / math.sqrt(1.0 + (track_g / (2.0 * wheelbase_g)) ** 2)
     turnover_angle_val = round(math.degrees(math.atan2(h_cg_g, dn_g)), 1)
+    component_labels={'wing':'Skrzydło','fuselage':'Kadłub','horizontal_tail':'Usterzenie poziome',
+        'vertical_tail':'Usterzenie pionowe','landing_gear':'Podwozie','propulsion':'Zabudowany napęd',
+        'fuel_system':'Instalacja paliwowa','flight_controls':'Sterowanie','avionics':'Awionika',
+        'electrical':'Instalacja elektryczna','furnishings':'Wyposażenie kabiny'}
     p3_data = {
+        'component_mass_estimation': dict(allocation or {},method=component_estimate.get('method'),
+            applicability=component_estimate.get('applicability'),reference=component_estimate.get('reference'),
+            inputs=component_estimate.get('inputs'),rows=[dict(component=key,label=component_labels.get(key,key),estimated_mass_kg=value,
+                assigned_mass_kg=value*component_factor if component_factor is not None else None)
+                for key,value in detail.items() if value > 1e-9]),
         "geometry_trends": trend_analysis.get("geometry_trends_analysis"),
         "blueprint_checks": {
             "engine_type": engine_type,

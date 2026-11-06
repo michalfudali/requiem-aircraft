@@ -212,6 +212,10 @@ def empty_mass_law(p):
         meta.update(mode='trend', n=len(rows), families=len(counts), aircraft_ids=[r['id'] for r in rows], points=points,
                     r2=fit['r2'], valid_range=[fit['x_min'], fit['x_max']],
                     definitions=sorted({r.get('empty_mass_definition') or 'nieokreślona' for r in rows}))
+        constrained=bool(fit.get('physically_constrained'))
+        meta.update(constrained=constrained,raw_exponent=fit.get('c_unconstrained',fit['C']),
+                    unconstrained_r2=fit.get('r2_unconstrained',fit['r2']),
+                    exponent_basis='declared_class_prior' if constrained else 'empirical_power_fit')
     meta.update(A=a, C=c, k_vs=kvs)
 
     def share(m):

@@ -44,6 +44,14 @@ body[data-workspace-view=semester] .quiet-return { display:flex; }
 .quiet-disclosure>.studio-two-col { padding:18px; }
 .quiet-disclosure .b-card-header.quiet-original-heading, .quiet-disclosure .subpoint-header.quiet-original-heading { display:none; }
 .quiet-disclosure .b-card-body, .quiet-disclosure .subpoint-body { padding:20px; }
+.component-mass-comparison > summary { cursor:pointer; margin-bottom:12px; }
+.component-mass-comparison .b-table { table-layout:fixed; }
+.component-mass-comparison th, .component-mass-comparison td { overflow-wrap:anywhere; }
+.component-mass-comparison th:first-child { width:40%; }
+.component-mass-comparison td:not(:first-child) { text-align:right; font-variant-numeric:tabular-nums; }
+@media(max-width:600px) {
+  .component-mass-comparison .b-table th, .component-mass-comparison .b-table td { font-size:12px; padding:8px 5px; }
+}
 .studio-layout:not(.show-inline-hints) [data-quiet-explanation] { display:none; }
 .quiet-analysis-actions { display:flex; gap:8px; align-items:center; }
 .quiet-disclosure>div:not(.studio-two-col) { padding:18px 20px; }

@@ -45,9 +45,15 @@ def test_p4_and_global_check_use_same_physical_stall_requirement(name):
 def fixed_wing_exceedance():
     params = {**AIRCRAFT_PRESETS['ga_trainer'], 'wing_input_mode': 'area_aspect', 'wing_area_m2': 20,
               'design_iteration_mode': 'coupled'}
-    first = run_bipol_project(params)
-    params['v_stall_kmh'] = first['performance']['terms']['vs_lnd'] * 3.6 - .04
-    return params
+    # Changing the requirement can slightly change a coupled design. Calibrate
+    # the fixture to the final equilibrium, rather than assuming frozen mass.
+    for _ in range(8):
+        result = run_bipol_project(params)
+        target = result['performance']['terms']['vs_lnd'] * 3.6 - .04
+        if abs(params['v_stall_kmh'] - target) < 1e-9:
+            return params
+        params['v_stall_kmh'] = target
+    raise AssertionError('The near-boundary stall fixture did not converge.')
 
 
 def test_reducing_project_limit_by_four_hundredths_is_not_accepted():

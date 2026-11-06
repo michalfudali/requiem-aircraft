@@ -52,11 +52,20 @@ def test_takeoff_curve_without_15m_distance_is_labelled_as_ground_roll():
 
 
 @pytest.mark.parametrize('name', AIRCRAFT_PRESETS)
-def test_flight_cg_range_meets_mass_analysis_criterion(name):
-    b = run_bipol_project(AIRCRAFT_PRESETS[name])['balance']
+def test_flight_cg_range_reports_the_unrounded_mass_analysis_criterion(name):
+    r = run_bipol_project(AIRCRAFT_PRESETS[name])
+    b = r['balance']
     cg = b['cg_range']
-    assert b['cg_check']['passed']
-    assert cg['aft_pct'] <= 35.0 and (cg['forward_pct'] >= 25.0 or cg['delta_pct'] > 10.0)
+    expected=cg['aft_pct'] <= 35.0 and (cg['forward_pct'] >= 25.0 or cg['delta_pct'] > 10.0)
+    assert b['cg_check']['passed'] is expected
+    global_check=next(c for c in r['compliance_checks'] if c['parameter'].startswith('Zakres położeń ŚC'))
+    assert global_check['passed'] is expected
+    if not expected:
+        # A preliminary preset need not be feasible. Keep the physical layout
+        # bounds and report the failure instead of moving masses to pass it.
+        assert b['x_lemac_m']/r['geometry']['fuselage']['length'] == pytest.approx(.25) or \
+            b['x_lemac_m']/r['geometry']['fuselage']['length'] == pytest.approx(.56)
+        assert 'niespełnione' in b['cg_check']['note']
     assert b['loading_states'][-1]['key'] == 'mtow'
     assert b['stability']['static_margin_aft_pct'] >= 5.0
     if AIRCRAFT_PRESETS[name]['aircraft_type'] != 'uav':

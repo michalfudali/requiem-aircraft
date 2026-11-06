@@ -47,6 +47,17 @@ def perform_engineering_audit(result: dict) -> dict:
 
     checks = []
     metrics = {}
+    law=mass.get('empty_mass_law') or {}
+    if law.get('mode')=='trend' and law.get('constrained'):
+        raw_c=law['raw_exponent']
+        checks.append(dict(id='empty_mass_empirical_support',category='Bilans mas i zakres modeli',
+            title='Empiryczne uzasadnienie prawa masy pustej',
+            value=f"C z próby = {raw_c:+.4f}; przyjęto C = {law['C']:+.4f}",
+            required='Malejąca zależność poparta porównywalną próbą lub odrębne uzasadnienie modelu',
+            passed=False,severity='warning',
+            didactic_simple='Narzucony ujemny wykładnik daje malejącą krzywą, ale nie dowodzi takiej zależności w danych.',
+            engineering_note='Prawo P1 używa zadeklarowanego wykładnika klasy, ponieważ regresja próby nie dawała wymaganej malejącej zależności. '
+                'To model wstępny. Uzgodnij podobieństwo konstrukcji, definicje mas pustych i kalibrację przed traktowaniem wyniku jako zweryfikowanego projektu.'))
 
     # Independent component estimates must not be hidden by distributing P1's
     # empty mass in the same percentages. Reconcile both mass models first.
