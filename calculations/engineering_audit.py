@@ -47,6 +47,27 @@ def perform_engineering_audit(result: dict) -> dict:
 
     checks = []
     metrics = {}
+    engine_info=result.get('engine_selection') or {}
+    if engine_info.get('supported') and engine_type!='none':
+        installation=engine_info.get('mass') or {}
+        complete=installation.get('installed_mass_total_kg')
+        fixed=installation.get('fixed_mass_total_kg',0)
+        assigned=(mass.get('component_allocation') or {}).get('assigned_masses_kg',{}).get('propulsion')
+        preserved=assigned is not None and assigned+1e-9>=fixed
+        if complete is not None:
+            preserved=preserved and math.isclose(assigned,complete,rel_tol=1e-10,abs_tol=1e-8)
+        checks.append(dict(id='engine_installation_mass',category='Bilans mas i zakres modeli',
+            title='Masa rzeczywistej zabudowy napędu',
+            value=(f'Zabudowa udokumentowana: {complete:.1f} kg' if complete is not None else
+                   f'Minimum sprzętowe: {fixed:.1f} kg; kompletna zabudowa nieudokumentowana' if fixed else
+                   'Masa silnika i kompletnej zabudowy nieudokumentowana'),
+            required='Masa całej instalacji ze źródłem i zakresem, zachowana bez skalowania',
+            passed=complete is not None and preserved,severity='ok' if complete is not None and preserved else 'warning',
+            didactic_simple='Masa katalogowa silnika nie obejmuje automatycznie całej instalacji w płatowcu.',
+            engineering_note='Udokumentowanej masy silnika, przekładni lub kompletnej zabudowy nie wolno pomniejszać współczynnikiem rozkładu P1. '
+                'Do masy całej instalacji należy włączyć śmigło, mocowanie, osprzęt i wymagane płyny, zgodnie z jawnie podanym zakresem. '
+                'Paliwo zużywalne i odrębnie liczona instalacja paliwowa nie mogą być policzone drugi raz.'))
+        metrics.update(engine_fixed_mass_kg=fixed,engine_assigned_mass_kg=assigned)
     law=mass.get('empty_mass_law') or {}
     if law.get('mode')=='trend' and law.get('constrained'):
         raw_c=law['raw_exponent']

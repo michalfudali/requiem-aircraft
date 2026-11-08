@@ -508,17 +508,28 @@ def estimate_component_masses(
         m_fuel_system = 0.0
     else:
         n_en = max(1, int(params.get("n_engines", 1)))
-        if "engine_dry_weight_lb" in params:
+        source_mass=(params.get('_engine_fuel') or {}).get('mass') or {}
+        base_mass=source_mass.get('base_mass_each_kg')
+        installed_mass=source_mass.get('installed_mass_total_kg')
+        if base_mass is not None:
+            w_en=base_mass*KG_TO_LB
+            engine_mass_basis='manufacturer_base_mass'
+        elif "engine_dry_weight_lb" in params:
             w_en = float(params["engine_dry_weight_lb"])
+            engine_mass_basis='legacy_dry_mass_input'
         elif "engine_mass_kg" in params:
             w_en = (float(params["engine_mass_kg"]) * KG_TO_LB) / n_en
+            engine_mass_basis='legacy_total_dry_mass_input'
         elif float(params.get("engine_power_kw") or params.get("power_kw") or 0) > 0:
             p_kw = float(params.get("engine_power_kw") or params.get("power_kw") or 0)
             w_en = (p_kw * 0.94 * KG_TO_LB) / n_en
+            engine_mass_basis='power_mass_correlation'
         else:
             w_en = (280.0 * (w_dg / (1150.0 * KG_TO_LB))) / n_en
+            engine_mass_basis='gross_mass_correlation'
 
-        w_installed_engine = 2.575 * (w_en ** 0.922) * n_en
+        w_installed_engine = (installed_mass*KG_TO_LB if installed_mass is not None
+                              else max(2.575*(w_en**.922)*n_en,(base_mass or 0)*KG_TO_LB*n_en))
         m_propulsion = w_installed_engine * LB_TO_KG
 
         if "fuel_capacity_gal" in params:
@@ -610,6 +621,10 @@ def estimate_component_masses(
                        fuselage_wetted_area_m2=s_f_m2,horizontal_tail_arm_m=l_t_m,
                        mission_fuel_mass_kg=float(params.get('m_fuel',120)),
                        engine_total_power_kw=float(params.get('engine_power_kw') or params.get('power_kw') or 0)),
+        "engine_mass": dict(basis='not_applicable' if is_glider else engine_mass_basis,
+                            base_mass_each_kg=None if is_glider else w_en*LB_TO_KG,
+                            installed_basis='not_applicable' if is_glider else
+                                'documented_installed_assembly' if installed_mass is not None else 'raymer_installation_correlation'),
     }
 
 
@@ -624,17 +639,25 @@ def refine_component_allocation(mass, sizing, geometry, params, envelope):
         context['engine_power_kw']=sizing['design_point']['power_kw']
     estimate=estimate_component_masses(mass['m0'],context,geom=geometry,flight_envelope=envelope)
     detail=estimate['breakdown']
-    factor=mass['m_empty']/estimate['m_empty']
+    engine_mass=(params.get('_engine_fuel') or {}).get('mass') or {}
+    fixed_mass=engine_mass.get('fixed_mass_total_kg',0) if params['engine_type']!='none' else 0
+    if fixed_mass>=mass['m_empty']:
+        raise ValueError(f"Masa pusta P1 ({mass['m_empty']:.1f} kg) nie mieści udokumentowanej masy napędu ({fixed_mass:.1f} kg) i płatowca. Zmień założenia prawa masy lub dobór napędu.")
+    protected={'propulsion':fixed_mass} if fixed_mass else {}
+    factor=(mass['m_empty']-fixed_mass)/(estimate['m_empty']-fixed_mass)
+    assigned={key:protected.get(key,0)+factor*(value-protected.get(key,0)) for key,value in detail.items()}
     macro=MacroBreakdown({
-        'm_wing':detail['wing']*factor,
-        'm_tail':(detail['horizontal_tail']+detail['vertical_tail'])*factor,
-        'm_gear':detail['landing_gear']*factor,
-        'm_propulsion':(detail['propulsion']+detail['fuel_system'])*factor,
-        'm_systems':(detail['flight_controls']+detail['avionics']+detail['electrical']+detail['furnishings'])*factor,
+        'm_wing':assigned['wing'],
+        'm_tail':assigned['horizontal_tail']+assigned['vertical_tail'],
+        'm_gear':assigned['landing_gear'],
+        'm_propulsion':assigned['propulsion']+assigned['fuel_system'],
+        'm_systems':assigned['flight_controls']+assigned['avionics']+assigned['electrical']+assigned['furnishings'],
     })
     macro['m_fuselage']=mass['m_empty']-math.fsum(macro.values())
     mass.update(breakdown=macro,component_masses=estimate,detailed_breakdown=detail,parametric_breakdown=detail,
                 component_allocation=dict(basis='provisional_cg_at_p1_empty_mass',normalization_factor=factor,
+                                          fixed_masses_kg=protected,assigned_masses_kg=assigned,fixed_mass_total_kg=fixed_mass,
+                                          engine_mass_evidence=engine_mass,
                                           independent_empty_mass_kg=estimate['m_empty'],adopted_empty_mass_kg=mass['m_empty']))
 
 

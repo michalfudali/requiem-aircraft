@@ -1,0 +1,23 @@
+{
+  "version": 1,
+  "records": [
+    {
+      "engine_id": "rotax_912_ul",
+      "hardware": {
+        "mass_kg": 55.4,
+        "definition": "Silnik z przekładnią śmigła o nominalnym przełożeniu 2,27:1 (opcja 2,43:1). Masa bazowa nie stanowi masy całej zabudowy w płatowcu; osprzęt wymieniono osobno.",
+        "source_title": "BRP-Rotax: 912 UL / A / F — Engine Data, Weight",
+        "source_url": "https://www.flyrotax.com/products/912-ul-a-f",
+        "locator": "Engine Data — Weight: Engine with propeller speed reduction gearbox; osobne pozycje osprzętu",
+        "checked_on": "2026-11-06",
+        "separate_accessories_kg": {
+          "exhaust_system": 4.0,
+          "overload_clutch": 1.7,
+          "external_alternator": 3.0,
+          "air_guide_hood": 0.4,
+          "engine_suspension_frame": 2.0
+        }
+      }
+    }
+  ]
+}

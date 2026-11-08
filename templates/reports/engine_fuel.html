@@ -11,6 +11,9 @@
 {% if ef.point.unit in ('l/h','US gal/h') %}<tr><td>Założona gęstość paliwa do przeliczenia</td><td>{{ ef.density_kg_l|reportnum(3) }} kg/l</td></tr>{% endif %}
 <tr><td>SFC użyte w bilansie i osiągach</td><td>{{ ef.sfc|reportnum(4) }} {{ ef.unit }}</td></tr>
 </tbody></table>
+{% set em=ef.get('mass',{}) %}
+{% if em.hardware %}<p>Masa bazowa producenta wynosi <strong>{{ em.base_mass_each_kg|reportnum(2) }} kg na silnik</strong>. {{ em.hardware.definition }} Źródło: <a href="{{ em.hardware.source_url }}">{{ em.hardware.source_title }}</a>, {{ em.hardware.locator }}. Jest to minimum sprzętowe zachowane w P3.</p>{% endif %}
+{% if em.installed_mass_each_kg is not none and em.installed_mass_each_kg is defined %}<p>Do zestawienia mas przyjęto udokumentowaną masę zabudowanego napędu: <strong>{{ em.installed_mass_each_kg|reportnum(2) }} kg na silnik</strong>, {{ em.installed_mass_total_kg|reportnum(2) }} kg łącznie. Zakres: {{ em.installed_conditions }}. Źródło autora: {{ em.installed_source }}. Masa ta pozostaje stała przy rozdziale masy P1.</p>{% else %}<p>Masa kompletnej zabudowy nie została udokumentowana. Pozostała część masy instalacji jest oszacowaniem wstępnym.</p>{% endif %}
 {% if 'p2' not in selected_sections %}
 {% if ef.point.unit in ('l/h','US gal/h') %}
 <p>Objętościowe zużycie paliwa przeliczono na jednostkowe zużycie masowe dla tego samego punktu pracy:</p>

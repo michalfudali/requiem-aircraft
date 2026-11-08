@@ -79,12 +79,19 @@ def numerical_invariants(result):
     allocation=m['component_allocation']
     rows=result['bipol_projects']['p3']['component_mass_estimation']['rows']
     assigned=math.fsum(row['assigned_mass_kg'] for row in rows)
-    allocation_ok=all(math.isclose(row['assigned_mass_kg'],
-        row['estimated_mass_kg']*allocation['normalization_factor'],abs_tol=1e-8) for row in rows)
-    check('Conditional CG allocation preserves component proportions and P1 empty mass',
+    fixed=allocation.get('fixed_masses_kg',{})
+    allocation_ok=all(math.isclose(row['assigned_mass_kg'],fixed.get(row['component'],0)+
+        (row['estimated_mass_kg']-fixed.get(row['component'],0))*allocation['normalization_factor'],abs_tol=1e-8) for row in rows)
+    check('Conditional CG allocation preserves known hardware masses and scales only estimates',
           allocation_ok and math.isclose(assigned,m['m_empty'],abs_tol=1e-8),
           dict(assigned_sum_kg=assigned,adopted_empty_kg=m['m_empty'],
                normalization_factor=allocation['normalization_factor']))
+    engine_mass=engine.get('mass') or {}
+    check('Rotax 912 UL manufacturer base mass: 55.4 kg; allocated propulsion cannot be lighter',
+          engine_mass.get('base_mass_each_kg')==55.4 and
+          allocation['assigned_masses_kg']['propulsion']>=55.4*p['n_engines'],
+          dict(base_mass_each_kg=engine_mass.get('base_mass_each_kg'),
+               allocated_propulsion_kg=allocation['assigned_masses_kg']['propulsion']))
     return checks
 
 

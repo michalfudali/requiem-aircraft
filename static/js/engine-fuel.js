@@ -3,6 +3,7 @@
   'use strict';
   const $ = id => document.getElementById(id);
   const keys = ['engine_fuel_mode','engine_model_id','engine_fuel_point','fuel_density_kg_l','propeller_diameter_m','propeller_rpm',
+    'engine_installed_mass_kg','engine_mass_source','engine_mass_conditions',
     'engine_custom_sfc','engine_custom_model','engine_custom_power_kw','engine_custom_thrust_kn','engine_fuel_source','engine_fuel_conditions',
     'engine_max_fuel_source','engine_max_fuel_conditions'];
   let engines = [], lastResult = null;
@@ -36,6 +37,7 @@
     for (const el of document.querySelectorAll('[data-engine-jet]')) el.hidden = !jet;
     for (const el of document.querySelectorAll('[data-engine-density]')) el.hidden = !isVol;
     for (const el of document.querySelectorAll('[data-engine-prop]')) el.hidden = none || jet;
+    for (const el of document.querySelectorAll('[data-engine-mass]')) el.hidden = none || mode==='unselected';
     for (const el of document.querySelectorAll('[data-engine-field]')) el.disabled = none || !!el.closest('[hidden]');
 
     // SINGLE AUTHORITATIVE SFC FIELD (#sfc):
@@ -92,6 +94,7 @@
     delete data._engine_fuel;
     delete data.prop_rpm; // The editable canonical field replaces the legacy alias.
     delete data.engine_static_thrust_kn;
+    delete data.engine_mass_owner;
     for (const key of keys) {
       const el = $(key);
       if (!el || el.disabled || !el.value.trim()) { delete data[key]; continue; }
@@ -125,6 +128,10 @@
       if (result.params.engine_type === 'prop' && $('engine_power_kw')) $('engine_power_kw').value = result.params.engine_power_kw;
       if ($('power_input_mode') && result.params.engine_type === 'prop') $('power_input_mode').value = 'fixed';
       htmlStatus = `<p><strong>${ef.count} × ${esc(ef.model)}</strong>; SFC w obliczeniach: <strong>${fmt(ef.sfc,4)} ${esc(ef.unit)}</strong>.</p><p>Punkt źródłowy: <strong>${fmt(ef.point.value,4)} ${esc(ef.point.unit)}</strong>${ef.point.power_kw ? ` przy ${fmt(ef.point.power_kw)} kW na silnik` : ""}; ${esc(ef.point.conditions)}.</p><p>Dostępne łącznie: <strong>${fmt(ef.installed_total)} ${esc(ef.rating_unit)}</strong>; wymagane: ${fmt(ef.required_total)} ${esc(ef.rating_unit)}. ${esc(ef.rating_note)}</p><p>${esc(ef.source)} ${esc(ef.locator)}${ef.source_url ? ` · <a href="${esc(ef.source_url)}" target="_blank" rel="noopener">Dokument producenta</a>` : ''}</p><p>${esc(ef.notes.join(' '))}</p><p>${ef.adequate ? 'Moc/ciąg wystarcza według bieżącego doboru.' : 'Moc/ciąg nie wystarcza — wybierz inną propozycję.'}</p>`;
+      const mass=ef.mass;
+      if(mass?.hardware)htmlStatus+=`<p>Masa bazowa producenta: <strong>${fmt(mass.base_mass_each_kg)} kg na silnik</strong>. ${esc(mass.hardware.definition)} <a href="${esc(mass.hardware.source_url)}" target="_blank" rel="noopener">Źródło masy</a>.</p>`;
+      if(mass?.installed_mass_each_kg!=null)htmlStatus+=`<p>Udokumentowana zabudowa: <strong>${fmt(mass.installed_mass_each_kg)} kg na silnik</strong>, ${fmt(mass.installed_mass_total_kg)} kg łącznie. ${esc(mass.installed_conditions)}. Źródło: ${esc(mass.installed_source)}. Tej masy nie skaluje się do P1.</p>`;
+      else htmlStatus+='<p>Brak udokumentowanej masy kompletnej instalacji. Rozkład P3 zachowuje znane minimum sprzętowe, a pozostała masa instalacji jest oszacowaniem.</p>';
     } else {
       htmlStatus = ef.notes?.join(' ') || 'Lot bez napędu.';
     }
@@ -175,7 +182,10 @@
     });
 
     $('engine_fuel_mode')?.addEventListener('change', visibility);
-    $('engine_model_id')?.addEventListener('change', () => points(''));
+    const clearMass=()=>{for(const key of ['engine_installed_mass_kg','engine_mass_source','engine_mass_conditions'])if($(key))$(key).value='';};
+    $('engine_model_id')?.addEventListener('change', () => {clearMass();points('');});
+    $('engine_custom_model')?.addEventListener('change', clearMass);
+    $('engine_fuel_mode')?.addEventListener('change', clearMass);
     $('engine_fuel_point')?.addEventListener('change', visibility);
     $('applyEngineFuel')?.addEventListener('click', () => {
       if (typeof performCalculation === 'function') performCalculation();
@@ -185,6 +195,7 @@
       const button = event.target.closest('[data-engine-pick]');
       if (!button) return;
       $('engine_fuel_mode').value = 'catalog';
+      clearMass();
       $('engine_model_id').value = button.dataset.enginePick;
       points('');
       visibility();

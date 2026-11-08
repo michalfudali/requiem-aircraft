@@ -12,6 +12,7 @@ NUMERIC_LIMITS = {
     'fuel_density_kg_l': (.5, 1.0), 'engine_custom_power_kw': (0, 100000),
     'engine_custom_thrust_kn': (0, 10000), 'engine_static_thrust_kn': (0, 10000),
     'propeller_rpm': (100, 6000), 'propeller_diameter_m': (.1, 8),
+    'engine_installed_mass_kg': (.001, 100000),
     "n_pax": (0, 1000), "n_crew": (0, 20), "m_pax": (0, 500),
     "m_bag": (0, 500), "m_cargo": (0, 500000), "m_crew_person": (0, 500),
     "range_km": (0, 30000), "cruise_altitude_m": (0, 20000),
@@ -68,6 +69,7 @@ NUMERIC_LIMITS = {
 }
 NUMERIC_STEPS = {
     'propeller_diameter_m': .01, 'propeller_rpm': 1,
+    'engine_installed_mass_kg': .001,
     # Aerodynamic coefficients & efficiencies
     "taper_ratio": 0.01,
     "tc_ratio": 0.005,

@@ -322,7 +322,8 @@ def calculate_all_bipol_projects(mass_res: dict, sizing_res: dict, geom_res: dic
     detail = component_estimate.get('breakdown',{})
     component_factor = allocation['normalization_factor'] if allocation else None
     def assigned(key,fallback):
-        return detail[key]*component_factor if component_factor is not None and key in detail else fallback
+        if component_factor is None or key not in detail:return fallback
+        return allocation.get('assigned_masses_kg',{}).get(key,detail[key]*component_factor)
     
     # Tabela mas zespołów 3.1 i ich przybliżonych położeń.
     prop_item_7 = "7. Zespół napędowy (silniki turboodrzutowe / dwuprzepływowe)" if engine_type == "jet" else "7. Silnik ze śmigłem i osprzętem"
@@ -448,7 +449,7 @@ def calculate_all_bipol_projects(mass_res: dict, sizing_res: dict, geom_res: dic
         'component_mass_estimation': dict(allocation or {},method=component_estimate.get('method'),
             applicability=component_estimate.get('applicability'),reference=component_estimate.get('reference'),
             inputs=component_estimate.get('inputs'),rows=[dict(component=key,label=component_labels.get(key,key),estimated_mass_kg=value,
-                assigned_mass_kg=value*component_factor if component_factor is not None else None)
+                assigned_mass_kg=assigned(key,None))
                 for key,value in detail.items() if value > 1e-9]),
         "geometry_trends": trend_analysis.get("geometry_trends_analysis"),
         "blueprint_checks": {

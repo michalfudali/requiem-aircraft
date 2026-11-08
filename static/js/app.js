@@ -3716,6 +3716,7 @@ function hydrateSemesterProjectsData(res) {
       massNote.textContent='';
       if(componentEstimate?.normalization_factor==null)return;
       massNote.textContent=`Niezależne oszacowanie zespołów: ${componentEstimate.independent_empty_mass_kg.toFixed(1)} kg; masa pusta P1: ${componentEstimate.adopted_empty_mass_kg.toFixed(1)} kg. Współczynnik rozkładu do wyważenia: ${componentEstimate.normalization_factor.toFixed(4)}. To warunkowe wyważenie; rozbieżność mas wymaga uzgodnienia.`;
+      if(componentEstimate.fixed_mass_total_kg>0)massNote.textContent+=` Znana masa napędu ${componentEstimate.fixed_mass_total_kg.toFixed(1)} kg pozostaje bez skalowania. Współczynnik dotyczy tylko części szacowanej.`;
       if(componentEstimate.applicability!=='general_aviation_reference')massNote.textContent+=' Korelacje GA wymagają uzasadnienia dla tej klasy konstrukcji.';
     });
     document.querySelectorAll('[data-component-estimate-body]').forEach(comparison=>{

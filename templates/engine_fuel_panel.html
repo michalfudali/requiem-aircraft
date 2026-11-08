@@ -37,6 +37,13 @@
       <label>Warunki maksymalnego ustawienia <input id="engine_max_fuel_conditions" data-engine-field type="text" maxlength="2000"></label>
     </details>
   </div>
+  <details data-engine-mass hidden style="margin-top:0.6rem;">
+    <summary>Masa zabudowanego napędu do analizy P3</summary>
+    <p>Opcjonalnie podaj udokumentowaną masę całej instalacji na jeden silnik: silnik, przekładnia, śmigło, mocowanie, wydech, chłodzenie, osprzęt i płyny robocze. Wyłącz paliwo zużywalne i osobno liczony układ paliwowy. Puste pole pozostawia korelację wstępną; znana masa bazowa producenta pozostaje minimum.</p>
+    <label>Masa zabudowanego napędu na jeden silnik [kg] <input id="engine_installed_mass_kg" data-engine-field type="number" min="0.001" max="100000" step="0.001" placeholder="Oszacowanie wstępne"></label>
+    <label>Źródło masy: zestawienie, dokument albo ważenie <input id="engine_mass_source" data-engine-field type="text" maxlength="2000"></label>
+    <label>Wariant, elementy i płyny uwzględnione w masie <input id="engine_mass_conditions" data-engine-field type="text" maxlength="2000"></label>
+  </details>
   <details data-engine-prop style="margin-top:0.6rem;">
     <summary>Śmigło: średnica i obroty wału</summary>
     <p>Puste pola oznaczają wstępny dobór średnicy i typowe obroty klasy. Podaj dane dobranego śmigła, aby użyć ich w tabelach P4/P5 i porównaniu hałasu. Obroty wału śmigła uwzględniają przekładnię silnika.</p>

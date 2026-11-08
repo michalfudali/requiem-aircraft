@@ -61,6 +61,8 @@ def apply_engine_inputs(p):
         p.pop('engine_static_thrust_kn', None)
         return
     if mode == 'unselected':
+        if p.get('engine_installed_mass_kg') is not None:
+            raise ValueError('Przed podaniem masy zabudowanego napędu wskaż rzeczywisty model silnika i źródło danych.')
         p['_engine_fuel'] = dict(status='missing', supported=False, model=None, notes=[
             'Nie wskazano rzeczywistego silnika i źródła zużycia paliwa. Wyniki paliwowe są założeniem roboczym, '
             'nie udokumentowanym projektem. Wybierz propozycję silnika lub podaj dane producenta.'])
@@ -102,6 +104,8 @@ def apply_engine_inputs(p):
         if not math.isfinite(rating) or rating <= 0:
             raise ValueError('Dane silnika: podaj dodatnią moc ciągłą na silnik [kW] lub ciąg na silnik [kN].')
         evidence['rating_kn' if engine == 'jet' else 'rating_kw'] = rating
+    from calculations.engine_mass import apply_mass_evidence
+    apply_mass_evidence(p,evidence,record.get('hardware') if mode=='catalog' else None)
     density = float(p.get('fuel_density_kg_l', .72))
     sfc = normalized_sfc(evidence['point'], density, engine)
     evidence.update(sfc=sfc, unit='1/h' if engine == 'jet' else 'g/(kW h)', density_kg_l=density,

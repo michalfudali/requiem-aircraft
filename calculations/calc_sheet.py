@@ -1367,7 +1367,8 @@ def _p3_balance(s, r):
     p, mass, geom, bal = r['params'], r['mass'], r['geometry'], r['balance']
     bd, arms, wp = mass['breakdown'], bal['arms'], bal['wing_placement']
     s.section('p3', 'balance', 'Położenie skrzydła i środka masy', SOURCES['B3'] + ', wzór (3.1), pkt 7–8')
-    s.table('comp_mass', 'Masy zespołów', r'm_i=u_i\,m_e', note='Udziały uᵢ zespołów w masie własnej — tabela mas.', deps=['m_e'])
+    s.table('comp_mass', 'Masy zespołów', r'm_i=m_{i,znane}+k_m(m_{i,II}-m_{i,znane})' if mass.get('component_allocation') else r'm_i=u_i\,m_e',
+            note='Masy znane zachowano, pozostały budżet P1 rozdzielono warunkowo; niezależne oszacowanie pozostaje widoczne.',deps=['m_e'])
     s.table('comp_arm', 'Ramiona mas', r'x_i=x_{N,\bar c}+k_i\,\bar c\quad\text{lub}\quad x_i=k_i\,l_k',
             note='Współczynniki kᵢ położeń zespołów — tabela mas.', deps=['mac', 'l_k'])
     s.given('M_kgr', r'M_{kadł}', wp['moment_fuselage_group'], r'\mathrm{kg\,m}', 1, 'Moment statyczny zespołów kadłubowych względem nosa', 'Tabela mas')
@@ -1387,10 +1388,54 @@ def _p3_balance(s, r):
     mtow = next(st for st in bal['loading_states'] if st['key'] == 'mtow')
     parts = [('m_fuselage', 'fuselage'), ('m_wing', 'wing'), ('m_tail', 'tail'), ('m_propulsion', 'propulsion'),
              ('m_gear', 'gear'), ('m_systems', 'systems')]
+    allocation=mass.get('component_allocation')
+    if allocation:
+        estimate=mass['component_masses']
+        fixed=allocation['fixed_masses_kg']
+        s.given('mass_II', r'm_{e,II}', estimate['m_empty'], KG, 2,
+                'Niezależna suma mas zespołów klasy II', estimate['reference'])
+        s.given('mass_known', r'm_{znane}', allocation['fixed_mass_total_kg'], KG, 2,
+                'Masy sprzętu zachowane bez skalowania', 'Dokumentacja silnika lub zestawienie autora; zakres w danych napędu')
+        s.calc('mass_scale', r'k_m', r'\frac{m_e-m_{znane}}{m_{e,II}-m_{znane}}',
+               r'\frac{[[m_e]]-[[mass_known]]}{[[mass_II]]-[[mass_known]]}',allocation['normalization_factor'],'',5,
+               'Warunkowy rozdział pozostałego budżetu P1; nie stanowi potwierdzenia mas konstrukcji',
+               check=lambda v:(v.m_e-v.mass_known)/(v.mass_II-v.mass_known))
+        component_labels={'wing':('Skrzydło','W'),'fuselage':('Kadłub','F'),'horizontal_tail':('Usterzenie poziome','H'),
+            'vertical_tail':('Usterzenie pionowe','V'),'landing_gear':('Podwozie','LG'),'propulsion':('Zabudowany napęd','E'),
+            'fuel_system':('Instalacja paliwowa','FS'),'flight_controls':('Sterowanie','FC'),'avionics':('Awionika','AV'),
+            'electrical':('Instalacja elektryczna','EL'),'furnishings':('Wyposażenie kabiny','FUR')}
+        for component,raw in estimate['breakdown'].items():
+            if raw<=1e-9 and allocation['assigned_masses_kg'][component]<=1e-9:
+                continue
+            code='mass_'+component
+            label,symbol=component_labels[component]
+            s.given(code+'_II',rf'm_{{\mathrm{{{symbol}}},II}}',raw,KG,2,
+                    f'Oszacowanie zespołu: {label}',estimate['reference'])
+            known=fixed.get(component,0)
+            s.given(code+'_known',rf'm_{{\mathrm{{{symbol}}},znane}}',known,KG,2,
+                    f'Część znana bez skalowania: {label}','Dane źródłowe napędu; zero dla nieudokumentowanej części')
+            s.calc(code,rf'm_{{\mathrm{{{symbol}}},CG}}',r'm_{i,znane}+k_m(m_{i,II}-m_{i,znane})',
+                   f'[[{code}_known]]+[[mass_scale]]\\cdot([[{code}_II]]-[[{code}_known]])',
+                   allocation['assigned_masses_kg'][component],KG,2,f'Warunkowa masa do wyważenia: {label}',
+                   check=lambda v,c=code:getattr(v,c+'_known')+v.mass_scale*(getattr(v,c+'_II')-getattr(v,c+'_known')))
     moment = sum(bd[m] * arms[a] for m, a in parts)
-    s.calc('M_e', r'M_e', r'\sum_i m_i x_i', '+'.join(rf'{tex_value(bd[m], 1)}\cdot{tex_value(arms[a], 2)}' for m, a in parts if bd[m]),
-           moment, r'\mathrm{kg\,m}', 1, 'Moment statyczny masy własnej względem nosa kadłuba', deps=['x_LEc', 'm_e'],
-           check=lambda v, m=moment: m)
+    if allocation:
+        component_group={'wing':'wing','fuselage':'fuselage','horizontal_tail':'tail','vertical_tail':'tail',
+            'landing_gear':'gear','propulsion':'propulsion','fuel_system':'propulsion',
+            'flight_controls':'systems','avionics':'systems','electrical':'systems','furnishings':'systems'}
+        component_group={key:group for key,group in component_group.items() if 'mass_'+key in s.entries}
+        group_labels={'wing':'Skrzydło','fuselage':'Kadłub','tail':'Usterzenie','gear':'Podwozie','propulsion':'Napęd','systems':'Instalacje'}
+        for group in dict.fromkeys(component_group.values()):
+            s.given('mass_arm_'+group,rf'x_{{{group}}}',arms[group],M,3,
+                    f'Przybliżone ramię grupy mas: {group_labels[group]}','Rozmieszczenie grup masowych P3')
+        s.calc('M_e',r'M_e',r'\sum_i m_i x_i',
+               '+'.join(f'[[mass_{key}]]\\cdot[[mass_arm_{group}]]' for key,group in component_group.items()),
+               moment,r'\mathrm{kg\,m}',1,'Moment statyczny masy własnej względem nosa kadłuba',
+               check=lambda v:sum(getattr(v,'mass_'+key)*getattr(v,'mass_arm_'+group) for key,group in component_group.items()))
+    else:
+        s.calc('M_e', r'M_e', r'\sum_i m_i x_i', '+'.join(rf'{tex_value(bd[m], 1)}\cdot{tex_value(arms[a], 2)}' for m, a in parts if bd[m]),
+               moment, r'\mathrm{kg\,m}', 1, 'Moment statyczny masy własnej względem nosa kadłuba', deps=['x_LEc', 'm_e'],
+               check=lambda v, m=moment: m)
     # Składniki obecne w projekcie: załoga tylko w statku załogowym, ładunek tylko przy masie płatnej,
     # paliwo tylko przy napędzie.
     items = [('M_e', None, r'M_e', r'm_e')]
