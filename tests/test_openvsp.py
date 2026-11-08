@@ -107,6 +107,35 @@ def test_native_propeller_matches_the_calculated_topic7_geometry(diameter):
     assert vsp.GetParmVal(prop,'Diameter','Design')==pytest.approx(result['geometry']['propeller']['diameter_m'])
 
 
+@pytest.mark.parametrize('location',['rear','retractable'])
+def test_native_pusher_preserves_the_selected_propeller_diameter(location):
+    from calculations import run_bipol_project
+    from calculations.presets import AIRCRAFT_PRESETS
+    from calculations.openvsp_bridge import build_model_from_bipol
+    result=run_bipol_project(dict(AIRCRAFT_PRESETS['motoglider_aos'],engine_location=location,
+                                 propeller_diameter_m=1.71))
+    build_model_from_bipol(result)
+    prop=next(g for g in vsp.FindGeoms() if vsp.GetGeomName(g)=='Smiglo_Pchajace')
+    assert vsp.GetParmVal(prop,'Diameter','Design')==pytest.approx(1.71)
+
+
+@pytest.mark.parametrize('layout',['tricycle','tailwheel'])
+def test_native_gear_centres_and_ground_contacts_match_p3(layout):
+    import json
+    from pathlib import Path
+    from calculations import run_bipol_project
+    from calculations.openvsp_bridge import build_model_from_bipol
+    p=json.loads((Path(__file__).parents[1]/'data/design_cases/topic7_motoszybowiec_21m.json').read_text(encoding='utf8'))
+    result=run_bipol_project(dict(p,landing_gear_type=layout))
+    build_model_from_bipol(result)
+    for name,station in [('Podwozie_Glowne',result['balance']['arms']['gear']),
+                         ('Kolko_Ogonowe' if layout=='tailwheel' else 'Podwozie_Przednie',result['balance']['arms']['gear_aux'])]:
+        gear=next(g for g in vsp.FindGeoms() if vsp.GetGeomName(g)==name)
+        lo,hi=vsp.GetGeomBBoxMin(gear),vsp.GetGeomBBoxMax(gear)
+        assert (lo.x()+hi.x())/2==pytest.approx(station,abs=1e-6)
+        assert lo.z()==pytest.approx(-result['geometry']['gear']['axis_height_m'],abs=1e-6)
+
+
 def test_openvsp_live_parameter_and_geometry_modifications():
     client = app.test_client()
     model = client.get("/api/openvsp/model").get_json()

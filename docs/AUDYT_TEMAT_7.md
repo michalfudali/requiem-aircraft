@@ -1,7 +1,8 @@
 # Temat 7 — audyt i odtwarzalne studium P1–P6
 
-> Stan z 06.11.2026: model mas, podwozia i bilans mocy poprawiono; projekt z domkniętą masą opisuje
-> [PROJEKT_TEMAT_7_2026-11-06.md](PROJEKT_TEMAT_7_2026-11-06.md). Liczby poniżej dotyczą studium Rotax 912 UL sprzed tych zmian.
+> Stan z 08.11.2026: zachowano dwa odtwarzalne warianty. Poniższe studium dotyczy misji
+> 140 km/h i prawa masy P1; wariant 115 km/h z domknięciem P3→P2 opisuje
+> [PROJEKT_TEMAT_7_2026-11-06.md](PROJEKT_TEMAT_7_2026-11-06.md). Oba używają bieżących obliczeń.
 
 ## Wymaganie i stan projektu
 
@@ -39,12 +40,14 @@ Skrypt używa osobnych baz tymczasowych. Zapisuje wejścia, pełne wyniki,
 Kod wyjścia **1 jest oczekiwany przy otwartych kontrolach projektu**; raporty
 zostają zapisane. Opcja `--no-reports` pomija wyłącznie generowanie HTML.
 
-Dwanaście niezależnych kontroli sprawdza konfigurację tematu, sumę mas,
+Trzynaście niezależnych kontroli sprawdza konfigurację tematu, sumę mas,
 geometrię AR = b²/S, ciągłość mas faz misji, zapas stateczności,
 kinematykę końcówki śmigła, wybrany punkt danych silnika oraz przeliczenie
 obrotów silnika przez nominalną przekładnię. Kontrole analizy masowej obejmują
 zgodność wejść z obliczoną geometrią, paliwem i mocą, obciążenie niszczące
 z końcowej obwiedni oraz sumy niezależnych i przeskalowanych mas zespołów.
+Osobna kontrola sprawdza 55,4 kg masy bazowej Rotax 912 UL i ochronę tego minimum.
+SFC jest sprawdzane niezależnie z danych punktu ciągłego lub przepływu przy 75% mocy.
 Ich przejście potwierdza spójność tych obliczeń. Nie potwierdza wytrzymałości,
 charakterystyk rzeczywistego profilu ani zgodności certyfikacyjnej.
 
@@ -54,13 +57,13 @@ charakterystyk rzeczywistego profilu ani zgodności certyfikacyjnej.
 |---|---|---|
 | P1, koncepcja i misja | Właściwy temat, rzeczywisty silnik i źródło SFC; raport z analizą porównawczą | Własny szkic i konsultacja misji; uzasadnienie wstępnej biegunowej |
 | P2, dobór | 58 kW dostępne; moc wymagana jest dużo mniejsza | Dobór lżejszej lub lepiej dopasowanej instalacji i konkretnego śmigła; uzasadnienie punktu przelotu |
-| P3, masy | P1 daje ok. 212 kg masy pustej, niezależny model zespołów ok. 562 kg po użyciu rzeczywistej geometrii, obwiedni i rozszerzonej bazy porównawczej | Zweryfikowanie stosowalności modelu Raymera GA do motoszybowca oraz mas struktury i rzeczywistej instalacji. Normalizacja procentów nie rozwiązuje sprzeczności |
-| P3, geometria | Zakres ŚC mieści się w założeniach kursowych; audyt wykazuje za mały kąt ochrony ogona i kąt podwozia za ŚC | Rzeczywista geometria podwozia, ugięcia i punkty kontaktu; ponowna kontrola rysunku |
+| P3, masy | P1 daje ok. 213 kg masy pustej, niezależny model zespołów ok. 500 kg po użyciu rzeczywistej geometrii, obwiedni i rozszerzonej bazy porównawczej | Zweryfikowanie stosowalności modelu Raymera GA do motoszybowca oraz mas struktury i rzeczywistej instalacji. Normalizacja procentów nie rozwiązuje sprzeczności |
+| P3, geometria | Zakres ŚC mieści się w założeniach kursowych; audyt wykazuje za mały kąt ochrony ogona i za duży kąt przewrotki bocznej | Rzeczywista geometria podwozia, ugięcia i punkty kontaktu; ponowna kontrola rysunku |
 | P3/P4, profil i przeciągnięcie | Aktualne t/c = 0,12 jest założeniem, nie zatwierdzonym profilem; oderwanie wypada w obszarze klapolotki | Wybór i porównanie profili, dane dla właściwego Re/Macha, zwichrzenie i skuteczność lotek |
 | P4/P5, śmigło | Wspólna średnica i obroty z wyboru użytkownika albo doboru wstępnego | Mapa konkretnego śmigła; wstępny model sprawności nie jest pomiarem |
 | P5, osiągi i paliwo | Pełne drogi startu/lądowania oraz bilans misji są obliczane | Mapa silnika poza punktem źródłowym, rzeczywista instalacja i pojemność paliwa. Kursowe ubytki startu/lądowania po 2,5% nie są pomiarem spalania w czasie tych faz |
 | P6, obciążenia | Raport obejmuje punkty krytyczne i konfiguracje; moc rzeczywistego silnika podnosi prędkości obwiedni | Uzgodnienie prędkości projektowych z konstrukcją; wykazanie marginesu aeroelastycznego. Szacunek flatteru nie zastępuje analizy i prób |
-| Dynamika | Dla studium ζ ≈ 2,29: to ruch aperiodyczny. Level 3 wynika ze wspólnej oceny CAP i tłumienia | Walidacja pochodnych aerodynamicznych i momentów bezwładności; pełna analiza dynamiczna |
+| Dynamika | Dla studium ζ ≈ 2,25: to ruch aperiodyczny. Level 3 wynika ze wspólnej oceny CAP i tłumienia | Walidacja pochodnych aerodynamicznych i momentów bezwładności; pełna analiza dynamiczna |
 | Akustyka | M_tip wynika ze średnicy P4/P5, obrotów i ruchu postępowego; wynik jest porównaniem wstępnym | Dane widmowe, kierunkowość, wydech i procedura dla rzeczywistego samolotu; brak podstaw do świadectwa hałasu |
 
 Wyniki liczbowe są wartościami bieżącego modelu, nie zatwierdzonymi
@@ -82,10 +85,20 @@ poszczególnych usterzeń i instalacji. Nadal jest warunkowym oszacowaniem;
 nie zastępuje rzeczywistych mas ani ich rozmieszczenia w konstrukcji.
 Przykładowo [producent Rotax 912 UL](https://www.flyrotax.com/products/912-ul-a-f)
 podaje 55,4 kg dla silnika z przekładnią; wydech i pozostałe elementy instalacji
-są wymienione osobno. Tymczasem przeskalowany zespół napędowy tego studium
-jest lżejszy nawet od samego silnika. To dodatkowy, niezależny powód, aby
-nie zatwierdzać takiego rozkładu jako rzeczywistych mas ani wyważenia gotowej
-konstrukcji. Potrzebne są masy konkretnej konfiguracji i jej osprzętu.
+są wymienione osobno. Masa bazowa jest teraz chroniona przed skalowaniem.
+W panelu silnika można podać masę całej instalacji na jeden silnik, jej źródło
+oraz zakres elementów i płynów. Wpisana masa nie jest skalowana; pole mniejsze
+od znanego minimum zostaje odrzucone. Brak pełnej masy zabudowy pozostaje
+otwartą kontrolą audytu, nawet gdy dane paliwowe są udokumentowane.
+Rozdział pozostałego budżetu ma postać:
+
+`m_i,CG = m_i,znane + k_m (m_i,II − m_i,znane)`.
+
+Wzory, podstawienia i zależności od tych mas są dostępne w drzewie obliczeń.
+Dane masy bazowej pochodzą z obserwacji
+`data/aircraft/research/engine_hardware.json`, importowanej atomowo do SQLite
+przez `python tools/import_engine_hardware.py`. Katalog silników pozostaje
+jedynym źródłem danych używanym przez obliczenia.
 Audyt informuje też, gdy wykładnik prawa masy P1 narzucono z założenia klasy,
 ponieważ regresja próby nie dała malejącego udziału masy pustej. Raportowany
 surowy wykładnik pozostaje dostępny, a taki model wymaga uzasadnienia.

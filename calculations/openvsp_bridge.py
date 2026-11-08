@@ -1199,7 +1199,7 @@ def build_model_from_bipol(payload: dict[str, Any] | None = None) -> dict[str, A
                     prop_id = vsp.AddGeom("PROP", "")
                     vsp.SetGeomName(prop_id, "Smiglo_Pchajace")
                     created_ids["propeller"] = prop_id
-                    _set_geom_parm(prop_id, "Diameter", "Design", prop_diam * 0.88)
+                    _set_geom_parm(prop_id, "Diameter", "Design", prop_diam)
                     _set_geom_parm(prop_id, "NumBlade", "Design", float(blade_cnt))
                     _set_geom_parm(prop_id, "X_Rel_Location", "XForm", 0.52 * L_fus if engine_loc == "retractable" else L_fus + 0.05)
                     _set_geom_parm(prop_id, "Z_Rel_Location", "XForm", 0.65 * D_fus if engine_loc == "retractable" else 0.12 * D_fus)
@@ -1222,30 +1222,34 @@ def build_model_from_bipol(payload: dict[str, Any] | None = None) -> dict[str, A
 
         # 5. PODWOZIE (LANDING GEAR - koła główne i przednie/tylne)
         if str(params.get("operating_surface", "concrete")) != "water" and str(params.get("gear_type", "fixed")) == "fixed":
-            wheelbase = float(geom["gear"]["wheelbase"])
             track = float(geom["gear"]["track"])
-            x_cg_aft = float(balance.get("x_lemac_m", x_le_wing)) + 0.35 * float(wing["mac"])
-            x_main_gear = x_cg_aft + 0.15 * float(wing["mac"])
-            x_aux_gear = max(0.08 * L_fus, x_main_gear - wheelbase)
-            z_gear = -0.58 * D_fus
+            tailwheel=params.get('landing_gear_type')=='tailwheel'
+            x_main_gear=float(balance['arms']['gear'])
+            x_aux_gear=float(balance['arms']['gear_aux'])
+            from calculations.geometry import axis_height_m
+            ground=-axis_height_m(params,D_fus,(geom.get('propeller') or {}).get('diameter_m'))
+            main_length,aux_length=max(.55,.07*L_fus),max(.45,.055*L_fus)
+            # A POD starts at its nose; FineRatio is length/radius. Place its
+            # centre on the wheel station and its lowest point on the ground.
+            fine_ratio=2.8
 
             mg_id = vsp.AddGeom("POD", "")
             vsp.SetGeomName(mg_id, "Podwozie_Glowne")
             created_ids["main_gear"] = mg_id
             _set_geom_parm(mg_id, "Sym_Planar_Flag", "Sym", float(vsp.SYM_XZ))
-            _set_geom_parm(mg_id, "Length", "Design", max(0.55, 0.07 * L_fus))
-            _set_geom_parm(mg_id, "FineRatio", "Design", 2.8)
-            _set_geom_parm(mg_id, "X_Rel_Location", "XForm", x_main_gear)
+            _set_geom_parm(mg_id, "Length", "Design", main_length)
+            _set_geom_parm(mg_id, "FineRatio", "Design", fine_ratio)
+            _set_geom_parm(mg_id, "X_Rel_Location", "XForm", x_main_gear-main_length/2)
             _set_geom_parm(mg_id, "Y_Rel_Location", "XForm", 0.5 * track)
-            _set_geom_parm(mg_id, "Z_Rel_Location", "XForm", z_gear)
+            _set_geom_parm(mg_id, "Z_Rel_Location", "XForm", ground+main_length/fine_ratio)
 
             ng_id = vsp.AddGeom("POD", "")
-            vsp.SetGeomName(ng_id, "Podwozie_Przednie")
-            created_ids["nose_gear"] = ng_id
-            _set_geom_parm(ng_id, "Length", "Design", max(0.45, 0.055 * L_fus))
-            _set_geom_parm(ng_id, "FineRatio", "Design", 2.8)
-            _set_geom_parm(ng_id, "X_Rel_Location", "XForm", x_aux_gear)
-            _set_geom_parm(ng_id, "Z_Rel_Location", "XForm", z_gear * 0.92)
+            vsp.SetGeomName(ng_id, "Kolko_Ogonowe" if tailwheel else "Podwozie_Przednie")
+            created_ids["tail_gear" if tailwheel else "nose_gear"] = ng_id
+            _set_geom_parm(ng_id, "Length", "Design", aux_length)
+            _set_geom_parm(ng_id, "FineRatio", "Design", fine_ratio)
+            _set_geom_parm(ng_id, "X_Rel_Location", "XForm", x_aux_gear-aux_length/2)
+            _set_geom_parm(ng_id, "Z_Rel_Location", "XForm", ground+aux_length/fine_ratio)
 
         vsp.Update()
         vsp.SetVSP3FileName(DEFAULT_VSP3_REL)

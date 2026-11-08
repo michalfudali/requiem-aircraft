@@ -32,6 +32,21 @@ test('a water-only aircraft is not shown with a wheel undercarriage', () => {
   assert.ok(points(preview.model(result({operating_surface:'land'})),'gear').length>0);
 });
 
+test('calculated wheel geometry uses the balance stations and contacts the ground plane', () => {
+  for(const landing_gear_type of ['tricycle','tailwheel']){
+    const r=result({landing_gear_type});
+    r.balance.arms={gear:2.3,gear_aux:landing_gear_type==='tailwheel'?7.6:1.1};
+    r.geometry.gear={track:1.58,axis_height_m:1.03};
+    const wheelPoints=preview.model(r).faces.filter(f=>f.label==='Koło podwozia').flatMap(f=>f.points);
+    assert.ok(wheelPoints.length>0);
+    assert.ok(Math.abs(Math.min(...wheelPoints.map(p=>p[2]))+1.03)<1e-9);
+    const main=wheelPoints.filter(p=>Math.abs(p[1])>.3),aux=wheelPoints.filter(p=>Math.abs(p[1])<=.3);
+    const station=points=>(Math.min(...points.map(p=>p[0]))+Math.max(...points.map(p=>p[0])))/2;
+    assert.ok(Math.abs(station(main)-r.balance.arms.gear)<1e-9);
+    assert.ok(Math.abs(station(aux)-r.balance.arms.gear_aux)<1e-9);
+  }
+});
+
 test('propulsion follows engine type and location, without inventing a glider engine', () => {
   for (const loc of ['nose','wing','rear','retractable']) {
     const prop=preview.model(result({engine_location:loc}));

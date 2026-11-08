@@ -240,9 +240,12 @@
         }
       }
     }
-    const track=concept?(passenger?fw*1.2:Math.min(finite(g.gear?.track,fw*1.8),fw*2.5)):finite(g.gear?.track,fw*1.3), ground=-fw*.95;
+    const track=concept?(passenger?fw*1.2:Math.min(finite(g.gear?.track,fw*1.8),fw*2.5)):finite(g.gear?.track,fw*1.3);
+    const ground=-finite(g.gear?.axis_height_m,fw*.95),tailwheel=p.landing_gear_type==='tailwheel';
+    const mainX=finite(result.balance.arms?.gear,L*.47),auxX=finite(result.balance.arms?.gear_aux,L*(tailwheel ? .96 : .14));
+    const mainRadius=fw*.115,auxRadius=fw*(tailwheel ? .055 : .085);
     const wheels=concept&&sailplane?[[L*.31,0,fw*.14,-fw*.46],[L*.92,0,fw*.045,-fw*.13]]
-      :[[L*.47,-track/2,fw*.115,ground],[L*.47,track/2,fw*.115,ground],[L*.14,0,fw*.085,ground]];
+      :[[mainX,-track/2,mainRadius,ground+mainRadius],[mainX,track/2,mainRadius,ground+mainRadius],[auxX,0,auxRadius,ground+auxRadius]];
     for (const [x,y,radius,wheelZ] of p.operating_surface==='water'?[]:wheels) {
       const rootY=p.gear_attachment==='wing'?y:y*.4;
       if(Math.abs(wheelZ+fw*.15)>.001)strut([x,rootY,-fw*.15],[x,y,wheelZ],fw*.022);
