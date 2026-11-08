@@ -315,6 +315,18 @@ def classify(entry):
     if found is not None:
         return found
     source = entry.get('source') or ''
+    if key=='mass_II':
+        return ('calc','suma niezależnych oszacowań zespołów z korelacji Raymera {lit:raymer} {tab:component-estimates}')
+    if key=='mass_known':
+        return ('calc','suma wyodrębnionych mas sprzętu z danych napędu {tab:component-estimates}' if entry.get('value') else
+                'nie wyodrębniono udokumentowanych mas sprzętu; przyjęto zero')
+    if key.startswith('mass_arm_'):
+        return ('ass','przybliżone rozmieszczenie grupy mas względem nosa {tab:mass-components}')
+    if key.startswith('mass_') and key.endswith('_II'):
+        return ('calc','oszacowanie zespołu z korelacji klasy II dla geometrii i obciążeń tego wariantu {lit:raymer} {lit:grabowski_am}')
+    if key.startswith('mass_') and key.endswith('_known'):
+        return ('lit','dane masy napędu z dokumentacji lub zestawienia autora {tab:component-estimates}') if entry.get('value') else (
+                'calc','w tym zespole nie wyodrębniono udokumentowanej masy; przyjęto zero')
     if key == 'tc':
         return ('ass' if not re.search(r'NACA|profil', source, re.I) else 'calc',
                 'grubość względna wybranego profilu' if re.search(r'NACA|profil', source, re.I)
