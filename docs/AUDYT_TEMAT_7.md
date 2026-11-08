@@ -147,3 +147,24 @@ Po scaleniu rozszerzonej bazy porównawczej z `origin/master`:
 
 Wyniki testów dotyczą implementacji i wskazanych kontroli spójności. Otwarte
 wymagania konstrukcyjne z tabeli powyżej pozostają częścią audytu.
+
+## Weryfikacja implementacji — 8 listopada 2026
+
+Po scaleniu wariantu z domknięciem P3→P2 i ochroną mas sprzętu:
+
+- Pełny backend: **2433 zaliczone, 12 pominiętych**; pokrycie kodu **94,30%**
+  przy wymaganym progu 90%. Pominięcia dotyczą biblioteki natywnej OpenVSP.
+- Natywny OpenVSP 3.55 / Python 3.13: **13 zaliczonych**, w tym rozmiar śmigła
+  pchającego oraz środki i kontakt z ziemią brył podwozia przedniego i ogonowego.
+- JavaScript: **55 zaliczonych**; wszystkie scenariusze Chromium: **45 zaliczonych**.
+- Oba warianty: **13/13 niezależnych kontroli liczbowych**. Dwanaście aktualnych
+  raportów P1–P6 otwarto offline bez błędów JavaScript i KaTeX. Sumy kontrolne
+  wiążą modele `.vsp3` z zapisanymi wynikami obliczeń.
+- Dla wariantu 115 km/h zapisano także pełny raport HTML i PDF: **89 stron**,
+  bez pustych stron. Pliki robocze znajdują się w `work/topic7-projekt/`;
+  są przeznaczone do przeglądu i dalszego uzupełniania projektu.
+
+Zaliczenie testów nie usuwa wskazanych braków danych konstrukcyjnych, profilu,
+masy kompletnej instalacji ani potwierdzeń autora. Szczególnego sprawdzenia
+wymaga rozbieżność między technologią kompozytową a materiałem używanym przez
+obecny moduł aeroelastyczny, opisana w dokumencie wariantu 21 m.
