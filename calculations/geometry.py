@@ -13,6 +13,25 @@ from calculations.atmosphere import G0
 from calculations.landing_gear import calculate_fuselage_and_gear
 from calculations.empennage import calculate_empennage_sizing, calculate_propulsion_clearance
 
+def axis_height_m(params: dict, diameter: float, propeller_diameter=None) -> float:
+    """Wysokość osi kadłuba nad ziemią na kołach (BIPOL_3, krok 10: prześwit końcówki śmigła).
+
+    Wykłady 4 i 7: końcówka śmigła co najmniej 180 mm nad ziemią przy kółku ogonowym, 230 mm przy przednim.
+    """
+    height = 0.8 * diameter
+    propeller = propeller_diameter or params.get('propeller_diameter_m')
+    if propeller and params.get('engine_type') == 'prop' and params.get('engine_location', 'nose') == 'nose':
+        clearance = 0.18 if params.get('landing_gear_type') == 'tailwheel' else 0.23
+        height = max(height, float(propeller) / 2 + clearance)
+    return max(height, float(params.get('gear_height_m') or 0))
+
+
+def cg_height_m(params: dict, diameter: float, propeller_diameter=None) -> float:
+    """Wysokość środka masy nad ziemią: oś kadłuba plus położenie ŚC względem osi wg układu płata."""
+    offset = {'high': 0.18, 'braced_high': 0.18, 'mid': 0.02}.get(params.get('wing_config', 'low'), -0.10) * diameter
+    return max(0.4, offset + axis_height_m(params, diameter, propeller_diameter))
+
+
 def calculate_geometry(m0: float, ws: float, params: dict):
     """
     Wymiarowanie geometryczne zespołów płatowca na podstawie obciążenia powierzchni i masy startowej.
@@ -145,7 +164,9 @@ def calculate_geometry(m0: float, ws: float, params: dict):
                     length=volume/(.9*width**2), density_kg_m3=hold_density,
                     basis='assumed_payload_density')
     if ac_type in ("glider", "motoglider"):
-        fuselage_len = max(5.5, 0.45 * b)
+        # Długość rośnie z rozpiętością do ok. 8,5 m; dalej o ramieniu usterzeń decyduje cecha
+        # objętościowa (G 109B 8,1 m przy b = 17,4 m; S10 8,4 m przy 23 m; Nimbus 4M 8,1 m przy 26,4 m).
+        fuselage_len = max(5.5, min(0.45 * b, 8.5))
         # Średnica zastępcza przekroju czołowego kabiny (z owiewką): jednomiejscowy
         # ~0,60×0,85 m, tandem ~0,65×1,0 m, miejsca obok siebie ~1,10×1,0 m.
         seats = int(params.get("n_crew", 1)) + n_pax
@@ -169,12 +190,13 @@ def calculate_geometry(m0: float, ws: float, params: dict):
         seats_abreast = 4 if n_pax > 19 else 2
         fuselage_diam = seats_abreast * .48 + .45 + .30
         cabin_length = max(2, math.ceil(n_pax / seats_abreast)) * .80
-        fuselage_len = cabin_length + 4 * fuselage_diam
+        # Bez pasażerów długość wyznacza ramię usterzeń, nie liczba rzędów foteli.
+        fuselage_len = max(cabin_length + 4 * fuselage_diam, .6 * b)
     else: # jet_transport
         seats_abreast = 6 if n_pax > 120 else 4
         fuselage_diam = seats_abreast * .48 + .50 + .35
         cabin_length = max(2, math.ceil(n_pax / seats_abreast)) * .80
-        fuselage_len = cabin_length + 4 * fuselage_diam
+        fuselage_len = max(cabin_length + 4 * fuselage_diam, .6 * b)
         
     cargo_bay = None
     if hold:
@@ -189,6 +211,8 @@ def calculate_geometry(m0: float, ws: float, params: dict):
                          layout_length_m=layout_length, layout_diameter_m=layout_diameter,
                          basis=hold['basis'],
                          shell_diametral_allowance_m=.30)
+    if float(params.get('fuselage_length_m') or 0) > 0:
+        fuselage_len = float(params['fuselage_length_m'])
     fuselage_fineness = fuselage_len / fuselage_diam
     
     # 3. Geometria usterzenia poziomego (UP) metodą współczynnika objętościowego VH
@@ -228,7 +252,13 @@ def calculate_geometry(m0: float, ws: float, params: dict):
     
     # 5. Podwozie (Wheelbase & Track)
     gear_wheelbase = round(0.38 * fuselage_len, 2) # Baza podwozia
-    gear_track = round(0.24 * b, 2)               # Rozstaw kół podwozia głównego
+    gear_track = 0.24 * b                         # Rozstaw kół podwozia głównego
+    if params.get('gear_attachment', 'fuselage') != 'wing':
+        # Goleń mocowana do kadłuba nie sięga dalej niż ok. średnicy kadłuba poza jego obrys.
+        gear_track = min(gear_track, 2.2 * fuselage_diam)
+    elif ac_type in ('glider', 'motoglider'):
+        gear_track = min(gear_track, 0.13 * b)    # G 109B: 2,3 m przy b = 17,4 m
+    gear_track = round(gear_track, 2)
     
     # 6. Rozkład obciążenia Schrenka wzdłuż półrozpiętości y w [0, b/2]
     # c_geom(y) z obrysu wybranego przez użytkownika
@@ -540,7 +570,9 @@ def calculate_geometry(m0: float, ws: float, params: dict):
         },
         "gear": {
             "wheelbase": gear_wheelbase,
-            "track": gear_track
+            "track": gear_track,
+            "type": params.get('landing_gear_type', 'tricycle'),
+            "axis_height_m": axis_height_m(params, fuselage_diam),
         },
         "wetted_area": {
             "total_m2": s_wet_total,

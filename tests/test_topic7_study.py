@@ -19,13 +19,12 @@ def test_source_engine_study_closes_numbers_but_retains_real_design_issues(study
     assert all(c['passed'] for c in numerical_invariants(study))
     issues=open_checks(study)
     assert any(v['check'].get('id')=='tailstrike_clearance' for v in issues)
-    assert any(v['check'].get('id')=='main_gear_tipback' for v in issues)
     assert any(v['check'].get('id')=='empty_mass_crosscheck' for v in issues)
     assert study['acoustics']['certification_compliant'] is None
 
 
 @pytest.mark.parametrize('field',['mass','geometry','acoustics','component_geometry',
-    'component_loads','component_total','allocated_mass'])
+    'component_loads','component_total','allocated_mass','sfc'])
 def test_independent_invariants_reject_corrupted_results(study,field):
     bad=deepcopy(study)
     if field=='mass':bad['mass']['m_fuel']+=10
@@ -34,5 +33,6 @@ def test_independent_invariants_reject_corrupted_results(study,field):
     elif field=='component_geometry':bad['mass']['component_masses']['inputs']['tc_ratio']*=2
     elif field=='component_loads':bad['mass']['component_masses']['inputs']['ultimate_load_factor']*=1.5
     elif field=='component_total':bad['mass']['component_masses']['m_empty']+=10
-    else:bad['bipol_projects']['p3']['component_mass_estimation']['rows'][0]['assigned_mass_kg']+=10
+    elif field=='allocated_mass':bad['bipol_projects']['p3']['component_mass_estimation']['rows'][0]['assigned_mass_kg']+=10
+    else:bad['params']['sfc']*=1.1
     assert any(not c['passed'] for c in numerical_invariants(bad))

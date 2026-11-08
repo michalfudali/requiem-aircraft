@@ -409,7 +409,7 @@ def _p2_atmosphere(s, r):
     s.section('p2', 'atm', 'Atmosfera wzorcowa na wysokości przelotu', 'ISA')
     h = float(p['cruise_altitude_m'])
     isa = isa_atmosphere(h)
-    s.given('H_cr', 'H', h, M, 0, 'Wysokość przelotu', 'Wymagania tematu')
+    s.given('H_cr', 'H', h, M, 0, 'Wysokość przelotu', 'Założenia misji')
     if h <= H_TROPO:
         s.calc('T_cr', 'T_H', r'T_0+\beta H', r'[[T0]]+[[beta]]\cdot[[H_cr]]', isa['T'], r'\mathrm{K}', 2,
                'Temperatura na wysokości przelotu', check=lambda v: v.T0 + v.beta * v.H_cr)
@@ -437,7 +437,7 @@ def _p2_atmosphere(s, r):
            r'1{,}789\cdot10^{-5}\cdot\left(\frac{[[T_cr]]}{288{,}15}\right)^{1{,}5}\cdot\frac{398{,}55}{[[T_cr]]+110{,}4}',
            mu, r'\mathrm{Pa\,s}', 4, 'Lepkość dynamiczna (wzór Sutherlanda)',
            check=lambda v: 1.789e-5 * (v.T_cr / 288.15) ** 1.5 * 398.55 / (v.T_cr + 110.4))
-    _kmh(s, 'V_cr', r'V_{cr}', float(p['cruise_speed_kmh']), 'Prędkość przelotowa (TAS)', 'Wymagania tematu')
+    _kmh(s, 'V_cr', r'V_{cr}', float(p['cruise_speed_kmh']), 'Prędkość przelotowa (TAS)', 'Założenia misji')
     s.calc('M_cr', r'M_{cr}', r'\frac{V_{cr}}{a_H}', r'\frac{[[V_cr]]}{[[a_cr]]}', float(p['cruise_speed_kmh']) / 3.6 / isa['a'],
            '', 3, 'Liczba Macha w przelocie', check=lambda v: v.V_cr / v.a_cr)
     s.calc('q_cr', r'q_{cr}', r'\frac{\rho_H V_{cr}^2}{2}', r'\frac{[[rho_cr]]\cdot[[V_cr]]^2}{2}',
@@ -643,7 +643,7 @@ def _p2(s, r):
         jet = p['engine_type'] == 'jet'
         back = float(p.get('return_range_km') or 0)
         total = float(p['range_km'])
-        s.given('R_km', 'R', total, KM, 0, 'Zasięg obliczeniowy misji', 'Wymagania tematu')
+        s.given('R_km', 'R', total, KM, 0, 'Zasięg obliczeniowy misji', 'Założenia misji')
         _engine_consumption(s, p, jet)
         if jet:
             s.calc('c_T', 'c_T', r'\frac{c_T g\,[\mathrm{1/h}]}{3600}', r'\frac{[[TSFC]]}{3600}', float(p['sfc']) / 3600,
@@ -710,16 +710,16 @@ def _p2(s, r):
                     s.given('CD0_mis', r'C_{x0,mis}', polar['cx0'], '', 7, 'Opór zerowy ostatniej iteracji misji', 'Biegunowa P4')
                     s.given('k_mis', r'k_{mis}', polar['k'], '', 7, 'Opór indukowany ostatniej iteracji misji', 'Biegunowa P4')
                     s.given('rho_mis', r'\rho_{mis}', isa_atmosphere(p['cruise_altitude_m'])['rho'], r'\mathrm{kg/m^3}', 5, 'Gęstość w przelocie', 'ISA')
-                    s.calc('a_mis', 'a', r'\tfrac12\rho V^2 S C_{x0}', r'0{,}5[[rho_mis]][[V_cr]]^2[[S_mis]][[CD0_mis]]',
+                    s.calc('a_mis', 'a', r'\tfrac12\rho V^2 S C_{x0}', r'0{,}5\cdot[[rho_mis]]\cdot[[V_cr]]^2\cdot[[S_mis]]\cdot[[CD0_mis]]',
                            a, r'\mathrm{N}', 4, 'Stała składowa oporu D=a+b m²', check=lambda v: .5*v.rho_mis*v.V_cr**2*v.S_mis*v.CD0_mis)
-                    s.calc('b_mis', 'b', r'\frac{k g^2}{\tfrac12\rho V^2 S}', r'\frac{[[k_mis]][[g]]^2}{0{,}5[[rho_mis]][[V_cr]]^2[[S_mis]]}',
+                    s.calc('b_mis', 'b', r'\frac{k g^2}{\tfrac12\rho V^2 S}', r'\frac{[[k_mis]]\cdot[[g]]^2}{0{,}5\cdot[[rho_mis]]\cdot[[V_cr]]^2\cdot[[S_mis]]}',
                            b, r'\mathrm{N/kg^2}', 8, 'Składowa oporu zależna od masy', check=lambda v: v.k_mis*v.g**2/(.5*v.rho_mis*v.V_cr**2*v.S_mis))
                     s.given('c_mis', r'c_x', consumption, r'\mathrm{kg/(N\,m)}', 10, 'Przelicznik paliwa na drogę: cT/(gV) dla odrzutowego, cP/η dla śmigłowego', 'Jednostki SFC')
                     s.given('margin_R', r'k_R', 1.001, '', 3, 'Jawny margines długości trasy', 'Założenie obliczeniowe')
                 phase = phases['cruise' if key == 'r_CR' else 'return']
                 s.given(key+'_start', r'm_{p,'+key+'}', phase['mass_start_kg'], KG, 3, 'Masa na początku odcinka', 'Poprzednia faza misji')
                 s.calc(key+'_end', r'm_{k,'+key+'}', r'\sqrt{a/b}\tan\left(\arctan(m_p\sqrt{b/a})-1000R k_R c_x\sqrt{ab}\right)',
-                       rf'\sqrt{{[[a_mis]]/[[b_mis]]}}\tan\left(\arctan([[{key}_start]]\sqrt{{[[b_mis]]/[[a_mis]]}})-1000[[{dist}]][[margin_R]][[c_mis]]\sqrt{{[[a_mis]][[b_mis]]}}\right)',
+                       rf'\sqrt{{[[a_mis]]/[[b_mis]]}}\tan\left(\arctan([[{key}_start]]\sqrt{{[[b_mis]]/[[a_mis]]}})-1000\cdot[[{dist}]]\cdot[[margin_R]]\cdot[[c_mis]]\sqrt{{[[a_mis]]\cdot[[b_mis]]}}\right)',
                        phase['mass_end_kg'], KG, 3, label + ' — całka bilansu paliwa przy stałej TAS i wysokości',
                        check=lambda v, q=key, d=dist: math.sqrt(v.a_mis/v.b_mis)*math.tan(math.atan(getattr(v,q+'_start')*math.sqrt(v.b_mis/v.a_mis))-1000*getattr(v,d)*v.margin_R*v.c_mis*math.sqrt(v.a_mis*v.b_mis)))
                 s.calc(key, sym, r'm_k/m_p', rf'[[{key}_end]]/[[{key}_start]]', value, '', 6,
@@ -759,17 +759,25 @@ def _p2(s, r):
             s.given('m_zrzut', r'm_{zrzut}', phases['drop']['payload_drop_kg'], KG, 1, 'Masa zrzucanego ładunku', 'Profil misji')
         s.given('t_ocz', r't_{ocz}', float(p.get('loiter_time_min', 45)), r'\mathrm{min}', 0, 'Czas oczekiwania (krążenia)', 'Profil misji')
         kmax_label = SOURCES['B1'] + ', s. 6 (oczekiwanie: 0,8 Kmax)'
+        # Bilans domknięty biegunową P4: Kmax oczekiwania pochodzi z tej samej biegunowej co przelot.
+        kmax_key = 'Kmax_1'
+        if ma.get('cruise_model') == 'constant_tas_altitude':
+            kmax_key = 'Kmax_mis'
+            s.calc(kmax_key, r'K_{max,mis}', r'\frac{1}{2\sqrt{C_{x0,mis}\,k_{mis}}}', r'\frac{1}{2\sqrt{[[CD0_mis]]\cdot[[k_mis]]}}',
+                   ma['loiter_ld'] / .8, '', 2, 'Maksymalna doskonałość biegunowej misji', SOURCES['B1'] + ', wzór (3)',
+                   check=lambda v: 1 / (2 * math.sqrt(v.CD0_mis * v.k_mis)))
+        kmax_of = lambda v: getattr(v, kmax_key)  # noqa: E731
         if jet:
             s.calc('r_LT', r'\frac{m_6}{m_5}', r'\exp\left(-\frac{60\,t_{ocz}\,c_T}{0{,}8\,K_{max}}\right)',
-                   r'\exp\left(-\frac{60\cdot[[t_ocz]]\cdot[[c_T]]}{0{,}8\cdot[[Kmax_1]]}\right)', phases['loiter']['fraction'], '', 5,
+                   r'\exp\left(-\frac{60\cdot[[t_ocz]]\cdot[[c_T]]}{0{,}8\cdot[[' + kmax_key + r']]}\right)', phases['loiter']['fraction'], '', 5,
                    'Oczekiwanie w kolejce do lądowania', kmax_label,
-                   check=lambda v: math.exp(-60 * v.t_ocz * v.c_T / (.8 * v.Kmax_1)))
+                   check=lambda v: math.exp(-60 * v.t_ocz * v.c_T / (.8 * kmax_of(v))))
         else:
             _kmh(s, 'V_ocz', r'V_{ocz}', ma['loiter_speed_kmh'], 'Prędkość oczekiwania', 'Profil misji')
             s.calc('r_LT', r'\frac{m_6}{m_5}', r'\exp\left(-\frac{60\,t_{ocz}V_{ocz}c_P\,g}{0{,}8\,\eta_p K_{max}}\right)',
-                   r'\exp\left(-\frac{60\cdot[[t_ocz]]\cdot[[V_ocz]]\cdot[[c_P]]\cdot[[g]]}{0{,}8\cdot[[eta_p]]\cdot[[Kmax_1]]}\right)',
+                   r'\exp\left(-\frac{60\cdot[[t_ocz]]\cdot[[V_ocz]]\cdot[[c_P]]\cdot[[g]]}{0{,}8\cdot[[eta_p]]\cdot[[' + kmax_key + r']]}\right)',
                    phases['loiter']['fraction'], '', 5, 'Oczekiwanie w kolejce do lądowania', kmax_label,
-                   check=lambda v: math.exp(-60 * v.t_ocz * v.V_ocz * v.c_P * v.g / (.8 * v.eta_p * v.Kmax_1)))
+                   check=lambda v: math.exp(-60 * v.t_ocz * v.V_ocz * v.c_P * v.g / (.8 * v.eta_p * kmax_of(v))))
         s.given('r_LND', r'\frac{m_7}{m_6}', mass['fuel_fractions_detail']['landing'], '', 3, 'Lądowanie i kołowanie',
                 SOURCES['B1'] + ', s. 6: 0,970–0,975')
         s.given('k_rez', r'k_{rez}', ma['reserve_factor'], '', 2, 'Rezerwa i paliwo niezużywalne', SOURCES['B1'] + ', wzór (4)')
@@ -852,17 +860,22 @@ def _p2_empty_law(s, r):
         # A i C wyznaczono w analizie trendów P1 z dwóch punktów tej samej linii trendu.
         a_key, c_key = 'tr_A', 'tr_C'
     s.given('K_vs', 'K_{vs}', law['k_vs'], '', 2, 'Współczynnik stałości skosu (1,0 — stały; 1,04 — zmienny)', SOURCES['B1'] + ', s. 1')
-    s.calc('e_m0', r'\frac{m_e}{m_0}', r'A\,m_0^{C}K_{vs}',
-           '[[' + a_key + r']]\cdot[[m0]]^{[[' + c_key + r']]}\cdot[[K_vs]]', mass['m_empty'] / mass['m0'], '', 4,
+    k_p3 = float(law.get('k_p3', 1.0))
+    if abs(k_p3 - 1) > 1e-9:
+        s.given('K_P3', r'K_{P3}', k_p3, '', 4, 'Współczynnik domknięcia z analizą masową: suma mas zespołów do wyniku zależności statystycznej',
+                'Iteracja P2–P3 (BIPOL_3: wyniki analizy masowej mogą wymagać powtórzenia projektu)')
+    extra, extra_s = (r'K_{P3}', r'\cdot[[K_P3]]') if abs(k_p3 - 1) > 1e-9 else ('', '')
+    s.calc('e_m0', r'\frac{m_e}{m_0}', r'A\,m_0^{C}K_{vs}' + extra,
+           '[[' + a_key + r']]\cdot[[m0]]^{[[' + c_key + r']]}\cdot[[K_vs]]' + extra_s, mass['m_empty'] / mass['m0'], '', 4,
            'Udział masy własnej dla masy startowej projektu', SOURCES['B1'] + ', wzór (1)',
-           check=lambda v: getattr(v, a_key) * v.m0 ** getattr(v, c_key) * v.K_vs)
+           check=lambda v: getattr(v, a_key) * v.m0 ** getattr(v, c_key) * v.K_vs * k_p3)
 
 
 def _p2_matching(s, r):
     p, mass, sz = r['params'], r['mass'], r['sizing']
     dp, t, geom = sz['design_point'], sz['terms'], r['geometry']
     s.section('p2', 'matching', 'Obciążenie powierzchni i powierzchnia nośna', SOURCES['B2'] + ', wzory (1)–(5), (10)')
-    _kmh(s, 'V_min', r'V_{min}', float(p['v_stall_kmh']), 'Wymagana prędkość minimalna', 'Wymagania tematu')
+    _kmh(s, 'V_min', r'V_{min}', float(p['v_stall_kmh']), 'Wymagana prędkość minimalna', 'Założenia misji')
     s.given('Cz_L_2', r'C_{z\,max,L}', t['cz_max_lnd'], '', 2, 'Maksymalny współczynnik siły nośnej w konfiguracji do lądowania',
             'Założenie')
     s.calc('WS_Vmin', r'\left(\tfrac{W}{S}\right)_{V_{min}}', r'\frac{\rho_0 V_{min}^2}{2}\,\frac{C_{z\,max,L}}{1{,}1}',
@@ -873,7 +886,7 @@ def _p2_matching(s, r):
     s.given('sigma_lot', r'\sigma_{lot}', t['sigma_airfield'], '', 4,
             'Gęstość względna na lotnisku z wysokości i odchyłki temperatury od ISA', 'ISA, założenia lotniska')
     if t['ws_landing'] is not None:
-        s.given('s_L', 's_L', t['s_l'], M, 0, 'Długość lądowania znad przeszkody 15 m', 'Wymagania tematu')
+        s.given('s_L', 's_L', t['s_l'], M, 0, 'Długość lądowania znad przeszkody 15 m', 'Założenia misji')
         s.calc('WS_L_lnd', r'\left(\tfrac{W}{S}\right)_{L,ląd}', r'\frac{\sigma C_{z\,max,L}\,(s_L-122)}{0{,}75}',
                r'\frac{[[sigma_lot]]\cdot[[Cz_L_2]]\cdot([[s_L]]-122)}{0{,}75}', t['ws_landing_l'], NM2, 1,
                'Ograniczenie z długości lądowania (dla masy do lądowania)', SOURCES['B2'] + ', wzór (3)',
@@ -934,7 +947,7 @@ def _p2_matching(s, r):
                'Opór zerowy do wykresu doboru', check=lambda v: v.Cx0_1 + v.dCx0_dob)
         cx0_key = 'Cx0_2'
     cx0 = f'[[{cx0_key}]]'
-    s.given('w_y_wym', r'w_{y,wym}', t['climb_rate_ms'], MS, 2, 'Wymagana prędkość wznoszenia przy ziemi', 'Wymagania tematu')
+    s.given('w_y_wym', r'w_{y,wym}', t['climb_rate_ms'], MS, 2, 'Wymagana prędkość wznoszenia przy ziemi', 'Założenia misji')
     s.given('Cz_TO_2', r'C_{z\,max,TO}', t['cz_max_to'], '', 2, 'Maksymalny współczynnik siły nośnej w konfiguracji startowej',
             'Założenie')
     s.calc('V_wzn', r'V_{wzn}', r'V_{min}+0{,}25\,(V_{max}-V_{min}),\;V_{max}=V_{cr}', r'[[V_min]]+0{,}25\cdot([[V_cr]]-[[V_min]])',
@@ -954,7 +967,7 @@ def _p2_matching(s, r):
         s.given('TW_TO', r'(T/W)_{TO}', 0.0, '', 1,
                 'Ograniczenie startu lądowego wyłączone; operacji wodnych nie wyznaczono', 'Zakres modelu')
     elif t['s_to']:
-        s.given('s_TO', r's_{TO}', t['s_to'], M, 0, 'Długość startu do wysokości 15 m', 'Wymagania tematu')
+        s.given('s_TO', r's_{TO}', t['s_to'], M, 0, 'Długość startu do wysokości 15 m', 'Założenia misji')
         s.calc('TOP', 'TOP', r'\frac{W/S}{C_{z\,max,TO}\,\sigma}', r'\frac{[[WS]]}{[[Cz_TO_2]]\cdot[[sigma_lot]]}', dp['ws'] / (t['cz_max_to'] * t['sigma_airfield']), NM2, 1,
                'Parametr startu', SOURCES['B2'] + ', wzór (2)', check=lambda v: v.WS / (v.Cz_TO_2 * v.sigma_lot))
         tw_to = 0.133 * s.entries['TOP']['value'] / (t['s_to'] - 3.834 * math.sqrt(s.entries['TOP']['value']))
@@ -963,7 +976,7 @@ def _p2_matching(s, r):
                'Ciąg względny wymagany do startu', SOURCES['B2'] + ', wzór (2)',
                check=lambda v: .133 * v.TOP / (v.s_TO - 3.834 * math.sqrt(v.TOP)))
     else:
-        s.given('s_roz', r's_{roz}', max(30.0, t['s_run']), M, 0, 'Długość rozbiegu', 'Wymagania tematu')
+        s.given('s_roz', r's_{roz}', max(30.0, t['s_run']), M, 0, 'Długość rozbiegu', 'Założenia misji')
         tw_to = 1.21 * dp['ws'] / (G0 * RHO0 * t['sigma_airfield'] * t['cz_max_to'] * max(30.0, t['s_run'])) + .04
         s.calc('TW_TO', r'\left(\tfrac{T}{W}\right)_{TO}', r'\frac{1{,}21\,W/S}{g\rho_0\sigma_{lot}C_{z\,max,TO}s_{roz}}+\mu',
                r'\frac{1{,}21\cdot[[WS]]}{[[g]]\cdot[[rho0]]\cdot[[sigma_lot]]\cdot[[Cz_TO_2]]\cdot[[s_roz]]}+0{,}04', tw_to, '', 4,
@@ -1259,8 +1272,8 @@ def _p3(s, r):
                fus['length'], M, 3, 'Długość kadłuba z ładownią, nosem i ogonem',
                check=lambda v: max(v.l_layout, v.l_bay+4*v.d_k))
     elif ac in ('glider', 'motoglider'):
-        s.calc('l_k', 'l_k', r'\max\left(5{,}5;\;0{,}45\,b\right)', r'\max\left(5{,}5;\;0{,}45\cdot[[b]]\right)', fus['length'], M, 2,
-               'Długość kadłuba', check=lambda v: max(5.5, .45 * v.b), tolerance=.011)
+        s.calc('l_k', 'l_k', r'\max\left(5{,}5;\;\min\left(0{,}45\,b;\;8{,}5\right)\right)', r'\max\left(5{,}5;\;\min\left(0{,}45\cdot[[b]];\;8{,}5\right)\right)', fus['length'], M, 2,
+               'Długość kadłuba', check=lambda v: max(5.5, min(.45 * v.b, 8.5)), tolerance=.011)
         s.given('d_k', 'd_k', fus['diameter'], M, 2, 'Średnica zastępcza przekroju kabiny (układ i liczba miejsc)', 'jednomiejscowa 0,72 m, tandem 0,82 m, miejsca obok siebie 1,10 m')
     elif ac == 'uav':
         s.calc('l_k', 'l_k', r'\max\left(1{,}5;\;0{,}55\,b\right)', r'\max\left(1{,}5;\;0{,}55\cdot[[b]]\right)', fus['length'], M, 2,
@@ -1279,10 +1292,10 @@ def _p3(s, r):
         s.calc('d_k', 'd_k', rf'0{{,}}48\,n_{{rz}}+{tex_value(shell[0], 2)}+{tex_value(shell[1], 2)}',
                rf'0{{,}}48\cdot[[n_ab]]+{tex_value(shell[0], 2)}+{tex_value(shell[1], 2)}', fus['diameter'], M, 2,
                'Średnica kadłuba (fotele, przejście i poszycie)', check=lambda v: .48 * v.n_ab + sum(shell), tolerance=.006)
-        s.calc('l_k', 'l_k', r'0{,}80\max\left(2;\;\left\lceil\frac{n_{pas}}{n_{rz}}\right\rceil\right)+4d_k',
-               r'0{,}80\cdot\max\left(2;\;\left\lceil\frac{[[n_pas]]}{[[n_ab]]}\right\rceil\right)+4\cdot[[d_k]]', fus['length'], M, 2,
-               'Długość kadłuba (rzędy foteli co 0,80 m oraz nos i ogon)', check=lambda v: .8 * max(2, math.ceil(v.n_pas / v.n_ab)) + 4 * v.d_k,
-               tolerance=.03)
+        s.calc('l_k', 'l_k', r'\max\left(0{,}80\max\left(2;\;\left\lceil\frac{n_{pas}}{n_{rz}}\right\rceil\right)+4d_k;\;0{,}6\,b\right)',
+               r'\max\left(0{,}80\cdot\max\left(2;\;\left\lceil\frac{[[n_pas]]}{[[n_ab]]}\right\rceil\right)+4\cdot[[d_k]];\;0{,}6\cdot[[b]]\right)', fus['length'], M, 2,
+               'Długość kadłuba (rzędy foteli co 0,80 m oraz nos i ogon; co najmniej 0,6 b)',
+               check=lambda v: max(.8 * max(2, math.ceil(v.n_pas / v.n_ab)) + 4 * v.d_k, .6 * v.b), tolerance=.03)
     s.calc('lambda_k', r'\lambda_k', r'\frac{l_k}{d_k}', r'\frac{[[l_k]]}{[[d_k]]}', fus['fineness'], '', 2, 'Wydłużenie kadłuba',
            check=lambda v: v.l_k / v.d_k)
 
@@ -1387,7 +1400,7 @@ def _p3_balance(s, r):
                check=lambda v: v.x_lemac0)
     mtow = next(st for st in bal['loading_states'] if st['key'] == 'mtow')
     parts = [('m_fuselage', 'fuselage'), ('m_wing', 'wing'), ('m_tail', 'tail'), ('m_propulsion', 'propulsion'),
-             ('m_gear', 'gear'), ('m_systems', 'systems')]
+             ('m_gear', 'gear_group'), ('m_systems', 'systems')]
     allocation=mass.get('component_allocation')
     if allocation:
         estimate=mass['component_masses']
@@ -1421,10 +1434,10 @@ def _p3_balance(s, r):
     moment = sum(bd[m] * arms[a] for m, a in parts)
     if allocation:
         component_group={'wing':'wing','fuselage':'fuselage','horizontal_tail':'tail','vertical_tail':'tail',
-            'landing_gear':'gear','propulsion':'propulsion','fuel_system':'propulsion',
+            'landing_gear':'gear_group','propulsion':'propulsion','fuel_system':'systems',
             'flight_controls':'systems','avionics':'systems','electrical':'systems','furnishings':'systems'}
         component_group={key:group for key,group in component_group.items() if 'mass_'+key in s.entries}
-        group_labels={'wing':'Skrzydło','fuselage':'Kadłub','tail':'Usterzenie','gear':'Podwozie','propulsion':'Napęd','systems':'Instalacje'}
+        group_labels={'wing':'Skrzydło','fuselage':'Kadłub','tail':'Usterzenie','gear_group':'Podwozie','propulsion':'Napęd','systems':'Instalacje'}
         for group in dict.fromkeys(component_group.values()):
             s.given('mass_arm_'+group,rf'x_{{{group}}}',arms[group],M,3,
                     f'Przybliżone ramię grupy mas: {group_labels[group]}','Rozmieszczenie grup masowych P3')
@@ -1995,7 +2008,7 @@ def _p5(s, r):
             cond = r'T\,\varphi_0(V)\,V=\tfrac12\rho_0V^3SC_{x0}+\frac{2k(m_0g)^2}{\rho_0VS}'
             deps = ['T_0', 'Cx0', 'k', 'm0', 'S']
         else:
-            cond = r'1000\,\eta_pN=\tfrac12\rho_0V^3SC_{x0}+\frac{2k(m_0g)^2}{\rho_0VS}'
+            cond = r'1000\,\eta(V)N=\tfrac12\rho_0V^3SC_{x0}+\frac{2k(m_0g)^2}{\rho_0VS}'
             deps = ['P', 'eta_p', 'Cx0', 'k', 'm0', 'S']
         s.solve('V_max', r'V_{max}', cond, t['v_max_sl'], MS, 2, 'Prędkość maksymalna lotu poziomego przy ziemi (większy pierwiastek)', deps=deps)
         _to_kmh(s, 'V_max_kmh', r'V_{max}', 'V_max', perf['speeds']['v_max_sl_kmh'], 'Prędkość maksymalna lotu poziomego przy ziemi')
@@ -2056,7 +2069,7 @@ def _p5_climb(s, r):
     s.section('p5', 'climb', 'Wznoszenie i pułap (metoda mocy)', SOURCES['ML'] + ', P6, tab. 6.1–6.2')
     jet = p['engine_type'] == 'jet'
     s.table('climb_rows', 'Bilans mocy przy ziemi', r'N_n=\tfrac12\rho V^3SC_{x0}+\frac{2k(mg)^2}{\rho VS},\qquad '
-            + (r'N_r=1000\,T\varphi_H V,' if jet else r'N_r=1000\,\eta_p N\varphi_H,') + r'\qquad w=\frac{N_r-N_n}{mg}',
+            + (r'N_r=1000\,T\varphi_H V,' if jet else r'N_r=1000\,\eta(V)\,N\varphi_H,') + r'\qquad w=\frac{N_r-N_n}{mg}',
             note='Pozostałe punkty — tabela bilansu mocy.', deps=['Cx0', 'k', 'm0', 'S'])
     v = offer['v_w_h0_kmh'] / 3.6
     s.given('V_wy', r'V_{w}', v, MS, 2, 'Prędkość największego wznoszenia przy ziemi (maksimum w(V))', 'Tabela 6.1')
@@ -2071,9 +2084,17 @@ def _p5_climb(s, r):
         s.calc('N_r_wy', r'N_r', r'1000\,T\,\varphi_0\,V_w', r'1000\cdot[[T_0]]\cdot' + tex_value(_lapse_value(r, 0, v), 4) + r'\cdot[[V_wy]]', avail, r'\mathrm{W}', 0,
                'Moc rozporządzalna przy ziemi', check=lambda q: 1000 * q.T_0 * _lapse_value(r, 0, v) * q.V_wy, tolerance=.002 * avail)
     else:
-        avail = (r['sizing']['design_point']['power_kw'] or 0) * 1000 * _lapse_value(r, 0, v) * float(p.get('prop_efficiency', .82))
-        s.calc('N_r_wy', r'N_r', r'1000\,\eta_pN\varphi_0', r'1000\cdot[[eta_p]]\cdot[[P]]\cdot' + tex_value(_lapse_value(r, 0, v), 4), avail, r'\mathrm{W}', 0,
-               'Moc rozporządzalna przy ziemi', check=lambda q: 1000 * q.eta_p * q.P * _lapse_value(r, 0, v), tolerance=.002 * avail)
+        from calculations.flight_model import propeller_efficiency
+        eta_w = propeller_efficiency(p, v)
+        v_prop = max(35.0, float(p['cruise_speed_kmh']) * 1.15 / 3.6)
+        s.given('V_d_prop', r'V_d', v_prop, MS, 2, 'Prędkość obliczeniowa śmigła', SOURCES['ML'] + ', P5, dobór śmigła')
+        s.calc('eta_wy', r'\eta(V_w)', r'\eta_p\max\left(0{,}45;\;1-0{,}18\left(\frac{V_w}{V_d}-1\right)^2\right)',
+               r'[[eta_p]]\cdot\max\left(0{,}45;\;1-0{,}18\left(\frac{[[V_wy]]}{[[V_d_prop]]}-1\right)^2\right)', eta_w, '', 3,
+               'Sprawność śmigła przy prędkości największego wznoszenia', SOURCES['ML'] + ', P5, tab. 5.1',
+               check=lambda q: q.eta_p * max(.45, 1 - .18 * (q.V_wy / q.V_d_prop - 1) ** 2), tolerance=.002)
+        avail = (r['sizing']['design_point']['power_kw'] or 0) * 1000 * _lapse_value(r, 0, v) * eta_w
+        s.calc('N_r_wy', r'N_r', r'1000\,\eta(V_w)N\varphi_0', r'1000\cdot[[eta_wy]]\cdot[[P]]\cdot' + tex_value(_lapse_value(r, 0, v), 4), avail, r'\mathrm{W}', 0,
+               'Moc rozporządzalna przy ziemi', check=lambda q: 1000 * q.eta_wy * q.P * _lapse_value(r, 0, v), tolerance=.002 * avail)
     s.calc('w_max', r'w_{max}', r'\frac{N_r-N_n}{m_0g}', r'\frac{[[N_r_wy]]-[[N_n_wy]]}{[[m0]]\cdot[[g]]}', perf['climb']['wy_max_ms'], MS, 2,
            'Największa prędkość wznoszenia przy ziemi', check=lambda q: (q.N_r_wy - q.N_n_wy) / (q.m0 * q.g), tolerance=.011)
     ceil = p6['table_6_2_climb_and_ceilings']['ceilings']
@@ -2503,7 +2524,7 @@ def _law_tex(trace, m0, fraction):
     """Udział masy pustego z równania (1): (wzór, podstawienie) dla masy m0."""
     law = trace['law']
     formula = r'A\left(m_0^{(k)}\right)^{C}K_{vs}'
-    numbers = rf"{_t(law['A'], 5)}\cdot{_t(m0, 2)}^{{{_t(law['C'], 5)}}}\cdot{_t(law['k_vs'], 2)}"
+    numbers = rf"{_t(law['A'], 5)}\cdot{_t(m0, 2)}^{{{_t(law['C'], 5)}}}\cdot{_t(law['k_vs'] * law.get('k_p3', 1.0), 2)}"
     return formula, numbers
 
 

@@ -48,9 +48,14 @@ def numerical_invariants(result):
           abs(expected-noise['propeller_tip_mach'])<=.0005,dict(calculated=expected,reported=noise['propeller_tip_mach']))
     # Manufacturer's maximum-continuous point, not a claim about low-load operation.
     engine=result['engine_selection']
-    check('Rotax 912 UL continuous reference: 58 kW and 285 g/kWh',
-          engine.get('model')=='Rotax 912 UL' and engine.get('installed_total')==58 and p['sfc']==285,
-          dict(model=engine.get('model'),installed_kw=engine.get('installed_total'),sfc_g_kwh=p['sfc']))
+    # OM-912 section 5.2: independently converted operating-point observations.
+    density=p.get('fuel_density_kg_l',.72)
+    expected_sfc={'continuous':285,'cruise75':16.2*density*1000/(.75*58),
+                  'takeoff':24*density*1000/59.6}.get((engine.get('point') or {}).get('id'))
+    check('Rotax 912 UL: 58 kW and SFC independently checked against the source operating point',
+          engine.get('model')=='Rotax 912 UL' and engine.get('installed_total')==58 and
+          expected_sfc is not None and math.isclose(p['sfc'],expected_sfc,rel_tol=1e-10),
+          dict(model=engine.get('model'),installed_kw=engine.get('installed_total'),sfc_g_kwh=p['sfc'],expected_sfc_g_kwh=expected_sfc))
     # OM-912, section 7.6: standard nominal reduction ratio 2.27:1.
     check('Reference shaft RPM: 5500 engine RPM / nominal 2.27 reduction',
           math.isclose(noise['propeller_rpm']*2.27,5500,abs_tol=.5),

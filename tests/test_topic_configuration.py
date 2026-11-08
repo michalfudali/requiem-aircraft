@@ -39,7 +39,7 @@ def test_topic7_backend_reports_the_wrong_engine_location_instead_of_overwriting
     result=response.json
     assert result['params']['engine_location']=='rear'
     check=next(c for c in result['compliance_checks'] if c['parameter'].endswith('Zabudowa zespołu napędowego'))
-    assert not check['passed'] and check['required']=='nose'
+    assert not check['passed'] and check['required']=='w nosie kadłuba'
 
 
 def test_two_crew_are_not_a_single_seat_topic_even_when_there_are_no_passengers(client):

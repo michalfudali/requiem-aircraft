@@ -250,10 +250,14 @@ def calculate_all_bipol_projects(mass_res: dict, sizing_res: dict, geom_res: dic
                  [('Masa członka załogi m_os', '+10%', {'m_crew_person': params.get('m_crew_person', 90)*1.1}),
                   ('Masa członka załogi m_os', '-10%', {'m_crew_person': params.get('m_crew_person', 90)*.9})])
     if params.get('engine_type') != 'none':
+        # With the balance closed on the P4 polar, K rises only through the drag of that polar.
+        polar = params.get('_mission_polar')
+        better_ld = ({'_mission_polar': {**polar, 'cx0': polar['cx0']/1.1, 'k': polar['k']/1.1}} if polar
+                     else {'cruise_ld_p4': params['cruise_ld_p4']*1.1} if params.get('cruise_ld_p4')
+                     else {'mission_ld_factor': params['mission_ld_factor']*1.1})
         scenarios += [
             ('Zasięg obliczeniowy R', '+10%', {'range_km': params['range_km']*1.1}),
-            ('Doskonałość przelotowa K', '+10%', {'cruise_ld_p4': params['cruise_ld_p4']*1.1} if params.get('cruise_ld_p4')
-                                                 else {'mission_ld_factor': params['mission_ld_factor']*1.1}),
+            ('Doskonałość przelotowa K', '+10%', better_ld),
             ('Jednostkowe zużycie paliwa SFC', '+10%', {'sfc': params.get('sfc', 0)*1.1}),
         ]
     sensitivity_table = []
@@ -321,6 +325,7 @@ def calculate_all_bipol_projects(mass_res: dict, sizing_res: dict, geom_res: dic
     component_estimate = mass_res.get('component_masses',{})
     detail = component_estimate.get('breakdown',{})
     component_factor = allocation['normalization_factor'] if allocation else None
+    parts = mass_res.get('scaled_components') or {}
     def assigned(key,fallback):
         if component_factor is None or key not in detail:return fallback
         return allocation.get('assigned_masses_kg',{}).get(key,detail[key]*component_factor)
@@ -328,13 +333,14 @@ def calculate_all_bipol_projects(mass_res: dict, sizing_res: dict, geom_res: dic
     # Tabela mas zespołów 3.1 i ich przybliżonych położeń.
     prop_item_7 = "7. Zespół napędowy (silniki turboodrzutowe / dwuprzepływowe)" if engine_type == "jet" else "7. Silnik ze śmigłem i osprzętem"
     prop_item_8 = "8. Gondole silnikowe, pylony i układ wylotowy" if engine_type == "jet" else "8. Łoże silnika, osłony i chłodnice"
+    gear_aux_label = "6. Kółko ogonowe" if params.get("landing_gear_type") == "tailwheel" else "6. Podwozie przednie"
     table_3_1 = [
         {"item": "1. Skrzydło (dźwigary, żebra, poszycie)", "mass_kg": bd["m_wing"], "x_m": arms["wing"], "y_m": 0.0, "z_m": 0.15},
         {"item": "2. Kadłub (wręgi, podłużnice, pokrycie)", "mass_kg": bd["m_fuselage"], "x_m": arms["fuselage"], "y_m": 0.0, "z_m": 0.0},
         {"item": "3. Usterzenie poziome ze sterem wysokości", "mass_kg": bd["m_tail"] * 0.65, "x_m": arms["tail"], "y_m": 0.0, "z_m": 0.35},
         {"item": "4. Usterzenie pionowe ze sterem kierunku", "mass_kg": bd["m_tail"] * 0.35, "x_m": arms["tail"], "y_m": 0.0, "z_m": 0.75},
-        {"item": "5. Podwozie główne z kołami i hamulcami", "mass_kg": bd["m_gear"] * 0.80, "x_m": arms["gear"], "y_m": 0.95, "z_m": -0.85},
-        {"item": "6. Podwozie przednie / kółko ogonowe", "mass_kg": bd["m_gear"] * 0.20, "x_m": round(0.12 * l_f, 2), "y_m": 0.0, "z_m": -0.80},
+        {"item": "5. Podwozie główne z kołami i hamulcami", "mass_kg": bd["m_gear"] * 0.85, "x_m": arms["gear"], "y_m": 0.95, "z_m": -0.85},
+        {"item": gear_aux_label, "mass_kg": bd["m_gear"] * 0.15, "x_m": arms["gear_aux"], "y_m": 0.0, "z_m": -0.80},
         {"item": prop_item_7, "mass_kg": bd["m_propulsion"] * 0.85, "x_m": arms["propulsion"], "y_m": 0.0, "z_m": 0.05},
         {"item": prop_item_8, "mass_kg": bd["m_propulsion"] * 0.15, "x_m": round(arms["propulsion"] + 0.2, 2), "y_m": 0.0, "z_m": 0.0},
         {"item": "9. Instalacja paliwowa (zbiorniki, pompy, przewody)", "mass_kg": bd["m_systems"] * 0.25, "x_m": arms["fuel"], "y_m": 0.6, "z_m": 0.1},
@@ -368,11 +374,14 @@ def calculate_all_bipol_projects(mass_res: dict, sizing_res: dict, geom_res: dic
         {"item": "15. Paliwo w zbiornikach skrzydłowych", "mass_kg": m_fuel, "x_m": arms["fuel"], "y_m": 1.2, "z_m": 0.15}
     ]
     
-    group_indices = [([0], 'wing'), ([1], 'fuselage'), ([2,3], 'tail'),
-                     ([4,5], 'gear'), ([6,7], 'propulsion'), ([8,9,10,11], 'systems')]
+    # Z masami zespołów pozycja 8 to instalacja paliwowa: należy do grupy instalacji, nie do silnika.
+    group_indices = [([0], 'wing'), ([1], 'fuselage'), ([2,3], 'tail'), ([4,5], 'gear')] + (
+        [([6], 'propulsion'), ([7,8,9,10,11], 'systems')] if component_factor is not None
+        else [([6,7], 'propulsion'), ([8,9,10,11], 'systems')])
     for indices, key in group_indices:
         for index in indices:
-            table_3_1[index]['x_m'] = arms[key]
+            if key != 'gear':  # koła główne i przednie (ogonowe) mają własne położenia
+                table_3_1[index]['x_m'] = arms[key]
         target = bd['m_' + key]
         table_3_1[indices[-1]]['mass_kg'] += target - sum(table_3_1[i]['mass_kg'] for i in indices)
     if not unmanned_ac:
@@ -437,7 +446,7 @@ def calculate_all_bipol_projects(mass_res: dict, sizing_res: dict, geom_res: dic
         af_info = {key: profile[key] for key in ('name', 'kind', 'chord_mm', 'thickness_pct', 'thickness_x_pct')}
 
     track_g = float(geom_res.get("gear", {}).get("track", 0.24 * b))
-    wheelbase_g = max(0.8, bal_res.get("arms", {}).get("gear", 0.45 * l_f) - 0.12 * l_f)
+    wheelbase_g = max(0.8, abs(bal_res.get("arms", {}).get("gear", 0.45 * l_f) - bal_res.get("arms", {}).get("gear_aux", 0.12 * l_f)))
     h_cg_g = max(0.4, zcg_mtow - (-0.80 * d_f))
     dn_g = (track_g / 2.0) / math.sqrt(1.0 + (track_g / (2.0 * wheelbase_g)) ** 2)
     turnover_angle_val = round(math.degrees(math.atan2(h_cg_g, dn_g)), 1)

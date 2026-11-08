@@ -2,7 +2,7 @@
 (() => {
   'use strict';
   const $ = id => document.getElementById(id);
-  const extraKeys = ['gear_attachment','gear_retraction','wing_input_mode','payload_input_mode','power_input_mode','wingspan_m',
+  const extraKeys = ['gear_attachment','gear_retraction','landing_gear_type','technology','fuselage_length_m','gear_height_m','wing_input_mode','payload_input_mode','power_input_mode','wingspan_m',
     'takeoff_distance_m','landing_distance_m','wing_area_m2','m_payload','engine_power_kw','n_engines','wing_planform','dihedral_deg','aileron_type',
     'operating_surface','design_iteration_mode','water_displacement_volume_m3',
     'cargo_bay_length_m','cargo_bay_width_m','cargo_bay_height_m','propeller_diameter_m','propeller_rpm'];
@@ -149,6 +149,8 @@
     for(const key of ['takeoff_distance_m','landing_distance_m'])set('',key,p[key]||0);
     set('','gear_attachment',p.gear_attachment||'fuselage');
     set('','gear_retraction',p.gear_retraction||'auto');
+    set('','landing_gear_type',p.landing_gear_type||'tricycle');
+    set('','technology',p.technology||'metallic');
     set('','n_engines',p.engine_type==='none'?0:(Number(p.n_engines)>=1?p.n_engines:defaultEngines('')));
     sync();propulsion();
   }

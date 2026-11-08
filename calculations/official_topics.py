@@ -4,6 +4,7 @@ The catalogue — titles, categories, starting parameters and requirements of al
 is stored in the projects database (data/projects/projects.sqlite3); this module keeps
 only the checks of a project against the requirements of its topic.
 """
+from calculations.polish_law import resolve_category
 from calculations.project_store import load_categories, load_topics
 
 
@@ -34,6 +35,12 @@ def _topic(params):
     return next((t for t in ALL_TOPICS if str(t['num']) == str(params.get('topic_id'))), None)
 
 
+def fixed_occupants(params):
+    """Number of people the title of an official topic prescribes, otherwise None."""
+    topic = _topic(params) if params.get('topic_origin') == 'official' else None
+    return topic['requirements'].get('occupants_exact') if topic else None
+
+
 def validate_topic_geometry(params, geometry):
     if params.get('topic_origin') != 'official':
         return
@@ -62,8 +69,22 @@ def check_topic_requirements(params, sizing):
                   operating_surface='Środowisko startu i lądowania', category='Przeznaczenie akrobacyjne',
                   wing_config='Układ skrzydła', seats_config='Rozmieszczenie miejsc',
                   engine_location='Zabudowa zespołu napędowego')
-    checks = [dict(parameter=f"[Temat {topic['num']}] {labels[key]}", required=str(expected),
-                   actual=str(params.get(key)), passed=params.get(key) == expected,
+    names = {'prop': 'śmigłowy', 'jet': 'odrzutowy', 'none': 'bez napędu', 'land': 'ląd', 'water': 'woda',
+             'amphibian': 'ląd i woda', 'nose': 'w nosie kadłuba', 'rear': 'z tyłu kadłuba', 'retractable': 'chowany',
+             'wing': 'na skrzydle'}
+
+    def shown(value):
+        if isinstance(value, float) and value.is_integer():
+            value = int(value)
+        return names.get(value, str(value)) if isinstance(value, str) else str(value)
+    def same(key, expected):
+        if key == 'category':  # stored topics may keep the former level keys
+            return resolve_category(params.get(key)) == resolve_category(expected)
+        return params.get(key) == expected
+    checks = [dict(parameter=f"[Temat {topic['num']}] {labels[key]}",
+                   required=resolve_category(expected) if key == 'category' else shown(expected),
+                   actual=resolve_category(params.get(key)) if key == 'category' else shown(params.get(key)),
+                   passed=same(key, expected),
                    note='Wymaganie oficjalnego tematu. Odstępstwo wymaga zmiany tematu lub projektu własnego.')
               for key, expected in requirements.items() if key in labels]
     if 'occupants_exact' in requirements:

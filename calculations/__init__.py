@@ -19,7 +19,7 @@ from calculations.validation import validate_parameters
 from calculations.glide import calculate_glide_polar
 from calculations.runway import refine_takeoff_sizing
 from calculations.instructor import review_coursework
-from calculations.official_topics import validate_topic_geometry, check_topic_requirements
+from calculations.official_topics import validate_topic_geometry, check_topic_requirements, fixed_occupants
 from calculations.design_solver import resolve_design, refine_flight_sizing
 from calculations.flight_model import level_flight_envelope
 from calculations.model_scope import assessment, is_water
@@ -133,7 +133,10 @@ def _scope_category(params, m0):
 def _reclassified(params, category):
     updated = {**params, 'category': category, 'category_seed': category}
     if category == 'cs25_transport':
-        updated['n_crew'] = max(2, int(params.get('n_crew') or 1))
+        if fixed_occupants(params) is None:
+            updated['n_crew'] = max(2, int(params.get('n_crew') or 1))
+        else:
+            updated['_crew_fixed'] = True
     return updated
 
 
@@ -282,6 +285,15 @@ def run_bipol_project(params: dict):
         "actual": f"{cg['forward_pct']:.2f}–{cg['aft_pct']:.2f}% ŚDA (zakres {cg['delta_pct']:.2f}%)",
         "passed": balance_res["cg_check"]["passed"],
         "note": "Stany w locie z lekkim (55 kg) i ciężkim (110 kg) pilotem; poza zakresem zmień położenie skrzydła lub rozmieszczenie mas."
+    })
+
+    ground = balance_res["ground_check"]
+    checks.append({
+        "parameter": "Rzut środka masy między kołami podwozia (BIPOL_3)",
+        "required": ground["required"],
+        "actual": f"ŚC {ground['x_cg_min_m']:.2f}–{ground['x_cg_max_m']:.2f} m; koła {ground['x_front_m']:.2f} m i {ground['x_rear_m']:.2f} m",
+        "passed": ground["passed"],
+        "note": "Odległości od nosa kadłuba, stany załadowania z samolotem pustym włącznie."
     })
 
     # Obliczenia dedykowane dla projektów semestralnych BIPOL I (P1 do P6)

@@ -52,11 +52,11 @@ LITERATURE = {
 # Rozdziały wyjątków z przepisów (i dokumenty spoza nich) — klucze reg_…, cytowane przy paragrafach.
 LITERATURE.update(_regulations.literature())
 
-CATEGORY = {'req': 'Wymaganie tematu', 'ass': 'Założenie początkowe', 'bc': 'Warunek brzegowy',
+CATEGORY = {'req': 'Wymaganie tematu', 'mis': 'Założenie misji', 'ass': 'Założenie początkowe', 'bc': 'Warunek brzegowy',
             'reg': 'Przepisy budowy', 'chart': 'Odczyt z wykresu', 'lit': 'Dane z literatury',
             'calc': 'Wynik obliczeń', 'const': 'Stała fizyczna'}
 # Kategorie zestawiane w tabeli wymagań i założeń na początku sprawozdania.
-ASSUMED = ('req', 'ass', 'bc', 'reg')
+ASSUMED = ('req', 'mis', 'ass', 'bc', 'reg')
 
 _ISA = ('const', 'atmosfera wzorcowa ISA {lit:isa}')
 _MISSION = ('ass', 'przyjęto w profilu misji {fig:mission}')
@@ -106,7 +106,7 @@ ORIGIN = {
                         else 'masa obliczeniowa pasażera wraz z bagażem'),
     'm_bag': ('ass', 'bagaż ponad masę obliczeniową pasażera'),
     'm_os': ('ass', 'masa obliczeniowa członka załogi z wyposażeniem osobistym'),
-    'H_cr': ('req', ''), 'V_cr_kmh': ('req', 'prędkość rzeczywista (TAS)'),
+    'H_cr': ('mis', ''), 'V_cr_kmh': ('mis', 'prędkość rzeczywista (TAS)'),
     'AR': ('ass', 'wydłużenie przyjęte w koncepcji; porównanie z analizą trendów {tab:trend-suggestions}'),
     'AR_1': ('ass', 'wynika z zadanej rozpiętości i powierzchni skrzydła'),
     'e_1': ('ass', 'typowa wartość dla płata o umiarkowanym wydłużeniu, e ≈ 0,8 {lit:galinski_aw}'),
@@ -119,7 +119,7 @@ ORIGIN = {
     'tr_x2': ('chart', 'odczyt z linii trendu udziału masy pustej {fig:mass-trend}'),
     'tr_y2': ('chart', 'odczyt z linii trendu udziału masy pustej {fig:mass-trend}'),
     # --- Projekt 2: misja i masa ---
-    'R_km': ('req', ''), 'R_pow': _MISSION, 'H_0': _MISSION, 'V_0_kmh': _MISSION, 't_ocz': _MISSION,
+    'R_km': ('mis', ''), 'R_pow': _MISSION, 'H_0': _MISSION, 'V_0_kmh': _MISSION, 't_ocz': _MISSION,
     'V_ocz_kmh': _MISSION, 't_zad': _MISSION, 'm_zrzut': _MISSION,
     'SFC': lambda e: ('lit', e['source']) if e.get('source', '').startswith('Silnik ') else ('ass', 'brak udokumentowanego źródła zużycia paliwa'),
     'TSFC': lambda e: ('lit', e['source']) if e.get('source', '').startswith('Silnik ') else ('ass', 'brak udokumentowanego źródła zużycia paliwa'),
@@ -148,9 +148,9 @@ ORIGIN = {
     'mp_x2': ('chart', 'odczyt z wykresu udziału masy pustej {fig:mass-trend}'),
     'mp_y2': ('chart', 'odczyt z wykresu udziału masy pustej {fig:mass-trend}'),
     # --- Projekt 2: wykres doboru i napęd ---
-    'V_min_kmh': ('req', 'największa dopuszczalna prędkość przeciągnięcia'), 's_L': ('req', ''),
-    'w_y_wym': ('req', ''), 's_TO': ('req', 'całkowita długość startu do wysokości 15 m'),
-    's_roz': ('req', 'długość rozbiegu (temat nie podaje długości startu do 15 m)'),
+    'V_min_kmh': ('mis', 'największa dopuszczalna prędkość przeciągnięcia'), 's_L': ('mis', ''),
+    'w_y_wym': ('mis', ''), 's_TO': ('mis', 'całkowita długość startu do wysokości 15 m'),
+    's_roz': ('mis', 'długość rozbiegu (temat nie podaje długości startu do 15 m)'),
     'sigma_lot': ('bc', 'lotnisko na poziomie morza w atmosferze wzorcowej'),
     'm_lnd': _PHASES, 'm_sr_cr': _PHASES,
     'eta_TO': ('ass', 'sprawność śmigła na rozbiegu, typowo 0,5–0,6'),
@@ -267,6 +267,8 @@ ORIGIN = {
     'Cz_min': ('ass', 'najmniejszy (ujemny) współczynnik siły nośnej w locie odwróconym'),
     'k_VC': lambda e: ('reg', 'współczynnik minimalnej prędkości przelotowej wg ' + _regulation(e['source'])),
     'k_VD': lambda e: ('reg', 'stosunek V_D/V_C,min wg ' + _regulation(e['source'])),
+    'V_d_prop': ('calc', 'prędkość obliczeniowa śmigła z doboru w projekcie 4: 1,15 V_cr, nie mniej niż 35 m/s'),
+    'K_P3': ('calc', 'wynik iteracji P2–P3: suma mas zespołów (Projekt 3) do wyniku zależności statystycznej'),
     'V_B': lambda e: ('reg', 'prędkość dla podmuchu o największej intensywności wg ' + _regulation(e['source'])),
     'U_B': _gust, 'U_C': _gust, 'U_D': _gust, 'U_F': _gust,
     'n_f': lambda e: ('reg', 'przeciążenie manewrowe z wychyloną mechanizacją wg ' + _regulation(e['source'])),
@@ -277,6 +279,7 @@ ORIGIN = {
 _PATTERNS = (
     (re.compile(r'^Silnik '), ('lit', 'dane rzeczywistej propozycji silnika {tab:engine-fuel}')),
     (re.compile(r'^Wymagania tematu', re.I), ('req', '')),
+    (re.compile(r'^Założenia misji', re.I), ('mis', '')),
     (re.compile(r'^(Założenia projektu|Założenie autora|Założenie)\b', re.I), ('ass', '')),
     (re.compile(r'^(Dane silnika)', re.I), ('ass', 'dane silnika przyjętego w koncepcji')),
     (re.compile(r'^Profil misji', re.I), _MISSION),

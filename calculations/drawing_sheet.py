@@ -52,7 +52,7 @@ def drawing_sheet(result):
     # Main gear position comes from the mass model, track from geometry.
     xgear = result['balance']['arms']['gear']
     track = g['gear']['track']
-    zground = -.8 * diameter
+    zground = -g['gear'].get('axis_height_m', .8 * diameter)
     mount_y = track / 2 if p.get('gear_attachment', 'fuselage') == 'wing' else diameter / 2
     for sign in (-1, 1):
         path([top(xgear, sign * mount_y), top(xgear, sign * track/2)], dash=True)
