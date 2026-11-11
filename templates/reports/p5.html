@@ -21,6 +21,7 @@
 <h3>Wykres ofertowy</h3>
 {% set cs=p_data.ceiling_summary %}
 <p>Wykres ofertowy zestawia osiągi samolotu w funkcji wysokości: prędkości charakterystyczne{{ xref('fig-offer-speeds') }} oraz największą prędkość i kąt wznoszenia{{ xref('fig-offer-climb') }}. Pułap teoretyczny wynosi {{ cs.ht_theoretical_m|reportnum(0) }} m (\(w_{y,max}=0\)), a pułap praktyczny {{ cs.hp_service_m|reportnum(0) }} m (\(w_{y,max}=0{,}5\) m/s), z czasem wznoszenia równym {{ cs.thp_min|reportnum(1) }} min.</p>
+{% if params.engine_type == 'prop' and params.aircraft_type not in ('turboprop_regional',) and cs.hp_service_m > 6000 %}<p>Pułap wynika z modelu spadku mocy silnika tłokowego z wysokością, bez ograniczeń instalacji (gaźnik, chłodzenie, tlen dla załogi); powyżej około 6000 m należy go traktować jako wartość teoretyczną.</p>{% endif %}
 {% set offer = charts.offer_charts(p_data.offer_chart, cs) %}
 {% if offer %}
 <figure id="fig-offer-speeds">{{ offer[0] }}<figcaption>Wykres ofertowy: prędkości charakterystyczne w funkcji wysokości lotu. {% if p_data.offer_chart and p_data.offer_chart[0].v_min_kmh == p_data.offer_chart[0].v_wy_kmh %}Największą prędkość i największy kąt wznoszenia samolot osiąga przy prędkości minimalnej, dlatego te krzywe pokrywają się.{% endif %}</figcaption></figure>

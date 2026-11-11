@@ -3,6 +3,9 @@ import math
 from calculations.atmosphere import G0, RHO0
 
 
+# V_LOF / V_S,TO of the take-off model; the matching chart converts thrust to power with the same value.
+LIFTOFF_FACTOR = 1.15
+
 def rolling_coefficient(params):
     """Use the same explicit or surface-based rolling assumption in sizing and flight."""
     if params.get('mu_ground') is not None:
@@ -48,7 +51,7 @@ def takeoff_distance(ws, cz_max, cx0, k, engine, loading, eta=.82, eta_to=.65, m
                     ground_roll_time_s=None, time_to_15m_s=None,
                     note='Start samodzielny nie dotyczy statku bez napędu.')
     vs = math.sqrt(2 * ws / (RHO0 * cz_max))
-    vlof, v2, vtr = 1.15 * vs, 1.2 * vs, 1.175 * vs
+    vlof, v2, vtr = LIFTOFF_FACTOR * vs, 1.2 * vs, 1.175 * vs
     vrms = vlof / math.sqrt(2)
     q = .5 * RHO0 * vrms**2
     phi = 1.6**2 / (1 + 1.6**2)

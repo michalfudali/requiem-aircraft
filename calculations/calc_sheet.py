@@ -1020,9 +1020,9 @@ def _p2_matching(s, r):
                'Ciąg startowy zespołu napędowego', check=lambda v: v.TW * v.m0 * v.g / 1000)
     else:
         s.given('eta_TO', r'\eta_{TO}', t['eta_to'], '', 2, 'Sprawność śmigła na rozbiegu', 'Założenie')
-        s.calc('V_sr', r'V_{śr}', r'\frac{1{,}12}{\sqrt2}\sqrt{\frac{2\,W/S}{\rho_0C_{z\,max,TO}}}',
-               r'\frac{1{,}12}{\sqrt2}\cdot\sqrt{\frac{2\cdot[[WS]]}{[[rho0]]\cdot[[Cz_TO_2]]}}', t['v_mean_to'], MS, 2,
-               'Średnia prędkość rozbiegu (VLOF/√2, VLOF = 1,12 VS,TO)', check=lambda v: 1.12 * math.sqrt(2 * v.WS / (v.rho0 * v.Cz_TO_2)) / math.sqrt(2))
+        s.calc('V_sr', r'V_{śr}', r'\frac{1{,}15}{\sqrt2}\sqrt{\frac{2\,W/S}{\rho_0C_{z\,max,TO}}}',
+               r'\frac{1{,}15}{\sqrt2}\cdot\sqrt{\frac{2\cdot[[WS]]}{[[rho0]]\cdot[[Cz_TO_2]]}}', t['v_mean_to'], MS, 2,
+               'Średnia prędkość rozbiegu (VLOF/√2, VLOF = 1,15 VS,TO)', check=lambda v: 1.15 * math.sqrt(2 * v.WS / (v.rho0 * v.Cz_TO_2)) / math.sqrt(2))
         s.calc('PW_TO', r'\left(\tfrac{N}{W}\right)_{TO}', r'\left(\tfrac{T}{W}\right)_{TO}\frac{V_{śr}}{\eta_{TO}}', r'[[TW_TO]]\cdot\frac{[[V_sr]]}{[[eta_TO]]}',
                at.get('start'), r'\mathrm{W/N}', 3, 'Moc względna do startu', SOURCES['B2'] + ': T = ηN/V',
                check=lambda v: v.TW_TO * v.V_sr / v.eta_TO)

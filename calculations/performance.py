@@ -15,6 +15,8 @@ Obliczenia:
   - Zakrętu ustalonego
 """
 import math
+
+from calculations.runway import LIFTOFF_FACTOR
 from calculations.atmosphere import isa_atmosphere, G0, RHO0
 from calculations.paturski_ml import paturski_project_6_performance
 from calculations.runway import takeoff_distance, rolling_coefficient, landing_air_path
@@ -110,7 +112,7 @@ def calculate_performance(m0: float, geom: dict, aero: dict, sizing: dict, param
     h_absolute = ceilings["h_t_theoretical_m"]
 
     # 8. Full take-off distance; same model as the matching chart.
-    v_lof_ms, v_2_ms = 1.15 * vs_to_ms, 1.20 * vs_to_ms
+    v_lof_ms, v_2_ms = LIFTOFF_FACTOR * vs_to_ms, 1.20 * vs_to_ms
     k_to = aero['k_to']
     phi_ge = 1.6**2 / (1 + 1.6**2)
     takeoff = takeoff_distance(ws, cz_max_to, aero['cx0_to'], k_to, engine_type,

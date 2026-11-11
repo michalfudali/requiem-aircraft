@@ -13,12 +13,13 @@ MU_GROUND = 0.04      # tarcie kół, tylko w zastępczym ograniczeniu rozbiegu
 
 
 def takeoff_mean_speed(ws, cz_max_to):
-    """Mean ground-roll speed V_LOF/sqrt(2), V_LOF = 1.12 V_S,TO.
+    """Mean ground-roll speed V_LOF/sqrt(2), V_LOF = 1.15 V_S,TO as in the P5 take-off model.
 
     Propeller thrust is converted to power at this speed, as in
     runway.takeoff_distance(); converting at V_LOF overstates power by sqrt(2).
     """
-    return 1.12 * math.sqrt(max(1.0, 2.0 * ws / (RHO0 * cz_max_to))) / math.sqrt(2.0)
+    from calculations.runway import LIFTOFF_FACTOR
+    return LIFTOFF_FACTOR * math.sqrt(max(1.0, 2.0 * ws / (RHO0 * cz_max_to))) / math.sqrt(2.0)
 
 
 def takeoff_tw(ws, cz_max_to, s_to, sigma=SIGMA_AIRFIELD):

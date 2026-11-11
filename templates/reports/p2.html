@@ -23,6 +23,7 @@
 <h3>Stosunki mas w fazach lotu</h3>
 <p>{% if doc.powered %}Dla poszczególnych faz misji wyznaczono stosunki mas na podstawie danych statystycznych (start, lądowanie), wykresu Corke’a{{ xref('fig-corke') }} (wznoszenie i rozpędzanie) oraz równania Bregueta (przelot i oczekiwanie) {{ cite('galinski_aw') }}.{% else %}Dla szybowca masa paliwa wynosi zero, stąd stosunki mas wszystkich faz lotu są równe jedności.{% endif %}</p>
 {{ c.section(sheet, 'p2.mission') }}
+{% if doc.powered and ma.corke and ma.corke.get('below_chart') %}<p>Liczby Macha wznoszenia leżą poniżej początku wykresu Corke’a (M = 0,1), więc odczytany ubytek masy na wznoszenie jest bliski zeru. Jest to dolne oszacowanie: sama energia potencjalna wzniesienia na wysokość przelotu wynosi \(m_0 g H={{ (res.mass.m0 * 9.80665 * params.cruise_altitude_m / 1000000)|reportnum(1) }}\) MJ. Zapas na tę fazę zawiera rezerwa paliwa.</p>{% endif %}
 {% if doc.powered and ma.corke and ma.corke.get('mach_start') %}
 <figure id="fig-corke">{{ charts.corke_chart(ma.corke) }}<figcaption>Stosunek mas w funkcji liczby Macha dla wznoszenia i rozpędzania (wykres Corke’a {{ cite('corke') }} {{ cite('galinski_aw') }}). Zaznaczono odczyty dla liczby Macha na początku (M<sub>p</sub>) i na końcu (M<sub>k</sub>) wznoszenia; stosunek mas fazy jest ilorazem odczytanych rzędnych.</figcaption></figure>
 {% endif %}
