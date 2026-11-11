@@ -200,6 +200,12 @@ def run_bipol_project(params: dict):
     # Etap P5: Osiągi samolotu (prędkości, wznoszenie, pułap, start, lądowanie)
     perf_res = calculate_performance(m0, geom_res, aero_res, sizing_res, params, mass_result=mass_res)
     perf_res["glide"] = calculate_glide_polar(m0, geom_res, aero_res, params["cruise_altitude_m"], params=params)
+    if params['engine_type'] != 'none':
+        # JAR 23.65: ustalone wznoszenie przy prędkości nie mniejszej niż 1,2 VS1.
+        from calculations.flight_model import flight_point
+        v_climb = max(perf_res['climb']['v_wy_max_kmh'], 1.2 * perf_res['speeds']['vs_clean_kmh']) / 3.6
+        point = flight_point(params, sizing_res, m0, geom_res['wing']['S'], aero_res['cx0_clean'], aero_res['k_clean'], 0.0, v_climb)
+        perf_res['climb'].update(gradient_speed_kmh=v_climb * 3.6, gradient_pct=100 * point['climb_ms'] / v_climb)
     perf_res["oei_gradient_pct"] = one_engine_out_gradient(params, sizing_res, m0, geom_res['wing']['S'], aero_res['cz_max_to'],
                                                            aero_res['cx0_to'], aero_res['k_to'])
     

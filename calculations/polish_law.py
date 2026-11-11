@@ -744,9 +744,11 @@ def check_compliance(params: dict, mass_res: dict, geom_res: dict = None, perf_r
         if climb["kind"] == "gradient":
             speed = float(climb_data.get("v_wy_max_kmh") or 0) / 3.6
             gradient = 100.0 * rate / speed if speed > 0 else 0.0
+            if climb_data.get("gradient_pct") is not None:
+                gradient = float(climb_data["gradient_pct"])
             checks.append(_chk(climb["label"], f"≥ {climb['value']:g} %", f"{gradient:.1f} %",
                                gradient >= climb["value"], climb["rule"],
-                               note="Gradient wy,max/V przy prędkości najlepszego wznoszenia, konfiguracja gładka, poziom morza; "
+                               note="Gradient przy prędkości najlepszego wznoszenia, nie mniejszej niż 1,2 VS1; konfiguracja gładka, poziom morza; "
                                     "wymaganie dotyczy klap w położeniu do startu."))
         else:
             checks.append(_chk(climb["label"], f"≥ {climb['value']:g} m/s", f"{rate:.2f} m/s", rate >= climb["value"],

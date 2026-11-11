@@ -182,7 +182,9 @@ def calculate_balance_and_stability(m_sizing: dict, geom: dict, aero: dict, para
         # MTOW pozostaje ostatni (odczytują go widoki rysunku).
         states = [state("oew", "Masa pusta (OEW)")]
         if not unmanned:
-            states.append(state("crew", "Pusty + załoga", crew=m_crew))
+            # Bez masy płatnej stan „pusty + załoga” jest tym samym co masa bez paliwa.
+            if m_payload > 0:
+                states.append(state("crew", "Pusty + załoga", crew=m_crew))
         else:
             # UAV: pusty + pełne paliwo bez wyposażenia zadaniowego (lot techniczny / przebazowanie)
             states.append(state("ferry", "Pusty + paliwo, bez wyposażenia zadaniowego", fuel=m_fuel))
