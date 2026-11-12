@@ -273,6 +273,14 @@ int main()
             if (swetRefEl) swetRefEl.textContent = 'Brak powiązania modelu z obliczeniami P3';
         }
         const airfoil = model.build_meta?.wing_airfoil;
+        const planform = model.build_meta?.wing_planform;
+        const planformStatus = el('vspWingPlanformStatus');
+        if (planformStatus) {
+            const number = value => Number(value).toFixed(3).replace('.', ',');
+            planformStatus.textContent = planform
+                ? `Rzut skrzydła przy budowie: b = ${number(planform.projected_span_m)} m · S = ${number(planform.projected_area_m2)} m². ${planform.note}`
+                : 'Brak danych o obrysie wybranym przy budowie modelu.';
+        }
         const airfoilStatus = el('vspWingAirfoilStatus');
         if (airfoilStatus) {
             airfoilStatus.textContent = !airfoil ? 'Brak danych o profilu wybranym przy budowie modelu.' :

@@ -78,7 +78,7 @@ def _check_vsp_errors(vsp: Any, context: str = "") -> List[str]:
     if not hasattr(vsp, "ErrorMgrSingleton"):
         return errors
     err_mgr = vsp.ErrorMgrSingleton.getInstance()
-    while err_mgr.GetErrorLastCallFlag():
+    while err_mgr.GetNumTotalErrors() > 0:
         err = err_mgr.PopLastError()
         msg = err.GetErrorString() if hasattr(err, "GetErrorString") else str(err)
         if msg:
@@ -170,71 +170,13 @@ def _build_main_wing(
     _set_parm(vsp, wing_id, "Y_Rel_Rotation", "XForm", incidence_deg)
 
     b = float(wing_data.get("b", 10.0))
-    half_span = b / 2.0
     cr = float(wing_data.get("cr", 1.5))
     ct = float(wing_data.get("ct", 0.9))
-    sweep_deg = float(wing_data.get("sweep_deg", 0.0))
-    dihedral_deg = float(wing_data.get("dihedral_deg", 3.0))
-    twist_deg = float(params.get("wing_twist_deg", -2.0))
     tc_ratio = float(wing_data.get("tc_ratio", params.get("tc_ratio", 0.12)))
     planform = str(params.get("wing_planform") or wing_data.get("planform") or wing_data.get("wing_planform") or "trapezoidal")
 
-    xsec_surf = vsp.GetXSecSurf(wing_id, 0)
-
-    if planform == "compound_trapezoid":
-        # Dwa segmenty: centropłat prostokątny + trapezowa część zewnętrzna
-        y_brk = float(wing_data.get("break_station_m") or (0.40 * half_span))
-        y_brk = max(0.1 * half_span, min(0.85 * half_span, y_brk))
-        outer_span = max(0.1, half_span - y_brk)
-
-        _set_parm(vsp, wing_id, "Span", "XSec_1", y_brk)
-        _set_parm(vsp, wing_id, "Root_Chord", "XSec_1", cr)
-        _set_parm(vsp, wing_id, "Tip_Chord", "XSec_1", cr)
-        _set_parm(vsp, wing_id, "Sweep", "XSec_1", 0.0)
-        _set_parm(vsp, wing_id, "Sweep_Location", "XSec_1", 0.25)
-        _set_parm(vsp, wing_id, "Dihedral", "XSec_1", dihedral_deg)
-        _set_parm(vsp, wing_id, "Twist", "XSec_1", 0.0)
-
-        vsp.InsertXSec(wing_id, 1, vsp.XS_FOUR_SERIES)
-        vsp.Update()
-        _set_parm(vsp, wing_id, "Span", "XSec_2", outer_span)
-        _set_parm(vsp, wing_id, "Root_Chord", "XSec_2", cr)
-        _set_parm(vsp, wing_id, "Tip_Chord", "XSec_2", max(0.05, ct))
-        _set_parm(vsp, wing_id, "Sweep", "XSec_2", sweep_deg)
-        _set_parm(vsp, wing_id, "Sweep_Location", "XSec_2", 0.25)
-        _set_parm(vsp, wing_id, "Dihedral", "XSec_2", dihedral_deg)
-        _set_parm(vsp, wing_id, "Twist", "XSec_2", twist_deg)
-
-    elif planform == "elliptical":
-        # Wielosegmentowa aproksymacja obrysu eliptycznego Prandtla w OpenVSP
-        n_segs = 5
-        seg_span = half_span / n_segs
-        for seg_idx in range(1, n_segs + 1):
-            if seg_idx > 1:
-                vsp.InsertXSec(wing_id, seg_idx - 1, vsp.XS_FOUR_SERIES)
-                vsp.Update()
-            eta_in = (seg_idx - 1) / n_segs
-            eta_out = seg_idx / n_segs
-            c_in = cr * math.sqrt(max(0.01, 1.0 - eta_in ** 2))
-            c_out = cr * math.sqrt(max(0.02, 1.0 - eta_out ** 2))
-            grp = f"XSec_{seg_idx}"
-            _set_parm(vsp, wing_id, "Span", grp, seg_span)
-            _set_parm(vsp, wing_id, "Root_Chord", grp, c_in)
-            _set_parm(vsp, wing_id, "Tip_Chord", grp, c_out)
-            _set_parm(vsp, wing_id, "Sweep", grp, sweep_deg)
-            _set_parm(vsp, wing_id, "Sweep_Location", grp, 0.25)
-            _set_parm(vsp, wing_id, "Dihedral", grp, dihedral_deg)
-            _set_parm(vsp, wing_id, "Twist", grp, twist_deg * eta_out)
-    else:
-        # Obrys trapezowy, prostokątny lub skośny
-        tip_chord = cr if planform == "rectangular" else max(0.05, ct)
-        _set_parm(vsp, wing_id, "Span", "XSec_1", half_span)
-        _set_parm(vsp, wing_id, "Root_Chord", "XSec_1", cr)
-        _set_parm(vsp, wing_id, "Tip_Chord", "XSec_1", tip_chord)
-        _set_parm(vsp, wing_id, "Sweep", "XSec_1", sweep_deg)
-        _set_parm(vsp, wing_id, "Sweep_Location", "XSec_1", 0.25)
-        _set_parm(vsp, wing_id, "Dihedral", "XSec_1", dihedral_deg)
-        _set_parm(vsp, wing_id, "Twist", "XSec_1", twist_deg)
+    from calculations.vsp_wing import configure_projected_wing
+    planform_info = configure_projected_wing(vsp, wing_id, wing_data, params)
 
     airfoil_info = _configure_wing_airfoils(
         vsp,
@@ -289,6 +231,7 @@ def _build_main_wing(
         "planform": planform,
         "num_sections": num_sections,
         "span_m": b,
+        "planform_geometry": planform_info,
         "root_chord_m": cr,
         "tip_chord_m": ct,
         "x_root_m": x_root,
@@ -512,6 +455,8 @@ def build_vsp_aircraft_model(
             raise ValueError('Nie znaleziono wskazanego pliku rzędnych profilu OpenVSP.')
     else:
         resolve_wing_airfoil(effective_params, project_results.get('geometry', {}).get('wing', {}).get('tc_ratio', .12))
+    from calculations.vsp_wing import projected_wing_stations
+    projected_wing_stations(project_results['geometry']['wing'], effective_params)
     vsp.VSPRenew()
     vsp.ClearVSPModel()
 

@@ -935,12 +935,12 @@ def build_model_from_bipol(payload: dict[str, Any] | None = None) -> dict[str, A
     half_span = b / 2.0
     S = float(wing["S"])
     cr = float(wing["cr"])
-    ct = max(0.15, float(wing["ct"]))
     sweep_q_deg = float(wing["sweep_deg"])
-    dihedral_deg = float(wing["dihedral_deg"])
     tc_ratio = float(wing.get("tc_ratio", params.get("tc_ratio", 0.12)))
     from calculations.vsp_airfoils import resolve_wing_airfoil
     wing_profile, wing_airfoil_meta = resolve_wing_airfoil(params, tc_ratio)
+    from calculations.vsp_wing import projected_wing_stations
+    projected_wing_stations(wing, params)
     _LAST_BIPOL_RESULT = bipol_res
     planform = str(wing.get("wing_planform", params.get("wing_planform", "trapezoidal")))
     wing_config = str(wing.get("wing_config", params.get("wing_config", "low")))
@@ -995,69 +995,10 @@ def build_model_from_bipol(payload: dict[str, Any] | None = None) -> dict[str, A
         _set_geom_parm(wing_id, "X_Rel_Location", "XForm", x_le_wing)
         _set_geom_parm(wing_id, "Z_Rel_Location", "XForm", z_wing)
 
-        if planform == "compound_trapezoid":
-            y_brk = float(wing.get("break_station_m") or (0.40 * half_span))
-            span_in = max(0.3, min(half_span - 0.3, y_brk))
-            span_out = max(0.3, half_span - span_in)
-
-            vsp.InsertXSec(wing_id, 1, vsp.XS_FOUR_SERIES)
-            vsp.SetDriverGroup(wing_id, 1, vsp.SPAN_WSECT_DRIVER, vsp.ROOTC_WSECT_DRIVER, vsp.TIPC_WSECT_DRIVER)
-            _set_geom_parm(wing_id, "Span", "XSec_1", span_in)
-            _set_geom_parm(wing_id, "Root_Chord", "XSec_1", cr)
-            _set_geom_parm(wing_id, "Tip_Chord", "XSec_1", cr)
-            _set_geom_parm(wing_id, "Sweep", "XSec_1", 0.0)
-            _set_geom_parm(wing_id, "Sweep_Location", "XSec_1", 0.25)
-            _set_geom_parm(wing_id, "Dihedral", "XSec_1", dihedral_deg)
-            _set_geom_parm(wing_id, "Twist", "XSec_1", 0.0)
-
-            vsp.SetDriverGroup(wing_id, 2, vsp.SPAN_WSECT_DRIVER, vsp.ROOTC_WSECT_DRIVER, vsp.TIPC_WSECT_DRIVER)
-            _set_geom_parm(wing_id, "Span", "XSec_2", span_out)
-            _set_geom_parm(wing_id, "Root_Chord", "XSec_2", cr)
-            _set_geom_parm(wing_id, "Tip_Chord", "XSec_2", ct)
-            _set_geom_parm(wing_id, "Sweep", "XSec_2", sweep_q_deg)
-            _set_geom_parm(wing_id, "Sweep_Location", "XSec_2", 0.25)
-            _set_geom_parm(wing_id, "Dihedral", "XSec_2", dihedral_deg)
-            _set_geom_parm(wing_id, "Twist", "XSec_2", -2.0)
-
-            for idx in (0, 1, 2):
-                _set_wing_airfoil(wing_id, idx, camber, camber_loc, tc_ratio, profile=wing_profile)
-        elif planform == "elliptical":
-            span_1 = 0.60 * half_span
-            span_2 = 0.40 * half_span
-            c_mid = cr * math.sqrt(max(0.05, 1.0 - 0.60 ** 2))
-            c_tip = max(0.22 * cr, ct)
-
-            vsp.InsertXSec(wing_id, 1, vsp.XS_FOUR_SERIES)
-            vsp.SetDriverGroup(wing_id, 1, vsp.SPAN_WSECT_DRIVER, vsp.ROOTC_WSECT_DRIVER, vsp.TIPC_WSECT_DRIVER)
-            _set_geom_parm(wing_id, "Span", "XSec_1", span_1)
-            _set_geom_parm(wing_id, "Root_Chord", "XSec_1", cr)
-            _set_geom_parm(wing_id, "Tip_Chord", "XSec_1", c_mid)
-            _set_geom_parm(wing_id, "Sweep", "XSec_1", sweep_q_deg)
-            _set_geom_parm(wing_id, "Sweep_Location", "XSec_1", 0.25)
-            _set_geom_parm(wing_id, "Dihedral", "XSec_1", dihedral_deg)
-
-            vsp.SetDriverGroup(wing_id, 2, vsp.SPAN_WSECT_DRIVER, vsp.ROOTC_WSECT_DRIVER, vsp.TIPC_WSECT_DRIVER)
-            _set_geom_parm(wing_id, "Span", "XSec_2", span_2)
-            _set_geom_parm(wing_id, "Root_Chord", "XSec_2", c_mid)
-            _set_geom_parm(wing_id, "Tip_Chord", "XSec_2", c_tip)
-            _set_geom_parm(wing_id, "Sweep", "XSec_2", sweep_q_deg)
-            _set_geom_parm(wing_id, "Sweep_Location", "XSec_2", 0.25)
-            _set_geom_parm(wing_id, "Dihedral", "XSec_2", dihedral_deg)
-            _set_geom_parm(wing_id, "Twist", "XSec_2", -1.5)
-
-            for idx in (0, 1, 2):
-                _set_wing_airfoil(wing_id, idx, camber, camber_loc, tc_ratio, profile=wing_profile)
-        else:
-            vsp.SetDriverGroup(wing_id, 1, vsp.SPAN_WSECT_DRIVER, vsp.ROOTC_WSECT_DRIVER, vsp.TIPC_WSECT_DRIVER)
-            _set_geom_parm(wing_id, "Span", "XSec_1", half_span)
-            _set_geom_parm(wing_id, "Root_Chord", "XSec_1", cr)
-            _set_geom_parm(wing_id, "Tip_Chord", "XSec_1", ct)
-            _set_geom_parm(wing_id, "Sweep", "XSec_1", sweep_q_deg)
-            _set_geom_parm(wing_id, "Sweep_Location", "XSec_1", 0.25)
-            _set_geom_parm(wing_id, "Dihedral", "XSec_1", dihedral_deg)
-            _set_geom_parm(wing_id, "Twist", "XSec_1", -1.5 if planform != "rectangular" else 0.0)
-            for idx in (0, 1):
-                _set_wing_airfoil(wing_id, idx, camber, camber_loc, tc_ratio, profile=wing_profile)
+        from calculations.vsp_wing import configure_projected_wing
+        wing_planform_meta = configure_projected_wing(vsp, wing_id, wing, params)
+        for idx in range(wing_planform_meta['segments']+1):
+            _set_wing_airfoil(wing_id, idx, camber, camber_loc, tc_ratio, profile=wing_profile)
 
         _set_geom_parm(wing_id, "CapUMaxOption", "EndCap", float(vsp.ROUND_END_CAP))
 
@@ -1269,6 +1210,7 @@ def build_model_from_bipol(payload: dict[str, Any] | None = None) -> dict[str, A
             "vsp3_file": DEFAULT_VSP3_REL,
             "created_ids": created_ids,
             "wing_airfoil": wing_airfoil_meta,
+            "wing_planform": wing_planform_meta,
             "bipol_summary": {
                 "m0_kg": round(float(bipol_res["mass"]["m0"]), 2),
                 "S_m2": round(S, 3),

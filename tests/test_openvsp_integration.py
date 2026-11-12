@@ -77,6 +77,9 @@ class _MockErrorMgr:
 class MockOpenVSP:
     """Wierna stanowa makieta natywnego modułu SWIG `openvsp` (NASA OpenVSP Python API)."""
     vec3d = _MockVec3d
+    SPAN_WSECT_DRIVER = 1
+    ROOTC_WSECT_DRIVER = 6
+    TIPC_WSECT_DRIVER = 7
 
     SYM_NONE = 0
     SYM_XY = 1
@@ -263,6 +266,9 @@ class MockOpenVSP:
     def Update(self) -> None:
         self.update_count += 1
 
+    def SetDriverGroup(self, geom_id, section, *drivers):
+        self.geoms[geom_id].setdefault('drivers', {})[section] = drivers
+
     def ErrorMgrSingleton_getInstance(self) -> _MockErrorMgr:
         return self.error_mgr
 
@@ -407,20 +413,12 @@ def test_build_vsp_aircraft_model_standard_configuration(mock_vsp, sample_projec
         ("trapezoidal", 1),
         ("rectangular", 1),
         ("compound_trapezoid", 2),
-        ("elliptical", 5),
+        ("elliptical", 32),
     ],
 )
 def test_build_vsp_wing_planforms(mock_vsp, sample_project_results, planform, expected_sections):
-    params = dict(sample_project_results["params"])
-    params["wing_planform"] = planform
-    if planform == "compound_trapezoid":
-        sample_project_results["geometry"]["wing"]["planform"] = "compound_trapezoid"
-        sample_project_results["geometry"]["wing"]["kink_eta"] = 0.4
-        sample_project_results["geometry"]["wing"]["c_kink"] = 1.45
-    else:
-        sample_project_results["geometry"]["wing"]["planform"] = planform
-
-    summary = build_vsp_aircraft_model(sample_project_results, params=params, vsp_module=mock_vsp)
+    result = run_bipol_project(dict(sample_project_results['params'], wing_planform=planform))
+    summary = build_vsp_aircraft_model(result, vsp_module=mock_vsp)
     assert summary["wing"]["num_sections"] == expected_sections
 
 

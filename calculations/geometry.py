@@ -103,7 +103,7 @@ def calculate_geometry(m0: float, ws: float, params: dict):
         planform_name_pl = "Prostokątno-trapezowy (centropłat prostokątny + końcówki trapezowe)"
         xi_brk = break_span_ratio
         y_brk = xi_brk * half_span
-        y_brk_m = round(y_brk, 2)
+        y_brk_m = y_brk
         eta_tip = float(params.get("taper_ratio", 0.60))
         eta = eta_tip
         w = half_span - y_brk

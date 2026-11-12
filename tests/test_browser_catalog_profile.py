@@ -1,5 +1,6 @@
 """The current topic reaches the wizard and a real native CAD model."""
 from pathlib import Path
+import json
 
 import pytest
 from playwright.sync_api import expect
@@ -32,10 +33,14 @@ def test_topic7_from_catalogue_uses_current_profile_and_geometry_without_rewriti
 
 
 @pytest.mark.parametrize('width', [1440, 390])
-def test_native_sync_builds_the_actual_selected_profile_instead_of_a_default_aircraft(native_studio, width):
+@pytest.mark.parametrize('planform', ['trapezoidal', 'elliptical'])
+def test_native_sync_builds_the_actual_selected_profile_instead_of_a_default_aircraft(native_studio, width, planform):
     page, base, out = native_studio
     page.set_viewport_size({'width':width,'height':1000})
-    page.locator('#projectImportFileInput').set_input_files(str(CASE))
+    p = json.loads(CASE.read_text(encoding='utf8'))
+    p['wing_planform'] = planform
+    page.locator('#projectImportFileInput').set_input_files(dict(name='topic7.json', mimeType='application/json',
+                                                              buffer=json.dumps(p).encode('utf8')))
     page.wait_for_function('currentResults?.params.airfoil==="FX 61-163"', timeout=60000)
     navigate(page,'tab-openvsp')
     with page.expect_response(lambda r: '/api/openvsp/build-from-bipol' in r.url and r.request.method=='POST') as pending:
@@ -46,8 +51,13 @@ def test_native_sync_builds_the_actual_selected_profile_instead_of_a_default_air
     assert model['build_meta']['wing_airfoil']['profile_name'] == 'FX 61-163'
     assert model['build_meta']['wing_airfoil']['point_count'] == 98
     assert model['build_meta']['bipol_summary']['b_m'] == 21
+    assert model['build_meta']['wing_planform']['projected_span_m'] == 21
+    assert model['build_meta']['wing_planform']['projected_area_m2'] == pytest.approx(page.evaluate('currentResults.geometry.wing.S'))
     assert model['build_meta']['bipol_summary']['m0_kg'] == pytest.approx(page.evaluate('currentResults.mass.m0'), abs=.0051)
     expect(page.locator('#vspWingAirfoilStatus')).to_contain_text('FX 61-163')
+    expect(page.locator('#vspWingPlanformStatus')).to_contain_text('21,000 m')
+    if planform == 'elliptical':
+        expect(page.locator('#vspWingPlanformStatus')).to_contain_text('32 segmenty')
     bounds = page.locator('#vspWingAirfoilStatus').bounding_box()
     assert bounds and bounds['x']>=0 and bounds['x']+bounds['width'] <= width
     for button in page.locator('[data-vsp-subtab]').all():

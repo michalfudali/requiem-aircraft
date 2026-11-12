@@ -40,7 +40,7 @@ def set_coordinate_airfoil(vsp, xsec_surf, xsec_index, profile):
     vsp.SetAirfoilPnts(xsec, upper, lower)
     manager = vsp.ErrorMgrSingleton.getInstance()
     errors = []
-    while manager.GetErrorLastCallFlag():
+    while manager.GetNumTotalErrors() > 0:
         errors.append(manager.PopLastError().GetErrorString())
     if errors:
         raise ValueError('OpenVSP nie przyjął rzędnych profilu: ' + '; '.join(errors))
