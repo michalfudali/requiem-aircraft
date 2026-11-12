@@ -28,6 +28,13 @@ Pełna zgodność zabudowy pozostaje nierozstrzygnięta.</p>
 <h3>Rysunek samolotu</h3>
 <p>Schemat samolotu w trzech rzutach z głównymi wymiarami zestawiono na rysunku{{ xref('fig-blueprint') }} zgodnie z danymi w tabeli{{ xref('tab-dimensions', ' ', '') }}.</p>
 <figure class="blueprint" id="fig-blueprint"><div id="repBlueprint">{{ report_sketch(res) }}</div><figcaption>Schemat płatowca w trzech rzutach. Wymiary w milimetrach.</figcaption></figure>
+{% if res.drawing_checks and res.drawing_checks.rows %}
+<h4>Kontrola rysunku według schematu postępowania</h4>
+<p>Rysunek samolotu wykonuje się według schematu postępowania {{ cite('grabowski_am') }}. Wielkości, które rysunek musi zachować, zestawiono w tabeli{{ xref('tab-drawing-checks') }}; krok odnosi się do numeracji schematu.</p>
+<table class="compact-table" id="tab-drawing-checks"><caption>Kontrola rysunku samolotu według schematu postępowania</caption><thead><tr><th>Krok</th><th>Wielkość</th><th>Wymaganie</th><th>Projekt</th><th>Ocena</th><th>Podstawa</th></tr></thead><tbody>
+{% for row in res.drawing_checks.rows %}<tr><td>{{ row.step }}</td><td>{{ row.name }}</td><td>{{ row.required }}</td><td>{{ row.value }}</td><td>{{ 'do wykazania' if row.passed is none else ('spełnione' if row.passed else 'niespełnione') }}</td><td>{{ row.basis }}</td></tr>{% endfor %}
+</tbody></table>
+{% endif %}
 <h3>Klapy i lotki</h3>
 <p>{% if res.geometry.control_surfaces.layout == 'flaperon' %}Krawędź spływu poza kadłubem zajmują klapolotki, które pełnią jednocześnie funkcję klap i lotek.{% elif res.geometry.control_surfaces.layout == 'ailerons_only' %}Na krawędzi spływu umieszczono lotki w części zewnętrznej; skrzydło nie ma klap.{% else %}Na krawędzi spływu wydzielono klapy (w części przykadłubowej) oraz lotki (w części zewnętrznej) z zachowaniem szczeliny montażowej 1,5% półrozpiętości.{% endif %}</p>
 {{ c.section(sheet, 'p3.controls') }}
