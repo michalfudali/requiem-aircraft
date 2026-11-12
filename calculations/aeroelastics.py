@@ -44,8 +44,8 @@ def estimate_aeroelastics(geom: dict, aero: dict, mass: dict, envelope: dict, pa
     e_arm = e_ratio * mac
 
     # Przybliżona sztywność skrętna kesonu skrzydła (GJ)
-    material = params.get("structure_material", "metal")
-    if material in ("composite", "carbon"):
+    material = params.get("structure_material") or params.get("technology") or "metal"
+    if material in ("composite", "composites", "advanced_composites", "carbon"):
         G_mod = 25.0e9  # Pa
         mat_label = "Kompozyt węglowo-epoksydowy (CFRP)"
     elif material == "wood":
@@ -91,7 +91,7 @@ def estimate_aeroelastics(geom: dict, aero: dict, mass: dict, envelope: dict, pa
     # quasi-stacjonarna, flatter przy zbiegnięciu się częstości (Hodges, Pierce „Introduction to Structural
     # Dynamics and Aeroelasticity”, rozdz. 5; Bisplinghoff, Ashley, Halfman). Częstości własne z belki
     # wspornikowej o sztywności kesonu: giętna ω_h = 1,875²·√(EI/(m′l⁴)), skrętna ω_α = π/(2l)·√(GJ/I_α).
-    E_mod = {"composite": 60.0e9, "carbon": 60.0e9, "wood": 10.0e9}.get(material, 72.0e9)
+    E_mod = {"composite": 60.0e9, "composites": 60.0e9, "advanced_composites": 60.0e9, "carbon": 60.0e9, "wood": 10.0e9}.get(material, 72.0e9)
     box_height = 0.9 * tc * mac
     EI = E_mod * 2.0 * (0.60 * mac) * t_skin * (box_height / 2.0) ** 2   # pokrycia kesonu jako pasy
     m_line = m_wing / max(0.5, b)                                       # masa skrzydła na metr rozpiętości

@@ -1915,9 +1915,16 @@ def manage_design_vars_sets_links(payload: dict[str, Any]) -> dict[str, Any]:
 @blueprint.get("/status")
 def api_status():
     from calculations.openvsp_integration import check_openvsp_availability
+    if vsp is None:
+        return jsonify(
+            status='unavailable',
+            available=False,
+            files=[],
+            openvsp={"available": False, "version": None, "error": "Brak zgodnego API OpenVSP."},
+            message='Brak zgodnego API OpenVSP. Pozostałe obliczenia BIPOL i ML1 są dostępne.'
+        )
     int_info = check_openvsp_availability(vsp_module=vsp)
-    is_available = (vsp is not None) or bool(int_info.get("available", False))
-    if not is_available:
+    if not bool(int_info.get("available", False)):
         return jsonify(
             status='unavailable',
             available=False,
@@ -1925,13 +1932,7 @@ def api_status():
             openvsp=int_info,
             message='Brak zgodnego API OpenVSP. Pozostałe obliczenia BIPOL i ML1 są dostępne.'
         )
-    cat = get_api_catalog() if vsp is not None else {
-        "version": int_info.get("version") or "OpenVSP API",
-        "vspaero_available": False,
-        "vspaero_path": "",
-        "vspscript_available": False,
-        "counts": {},
-    }
+    cat = get_api_catalog()
     return jsonify({
         "status": "ok",
         "available": True,

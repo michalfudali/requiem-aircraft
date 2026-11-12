@@ -47,3 +47,13 @@ def test_two_crew_are_not_a_single_seat_topic_even_when_there_are_no_passengers(
     assert response.status_code==200,response.json
     check=next(c for c in response.json['compliance_checks'] if c['parameter'].endswith('Liczba osób na pokładzie'))
     assert not check['passed'] and check['actual']=='2' and check['required']=='1'
+
+
+@pytest.mark.parametrize('number', range(15, 20))
+def test_ultralight_topics_15_to_19_pass_mtom_600kg_limit(number):
+    from calculations import run_bipol_project
+    res = run_bipol_project(dict(topic(number)['parameters']))
+    assert res['mass']['m0'] <= 600.0
+    mtom_check = next(c for c in res['compliance_checks'] if 'Maksymalna masa startowa' in c['parameter'])
+    assert mtom_check['passed'], (number, res['mass']['m0'], mtom_check)
+

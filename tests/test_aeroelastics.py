@@ -100,3 +100,13 @@ def test_presets_have_physically_plausible_flutter_speeds():
         aeroel = run_bipol_project(dict(AIRCRAFT_PRESETS[name]))['aeroelastics']
         assert 1.2 < aeroel['margin_flutter'] < 6.0, (name, aeroel['margin_flutter'])  # dawniej nawet 89 V_D
         assert 1.0 < aeroel['bending_frequency_hz'] < 10.0 and aeroel['torsion_frequency_hz'] > aeroel['bending_frequency_hz']
+
+
+def test_aeroelastics_respects_technology_parameter():
+    from calculations import run_bipol_project
+    from calculations.presets import AIRCRAFT_PRESETS
+    res_comp = run_bipol_project({**AIRCRAFT_PRESETS['motoglider_aos'], 'technology': 'composite'})
+    res_metal = run_bipol_project({**AIRCRAFT_PRESETS['motoglider_aos'], 'technology': 'metallic'})
+    assert 'Kompozyt' in res_comp['aeroelastics']['material']
+    assert 'aluminium' in res_metal['aeroelastics']['material']
+

@@ -37,7 +37,7 @@ Temat nie podaje misji. Liczby misji są założeniami autora i wymagają uzgodn
 | Wznoszenie, start, lądowanie | 6,11 m/s, 209 m, 353 m |
 | Środek masy, zapas stateczności | 25,0–29,3% ŚCA, 12,7% ŚCA |
 | Obciążenia | n = +5,30 / −3,15, niszczące +7,95 / −4,72 |
-| Flatter, dywergencja, rewers lotek | 429 km/h (1,36 VD), 504 km/h, 413 km/h |
+| Flatter, dywergencja, rewers lotek | 369 km/h (1,17 VD), 427 km/h, 360 km/h (model zastępczy kompozytu E = 45 GPa) |
 
 Aktualizacja 08.11.2026: program zalicza 32 z 32 kontroli raportu i 10 z 11 kontroli
 audytu inżynierskiego. Otwartą kontrolą jest masa kompletnej zabudowy napędu.
@@ -96,8 +96,8 @@ całkowane krokami 1 km, masę skrzydła ze wzoru Raymera, prędkości JAR 22.33
   ta masa jest chroniona w P3. Wydech, śmigło, chłodzenie, mocowanie, osprzęt i płyny muszą
   zostać objęte zestawieniem konkretnej zabudowy. Pole takiej masy i jej źródła jest dostępne
   w panelu silnika; nie wpisano przykładowej masy jako rzekomych danych producenta.
-- **Materiał aeroelastyczny.** Ten wariant deklaruje kompozyt przez `technology`, lecz moduł
-  aeroelastyczny odczytuje osobne `structure_material` i obecnie wybiera domyślne aluminium.
-  Podane wyżej prędkości aeroelastyczne są wynikiem tego zastępczego modelu. Nie stanowią
-  potwierdzenia właściwości kompozytowego skrzydła. Trzeba uzgodnić materiał, EI, GJ,
+- **Materiał aeroelastyczny.** Moduł aeroelastyczny (`calculations/aeroelastics.py`) odczytuje
+  teraz również pole `technology` (`composites`, zastępczy moduł Younga $E = 45\text{ GPa}$).
+  Podane wyżej prędkości aeroelastyczne są wynikiem tego uproszczonego modelu belkowego. Nie stanowią
+  potwierdzenia właściwości kompozytowego skrzydła. Trzeba uzgodnić rzeczywiste sztywności $EI$, $GJ$,
   rozkład mas, oś sprężystą oraz dane dynamiczne przed oceną rzeczywistego marginesu.

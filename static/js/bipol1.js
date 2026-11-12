@@ -50,6 +50,20 @@
     const m = res.mass, r = res.bipol1_review;
     if (!r || !m) return;
     sync(res.params);
+    const swetP4 = res.geometry?.wetted_area?.swet_over_s;
+    const hintBox = $('bipol1SwetP4Hint'), hintText = $('bipol1SwetP4Text'), applyBtn = $('bipol1ApplySwetP4Btn');
+    if (hintBox && hintText && applyBtn) {
+      if (Number.isFinite(swetP4) && swetP4 > 1) {
+        const isMotogliderFixed = res.params?.aircraft_type === 'motoglider' && res.params?.engine_location && res.params.engine_location !== 'retractable';
+        hintText.textContent = isMotogliderFixed
+          ? `Z geometrii projektu wstępnego (P3/P4) wynika S_wet/S = ${fmt(swetP4, 2)}. Dla motoszybowca ze stałym napędem krzywa „szybowce” z rys. 2 zawyża K_max — można przyjąć S_wet/S z P4 albo uzgodnić bilans z biegunową P4.`
+          : `Z geometrii projektu wstępnego (P3/P4) wynika S_wet/S = ${fmt(swetP4, 2)} (możesz podstawić jako pomiar ze szkicu).`;
+        applyBtn.dataset.swet = String(Number(swetP4).toFixed(2));
+        hintBox.hidden = false;
+      } else {
+        hintBox.hidden = true;
+      }
+    }
 
     const drop = m.m_payload_dropped || 0;
     const propApplicable = !drop;
@@ -195,6 +209,14 @@
     sync();
     $('bipol1Panel').addEventListener('change',event=>{if(window.isDuplicateCalculatedChange?.(event))return;visibility();$('bipol1Results').textContent='Założenia zmienione — przelicz projekt.';});
     $('bipol1Calculate').addEventListener('click',()=>performCalculation());
+    $('bipol1ApplySwetP4Btn')?.addEventListener('click',()=>{
+      const val=$('bipol1ApplySwetP4Btn')?.dataset.swet;
+      if(!val) return;
+      $('wetted_example').value='sketch';
+      $('sketch_swet_ratio').value=val;
+      visibility();
+      performCalculation();
+    });
     $('engine_type')?.addEventListener('change',visibility);
   });
   document.addEventListener('bipol:project',()=>sync());
