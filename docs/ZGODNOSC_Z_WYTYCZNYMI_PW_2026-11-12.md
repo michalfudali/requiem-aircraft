@@ -20,7 +20,7 @@ Oznaczenia: **jest** — program to robi; **autor** — wymaga pracy własnej st
 | P2 | Analiza wrażliwości masy | jest | tabela wrażliwości |
 | P2 | Wykres obciążenia ciągu od obciążenia powierzchni z punktem | jest | wykres doboru |
 | P2 | Analiza kosztów | jest | metoda Corke’a; zastrzeżenie dla klas lekkich |
-| P3 | Rysunek w trzech rzutach na papierze milimetrowym A2, profil 200 mm | autor | program daje wymiary, wzór A4 z siatką i profil 1:1; **luka: brak wzoru A2** |
+| P3 | Rysunek w trzech rzutach na papierze milimetrowym A2, profil 200 mm | autor | program daje wymiary, wzory A4 i A2 z siatką oraz profil 1:1 |
 | P3 | Analiza masowa, skrajne położenia ŚC w funkcji załadunku | jest | tabela mas, stany załadowania, pilot 55/110 kg |
 | P3 | Charakterystyki płata Cz(α), Cm(α), Cx(Cz) | jest | P3; dane wybranego profilu (`airfoil_model`) |
 | P3 | Rozkład Schrenka dla Cz = 1 i szacunek Cz,max | jest | P3 |
@@ -76,7 +76,7 @@ Od 12.11 raport P3 zawiera tabelę „Kontrola rysunku według schematu postępo
 
 ## Luki i sprawy poza programem
 
-- **Wzór arkusza A2** do rysunku P3: program drukuje A4. Rysunek A2 na papierze milimetrowym wykonuje autor.
+- **Rysunek A2 na papierze milimetrowym** wykonuje autor; program daje od 12.11 wzór A2 z siatką w skali dwukrotnie większej niż A4.
 - **Szkic odręczny i uzgodnienie misji z prowadzącym**: wyłącznie autor.
 - **Dobór profilu dla tematów innych niż 7**: autor wpisuje dane co najmniej trzech profili ze źródłem.
 - **Samodzielność pracy** (Wymagania, pkt 6): raport z programu jest pomocą obliczeniową; projekt oddaje student.

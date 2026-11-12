@@ -24,9 +24,9 @@
       <div class="metadata-grid">{% for field in doc.metadata %}<label>{{ field.label }}<input data-report-meta-input="{{ field.key }}" data-label="{{ field.label }}" value="{{ field.value }}" maxlength="160"></label>{% endfor %}</div>
     </details>
     <p class="metadata-status" id="metadata-status" role="status"></p>
-    {% if 'p1' in selected_sections or 'p3' in selected_sections %}<details><summary>Arkusze do rysunku samolotu</summary><p>Szkic koncepcyjny wykonuje się na gładkim arkuszu A4, rysunek projektu wstępnego na papierze milimetrowym: trzy rzuty, dziób w lewo w widoku z boku i do góry w widoku z góry, z zaznaczonym mocowaniem podwozia.</p><div class="toolbar-row"><button id="print-drawing-plain">Arkusz A4 gładki</button><button id="print-drawing-grid">Arkusz A4 z siatką</button></div><p>Drukuj w skali 100%, bez dopasowania do strony.</p></details>{% endif %}
+    {% if 'p1' in selected_sections or 'p3' in selected_sections %}<details><summary>Arkusze do rysunku samolotu</summary><p>Szkic koncepcyjny wykonuje się na gładkim arkuszu A4, rysunek projektu wstępnego na papierze milimetrowym: trzy rzuty, dziób w lewo w widoku z boku i do góry w widoku z góry, z zaznaczonym mocowaniem podwozia.</p><div class="toolbar-row"><button id="print-drawing-plain">Arkusz A4 gładki</button><button id="print-drawing-grid">Arkusz A4 z siatką</button><button id="print-drawing-a2">Arkusz A2 z siatką (rysunek P3)</button></div><p>Drukuj w skali 100%, bez dopasowania do strony.</p></details>{% endif %}
   </aside>
-  {% if 'p1' in selected_sections or 'p3' in selected_sections %}<div class="drawing-page">{{ drawing_sheet(res) }}</div>{% endif %}
+  {% if 'p1' in selected_sections or 'p3' in selected_sections %}<div class="drawing-page">{{ drawing_sheet(res) }}</div><div class="drawing-page drawing-a2">{{ drawing_sheet(res, True) }}</div>{% endif %}
   <main class="document">
     <header class="cover">
       <div class="cover-frame">

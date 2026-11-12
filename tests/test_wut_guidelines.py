@@ -38,3 +38,19 @@ def test_report_has_symbol_list_drawing_table_and_critical_review(client, design
     html = client.post('/report', json=design['params']).get_data(as_text=True)
     assert 'Spis ważniejszych oznaczeń' in html and 'tab-drawing-checks' in html
     assert 'Krytyczna ocena projektu' in html and 'Zespół napędowy jest przewymiarowany' in html
+
+
+def test_a2_sheet_for_the_p3_drawing_doubles_the_scale(design):
+    from calculations.drawing_sheet import drawing_sheet
+    import re
+    a4, a2 = str(drawing_sheet(design)), str(drawing_sheet(design, True))
+    scale = lambda text: int(re.search(r'skala 1:(\d+)', text).group(1))  # noqa: E731
+    assert 'A2 • skala' in a2 and scale(a4) == 2 * scale(a2)
+    assert 'id="millimeterA2" width="0.5"' in a2 and 'id="millimeter" width="1"' in a4
+
+
+def test_flap_envelope_is_drawn_on_the_aircraft_envelope(client, design):
+    html = client.post('/report', json=design['params']).get_data(as_text=True)
+    assert 'flapEnvelope(e.flap, e.composite_polygon)' in html
+    assert 'na tle obwiedni samolotu' in html
+    assert 'print-drawing-a2' in html and 'Jakość dopasowania' in html
