@@ -1407,13 +1407,20 @@ def _p3_propeller_ground(s, r):
         return
     s.section('p3', 'prop_ground', 'Prześwit śmigła — położenie poziome', pc['reference'])
     s.given('pc_D', 'D_P', pc['diameter_m'], M, 3, 'Końcowa średnica śmigła', 'Dobór śmigła P4')
-    s.given('pc_H', 'H_{osi}', pc['shaft_height_m'], M, 3, 'Wysokość osi na podwoziu ugiętym statycznie', 'Wymiary podwozia P3')
     s.given('pc_min', 'h_{min}', pc['required_m'], M, 3, 'Minimalny prześwit dla układu podwozia', pc['reference'])
+    s.given('pc_Df', 'D_{kad}', r['geometry']['fuselage']['diameter'], M, 3, 'Średnica kadłuba', 'Wymiarowanie kadłuba')
+    s.given('pc_kbody', 'K_{kad}', .8, '', 2, 'Robocza proporcja wysokości osi do średnicy kadłuba', 'Założenie modelu wstępnego')
+    s.given('pc_Huser', 'H_{min,aut}', float(r['params'].get('gear_height_m') or 0), M, 3,
+            'Dodatkowe minimum wysokości osi', 'Założenie autora')
+    s.calc('pc_H', 'H_{osi}', r'\max(K_{kad}D_{kad},D_P/2+h_{min},H_{min,aut})',
+           r'\max([[pc_kbody]]\cdot[[pc_Df]],[[pc_D]]/2+[[pc_min]],[[pc_Huser]])',
+           pc['shaft_height_m'], M, 3, 'Wysokość osi na podwoziu ugiętym statycznie',
+           check=lambda v: max(v.pc_kbody*v.pc_Df, v.pc_D/2+v.pc_min, v.pc_Huser))
     s.calc('pc_ground', 'h_P', r'H_{osi}-\frac{D_P}{2}', r'[[pc_H]]-\frac{[[pc_D]]}{2}',
-           pc['clearance_m'], M, 3, 'Prześwit w położeniu poziomym', note=pc['note'],
+           round(pc['clearance_m'], 12), M, 3, 'Prześwit w położeniu poziomym', note=pc['note'],
            check=lambda v: v.pc_H-v.pc_D/2)
     s.calc('pc_margin', r'\Delta h_P', r'h_P-h_{min}', r'[[pc_ground]]-[[pc_min]]',
-           pc['clearance_m']-pc['required_m'], M, 3, 'Zapas prześwitu w położeniu poziomym',
+           round(pc['clearance_m']-pc['required_m'], 12), M, 3, 'Zapas prześwitu w położeniu poziomym',
            check=lambda v: v.pc_ground-v.pc_min)
 
 

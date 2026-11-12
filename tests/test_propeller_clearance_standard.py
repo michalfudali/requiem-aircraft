@@ -100,3 +100,15 @@ def test_topic7_publishes_a_nominal_calculation_without_claiming_complete_cs22_c
     sheet = build_sheet(result)
     for key in ['pc_ground', 'pc_margin']:
         assert sheet.entries[key]['consistent']
+    assert sheet.entries['pc_H']['consistent']
+    assert sheet.entries['pc_margin']['value'] == 0.
+
+
+@pytest.mark.parametrize('category,rule', [('cs22_motoglider','cs22.925a'), ('jar23_normal','cs23.925a'), ('cs25_transport','cs25.925a')])
+def test_ground_requirement_has_a_registered_source_for_the_category(category, rule):
+    from calculations.propeller_clearance import clearance_rule
+    from calculations import regulations as R
+    found = clearance_rule(dict(category=category))
+    assert found['id'] == rule
+    assert R.find_rules(found['paragraph']) == [rule]
+    assert R.find_rules(found['paragraph'].replace('CS ', 'CS-')) == [rule]

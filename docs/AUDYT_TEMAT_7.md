@@ -276,3 +276,20 @@ dodatkowe przypadki domyślnej liczby łopat; ponowiono sześć scenariuszy Chro
 Zakres i pozostające ograniczenia rozmieszczenia napędu: [NAPED_OPENVSP.md](NAPED_OPENVSP.md).
 Odświeżony model wariantu 21 m ma śmigło o średnicy 1,7 m i dwóch łopatach;
 manifest wiąże go z rewizją kodu oraz wejściami i wynikami projektu.
+
+## Korekta prześwitu śmigła — 12 listopada 2026
+
+Sprawdzenie tekstu CS-22.925(a) wykazało odwrócenie wartości w kodzie i dawnych
+testach: właściwe minimum wynosi 180 mm przy kole przednim i 230 mm przy kółku
+ogonowym. Regułę ujednolicono w wymiarowaniu i obu kalkulatorach, a zaokrąglenie
+nie może już zamienić zbyt małego prześwitu w zaliczony warunek.
+
+Wariant 21 m / 115 km/h ma teraz oś 1,08 m nad ziemią i 0,23 m prześwitu przy
+poziomym położeniu. W raporcie, drzewie i UI dostępne są wzór, wartości i zakres
+tego obliczenia. Pozostałe warunki zabudowy wymagają pełnej geometrii i danych
+ugięć; program nie potwierdza ich na podstawie samego wymiaru poziomego.
+
+Oba studia ponownie spełniają 13/13 niezależnych kontroli rachunkowych.
+Średnica śmigła i rzędne profilu pozostają zachowane, a aktualny model `.vsp3`
+sprawdzono po ponownym otwarciu. Źródła i szczegółowy zakres:
+[PRZESWIT_SMIGLA.md](PRZESWIT_SMIGLA.md).

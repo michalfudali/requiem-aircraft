@@ -23,7 +23,7 @@ Temat nie podaje misji. Liczby misji są założeniami autora i wymagają uzgodn
 | Struktura | Kompozyt (Raymer, tab. 15.4) | Typowa dla klasy |
 | Silnik | Rotax 912 UL, 58 kW, 268 g/(kW h) w punkcie 75% mocy | Wybrana propozycja z dokumentacją; większa moc 912 ULS nie usuwa przewymiarowania |
 | Mechanizacja | Klapy zwykłe, lotki zewnętrzne (η ≥ 0,67) | Przy klapolotkach na całej rozpiętości oderwanie zaczyna się w strefie lotek |
-| Podwozie | Z kółkiem ogonowym, stałe, oś kadłuba 1,03 m nad ziemią | Układ klasy; wysokość z prześwitu śmigła 1,70 m |
+| Podwozie | Z kółkiem ogonowym, stałe, oś kadłuba 1,08 m nad ziemią | Śmigło 1,70 m; poziomy prześwit 230 mm wg CS-22.925(a) |
 
 ## Wyniki
 
@@ -74,6 +74,12 @@ całkowane krokami 1 km, masę skrzydła ze wzoru Raymera, prędkości JAR 22.33
 | Próba | Samoloty ultralekkie porównywane z cięższymi tej samej klasy | Próba ograniczona do 660 kg, gdy jest co najmniej 8 rodzin |
 
 ## Otwarte sprawy
+
+Korekta prześwitu 12.11.2026: kod odwracał minima dla układów podwozia.
+CS-22.925(a) wymaga 180 mm przy kole przednim i 230 mm przy kółku ogonowym.
+Aktualna wysokość osi w tym wariancie wynosi 1,08 m. Obliczenie poziome nie
+potwierdza wszystkich położeń i przypadków ugięcia wymaganych przepisem;
+[źródło, wzory i zakres oceny](PRZESWIT_SMIGLA.md).
 
 Aktualizacja geometrii 12.11.2026: OpenVSP zachowuje teraz pełne 98 rzędnych
 FX 61-163 we wszystkich przekrojach skrzydła. Testy potwierdzają ich zachowanie

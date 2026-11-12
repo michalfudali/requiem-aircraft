@@ -57,10 +57,17 @@ DOCUMENTS.update({
                                  '(odnośnik na stronie wyjątków z przepisów). https://www.easa.europa.eu/document-library/'
                                  'certification-specifications/group/cs-lsa-light-sport-aeroplanes'),
     'easa_cs22': dict(regulation='CS-22', chapter='Amendment 3', title='EASA CS-22 Amdt 3',
-                      url='https://www.easa.europa.eu/document-library/certification-specifications/group/cs-22-sailplanes-and-powered-sailplanes',
+                      url='https://www.easa.europa.eu/sites/default/files/dfu/CS-22%20Amendment%203.pdf',
                       citation='EASA: <em>Certification Specifications for Sailplanes and Powered Sailplanes CS-22</em>, '
-                               'Amendment 3 (odnośnik na stronie wyjątków z przepisów). https://www.easa.europa.eu/'
-                               'document-library/certification-specifications/group/cs-22-sailplanes-and-powered-sailplanes'),
+                               'Amendment 3. https://www.easa.europa.eu/sites/default/files/dfu/CS-22%20Amendment%203.pdf'),
+    'easa_cs23_legacy': dict(regulation='CS-23', chapter='Amendment 1 — Powerplant', title='EASA CS-23 Amdt 1',
+        url='https://www.easa.europa.eu/sites/default/files/dfu/CS-23%20Amdt%201%20Combined.pdf',
+        citation='EASA: <em>CS-23, Amendment 1</em>, CS 23.925(a), s. 83 PDF. '
+                 'https://www.easa.europa.eu/sites/default/files/dfu/CS-23%20Amdt%201%20Combined.pdf'),
+    'easa_cs25_legacy': dict(regulation='CS-25', chapter='Amendment 15 — Powerplant', title='EASA CS-25 Amdt 15',
+        url='https://www.easa.europa.eu/sites/default/files/dfu/CS-25%20Amendment%2015.pdf',
+        citation='EASA: <em>CS-25, Amendment 15</em>, CS 25.925(a). '
+                 'https://www.easa.europa.eu/sites/default/files/dfu/CS-25%20Amendment%2015.pdf'),
     'eu_2018_1139': dict(regulation='UE 2018/1139', chapter='art. 2 ust. 8 i załącznik I', title='Rozporządzenie (UE) 2018/1139',
                          url='https://eur-lex.europa.eu/eli/reg/2018/1139/oj',
                          citation='Rozporządzenie Parlamentu Europejskiego i Rady (UE) 2018/1139, art. 2 ust. 8 i załącznik I; '
@@ -233,6 +240,16 @@ RULES = {
     'cs22.341': _r('easa_cs22', 'CS 22.341 (Amdt 3)', 'Obciążenia od podmuchu 1-cos',
                    'podmuch dyskretny 1-cos, H/c = 12,17 + 0,191·µg, Kg = 0,96·µ/(0,475 + µ), µ = µg/(H/c)'),
     'cs22.1505': _r('easa_cs22', 'CS 22.1505', 'Prędkość nieprzekraczalna VNE', 'VNE ≤ 0,9 VD'),
+    'cs22.925a': _r('easa_cs22', 'CS 22.925(a)', 'Prześwit śmigła nad ziemią',
+                    '180 mm dla koła przedniego, 230 mm dla kółka ogonowego; podwozie ugięte statycznie, '
+                    'najbardziej niekorzystna masa, ŚC, ustawienie łopat i położenie samolotu; '
+                    'dodatkowo przypadki uszkodzenia opony i dobicia goleni'),
+    'cs23.925a': _r('easa_cs23_legacy', 'CS 23.925(a)', 'Prześwit śmigła nad ziemią — wydanie klasyczne',
+                    '180 mm dla koła przedniego, 230 mm dla kółka ogonowego; wymagane sprawdzenie ugięcia, '
+                    'masy, ŚC, położeń i przypadków szczególnych podanych w paragrafie'),
+    'cs25.925a': _r('easa_cs25_legacy', 'CS 25.925(a)', 'Prześwit śmigła nad ziemią',
+                    '180 mm dla koła przedniego, 230 mm dla kółka ogonowego; wymagane krytyczne położenie, '
+                    'ugięcie statyczne i dodatkowe przypadki uszkodzenia podane w paragrafie'),
     'ul.optout': _r('eu_2018_1139', 'UE 2018/1139 art. 2 ust. 8', 'Samoloty ultralekkie (opt-out krajowy)',
                     'MTOM ≤ 600 kg (650 kg wodne), nie więcej niż 2 osoby, VS0 ≤ 45 kt CAS'),
     'ul.115': _r('eu_2018_1139', 'klasyfikacja krajowa UL-115 (t.j. Dz. U. z 2025 r. poz. 1137)', 'Mikrolot jednoosobowy UL-115',
@@ -277,7 +294,7 @@ def literature():
     return {'reg_' + key: doc['citation'] for key, doc in DOCUMENTS.items()}
 
 
-_PARAGRAPH = re.compile(r'(JAR-VLA \d+(?:\([a-z0-9]+\))*|JAR 2[235]\.\d+(?:\([a-z0-9]+\))*|CS[- ]22\.\d+(?: \(Amdt 3\))?|'
+_PARAGRAPH = re.compile(r'(JAR-VLA \d+(?:\([a-z0-9]+\))*|JAR 2[235]\.\d+(?:\([a-z0-9]+\))*|CS[- ]2[235]\.\d+(?:\([a-z0-9]+\))*(?: \(Amdt 3\))?|'
                         r'CS-LSA[^;,]*|STANAG 4671 USAR\.\d+|UE 20\d\d/\d+[^;,)]*|LTF-UL § \d+|'
                         r'klasyfikacja krajowa UL-115 \([^)]*\))')
 
@@ -290,7 +307,7 @@ def find_rules(text):
     for key, value in RULES.items():
         by_paragraph.setdefault(value['paragraph'], key)
     for match in _PARAGRAPH.finditer(text):
-        paragraph = match.group(1).strip()
+        paragraph = re.sub(r'^CS-(?=2[235]\.)', 'CS ', match.group(1).strip())
         key = by_paragraph.get(paragraph)
         # Podpunkt (np. „JAR 23.337(b)(1)”) należy do najbliższego zapisanego punktu („JAR 23.337(b)”).
         trimmed = paragraph

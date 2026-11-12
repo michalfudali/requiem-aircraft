@@ -96,6 +96,10 @@ def _load_factor(e):
 
 
 ORIGIN = {
+    'pc_D': ('calc', 'wynik doboru średnicy śmigła lub wartość podana w założeniach jego doboru'),
+    'pc_Df': ('calc', 'średnica kadłuba z wymiarowania kabiny i zabudowy'),
+    'pc_kbody': ('ass', 'robocza proporcja minimalnej wysokości osi do średnicy kadłuba, model wstępny'),
+    'pc_Huser': ('ass', 'minimalna wysokość osi podana przez autora; zero oznacza brak dodatkowego minimum'),
     # --- stałe ---
     'g': ('const', 'normalne przyspieszenie ziemskie'), 'rho0': _ISA, 'T0': _ISA, 'p0': _ISA, 'R_air': _ISA,
     'kappa': ('const', 'dla powietrza jako gazu dwuatomowego'), 'beta': _ISA, 'nu0': _ISA, 'p11': _ISA,
@@ -284,7 +288,7 @@ _PATTERNS = (
     (re.compile(r'^(Dane silnika)', re.I), ('ass', 'dane silnika przyjętego w koncepcji')),
     (re.compile(r'^Profil misji', re.I), _MISSION),
     (re.compile(r'^ISA$'), _ISA),
-    (re.compile(r'JAR|CS-?2[235]|CS-LSA|STANAG|FAR', re.I), None),
+    (re.compile(r'JAR|CS[- ]?2[235]|CS-LSA|STANAG|FAR', re.I), None),
 )
 
 

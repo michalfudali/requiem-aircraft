@@ -5,9 +5,20 @@ deflected gear. Meeting this one dimension does not verify all required attitude
 or the tyre/strut failure cases.
 """
 import math
+from calculations import regulations
 
-CS22_SOURCE = 'https://www.easa.europa.eu/sites/default/files/dfu/CS-22%20Amendment%203.pdf'
-REFERENCE = 'CS-22.925(a); CS-23.925(a), wydanie klasyczne'
+REFERENCE = 'CS 22.925(a); CS 23.925(a), wydanie klasyczne'
+
+
+def clearance_rule(params):
+    category = str(params.get('category') or '')
+    if '22' in category or (not category and params.get('aircraft_type') in ('glider', 'motoglider')):
+        rule_id = 'cs22.925a'
+    elif '25' in category or (not category and params.get('aircraft_type') == 'jet_transport'):
+        rule_id = 'cs25.925a'
+    else:
+        rule_id = 'cs23.925a'
+    return regulations.rule(rule_id)
 
 
 def landing_gear_layout(params):
@@ -36,9 +47,11 @@ def meets_minimum(actual, required):
 def nominal_ground_assessment(params, shaft_height, diameter):
     """Screen the final project's one nose-mounted propeller in level attitude."""
     applicable = params.get('engine_type') == 'prop'
+    rule = clearance_rule(params)
     info = dict(applicable=applicable, shaft_height_m=None, diameter_m=diameter if applicable else None,
                 clearance_m=None, required_m=minimum_ground_clearance_m(params) if applicable else None,
-                nominal_passed=None, certification_compliant=None, reference=REFERENCE, source_url=CS22_SOURCE,
+                nominal_passed=None, certification_compliant=None, reference=rule['paragraph'], rule_id=rule['id'],
+                source_url=rule['document']['url'],
                 scope='level_attitude_statically_deflected_gear')
     if not applicable:
         info['note'] = 'Brak śmigła — ocena nie dotyczy.'
