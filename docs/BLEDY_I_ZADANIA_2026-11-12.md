@@ -113,3 +113,14 @@ a nie błędy rachunku; do sprawdzenia przez agenta tylko tam, gdzie zaznaczono.
 | Kąt ochrony ogona | 22 | Po A16; pozostałe wymagają dłuższej goleni |
 | Zakres ŚC i położenie kół (2 odrzutowce dyspozycyjne) | 2 | **Do sprawdzenia przez agenta** (tematy szturmowe 100, 102) |
 | MTOM tematów UL | 3 | B6 |
+
+## F. Uzupełnienie z 12.11.2026 (po tabeli E)
+
+- **Tematy 100 i 102 (zakres ŚC, koła główne):** naprawione. Przy silnikach z tyłu kadłuba skrzydło dochodziło do
+  granicy 0,56 l_k; granica dla tego układu wynosi teraz 0,64 l_k (`balance.py`).
+- **Sterowność z jednym silnikiem:** ramię silnika dla gondol przy tyle kadłuba to jedna średnica kadłuba, nie 35%
+  półrozpiętości. V_V rośnie do zapasu 105% (najwyżej 0,14), jeśli autor go nie zablokował. Niezaliczone: 4 projekty
+  zamiast 44 — tam potrzebne większe V_V niż 0,14 albo silniki bliżej osi.
+- **B9 (hałas):** model reaguje na śmigło dopiero powyżej M_tip = 0,65 i na moc dopiero powyżej 20 kW, więc dla
+  małych, wolnych śmigieł wynik zależy tylko od wysokości przelotu nad punktem pomiaru. To cecha modelu wstępnego,
+  nie błąd rachunku; zostaje jako ostrzeżenie projektowe.

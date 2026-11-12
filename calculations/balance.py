@@ -101,7 +101,8 @@ def calculate_balance_and_stability(m_sizing: dict, geom: dict, aero: dict, para
     x_lemac_raw = (mom_fus_fixed + mom_wing_offset - target_oew_mac * mac * m_empty) / denom_m
     # Light tractor aircraft carry the wing leading edge from about a quarter of the fuselage length.
     # Z ciężkim silnikiem w nosie skrzydło przechodzi nad kabinę: dolna granica jest wtedy tuż za silnikiem.
-    x_lemac_bounds = (0.15 if engine_loc == "nose" else 0.25) * l_f, 0.56 * l_f
+    # Ciężkie silniki z tyłu kadłuba przesuwają ŚC do tyłu, więc skrzydło może stać dalej niż przy innych układach.
+    x_lemac_bounds = (0.15 if engine_loc == "nose" else 0.25) * l_f, (0.64 if engine_loc == "rear" else 0.56) * l_f
     x_lemac_initial = max(x_lemac_bounds[0], min(x_lemac_bounds[1], x_lemac_raw))
 
     unmanned = bool(m_sizing.get("unmanned", False)) or params.get("aircraft_type") == "uav"

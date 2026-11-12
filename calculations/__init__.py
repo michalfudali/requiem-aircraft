@@ -120,6 +120,9 @@ def _size_airframe(params, param_states):
     return mass_res, sizing_res, geom_res, aero_res
 
 
+MAX_VERTICAL_TAIL_VOLUME = 0.14
+
+
 def _scope_category(params, m0):
     """Kategoria wymagana przez JAR 23.1 dla tematu oficjalnego w przydzielonej mu kategorii, inaczej None."""
     from calculations.polish_law import resolve_category, scope_category
@@ -376,6 +379,18 @@ def run_bipol_project(params: dict):
     result['flying_qualities'] = evaluate_flying_qualities(params, geom_res, aero_res, mass_res, balance_res, perf_res)
     from calculations.engineering_audit import perform_engineering_audit
     result['engineering_audit'] = perform_engineering_audit(result)
+    # Usterzenie pionowe rośnie, gdy nie równoważy asymetrii ciągu z jednym silnikiem niepracującym
+    # (tak jak V_H rośnie do zapasu stateczności), o ile autor nie zablokował V_V.
+    margin = result['engineering_audit']['metrics'].get('oei_yaw_margin')
+    step = int(given.get('_vv_step', 0)) if isinstance(given, dict) else 3
+    if margin and margin < 1.05 and step < 3 and 'v_v' not in params.get('locked_params', []):
+        v_v = float(params.get('v_v', .05))
+        larger = min(MAX_VERTICAL_TAIL_VOLUME, round(v_v * 1.03 * 1.05 / margin, 4))
+        if larger > v_v + 1e-4:
+            return run_bipol_project({**given, 'v_v': larger, '_vv_step': step + 1})
+    if isinstance(given, dict) and given.get('_vv_step'):
+        result['constraints']['parameter_states']['v_v'] = dict(state='derived', value=params['v_v'], sources=['v_v'],
+            formula='V_V z warunku równowagi momentu odchylającego przy jednym silniku niepracującym (zapas 5%)')
     return result
 
 

@@ -355,7 +355,8 @@ def perform_engineering_audit(result: dict) -> dict:
     # 4. KRYTERIUM ASYMETRII CIĄGU DLA SAMOLOTÓW WIELOSILNIKOWYCH (OEI)
     # =========================================================================
     if n_engines >= 2 and engine_type != "none":
-        y_engine = float(params.get("engine_span_y", 0.35 * (b / 2.0)))
+        # Silniki na skrzydle: 35% półrozpiętości; gondole przy tyle kadłuba: około jednej średnicy kadłuba od osi.
+        y_engine = float(params.get("engine_span_y", d_f if params.get("engine_location") == "rear" else 0.35 * (b / 2.0)))
         t_single = float(sizing.get("design_point", {}).get("thrust_kn", 0.0) or 0.0) * 1000.0 / n_engines
         if t_single <= 0.0 and engine_type == "prop":
             p_single_kw = float(sizing.get("design_point", {}).get("power_kw", 0.0) or 0.0) / n_engines
