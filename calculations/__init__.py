@@ -315,7 +315,6 @@ def run_bipol_project(params: dict):
     blueprint = bipol_projects_res['p3']['blueprint_checks']
     if blueprint.get('propeller_diameter_m') and params.get('engine_location', 'nose') == 'nose':
         # The gear is as tall as the propeller chosen in P4 needs (drawing procedure, step 10).
-        from calculations.geometry import axis_height_m
         geom_res['gear']['axis_height_m'] = axis_height_m(params, geom_res['fuselage']['diameter'], blueprint['propeller_diameter_m'])
         blueprint['prop_ground_clearance_m'] = geom_res['gear']['axis_height_m'] - blueprint['propeller_diameter_m'] / 2
 
