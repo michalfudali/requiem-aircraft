@@ -18,7 +18,7 @@ z katalogu oraz na przeliczeniu wszystkich 110 tematów i 10 przykładów.
     (raporty P1–P6, niezmienniki liczbowe, otwarte kontrole);
   - test `tests/test_topic7_design.py` (rachunek ręczny niezależny od modułów).
 - Projekt tematu 7 po każdej zmianie ma dalej spełniać: wszystkie `compliance_checks`, audyt inżynierski bez
-  pozycji innych niż `engine_installation_mass`, lista BIPOL_1 bez pozycji innych niż `sketch` i `mission`.
+  pozycji innych niż `engine_installation_mass` i `aeroelastic_substantiation`, lista BIPOL_1 bez pozycji innych niż `sketch` i `mission`.
 
 ## A. Naprawione w tej serii (do wiedzy; testy już są)
 

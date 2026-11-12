@@ -223,7 +223,9 @@ RULES = {
     'jar25.345': _r('jar25_c', 'JAR 25.345(a)', 'Urządzenia do uzyskiwania wysokiej siły nośnej',
                     'klapy przy VF: manewr do n = 2,0 i podmuchy ±7,62 m/s EAS'),
     'jar25.629': _r('jar25_d', 'JAR 25.629(b)(1)', 'Flatter i dywergencja',
-                    'brak flatteru w obwiedni VD/MD powiększonej o 20 % prędkości równoważnej'),
+                    'brak niestateczności aeroelastycznej w obwiedni VD/MD powiększonej o 15 % EAS '
+                    'przy stałych liczbie Macha i wysokości; przypadki bez uszkodzeń '
+                    '(por. CS 25.629(b)(1), EASA CS-25 Amendment 2)'),
     # ---------------------------------------------------------------- spoza wyjątków JAR
     'lsa.1': _r('easa_cs_lsa', 'CS-LSA.1', 'Stosowalność',
                 'MTOM ≤ 600 kg (650 kg wodnosamoloty), nie więcej niż 2 miejsca, VS0 ≤ 45 kt CAS, jeden silnik nieturbinowy'),

@@ -565,45 +565,43 @@ def perform_engineering_audit(result: dict) -> dict:
     # =========================================================================
     # 9. MARGINES BEZPIECZEŃSTWA PRZED FLATTEREM (JAR 23.629, JAR-VLA 629, JAR 22.629, JAR 25.629)
     # =========================================================================
-    from calculations.polish_law import SUBCATEGORIES, resolve_category
-    from calculations.regulations import cite as _cite
-    flutter_rule = SUBCATEGORIES[resolve_category(ac_cat)].get("rules", {}).get("flutter", "jar23.629")
-    flutter_paragraph = _cite(flutter_rule)
     aeroel = result.get("aeroelastics") or {}
-    v_flutter = float(aeroel.get("flutter_speed_kmh", 0.0) or 0.0)
-    v_d_val = float(aeroel.get("dive_speed_vd_kmh", 0.0) or 0.0)
-    flutter_margin = float(aeroel.get("margin_flutter", 1.5) or 1.5)
-    flutter_ok = aeroel.get("flutter_safe", True)
-
-    metrics["flutter_speed_kmh"] = v_flutter
-    metrics["flutter_margin"] = flutter_margin
-    metrics["divergence_speed_kmh"] = aeroel.get("divergence_speed_kmh")
-    metrics["aileron_reversal_speed_kmh"] = aeroel.get("aileron_reversal_speed_kmh")
-    metrics["dive_speed_vd_kmh"] = v_d_val
-
-    if v_flutter > 0.0 and v_d_val > 0.0:
-        checks.append({
-            "id": "flutter_safety_margin",
-            "category": "Aeroelastyczność i sztywność konstrukcji",
-            "title": "Margines bezpieczeństwa flatteru (V_flater vs 1.20 VD)",
-            "value": f"V_flater = {v_flutter:.0f} km/h ({flutter_margin:.2f} VD)",
-            "required": f"≥ 1.20 VD (wymóg {flutter_paragraph})",
-            "rule": flutter_rule,
-            "passed": flutter_ok,
-            "severity": "ok" if flutter_ok else "warning",
-            "didactic_simple": (
-                "Flater to gwałtowne, samowzbudne trzepotanie skrzydła, które potrafi urwać skrzydło w ułamku sekundy. "
-                "Skrzydło musi być na tyle sztywne na skręcanie i zginanie, by flater pojawił się dopiero daleko powyżej "
-                "największej dopuszczalnej prędkości nurkowania (co najmniej 20% powyżej VD)."
-            ),
-            "engineering_note": (
-                f"Szacowana prędkość flatteru giętno-skrętnego wynosi V_flater = {v_flutter:.0f} km/h (VD = {v_d_val:.0f} km/h, zapas: {flutter_margin:.2f} VD); "
-                "to szacunek wstępny z modelu przekroju typowego z aerodynamiką quasi-stacjonarną. "
-                + (f"Szacunek mieści się w marginesie 1,20 VD; {flutter_paragraph} wymaga potwierdzenia analizą drgań lub próbami." if flutter_ok else
-                   "Szacunek nie daje marginesu 1,20 VD: przesuń środek masy przekrojów do przodu (wyważenie masowe lotek, "
-                   "masy przed osią sprężystą) i zwiększ sztywność skrętną kesonu.")
-            )
-        })
+    basis = aeroel.get("comparison_basis") or {}
+    v_flutter = aeroel.get("flutter_speed_kmh")
+    v_d_val = aeroel.get("dive_speed_vd_kmh")
+    flutter_margin = aeroel.get("margin_flutter")
+    flutter_ok = aeroel.get("flutter_comparison_passed") is True
+    metrics.update(flutter_speed_kmh=v_flutter, flutter_margin=flutter_margin,
+                   divergence_speed_kmh=aeroel.get("divergence_speed_kmh"),
+                   aileron_reversal_speed_kmh=aeroel.get("aileron_reversal_speed_kmh"),
+                   dive_speed_vd_kmh=v_d_val)
+    value = (f"V_flater = {v_flutter:.0f} km/h ({flutter_margin:.2f} VD)"
+             if v_flutter is not None and flutter_margin is not None else
+             "Model nie wyznaczył dodatniej prędkości zbiegnięcia częstości; wynik nierozstrzygający")
+    checks.append({
+        "id": "flutter_safety_margin", "category": "Aeroelastyczność i sztywność konstrukcji",
+        "title": "Szacunek flatteru — porównanie z zakresem analizy", "value": value,
+        "required": basis.get("label", "Ustalić zakres analizy aeroelastycznej"),
+        "rule": basis.get("rule"), "passed": flutter_ok,
+        "severity": "ok" if flutter_ok else "warning",
+        "didactic_simple": "Flatter to samowzbudne drgania konstrukcji. Zbiegnięcie częstości w modelu "
+                           "bez tłumienia jest jedynie sprawdzeniem wstępnym.",
+        "engineering_note": basis.get("note", "Brak wyniku analizy.") + " " +
+                            "Wynik porównania nie potwierdza zgodności z przepisami; brak rozwiązania "
+                            "nie oznacza nieskończonej bezpiecznej prędkości.",
+    })
+    inputs = aeroel.get("input_basis") or {}
+    checks.append({
+        "id": "aeroelastic_substantiation", "category": "Aeroelastyczność i sztywność konstrukcji",
+        "title": "Potwierdzenie aeroelastyczne konstrukcji", "passed": False, "severity": "warning",
+        "value": ("Zadeklarowane dane przekroju: " + str(inputs.get("source") or "brak źródła")
+                  if inputs.get("mode") == "documented" else
+                  "Sztywności i rozkład masy przyjęte; rewers lotek nieobliczony"),
+        "required": "Model konstrukcji i sterowania, analiza niestacjonarna i ocena tłumienia, "
+                    "badania drgań i próby według ustalonej podstawy zdatności",
+        "didactic_simple": "Wybrany materiał i oszacowane EI/GJ nie określają rzeczywistej odporności na flatter.",
+        "engineering_note": " ".join(aeroel.get("limitations") or ["Brak danych aeroelastycznych."]),
+    })
 
     # =========================================================================
     # 10. ZDATNOŚĆ AKUSTYCZNA I HAŁAS ZEWNĘTRZNY (ICAO Annex 16 / CS-36)
@@ -818,9 +816,13 @@ def generate_defense_questions(result: dict, metrics: dict) -> list:
         {
             "id": "q_aeroelastics",
             "topic": "Aeroelastyczność i sztywność (P4/P6)",
-            "question": f"Prędkość nurkowania Twojego samolotu wynosi VD = {metrics.get('dive_speed_vd_kmh', 300):.0f} km/h. Dlaczego przepisy CS-23 wymagają, by prędkość flatteru przekraczała 1.20 VD i czym grozi rewers lotek?",
+            "question": "Jak odróżnisz zakres analizy aeroelastycznej dla wybranej kategorii od prędkości "
+                        "dopuszczonej do prób w locie i czym grozi rewers lotek?",
             "expected_answer": (
-                "Współczynnik 1.20 (20% margines w prędkości) zabezpiecza samolot przed nieprzewidzianym przekroczeniem VD w turbulencji i niedokładnościami obliczeniowymi. "
+                str((result.get('aeroelastics') or {}).get('comparison_basis', {}).get('note',
+                    'Najpierw trzeba ustalić podstawę zdatności i wymagany zakres analizy.')) + " "
+                "Zakres analizy nie jest pozwoleniem na przekraczanie ograniczeń w locie. "
+                "Szacunek EI/GJ i model bez tłumienia nie wykazują zgodności. "
                 "Rewers lotek grozi utratą sterowania poprzecznego: przy dużej prędkości ugięcie lotki skręca całe skrzydło przeciwnie do zamierzonego przechylenia."
             ),
             "faculty_tip": "Klasyczne pytanie na 5.0 z Mechaniki Lotu i Konstruowania Samolotów: student musi powiązać aerodynamikę z odkształceniami sprężystymi struktury."

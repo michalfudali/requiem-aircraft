@@ -300,9 +300,78 @@ class Sheet:
 def build_sheet(results):
     """Pełny arkusz obliczeń dla wyniku run_bipol_project()."""
     sheet = Sheet()
-    for builder in (_constants, _p1, _p2, _p3, _p4, _p5, _p6):
+    for builder in (_constants, _p1, _p2, _p3, _p4, _p5, _p6, _aeroelastic_sheet):
         builder(sheet, results)
     return sheet.finalize()
+
+
+def _aeroelastic_sheet(s, r):
+    """Expose equivalent-section assumptions and the independent beam relations."""
+    ae = r.get('aeroelastics')
+    if not ae:
+        return
+    from calculations.aeroelastics import MATERIALS
+    basis, model = ae['input_basis'], ae['flutter_model']
+    documented = basis['mode'] == 'documented'
+    source = ('Dane zadeklarowane przez autora: ' + basis['source'] if documented else
+              'Założenia zastępczego kesonu; nie są danymi rzeczywistej konstrukcji')
+    note = ' '.join(ae['limitations'])
+    s.section('p3', 'aeroelastic', 'Wstępna analiza aeroelastyczna — model jednorodny', source)
+    s.given('ae_xea', r'x_{EA}/c', model['elastic_axis_chord'], '', 3, 'Oś sprężysta od noska', source)
+    s.given('ae_xcg', r'x_{CG}/c', model['section_cg_chord'], '', 3, 'Środek masy przekroju od noska', source)
+    s.given('ae_r', r'r_\alpha', model['radius_of_gyration'], '', 3,
+            'Promień bezwładności względem EA, dzielony przez połowę cięciwy', source)
+    s.given('ae_a', r'a_{ae}', r['aerodynamics'].get('a_w_rad', 4.8), RAD, 4,
+            'Gradient siły nośnej użyty w modelu aeroelastycznym', 'Wynik modelu aerodynamicznego')
+    s.given('ae_mline', r"m'", basis['wing_mass_per_length_kg_m'], r'\mathrm{kg/m}', 4,
+            'Zastępcza masa na metr rozpiętości', source,
+            note=basis.get('conditions') or 'Założono równomierną masę skrzydła: m′ = m_skrzydła/b.')
+    if documented:
+        for key, sym, value, label in (
+                ('ae_EI', 'EI', ae['bending_stiffness_ei'], 'Zastępcza sztywność giętna'),
+                ('ae_GJ', 'GJ', ae['torsional_stiffness_gj'], 'Zastępcza sztywność skrętna')):
+            s.given(key, sym, value, NM2, 2, label, source, note)
+    else:
+        E, G, _ = MATERIALS[ae['material_key']]
+        s.given('ae_E', 'E', E, PA, 0, 'Założony zastępczy moduł Younga', source)
+        s.given('ae_G', 'G', G, PA, 0, 'Założony zastępczy moduł Kirchhoffa', source)
+        s.given('ae_t', 't', basis['skin_thickness_m'], M, 7, 'Założona grubość pokrycia kesonu', source,
+                't = max(0,0008; 0,0012·√(m_skrzydła/150 kg)) m; grubość nie jest wynikiem wymiarowania.')
+        s.calc('ae_EI', 'EI', r'2E(0{,}6c)t(0{,}45(t/c)c)^2',
+               r'2\cdot[[ae_E]]\cdot0{,}6\cdot[[mac]]\cdot[[ae_t]]\cdot(0{,}45\cdot[[tc]]\cdot[[mac]])^2',
+               ae['bending_stiffness_ei'], NM2, 2, 'Szacowana sztywność giętna kesonu', note=note,
+               check=lambda v: 2*v.ae_E*.6*v.mac*v.ae_t*(.45*v.tc*v.mac)**2)
+        s.calc('ae_GJ', 'GJ', r'\frac{4GA_m^2t}{p},\quad A_m=0{,}6(t/c)c^2,\ p=2c(0{,}6+t/c)',
+               r'\frac{4\cdot[[ae_G]]\cdot(0{,}6\cdot[[tc]]\cdot[[mac]]^2)^2\cdot[[ae_t]]}{2\cdot[[mac]]\cdot(0{,}6+[[tc]])}',
+               ae['torsional_stiffness_gj'], NM2, 2, 'Szacowana sztywność skrętna zamkniętego kesonu',
+               check=lambda v: 4*v.ae_G*(.6*v.tc*v.mac**2)**2*v.ae_t/(2*v.mac*(.6+v.tc)))
+    s.calc('ae_Ialpha', r"I'_\alpha", r"m'(r_\alpha c/2)^2",
+           r'[[ae_mline]]\cdot([[ae_r]]\cdot[[mac]]/2)^2',
+           basis['wing_mass_per_length_kg_m']*(model['radius_of_gyration']*r['geometry']['wing']['mac']/2)**2,
+           r'\mathrm{kg\,m}', 5, 'Moment bezwładności na metr rozpiętości względem EA',
+           check=lambda v: v.ae_mline*(v.ae_r*v.mac/2)**2)
+    s.calc('ae_fh', 'f_h', r"\frac{1{,}875^2}{2\pi}\sqrt{\frac{EI}{m'(b/2)^4}}",
+           r'\frac{1{,}875^2}{2\pi}\sqrt{\frac{[[ae_EI]]}{[[ae_mline]]\cdot([[b]]/2)^4}}',
+           ae['bending_frequency_hz'], r'\mathrm{Hz}', 2, 'Pierwsza częstość giętna belki wspornikowej',
+           check=lambda v: 1.875**2/(2*math.pi)*math.sqrt(v.ae_EI/(v.ae_mline*(v.b/2)**4)))
+    s.calc('ae_falpha', r'f_\alpha', r"\frac{1}{2b}\sqrt{\frac{GJ}{I'_\alpha}}",
+           r'\frac{1}{2\cdot[[b]]}\sqrt{\frac{[[ae_GJ]]}{[[ae_Ialpha]]}}',
+           ae['torsion_frequency_hz'], r'\mathrm{Hz}', 2, 'Pierwsza częstość skrętna belki wspornikowej',
+           check=lambda v: 1/(2*v.b)*math.sqrt(v.ae_GJ/v.ae_Ialpha))
+    if ae['divergence_speed_kmh'] is not None:
+        sweep = r['geometry']['wing'].get('sweep_deg', 0)
+        factor = (1+1.8*math.sin(math.radians(sweep)) if sweep > 0 else
+                  1/(1+2*math.sin(math.radians(abs(sweep)))*r['geometry']['wing']['b']/2/r['geometry']['wing']['mac']))
+        s.given('ae_sweep_factor', 'k_s', factor, '', 5, 'Jakościowa poprawka wpływu skosu',
+                'Założona poprawka; nie zastępuje analizy sprzężonej skrzydła skośnego')
+        s.calc('ae_qdiv', r'q_D', r'\frac{k_s\pi^2GJ}{4(x_{EA}/c-0{,}25)c^2a_{ae}(b/2)^2}',
+               r'\frac{[[ae_sweep_factor]]\cdot\pi^2\cdot[[ae_GJ]]}{4([[ae_xea]]-0{,}25)\cdot[[mac]]^2\cdot[[ae_a]]\cdot([[b]]/2)^2}',
+               factor*math.pi**2*ae['torsional_stiffness_gj']/(4*(model['elastic_axis_chord']-.25)*r['geometry']['wing']['mac']**2*r['aerodynamics'].get('a_w_rad',4.8)*(r['geometry']['wing']['b']/2)**2),
+               PA, 2, 'Ciśnienie dywergencji z teorii pasowej',
+               check=lambda v: v.ae_sweep_factor*math.pi**2*v.ae_GJ/(4*(v.ae_xea-.25)*v.mac**2*v.ae_a*(v.b/2)**2))
+        s.calc('ae_Vdiv', r'V_{div,EAS}', r'3{,}6\sqrt{2q_D/\rho_0}',
+               r'3{,}6\sqrt{2\cdot[[ae_qdiv]]/[[rho0]]}', ae['divergence_speed_kmh'], KMH, 1,
+               'Prędkość dywergencji w modelu', check=lambda v: 3.6*math.sqrt(2*v.ae_qdiv/v.rho0))
 
 
 # =============================================================================================

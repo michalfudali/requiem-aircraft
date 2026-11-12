@@ -99,7 +99,7 @@ def test_centre_of_gravity_from_the_mass_table(design):
 
 def test_design_retains_the_missing_installation_mass_and_authors_confirmations(design):
     assert all(c['passed'] for c in design['compliance_checks'])
-    assert {c['id'] for c in design['engineering_audit']['checks'] if not c['passed']} == {'engine_installation_mass'}
+    assert {c['id'] for c in design['engineering_audit']['checks'] if not c['passed']} == {'engine_installation_mass', 'aeroelastic_substantiation'}
     assert {c['key'] for c in design['bipol1_review']['checks'] if not c['passed']} == {'sketch', 'mission'}
 
 

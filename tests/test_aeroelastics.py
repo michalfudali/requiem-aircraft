@@ -15,7 +15,9 @@ def test_aeroelastics_basic_evaluation():
     assert aeroel["status"] == "success"
     assert aeroel["flutter_speed_kmh"] > aeroel["dive_speed_vd_kmh"]
     assert aeroel["divergence_speed_kmh"] > 0.0
-    assert aeroel["aileron_reversal_speed_kmh"] > 0.0
+    assert aeroel["aileron_reversal_speed_kmh"] is None
+    assert aeroel["reversal_safe"] is None
+    assert aeroel["certification_compliant"] is None
     assert aeroel["margin_flutter"] > 1.0
     assert aeroel["bending_frequency_hz"] > 0.5
     assert aeroel["torsion_frequency_hz"] > aeroel["bending_frequency_hz"]

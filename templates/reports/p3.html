@@ -64,6 +64,23 @@
 <table class="compact-table" id="tab-airfoil-coordinates"><caption>Rzędne profilu {{ af_name }} [mm] dla cięciwy 200 mm</caption><thead><tr><th class="number">x/c [%]</th><th class="number">x górne</th><th class="number">y górne</th><th class="number">x dolne</th><th class="number">y dolne</th><th class="number">grubość</th></tr></thead><tbody>{% for row in p_data.airfoil_200mm_table %}<tr><td class="number">{{ row.xc_pct|reportnum(2) }}</td><td class="number">{{ row.xu_mm|reportnum(2) }}</td><td class="number">{{ row.yu_mm|reportnum(2) }}</td><td class="number">{{ row.xl_mm|reportnum(2) }}</td><td class="number">{{ row.yl_mm|reportnum(2) }}</td><td class="number">{{ row.thick_mm|reportnum(2) }}</td></tr>{% endfor %}</tbody></table>
 <figure class="airfoil-1to1" id="fig-airfoil">{{ p_data.airfoil_200mm_svg|safe }}<figcaption>Profil {{ af_name }} w skali 1:1 (cięciwa 200 mm).</figcaption></figure>
 {% else %}<p>Dla profilu {{ af_name }} nie istnieje wzór analityczny; jego rzędne przyjmuje się z katalogu profili i przenosi na arkusz rysunku w skali cięciwy 200 mm.</p>{% endif %}
+<h3>Wstępna analiza aeroelastyczna skrzydła</h3>
+{% set ae=res.aeroelastics %}
+<p>{{ ae.material }}. {% if ae.input_basis.mode == 'documented' %}Dane zadeklarowane przez autora:
+{{ ae.input_basis.source }}. Konfiguracja: {{ ae.input_basis.conditions }}.{% else %}
+Sztywności i parametry bezwładności są założeniami modelu zastępczego, a nie danymi rzeczywistego skrzydła.{% endif %}</p>
+{{ c.section(sheet, 'p3.aeroelastic') }}
+<table class="compact-table" id="tab-aeroelastic"><caption>Wyniki modelu aeroelastycznego — prędkości EAS</caption>
+<thead><tr><th>Wielkość</th><th>Wynik</th></tr></thead><tbody>
+<tr><td>VD z obwiedni</td><td>{{ ae.dive_speed_vd_kmh|reportnum(1) }} km/h</td></tr>
+<tr><td>Zbiegnięcie częstości przekroju 2DOF</td><td>{% if ae.flutter_speed_kmh is not none %}{{ ae.flutter_speed_kmh|reportnum(1) }} km/h{% else %}Nie wyznaczono — wynik nierozstrzygający{% endif %}</td></tr>
+<tr><td>Dywergencja skrętna</td><td>{% if ae.divergence_speed_kmh is not none %}{{ ae.divergence_speed_kmh|reportnum(1) }} km/h{% else %}Nie wyznaczono w tym modelu{% endif %}</td></tr>
+<tr><td>Rewers lotek</td><td>Nieobliczony — brak modelu aerodynamicznego lotki i podatności skrzydła</td></tr>
+</tbody></table>
+<p>{{ ae.comparison_basis.label }}. {{ ae.comparison_basis.note }}
+{% if ae.comparison_basis.source_url %}<a href="{{ ae.comparison_basis.source_url }}">Dokument źródłowy</a>.{% endif %}</p>
+<p><strong>Nie wykazano zgodności aeroelastycznej konstrukcji.</strong> Brak zbiegnięcia częstości nie dowodzi braku flatteru.</p>
+<ul>{% for limitation in ae.limitations %}<li>{{ limitation }}</li>{% endfor %}</ul>
 <h3>Charakterystyki aerodynamiczne płata</h3>
 {% set p2=res.aerodynamics.paturski_p2 %}
 <p>Charakterystyki aerodynamiczne płata \(C_z(\alpha)\), \(C_m(\alpha)\) i \(C_x(C_z)\) wyznaczono metodą klasyczną {{ cite('paturski') }} na podstawie danych tunelowych profilu{{ xref('tab-airfoil-data') }} z uwzględnieniem skończonego wydłużenia i poprawek Glauerta{{ xref('fig-glauert') }}.</p>

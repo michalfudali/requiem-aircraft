@@ -1,0 +1,46 @@
+<section class="studio-card" id="aeroelasticPanel">
+  <div class="studio-card-heading">
+    <div><h2>Aeroelastyczność skrzydła</h2>
+      <p>Wstępny model belki i przekroju typowego. Wynik nie potwierdza zdatności do lotu.</p></div>
+  </div>
+  <div class="input-row">
+    <div class="input-group"><label for="wing_structure_material">Materiał skrzydła</label>
+      <select id="wing_structure_material" data-analysis-param>
+        <option value="auto">Według technologii projektu</option><option value="metallic">Stop aluminium</option>
+        <option value="composite">Kompozyt</option><option value="wood">Drewno</option><option value="steel">Stal</option>
+      </select></div>
+    <div class="input-group"><label for="aeroelastic_input_mode">Podstawa sztywności i masy</label>
+      <select id="aeroelastic_input_mode" data-analysis-param>
+        <option value="estimated">Założenia modelu kesonu</option>
+        <option value="documented">Własne dane ze źródłem</option>
+      </select></div>
+  </div>
+  <p>Technologia drewniana lub rurowa kadłuba nie określa materiału skrzydła. Dla kompozytu sam wybór materiału
+    nie definiuje układu warstw ani sztywności laminatu.</p>
+  <fieldset id="aeroelasticDeclaredData" hidden disabled>
+    <legend>Zastępcze parametry jednorodnej półrozpiętości</legend>
+    <p>Podaj wartości reprezentatywne dla tego modelu belki, sposób ich wyznaczenia i konfigurację.
+      Parametry zmienne po rozpiętości wymagają odrębnej analizy modalnej.</p>
+    <div class="input-row">
+      <div class="input-group"><label for="wing_bending_stiffness_nm2">Sztywność giętna EI [N·m²]</label><input id="wing_bending_stiffness_nm2" type="number" min="0" max="1000000000000000" step="1" data-analysis-param data-optional-param></div>
+      <div class="input-group"><label for="wing_torsional_stiffness_nm2">Sztywność skrętna GJ [N·m²]</label><input id="wing_torsional_stiffness_nm2" type="number" min="0" max="1000000000000000" step="1" data-analysis-param data-optional-param></div>
+      <div class="input-group"><label for="wing_mass_per_length_kg_m">Masa liniowa m′ [kg/m]</label><input id="wing_mass_per_length_kg_m" type="number" min="0" max="1000000" step="0.01" data-analysis-param data-optional-param></div>
+    </div>
+    <div class="input-row">
+      <div class="input-group"><label for="wing_elastic_axis_ratio">Oś sprężysta xEA/c [0–1 od noska]</label><input id="wing_elastic_axis_ratio" type="number" min="0" max="1" step="0.001" data-analysis-param data-optional-param></div>
+      <div class="input-group"><label for="wing_section_cg_ratio">Środek masy przekroju xCG/c [0–1 od noska]</label><input id="wing_section_cg_ratio" type="number" min="0" max="1" step="0.001" data-analysis-param data-optional-param></div>
+      <div class="input-group"><label for="wing_radius_gyration_ratio">Promień bezwładności względem EA: r/(c/2)</label><input id="wing_radius_gyration_ratio" type="number" min="0" max="10" step="0.001" data-analysis-param data-optional-param></div>
+    </div>
+    <p>Promień podaj względem osi sprężystej, dzieląc go przez <strong>połowę cięciwy</strong>.
+      Wymagane: r/(c/2) &gt; 2|xCG/c − xEA/c|.</p>
+    <div class="input-group"><label for="aeroelastic_data_source">Źródło danych, wydanie i lokalizacja</label><input id="aeroelastic_data_source" type="text" maxlength="4000" data-analysis-param data-optional-param></div>
+    <div class="input-group"><label for="aeroelastic_data_conditions">Konfiguracja i sposób wyznaczenia parametrów zastępczych</label><textarea id="aeroelastic_data_conditions" rows="3" maxlength="4000" data-analysis-param data-optional-param></textarea></div>
+  </fieldset>
+  <button type="button" class="btn btn-primary" id="applyAeroelasticData">Zastosuj i przelicz</button>
+  <p id="aeroelasticStatus" role="status" aria-live="polite">Oczekiwanie na obliczenia.</p>
+  <div class="table-responsive"><table class="b-table"><thead><tr><th>Wielkość</th><th>Wynik modelu</th></tr></thead>
+    <tbody id="aeroelasticResults"></tbody></table></div>
+  <p id="aeroelasticBasis"></p>
+  <p id="aeroelasticSource"></p>
+  <ul id="aeroelasticLimitations"></ul>
+</section>

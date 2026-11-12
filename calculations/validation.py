@@ -435,4 +435,6 @@ def validate_parameters(data):
     if 'trend_observations' in p:
         from calculations.trend_observations import validate_observations
         p['trend_observations'] = validate_observations(p['trend_observations'])
+    from calculations.aeroelastics import validate_aeroelastic_inputs
+    validate_aeroelastic_inputs(p)
     return p

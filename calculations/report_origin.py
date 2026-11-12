@@ -315,6 +315,8 @@ def classify(entry):
     if found is not None:
         return found
     source = entry.get('source') or ''
+    if key.startswith('ae_'):
+        return ('lit' if source.startswith('Dane zadeklarowane') else 'ass', source or 'założenie modelu aeroelastycznego')
     if key=='mass_II':
         return ('calc','suma niezależnych oszacowań zespołów z korelacji Raymera {lit:raymer} {tab:component-estimates}')
     if key=='mass_known':

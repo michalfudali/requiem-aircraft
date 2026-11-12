@@ -29,18 +29,18 @@ Temat nie podaje misji. Liczby misji są założeniami autora i wymagają uzgodn
 
 | Wielkość | Wartość |
 |---|---|
-| Masa startowa / własna / paliwo / pilot | 685,7 / 524,8 / 51,0 / 110 kg |
-| W/S, W/b² | 43,5 kg/m², 1,55 kg/m² |
-| Kadłub, usterzenia | l = 8,5 m, S_H = 1,36 m², S_V = 1,66 m², ramię 4,99 m |
-| Biegunowa P4 | C_x0 = 0,0154, k = 0,0176, K_max = 30,4 |
-| Prędkości | VS1 78,9, VS0 69,9, VA 181,7, VF 139,7, VD 316,6, Vmax 234,5 km/h |
-| Wznoszenie, start, lądowanie | 6,11 m/s, 209 m, 353 m |
-| Środek masy, zapas stateczności | 25,0–29,3% ŚCA, 12,7% ŚCA |
-| Obciążenia | n = +5,30 / −3,15, niszczące +7,95 / −4,72 |
-| Flatter, dywergencja, rewers lotek | 429 km/h (1,36 VD), 504 km/h, 413 km/h |
+| Masa startowa / własna / paliwo / pilot | 655,4 / 496,8 / 48,6 / 110 kg |
+| W/S, W/b² | 41,6 kg/m², 1,49 kg/m² |
+| Kadłub, usterzenia | l = 8,5 m, S_H = 1,36 m², S_V = 1,65 m², ramię 5,02 m |
+| Biegunowa P4 | C_x0 = 0,01704, k = 0,01470, K_max = 31,59 |
+| Prędkości | VS1 77,4, VS0 68,5, VA 178,3, VF 137,0, VD 308,5, Vmax 228,5 km/h |
+| Wznoszenie, start, lądowanie | 6,48 m/s, 196 m, 350 m |
+| Środek masy, zapas stateczności | 25,0–29,5% ŚCA, 12,5% ŚCA |
+| Obciążenia | n = +5,43 / −3,43, niszczące +8,14 / −5,14 (podmuchy) |
+| Flatter, dywergencja, rewers lotek | 515 km/h (1,67 VD), 605 km/h, rewers nieobliczony; model zastępczy |
 
-Aktualizacja 08.11.2026: program zalicza 32 z 32 kontroli raportu i 10 z 11 kontroli
-audytu inżynierskiego. Otwartą kontrolą jest masa kompletnej zabudowy napędu.
+Aktualizacja 12.11.2026: program zalicza 32 z 32 kontroli raportu i 10 z 12 kontroli
+audytu inżynierskiego. Otwarte są masa kompletnej zabudowy napędu i potwierdzenie aeroelastyczne konstrukcji.
 Samo zaliczenie kontroli modelu wstępnego nie zastępuje analizy wytrzymałościowej
 ani wykazania zgodności. Poniżej wskazano także ograniczenia materiałowe aeroelastyczności.
 
@@ -77,27 +77,29 @@ całkowane krokami 1 km, masę skrzydła ze wzoru Raymera, prędkości JAR 22.33
 
 - **Szkic odręczny i uzgodnienie misji.** Wymaga ich BIPOL_1 i może je dostarczyć tylko autor.
   Pola `sketch_reference` i `mission_approval_reference` pozostają puste, więc lista BIPOL_1 ma 11 z 13 pozycji.
-- **Profil.** Tabela profili w P2 jest pusta. Program zawiera dane tunelowe tylko NACA 23012, a dane
-  kandydatów wpisuje autor z katalogu (pole `airfoil_comparison`). Korzyści wybranego profilu trzeba wykazać danymi dla warunków tego projektu.
-- **Rotax 912 UL jest przewymiarowany.** Potrzeba 34,6 kW, dostępne 58 kW. Nadmiar podnosi Vmax, a przez
-  VD ≥ 1,35 VH także VD do 317 km/h. Lżejszy silnik wymaga danych zużycia i mocy ciągłej.
+- **Profil.** Wybrano FX 61-163, porównując cztery profile na podstawie biegunowych XFOIL
+  przy Re = 10⁶. To dane obliczeniowe; potrzebne są dane doświadczalne dla warunków projektu
+  i ocena przejścia laminarnego, zabrudzenia oraz rozkładu Re po rozpiętości.
+- **Dobór silnika.** Dostępne 58 kW daje Vmax = 228,5 km/h, a warunek
+  VD ≥ 1,35 VH podnosi VD do 308,5 km/h. Lżejszy silnik wymaga danych zużycia i mocy ciągłej.
   [Hirth publikuje](https://hirthengines.com/2301-air-cooled-two-stroke-boxer-engine-for-light-aviation-devices/)
   dla F23E punkt 660 g/(kW h) przy 6500 obr/min oraz moce opisane jako zmierzone.
   Ten zapis nie potwierdza mocy ciągłej potrzebnej do doboru w tym projekcie.
-- **Zakres stosowalności modelu mas.** Wzory Raymera dotyczą samolotów lekkich: 525 kg wobec 430 kg dla ASH 31 Mi
-  (21 m, silnik 41 kW). Wzory dają między innymi 36 kg instalacji elektrycznej i 53 kg podwozia, czyli wartości samolotów
-  cięższych. Wyższa masa z korelacji nie dowodzi zachowawczości obciążeń ani wytrzymałości. Rozmieszczenie i rzeczywiste masy zespołów wymagają walidacji.
-- **Koszty.** Metoda Corke’a daje 1,27 mln USD za egzemplarz, wielokrotnie więcej niż ceny rynkowe tej klasy,
-  bo współczynniki pochodzą z dużych samolotów.
-- **Ułamki startu i lądowania.** Po 2,5% masy daje 33 kg paliwa, dwie trzecie całości. To wartość z przewodnika,
+- **Zakres stosowalności modelu mas.** Kontrola na 21 konstrukcjach z bazy daje rozrzut korelacji
+  około −14%…+20%; zgodność sum mas nie potwierdza poprawności każdej grupy ani konstrukcji nowego skrzydła.
+  Rozmieszczenie i rzeczywiste masy zespołów wymagają walidacji.
+- **Koszty.** Korelacje Corke’a wymagają walidacji dla tej klasy i wielkości serii.
+  Wyniku dydaktycznego nie można traktować jako aktualnej oferty produkcyjnej.
+- **Ułamki startu i lądowania.** Po 2,5% masy daje około 32 kg paliwa, dwie trzecie całości. To wartość z przewodnika,
   a nie pomiar zużycia motoszybowca.
 
 - **Masa kompletnej instalacji silnika.** Producent Rotax podaje 55,4 kg dla silnika z przekładnią;
   ta masa jest chroniona w P3. Wydech, śmigło, chłodzenie, mocowanie, osprzęt i płyny muszą
   zostać objęte zestawieniem konkretnej zabudowy. Pole takiej masy i jej źródła jest dostępne
   w panelu silnika; nie wpisano przykładowej masy jako rzekomych danych producenta.
-- **Materiał aeroelastyczny.** Ten wariant deklaruje kompozyt przez `technology`, lecz moduł
-  aeroelastyczny odczytuje osobne `structure_material` i obecnie wybiera domyślne aluminium.
-  Podane wyżej prędkości aeroelastyczne są wynikiem tego zastępczego modelu. Nie stanowią
-  potwierdzenia właściwości kompozytowego skrzydła. Trzeba uzgodnić materiał, EI, GJ,
-  rozkład mas, oś sprężystą oraz dane dynamiczne przed oceną rzeczywistego marginesu.
+- **Aeroelastyczność.** Moduł uwzględnia teraz `technology=composite`; materiał skrzydła można
+  określić osobno. EI = 271 324 N·m² i GJ = 438 710 N·m² pozostają szacunkiem umownego kesonu.
+  W zakładce Weryfikacja można podać źródłowe EI/GJ, masę liniową, osie i promień bezwładności.
+  Program nie oblicza rewersu lotek bez ich modelu; usunięto proporcję 0,82 V_div.
+  Potrzebne są rzeczywista struktura laminatu, rozkłady mas i sztywności oraz analiza niestacjonarna
+  i badania. Szczegóły: [podstawa modelu](AEROELASTYCZNOSC.md).
