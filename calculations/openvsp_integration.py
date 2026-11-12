@@ -6,7 +6,7 @@ Realizuje:
 1. Parametryczną budowę modelu 3D samolotu w jądrze OpenVSP (`AddGeom`, `SetParmVal`,
    `ChangeXSecShape`, `SplitWingXSec`, `AddSubSurf`, `Update`):
    - Skrzydło główne (trapezowe, prostokątne, prostokątno-trapezowe, eliptyczne, skośne)
-     wraz z doborem profilu (NACA 4-cyfrowy, 6-serii lub plik rzędnych AF_FILE)
+     wraz z wybranym profilem z rzędnych lub oznaczenia NACA obsługiwanego w P3
      oraz powierzchniami sterowymi i mechanizacją (`SS_CONTROL`: klapy, lotki, sloty),
    - Kadłub przekrojowy (`FUSELAGE` z wieloma przekrojami `XSec`),
    - Usterzenie poziome i pionowe lub motylkowe V-tail (wraz ze sterem wysokości i kierunku),
@@ -94,55 +94,44 @@ def _set_parm(vsp: Any, geom_id: str, name: str, group: str, value: float) -> fl
     return float(res) if res is not None else val
 
 
-def _parse_naca_4digit(airfoil_name: str, default_tc: float = 0.12) -> Optional[Tuple[float, float, float]]:
-    """
-    Rozpoznaje oznaczenie 4-cyfrowego profilu NACA (np. 'NACA 2412', '0012')
-    i zwraca (camber, camber_loc, thickness_ratio) dla parametrów OpenVSP `XS_FOUR_SERIES`.
-    """
-    if not airfoil_name:
-        return None
-    cleaned = airfoil_name.upper().replace("NACA", "").strip()
-    m = re.match(r"^(\d)(\d)(\d{2})$", cleaned)
-    if not m:
-        return None
-    camber = int(m.group(1)) / 100.0
-    camber_loc = int(m.group(2)) / 10.0 if int(m.group(2)) > 0 else 0.40
-    thick = int(m.group(3)) / 100.0
-    return camber, max(0.10, min(0.90, camber_loc)), max(0.02, min(0.40, thick or default_tc))
-
-
 def _configure_wing_airfoils(
     vsp: Any,
     wing_id: str,
     airfoil_name: str,
     tc_ratio: float,
     airfoil_file_path: Optional[str] = None,
+    coordinates: str = '',
+    profile_source: str = '',
 ) -> Dict[str, Any]:
     """Konfiguruje profile przekrojów skrzydła (`XSecCurve`) wyłącznie przez API OpenVSP."""
     xsec_surf = vsp.GetXSecSurf(wing_id, 0)
     num_xsecs = int(vsp.GetNumXSec(xsec_surf))
-    naca4 = _parse_naca_4digit(airfoil_name, tc_ratio)
+    from calculations.vsp_airfoils import resolve_wing_airfoil, set_coordinate_airfoil
+    if airfoil_file_path and not os.path.isfile(airfoil_file_path):
+        raise ValueError('Nie znaleziono wskazanego pliku rzędnych profilu OpenVSP.')
+    profile, info = (None, dict(mode='FILE_AIRFOIL', assumed=False, source=os.path.basename(airfoil_file_path),
+                               tc_ratio=None, warnings=[])) if airfoil_file_path else resolve_wing_airfoil(
+        dict(airfoil=airfoil_name, airfoil_coordinates=coordinates, airfoil_source=profile_source), tc_ratio)
 
-    applied_mode = "FOUR_SERIES"
     for i in range(num_xsecs):
         if airfoil_file_path and os.path.isfile(airfoil_file_path):
             vsp.ChangeXSecShape(xsec_surf, i, vsp.XS_FILE_AIRFOIL)
             xsec_id = vsp.GetXSec(xsec_surf, i)
             vsp.ReadFileAirfoil(xsec_id, airfoil_file_path)
-            applied_mode = "FILE_AIRFOIL"
+            errors = _check_vsp_errors(vsp, 'ReadFileAirfoil')
+            if errors:
+                raise OpenVSPAPIError('; '.join(errors))
+        elif profile is not None:
+            set_coordinate_airfoil(vsp, xsec_surf, i, profile)
         else:
             vsp.ChangeXSecShape(xsec_surf, i, vsp.XS_FOUR_SERIES)
             xsec_id = vsp.GetXSec(xsec_surf, i)
-            camber, camber_loc, thick = naca4 if naca4 is not None else (0.02, 0.40, tc_ratio)
+            camber, camber_loc, thick = 0.02, 0.40, tc_ratio
             vsp.SetParmVal(vsp.GetXSecParm(xsec_id, "Camber"), camber)
             vsp.SetParmVal(vsp.GetXSecParm(xsec_id, "CamberLoc"), camber_loc)
             vsp.SetParmVal(vsp.GetXSecParm(xsec_id, "ThickChord"), thick)
 
-    return {
-        "mode": applied_mode,
-        "num_xsecs": num_xsecs,
-        "tc_ratio": naca4[2] if naca4 else tc_ratio,
-    }
+    return dict(info, num_xsecs=num_xsecs)
 
 
 def _build_main_wing(
@@ -250,9 +239,11 @@ def _build_main_wing(
     airfoil_info = _configure_wing_airfoils(
         vsp,
         wing_id,
-        str(params.get("airfoil", "NACA 2412")),
+        str(params.get("airfoil") or ''),
         tc_ratio,
         airfoil_file_path=airfoil_file_path,
+        coordinates=params.get('airfoil_coordinates') or '',
+        profile_source=params.get('airfoil_source') or '',
     )
 
     # Powierzchnie sterowe i mechanizacja (SubSurfaces: SS_CONTROL)
@@ -514,10 +505,16 @@ def build_vsp_aircraft_model(
     """
     vsp = _load_vsp(vsp_module)
     vsp.VSPCheckSetup()
+    effective_params = dict(params or project_results.get("params") or project_results.get("inputs") or {})
+    from calculations.vsp_airfoils import resolve_wing_airfoil
+    if airfoil_file_path:
+        if not os.path.isfile(airfoil_file_path):
+            raise ValueError('Nie znaleziono wskazanego pliku rzędnych profilu OpenVSP.')
+    else:
+        resolve_wing_airfoil(effective_params, project_results.get('geometry', {}).get('wing', {}).get('tc_ratio', .12))
     vsp.VSPRenew()
     vsp.ClearVSPModel()
 
-    effective_params = dict(params or project_results.get("params") or project_results.get("inputs") or {})
     geom_res = project_results.get("geometry", {})
     balance_res = project_results.get("balance", {})
 

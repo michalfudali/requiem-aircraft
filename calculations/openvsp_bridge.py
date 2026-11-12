@@ -849,9 +849,13 @@ def get_model_state(include_mesh: bool = True, include_all_parms: bool = True) -
         }
 
 
-def _set_wing_airfoil(geom_id: str, xsec_idx: int, camber: float, camber_loc: float, thickness: float) -> None:
-    """Konfiguruje profil NACA 4-cyfrowy (lub symetryczny) na zadanym przekroju płata."""
+def _set_wing_airfoil(geom_id: str, xsec_idx: int, camber: float, camber_loc: float, thickness: float, profile=None) -> None:
+    """Zachowuje wybrane rzędne; bez wyboru profilu używa jawnego założenia NACA 4."""
     grp = f"XSecCurve_{xsec_idx}"
+    if profile is not None:
+        from calculations.vsp_airfoils import set_coordinate_airfoil
+        set_coordinate_airfoil(vsp, vsp.GetXSecSurf(geom_id, 0), xsec_idx, profile)
+        return
     try:
         xsurf = vsp.GetXSecSurf(geom_id, 0)
         vsp.ChangeXSecShape(xsurf, xsec_idx, vsp.XS_FOUR_SERIES)
@@ -914,7 +918,6 @@ def build_model_from_bipol(payload: dict[str, Any] | None = None) -> dict[str, A
             raw_params = dict(AIRCRAFT_PRESETS["pzl_kos"])
         bipol_res = run_bipol_project(raw_params)
 
-    _LAST_BIPOL_RESULT = bipol_res
     params = bipol_res["params"]
     geom = bipol_res["geometry"]
     balance = bipol_res["balance"]
@@ -936,6 +939,9 @@ def build_model_from_bipol(payload: dict[str, Any] | None = None) -> dict[str, A
     sweep_q_deg = float(wing["sweep_deg"])
     dihedral_deg = float(wing["dihedral_deg"])
     tc_ratio = float(wing.get("tc_ratio", params.get("tc_ratio", 0.12)))
+    from calculations.vsp_airfoils import resolve_wing_airfoil
+    wing_profile, wing_airfoil_meta = resolve_wing_airfoil(params, tc_ratio)
+    _LAST_BIPOL_RESULT = bipol_res
     planform = str(wing.get("wing_planform", params.get("wing_planform", "trapezoidal")))
     wing_config = str(wing.get("wing_config", params.get("wing_config", "low")))
     tail_type = str(params.get("tail_type", "conventional"))
@@ -1014,7 +1020,7 @@ def build_model_from_bipol(payload: dict[str, Any] | None = None) -> dict[str, A
             _set_geom_parm(wing_id, "Twist", "XSec_2", -2.0)
 
             for idx in (0, 1, 2):
-                _set_wing_airfoil(wing_id, idx, camber, camber_loc, tc_ratio)
+                _set_wing_airfoil(wing_id, idx, camber, camber_loc, tc_ratio, profile=wing_profile)
         elif planform == "elliptical":
             span_1 = 0.60 * half_span
             span_2 = 0.40 * half_span
@@ -1040,7 +1046,7 @@ def build_model_from_bipol(payload: dict[str, Any] | None = None) -> dict[str, A
             _set_geom_parm(wing_id, "Twist", "XSec_2", -1.5)
 
             for idx in (0, 1, 2):
-                _set_wing_airfoil(wing_id, idx, camber, camber_loc, tc_ratio)
+                _set_wing_airfoil(wing_id, idx, camber, camber_loc, tc_ratio, profile=wing_profile)
         else:
             vsp.SetDriverGroup(wing_id, 1, vsp.SPAN_WSECT_DRIVER, vsp.ROOTC_WSECT_DRIVER, vsp.TIPC_WSECT_DRIVER)
             _set_geom_parm(wing_id, "Span", "XSec_1", half_span)
@@ -1051,7 +1057,7 @@ def build_model_from_bipol(payload: dict[str, Any] | None = None) -> dict[str, A
             _set_geom_parm(wing_id, "Dihedral", "XSec_1", dihedral_deg)
             _set_geom_parm(wing_id, "Twist", "XSec_1", -1.5 if planform != "rectangular" else 0.0)
             for idx in (0, 1):
-                _set_wing_airfoil(wing_id, idx, camber, camber_loc, tc_ratio)
+                _set_wing_airfoil(wing_id, idx, camber, camber_loc, tc_ratio, profile=wing_profile)
 
         _set_geom_parm(wing_id, "CapUMaxOption", "EndCap", float(vsp.ROUND_END_CAP))
 
@@ -1262,6 +1268,7 @@ def build_model_from_bipol(payload: dict[str, Any] | None = None) -> dict[str, A
             "built_at": time.strftime("%Y-%m-%d %H:%M:%S"),
             "vsp3_file": DEFAULT_VSP3_REL,
             "created_ids": created_ids,
+            "wing_airfoil": wing_airfoil_meta,
             "bipol_summary": {
                 "m0_kg": round(float(bipol_res["mass"]["m0"]), 2),
                 "S_m2": round(S, 3),
@@ -1357,6 +1364,7 @@ def modify_geometry(payload: dict[str, Any]) -> dict[str, Any]:
 
         elif action == "clear_model":
             vsp.ClearVSPModel()
+            _LAST_BUILD_META.clear()
 
         else:
             raise ValueError(f"Nieznana akcja geometrii: {action}")
@@ -2026,6 +2034,7 @@ def api_import_file():
         if ext == ".vsp3":
             vsp.ClearVSPModel()
             vsp.ReadVSPFile(rel_path)
+            _LAST_BUILD_META.clear()
         elif ext == ".des":
             vsp.ReadDESFile(rel_path)
         elif ext == ".xddm":

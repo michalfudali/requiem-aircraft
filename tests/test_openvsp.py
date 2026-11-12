@@ -16,6 +16,102 @@ from app import app
 from calculations.openvsp_bridge import vsp
 
 
+@pytest.mark.parametrize('planform', ['trapezoidal', 'compound_trapezoid', 'elliptical'])
+@pytest.mark.parametrize('profile_name', ['FX 61-163', 'NACA 2415', 'NACA 23012'])
+def test_selected_profile_ordinates_survive_native_build_and_vsp3_roundtrip(planform, profile_name):
+    import json
+    from pathlib import Path
+    from calculations import run_bipol_project
+    from calculations.airfoils import airfoil_200mm
+    from calculations.openvsp_bridge import build_model_from_bipol, export_model_file
+    p = json.loads((Path(__file__).parents[1]/'data/design_cases/topic7_motoszybowiec_21m.json').read_text(encoding='utf8'))
+    p.update(wing_planform=planform, airfoil=profile_name)
+    if profile_name.startswith('NACA'):
+        p.pop('airfoil_coordinates', None)
+    profile = airfoil_200mm(profile_name, p.get('airfoil_coordinates', ''))
+    model = build_model_from_bipol(run_bipol_project(p))
+    assert model['build_meta']['wing_airfoil']['profile_name'] == profile_name
+    info = export_model_file({'format': 'VSP3', 'filename': 'profile_roundtrip'})
+    assert info['status'] == 'ok'
+    vsp.VSPRenew(); vsp.ReadVSPFile(info['relative_path']); vsp.Update()
+    wing = next(g for g in vsp.FindGeoms() if vsp.GetGeomName(g) == 'Skrzydlo_Glowne')
+    surf = vsp.GetXSecSurf(wing, 0)
+    for i in range(vsp.GetNumXSec(surf)):
+        xsec = vsp.GetXSec(surf, i)
+        assert vsp.GetXSecShape(xsec) == vsp.XS_FILE_AIRFOIL
+        for side, getter in [('upper', vsp.GetAirfoilUpperPnts), ('lower', vsp.GetAirfoilLowerPnts)]:
+            actual = getter(xsec)
+            assert len(actual) == len(profile[side])
+            for stored, (x, y) in zip(actual, profile[side]):
+                assert (stored.x(), stored.y(), stored.z()) == pytest.approx((x/200, y/200, 0), abs=1e-12)
+
+
+def test_invalid_explicit_profile_cannot_replace_existing_native_model():
+    from copy import deepcopy
+    from calculations import run_bipol_project
+    from calculations.presets import AIRCRAFT_PRESETS
+    import calculations.openvsp_bridge as bridge
+    result = run_bipol_project(dict(AIRCRAFT_PRESETS['ga_trainer']))
+    bridge.build_model_from_bipol(result)
+    ids, metadata = list(vsp.FindGeoms()), deepcopy(bridge._LAST_BUILD_META)
+    bad = deepcopy(result)
+    bad['params'].update(airfoil='UNKNOWN NAMED PROFILE', airfoil_coordinates='')
+    with pytest.raises(ValueError, match='wybranego profilu'):
+        bridge.build_model_from_bipol(bad)
+    assert list(vsp.FindGeoms()) == ids
+    assert bridge._LAST_BUILD_META == metadata
+
+
+def test_manual_thickness_does_not_rescale_the_selected_profile_and_is_explicit():
+    from calculations import run_bipol_project
+    from calculations.presets import AIRCRAFT_PRESETS
+    from calculations.openvsp_bridge import build_model_from_bipol
+    result = run_bipol_project(dict(AIRCRAFT_PRESETS['ga_trainer'], airfoil='NACA 2415',
+                                   profile_thickness_mode='assumed', tc_ratio=.1))
+    model = build_model_from_bipol(result)
+    af = model['build_meta']['wing_airfoil']
+    assert af['tc_ratio'] == .15 and af['calculation_tc_ratio'] == .1
+    assert af['thickness_mismatch'] and af['warnings']
+    wing = next(g for g in vsp.FindGeoms() if vsp.GetGeomName(g) == 'Skrzydlo_Glowne')
+    surf = vsp.GetXSecSurf(wing, 0)
+    xsec = vsp.GetXSec(surf, 0)
+    assert .14 < vsp.GetParmVal(vsp.GetXSecParm(xsec, 'ThickChord')) < .16
+
+
+@pytest.mark.parametrize('profile_name', ['FX 61-163', 'NACA 23012'])
+def test_native_analysis_builder_preserves_the_same_profile_ordinates(profile_name):
+    import json
+    from pathlib import Path
+    from calculations import run_bipol_project
+    from calculations.airfoils import airfoil_200mm
+    from calculations.openvsp_integration import build_vsp_aircraft_model
+    p = json.loads((Path(__file__).parents[1]/'data/design_cases/topic7_motoszybowiec_21m.json').read_text(encoding='utf8'))
+    p['airfoil'] = profile_name
+    if profile_name.startswith('NACA'):
+        p.pop('airfoil_coordinates', None)
+    profile = airfoil_200mm(profile_name, p.get('airfoil_coordinates', ''))
+    model = build_vsp_aircraft_model(run_bipol_project(p), vsp_module=vsp)
+    surf = vsp.GetXSecSurf(model['wing']['geom_id'], 0)
+    for i in range(vsp.GetNumXSec(surf)):
+        xsec = vsp.GetXSec(surf, i)
+        assert vsp.GetXSecShape(xsec) == vsp.XS_FILE_AIRFOIL
+        for side, getter in [('upper', vsp.GetAirfoilUpperPnts), ('lower', vsp.GetAirfoilLowerPnts)]:
+            actual = getter(xsec)
+            assert len(actual) == len(profile[side])
+            for stored, (x,y) in zip(actual, profile[side]):
+                assert (stored.x(), stored.y()) == pytest.approx((x/200,y/200), abs=1e-12)
+
+
+def test_clearing_native_model_also_clears_its_profile_provenance():
+    from calculations import run_bipol_project
+    from calculations.presets import AIRCRAFT_PRESETS
+    import calculations.openvsp_bridge as bridge
+    model = bridge.build_model_from_bipol(run_bipol_project(dict(AIRCRAFT_PRESETS['ga_trainer'])))
+    assert model['build_meta']['wing_airfoil']
+    model = bridge.modify_geometry({'action':'clear_model'})
+    assert not model['build_meta'] and not vsp.FindGeoms()
+
+
 @pytest.fixture(autouse=True)
 def native_openvsp(request):
     if vsp is None and request.node.name != 'test_openvsp_ui_tab_present_in_index':
@@ -120,12 +216,17 @@ def test_native_pusher_preserves_the_selected_propeller_diameter(location):
 
 
 @pytest.mark.parametrize('layout',['tricycle','tailwheel'])
-def test_native_gear_centres_and_ground_contacts_match_p3(layout):
+@pytest.mark.parametrize('diameter',[None,1.7])
+def test_native_gear_centres_and_ground_contacts_match_p3(layout,diameter):
     import json
     from pathlib import Path
     from calculations import run_bipol_project
     from calculations.openvsp_bridge import build_model_from_bipol
     p=json.loads((Path(__file__).parents[1]/'data/design_cases/topic7_motoszybowiec_21m.json').read_text(encoding='utf8'))
+    if diameter is None:
+        p.pop('propeller_diameter_m',None)
+    else:
+        p['propeller_diameter_m']=diameter
     result=run_bipol_project(dict(p,landing_gear_type=layout))
     build_model_from_bipol(result)
     for name,station in [('Podwozie_Glowne',result['balance']['arms']['gear']),

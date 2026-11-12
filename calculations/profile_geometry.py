@@ -72,8 +72,10 @@ def assess_profile_geometry(params, context):
         note += (' Uwaga: grubość użyta w obliczeniach różni się od geometrii profilu '
                  f'({100 * effective:.4g}% zamiast {100 * value:.4g}% cięciwy).')
     note += (' Samo t/c nie wyznacza biegunowej ani Cz_max. Charakterystyki profilu wymagają '
-             'danych dla właściwej liczby Reynoldsa i Macha; tabela Paturskiego pozostaje odniesieniem NACA 23012. '
-             'Model używa jednego t/c dla skrzydła; zmienność profilu wzdłuż rozpiętości wymaga osobnej analizy.')
+             'danych dla właściwej liczby Reynoldsa i Macha. ')
+    note += ('Obliczenia korzystają z zadeklarowanego modelu charakterystyk profilu; sprawdź jego źródło i zakres ważności. '
+             if params.get('airfoil_model') else 'Tabela Paturskiego pozostaje odniesieniem NACA 23012. ')
+    note += 'Model używa jednego t/c dla skrzydła; zmienność profilu wzdłuż rozpiętości wymaga osobnej analizy.'
     return dict(mode=params['profile_thickness_mode'], derived=context['derived'], source=source,
                 tc_ratio=effective, profile_tc_ratio=value, mismatch=mismatch,
                 profile_name=profile['name'] if profile else None,

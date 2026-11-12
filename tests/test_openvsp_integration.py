@@ -76,6 +76,7 @@ class _MockErrorMgr:
 
 class MockOpenVSP:
     """Wierna stanowa makieta natywnego modułu SWIG `openvsp` (NASA OpenVSP Python API)."""
+    vec3d = _MockVec3d
 
     SYM_NONE = 0
     SYM_XY = 1
@@ -133,6 +134,7 @@ class MockOpenVSP:
         self.subsurfs: dict[str, list[dict]] = {}
         self.parms: dict[tuple[str, str, str], float] = {}
         self.xsec_parms: dict[tuple[str, str], float] = {}
+        self.airfoil_points = {}
         self.analysis_inputs: dict[str, dict[str, list]] = {}
         self.executed_analyses: list[str] = []
         self.exported_files: list[tuple[str, int, int | None]] = []
@@ -240,6 +242,10 @@ class MockOpenVSP:
 
     def ReadFileAirfoil(self, xsec_id: str, file_path: str) -> None:
         self.xsec_parms[(xsec_id, "AirfoilFile")] = file_path
+
+    def SetAirfoilPnts(self, xsec_id, upper, lower):
+        self.airfoil_points[xsec_id] = dict(upper=[(p.x(), p.y(), p.z()) for p in upper],
+                                          lower=[(p.x(), p.y(), p.z()) for p in lower])
 
     def AddSubSurf(self, geom_id: str, subsurf_type: int, index: int = 0) -> str:
         self._subsurf_counter += 1

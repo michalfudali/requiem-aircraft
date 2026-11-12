@@ -7,7 +7,7 @@ from calculations.atmosphere import G0, RHO0
 from calculations.high_lift import high_lift, stall_requirement
 from calculations.mass import calculate_mass_sizing, refine_component_allocation
 from calculations.sizing import calculate_matching_chart
-from calculations.geometry import calculate_geometry
+from calculations.geometry import calculate_geometry, axis_height_m
 from calculations.aerodynamics import calculate_aerodynamics
 from calculations.performance import calculate_performance
 from calculations.envelope import calculate_vn_envelope
@@ -365,6 +365,8 @@ def run_bipol_project(params: dict):
         # Publish geometry before review signatures freeze the calculated design.
         geom_res['propeller'] = dict(diameter_m=propeller['diameter_unrounded_m'],
                                     rpm=propeller['rpm_unrounded'], basis=propeller['diameter_basis'])
+        geom_res['gear']['axis_height_m'] = axis_height_m(
+            params, geom_res['fuselage']['diameter'], propeller['diameter_unrounded_m'])
 
     result["instructor_review"] = review_coursework(result)
     from calculations.bipol1 import review_bipol1

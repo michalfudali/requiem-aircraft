@@ -146,6 +146,7 @@
 
 /* Karty i układy siatkowe */
 .vsp-card {
+    min-width: 0;
     background: var(--bg-card, #111827);
     border: 1px solid var(--border-color, rgba(148, 163, 184, 0.2));
     border-radius: 12px;
@@ -187,7 +188,7 @@
     .vsp-dv-grid,
     .vsp-export-grid,
     .vsp-scripts-grid {
-        grid-template-columns: 1fr !important;
+        grid-template-columns: minmax(0, 1fr) !important;
     }
 }
 
@@ -362,7 +363,8 @@
 
 .vsp-parm-table-wrap {
     max-height: 390px;
-    overflow-y: auto;
+    overflow: auto;
+    max-width: 100%;
     border: 1px solid var(--border-color, rgba(148, 163, 184, 0.18));
     border-radius: 8px;
 }
@@ -721,6 +723,35 @@
     color: var(--text-muted, #94a3b8);
     padding: 1.2rem;
     font-size: 0.82rem;
+}
+
+/* Keep the viewport and controls usable when native parameter data is present. */
+#tab-openvsp .vsp-select,
+#tab-openvsp .vsp-input {
+    min-width: 0;
+    max-width: 100%;
+}
+
+.vsp-selected-geom-bar,
+.vsp-card-hint,
+.vsp-card-header h3 {
+    overflow-wrap: anywhere;
+}
+
+@media (max-width: 600px) {
+    .vsp-parm-filter-bar,
+    .vsp-arg-row {
+        grid-template-columns: minmax(0, 1fr);
+    }
+    .vsp-geom-pill,
+    .vsp-selected-geom-btns {
+        flex-wrap: wrap;
+        max-width: 100%;
+    }
+    #tab-openvsp .vsp-select,
+    #tab-openvsp .vsp-input {
+        min-width: 0 !important;
+    }
 }
 
 .vsp-divider {

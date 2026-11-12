@@ -40,6 +40,20 @@ def test_automatic_noise_geometry_is_p4_geometry_instead_of_a_second_default():
     assert r['geometry']['propeller']['basis']=='preliminary_sizing'
 
 
+@pytest.mark.parametrize('layout,clearance', [('tricycle', .23), ('tailwheel', .18)])
+@pytest.mark.parametrize('declared_height', [0, 2.5])
+def test_published_ground_plane_uses_the_final_automatic_propeller(layout, clearance, declared_height):
+    import json
+    from pathlib import Path
+    p = json.loads((Path(__file__).parents[1]/'data/design_cases/topic7_source_engine.json').read_text(encoding='utf8'))
+    p.pop('propeller_diameter_m', None)
+    p.update(landing_gear_type=layout, gear_height_m=declared_height)
+    r = run_bipol_project(p)
+    diameter = r['bipol_projects']['p4']['paturski_propulsion']['propeller_selection']['diameter_unrounded_m']
+    expected = max(.8*r['geometry']['fuselage']['diameter'], diameter/2+clearance, declared_height)
+    assert r['geometry']['gear']['axis_height_m'] == pytest.approx(expected, abs=1e-12)
+
+
 @pytest.mark.parametrize('params',[{'propeller_rpm':0},{'propeller_rpm':6001},
     {'propeller_rpm':'fast'},{'propeller_diameter_m':0},{'propeller_diameter_m':8.1},
     {'propeller_rpm':2100,'prop_rpm':2400}])

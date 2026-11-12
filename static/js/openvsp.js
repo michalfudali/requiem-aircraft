@@ -224,9 +224,8 @@ int main()
         }
         if (overlay) overlay.textContent = 'Trwa budowa parametrycznej geometrii 3D w OpenVSP...';
         try {
-            const payload = window.currentResults && window.currentResults.geometry
-                ? window.currentResults
-                : {};
+            const payload = typeof currentResults !== 'undefined' && currentResults?.geometry ? currentResults : null;
+            if (!payload) throw new Error('Najpierw oblicz bieżący projekt, a następnie zsynchronizuj model 3D.');
             const model = await apiFetch('/api/openvsp/build-from-bipol', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -269,6 +268,16 @@ int main()
         if (meta && wingRefEl && swetRefEl) {
             wingRefEl.textContent = `S = ${meta.S_m2} m² · b = ${meta.b_m} m`;
             swetRefEl.textContent = `S_wet (BiPOL P3): ${meta.S_wet_bipol_m2} m² · Cx0: ${meta.cx0_clean_bipol}`;
+        } else {
+            if (wingRefEl) wingRefEl.textContent = '—';
+            if (swetRefEl) swetRefEl.textContent = 'Brak powiązania modelu z obliczeniami P3';
+        }
+        const airfoil = model.build_meta?.wing_airfoil;
+        const airfoilStatus = el('vspWingAirfoilStatus');
+        if (airfoilStatus) {
+            airfoilStatus.textContent = !airfoil ? 'Brak danych o profilu wybranym przy budowie modelu.' :
+                airfoil.assumed ? airfoil.warnings.join(' ') :
+                `Profil skrzydła przy budowie: ${airfoil.profile_name} · ${airfoil.point_count} rzędnych · t/c = ${airfoil.tc_ratio}. ${airfoil.warnings.join(' ')}`;
         }
 
         renderGeomTree();
