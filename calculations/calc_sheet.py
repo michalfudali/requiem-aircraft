@@ -1398,6 +1398,23 @@ def _p3(s, r):
     _p3_balance(s, r)
     _p3_schrenk(s, r)
     _p3_wing_aero(s, r)
+    _p3_propeller_ground(s, r)
+
+
+def _p3_propeller_ground(s, r):
+    pc = r['geometry'].get('propeller_ground_clearance') or {}
+    if pc.get('clearance_m') is None:
+        return
+    s.section('p3', 'prop_ground', 'Prześwit śmigła — położenie poziome', pc['reference'])
+    s.given('pc_D', 'D_P', pc['diameter_m'], M, 3, 'Końcowa średnica śmigła', 'Dobór śmigła P4')
+    s.given('pc_H', 'H_{osi}', pc['shaft_height_m'], M, 3, 'Wysokość osi na podwoziu ugiętym statycznie', 'Wymiary podwozia P3')
+    s.given('pc_min', 'h_{min}', pc['required_m'], M, 3, 'Minimalny prześwit dla układu podwozia', pc['reference'])
+    s.calc('pc_ground', 'h_P', r'H_{osi}-\frac{D_P}{2}', r'[[pc_H]]-\frac{[[pc_D]]}{2}',
+           pc['clearance_m'], M, 3, 'Prześwit w położeniu poziomym', note=pc['note'],
+           check=lambda v: v.pc_H-v.pc_D/2)
+    s.calc('pc_margin', r'\Delta h_P', r'h_P-h_{min}', r'[[pc_ground]]-[[pc_min]]',
+           pc['clearance_m']-pc['required_m'], M, 3, 'Zapas prześwitu w położeniu poziomym',
+           check=lambda v: v.pc_ground-v.pc_min)
 
 
 def _p3_controls(s, r):

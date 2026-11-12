@@ -247,15 +247,15 @@ def test_feature9_tailstrike_clearance_10_to_15_deg():
 
 
 def test_feature9_ground_clearances_prop_and_belly():
-    """Verify propeller ground clearance (>= 230 mm tricycle / 180 mm taildragger) and belly >= 0.50m."""
+    """CS 22.925(a): 180 mm nose wheel / 230 mm tail wheel; retain belly calculation."""
     res_tri = calculate_fuselage_and_gear({
         "m0": 1100.0, "landing_gear_type": "tricycle",
         "propeller_diameter_m": 1.90, "prop_shaft_height_m": 1.45,
         "oleo_stroke_m": 0.18, "tire_deflection_m": 0.05
     })
-    # prop tip clearance = 1.45 - 0.95 - 0.23 = 0.27m = 270 mm >= 230 mm
+    # Prop tip clearance = 1.45 - 0.95 - 0.23 = 0.27 m >= 0.18 m.
     assert res_tri["propeller_clearance_compliant"] is True
-    assert res_tri["propeller_clearance_m"] >= 0.230
+    assert res_tri["propeller_clearance_m"] >= 0.180
     assert res_tri["ground_clearance_m"] >= 0.50
 
 
@@ -279,25 +279,25 @@ def test_propeller_diameter_scaling_blade_count():
 
 
 def test_propeller_ground_clearance_tricycle_vs_taildragger():
-    """Verify 230 mm (tricycle) and 180 mm (taildragger) clearance boundaries."""
-    # Tricycle: shaft height 1.40m, Dp = 2.10m, deflection = 0.10m -> clearance = 1.40 - 1.05 - 0.10 = 0.25m = 250mm >= 230mm
+    """Verify CS 22.925(a): 180 mm (nose wheel), 230 mm (tail wheel)."""
+    # Nose wheel: 1.40 - 1.05 - 0.10 = 0.25 m >= 0.18 m.
     res_tri = calculate_propulsion_clearance({
         "engine_power_kw": 100.0, "gear_type": "tricycle",
         "propeller_diameter_m": 2.10, "prop_shaft_height_m": 1.40,
         "gear_compressed_deflection_m": 0.10
     })
-    assert res_tri["ground_clearance_req_m"] == 0.230
+    assert res_tri["ground_clearance_req_m"] == 0.180
     assert res_tri["ground_clearance_passed"] is True
 
-    # Taildragger with same clearance passes 180mm easily
+    # Tail wheel: 0.20 m is insufficient for the required 0.23 m.
     res_td = calculate_propulsion_clearance({
         "engine_power_kw": 100.0, "gear_type": "taildragger",
         "propeller_diameter_m": 2.20, "prop_shaft_height_m": 1.40,
         "gear_compressed_deflection_m": 0.10
     })
-    assert res_td["ground_clearance_req_m"] == 0.180
+    assert res_td["ground_clearance_req_m"] == 0.230
     assert res_td["ground_clearance_m"] == 0.200
-    assert res_td["ground_clearance_passed"] is True
+    assert res_td["ground_clearance_passed"] is False
 
 
 def test_propeller_tip_mach_limit():

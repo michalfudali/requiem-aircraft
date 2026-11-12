@@ -40,7 +40,7 @@ def test_automatic_noise_geometry_is_p4_geometry_instead_of_a_second_default():
     assert r['geometry']['propeller']['basis']=='preliminary_sizing'
 
 
-@pytest.mark.parametrize('layout,clearance', [('tricycle', .23), ('tailwheel', .18)])
+@pytest.mark.parametrize('layout,clearance', [('tricycle', .18), ('tailwheel', .23)])
 @pytest.mark.parametrize('declared_height', [0, 2.5])
 def test_published_ground_plane_uses_the_final_automatic_propeller(layout, clearance, declared_height):
     import json

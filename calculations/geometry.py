@@ -12,16 +12,18 @@ import math
 from calculations.atmosphere import G0
 from calculations.landing_gear import calculate_fuselage_and_gear
 from calculations.empennage import calculate_empennage_sizing, calculate_propulsion_clearance
+from calculations.propeller_clearance import minimum_ground_clearance_m
 
 def axis_height_m(params: dict, diameter: float, propeller_diameter=None) -> float:
     """Wysokość osi kadłuba nad ziemią na kołach (BIPOL_3, krok 10: prześwit końcówki śmigła).
 
-    Wykłady 4 i 7: końcówka śmigła co najmniej 180 mm nad ziemią przy kółku ogonowym, 230 mm przy przednim.
+    CS-22.925(a): 180 mm przy kole przednim, 230 mm przy kółku ogonowym.
+    Wysokość robocza w położeniu poziomym na podwoziu ugiętym statycznie.
     """
     height = 0.8 * diameter
     propeller = propeller_diameter or params.get('propeller_diameter_m')
     if propeller and params.get('engine_type') == 'prop' and params.get('engine_location', 'nose') == 'nose':
-        clearance = 0.18 if params.get('landing_gear_type') == 'tailwheel' else 0.23
+        clearance = minimum_ground_clearance_m(params)
         height = max(height, float(propeller) / 2 + clearance)
     return max(height, float(params.get('gear_height_m') or 0))
 

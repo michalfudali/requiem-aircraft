@@ -9,6 +9,17 @@
 <h3>Kadłub</h3>
 <p>Wymiary kadłuba dobrano z {{ 'gabarytów wyposażenia zadaniowego i paliwa' if res.mass.unmanned else 'warunków ergonomii kabiny' }}{% if doc.powered %}, zabudowy zespołu napędowego{% endif %}{% if res.geometry.fuselage.get('cargo_bay') %}, gabarytów ładowni{% endif %} oraz wymaganego ramienia usterzeń.</p>
 {{ c.section(sheet, 'p3.fuselage') }}
+{% set pc=res.geometry.propeller_ground_clearance %}
+{% if pc.applicable %}
+<h3>Prześwit śmigła nad ziemią</h3>
+{% if pc.clearance_m is not none %}
+{{ c.section(sheet, 'p3.prop_ground') }}
+<p>Warunek wymiarowy w położeniu poziomym: <strong>{{ 'spełniony' if pc.nominal_passed else 'niespełniony' }}</strong>.
+Pełna zgodność zabudowy pozostaje nierozstrzygnięta.</p>
+{% else %}<p>{{ pc.note }}{% if pc.required_m is not none %} Wstępna wartość minimalna dla układu podwozia: {{ (1000*pc.required_m)|reportnum(0) }} mm.{% endif %}</p>{% endif %}
+<p class="table-note">Podstawa wymiaru: {{ pc.reference }}.
+<a href="{{ pc.source_url }}">Dokument EASA</a>.</p>
+{% endif %}
 <h3>Usterzenia</h3>
 <p>Powierzchnie usterzeń wyznaczono metodą cech objętościowych {{ cite('galinski_aw') }}. Ramiona mierzono od 25% ŚCA skrzydła do środków aerodynamicznych usterzeń w sprzężeniu z analizą wyważenia.</p>
 {{ c.section(sheet, 'p3.tail') }}

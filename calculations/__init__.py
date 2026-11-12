@@ -367,6 +367,15 @@ def run_bipol_project(params: dict):
                                     rpm=propeller['rpm_unrounded'], basis=propeller['diameter_basis'])
         geom_res['gear']['axis_height_m'] = axis_height_m(
             params, geom_res['fuselage']['diameter'], propeller['diameter_unrounded_m'])
+    from calculations.propeller_clearance import nominal_ground_assessment
+    clearance = nominal_ground_assessment(params, geom_res['gear']['axis_height_m'],
+                                          (geom_res.get('propeller') or {}).get('diameter_m'))
+    geom_res['propeller_ground_clearance'] = clearance
+    bipol_projects_res['p3']['blueprint_checks'].update(
+        prop_ground_clearance_m=clearance['clearance_m'],
+        prop_ground_clearance_req_m=clearance['required_m'],
+        prop_ground_clearance_nominal_passed=clearance['nominal_passed'],
+        prop_ground_clearance_assessment=clearance)
 
     result["instructor_review"] = review_coursework(result)
     from calculations.bipol1 import review_bipol1

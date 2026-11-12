@@ -55,3 +55,24 @@ def test_unselected_blade_count_matches_the_preliminary_clearance_model(builder,
     props = [g for g in vsp.FindGeoms() if vsp.GetGeomTypeName(g) == 'Propeller']
     assert props
     assert all(vsp.GetParmVal(g, 'NumBlade', 'Design') == expected for g in props)
+
+
+@pytest.mark.skipif(vsp is None, reason='Native OpenVSP API requires a compatible interpreter')
+@pytest.mark.parametrize('layout,minimum', [('tricycle', .180), ('tailwheel', .230)])
+def test_saved_topic7_model_preserves_cs22_ground_dimension(layout, minimum):
+    import json
+    from pathlib import Path
+    from calculations.openvsp_bridge import export_model_file
+    p = json.loads((Path(__file__).parents[1]/'data/design_cases/topic7_motoszybowiec_21m.json').read_text(encoding='utf8'))
+    build_model_from_bipol(run_bipol_project(dict(p, landing_gear_type=layout)))
+    info = export_model_file(dict(format='VSP3', filename='cs22_clearance'))
+    assert info['status'] == 'ok'
+    vsp.VSPRenew(); vsp.ReadVSPFile(info['relative_path']); vsp.Update()
+    gear = next(g for g in vsp.FindGeoms() if vsp.GetGeomName(g) == 'Podwozie_Glowne')
+    prop = next(g for g in vsp.FindGeoms() if vsp.GetGeomTypeName(g) == 'Propeller')
+    # Most adverse blade azimuth: analytical disc radius, rather than whichever
+    # two-blade orientation happened to be saved in the CAD preview.
+    floor = vsp.GetGeomBBoxMin(gear).z()
+    shaft_z = vsp.GetParmVal(prop, 'Z_Rel_Location', 'XForm')
+    radius = vsp.GetParmVal(prop, 'Diameter', 'Design')/2
+    assert shaft_z-radius-floor == pytest.approx(minimum, abs=1e-8)

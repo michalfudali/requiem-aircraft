@@ -8,10 +8,11 @@ Traceable strictly to:
 - Wyklad 5: okBIPOL_1_handout_5.pdf (Propulsion integration, helical tip Mach, advance ratio)
 - Wyklad 6: okBIPOL_1_handout_6.pdf & Usterzenie_wymiary.pdf (T.C. Corke: Volume coefficients,
   V-tail Rudlicki projection, 30-60 deg spin recovery wake cone)
-- Wyklad 4 & 7: Handout 4 & Handout 7 (Clearance limits: 230mm tricycle, 180mm taildragger)
+- CS-22.925(a), legacy CS-23.925(a): 180 mm nose wheel, 230 mm tail wheel
 """
 
 import math
+from calculations.propeller_clearance import minimum_ground_clearance_m, meets_minimum, REFERENCE
 from calculations.atmosphere import isa_atmosphere
 
 # Corke Volume Coefficients Table across aircraft categories (Usterzenie_wymiary.pdf, p. 4)
@@ -89,9 +90,9 @@ def calculate_propulsion_clearance(params: dict) -> dict:
             "helical_tip_speed_ms": 0.0,
             "tip_mach": 0.0,
             "tip_mach_passed": True,
-            "ground_clearance_m": 0.50,
-            "ground_clearance_req_m": 0.23,
-            "ground_clearance_passed": True,
+            "ground_clearance_m": None,
+            "ground_clearance_req_m": None,
+            "ground_clearance_passed": None,
             "fuselage_clearance_m": 0.50,
             "fuselage_clearance_req_m": 0.025,
             "fuselage_clearance_passed": True,
@@ -108,7 +109,6 @@ def calculate_propulsion_clearance(params: dict) -> dict:
     power_per_engine_kw = power_kw / n_engines
     default_blades = 4 if ac_type == "turboprop_regional" else 2
     blade_count = int(params.get("blade_count", default_blades))
-    gear_type = params.get("gear_type", "tricycle")
     from calculations.propeller import shaft_rpm
     rpm = shaft_rpm(params)
     pitch_type = params.get("prop_pitch_type", "variable")
@@ -149,8 +149,8 @@ def calculate_propulsion_clearance(params: dict) -> dict:
     shaft_h = float(params.get("prop_shaft_height_m", 1.40))
     deflection = float(params.get("gear_compressed_deflection_m", 0.08))
     ground_clearance_m = shaft_h - (d_p / 2.0) - deflection
-    ground_clearance_req_m = 0.180 if gear_type in ["taildragger", "tailwheel"] else 0.230
-    ground_clearance_passed = ground_clearance_m >= ground_clearance_req_m
+    ground_clearance_req_m = minimum_ground_clearance_m(params)
+    ground_clearance_passed = meets_minimum(ground_clearance_m, ground_clearance_req_m)
 
     y_axis = float(params.get("prop_axis_lateral_y_m", 0.0))
     fus_radius = float(params.get("fuselage_radius_at_prop_m", 0.60))
@@ -194,6 +194,11 @@ def calculate_propulsion_clearance(params: dict) -> dict:
         "tip_mach_passed": tip_mach_passed,
         "ground_clearance_m": round(ground_clearance_m, 3),
         "ground_clearance_req_m": ground_clearance_req_m,
+        "ground_clearance_reference": REFERENCE,
+        "ground_clearance_unrounded_m": ground_clearance_m,
+        "ground_clearance_assumed_deflection_m": deflection,
+        "ground_clearance_scope": "level_attitude_supplied_compression",
+        "certification_compliant": None,
         "ground_clearance_passed": ground_clearance_passed,
         "fuselage_clearance_m": round(fuselage_clearance_m, 3),
         "fuselage_clearance_req_m": round(fuselage_clearance_req_m, 3),

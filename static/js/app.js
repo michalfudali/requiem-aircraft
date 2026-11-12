@@ -1404,7 +1404,7 @@ function populateP3Tables(res) {
     p3Gear.innerHTML = `
       <tr><td>Rozstaw kół podwozia głównego</td><td><b>B_p</b></td><td class="num"><b>${(g.track ?? 0).toFixed(2)}</b></td><td>m</td><td>Zapewnia stabilność przy lądowaniu (kąt wywrotu &gt; 35&deg;)</td></tr>
       <tr><td>Baza podwozia trójpodporowego</td><td><b>L_p</b></td><td class="num"><b>${(g.wheelbase ?? 0).toFixed(2)}</b></td><td>m</td><td>Dystans między osią przednią a główną (przeciwdziała kapotażowi)</td></tr>
-      <tr><td>Wysokość goleni podwozia</td><td><b>H_p</b></td><td class="num"><b>${(g.height ?? 0.85).toFixed(2)}</b></td><td>m</td><td>Bezpieczny prześwit śmigła nad ziemią &ge; 230 mm wg CS-23</td></tr>
+      <tr><td>Wysokość goleni podwozia</td><td><b>H_p</b></td><td class="num"><b>${(g.height ?? 0.85).toFixed(2)}</b></td><td>m</td><td>Prześwit śmigła zależy od układu podwozia i warunków jego ugięcia.</td></tr>
     `;
   }
 
@@ -3681,7 +3681,14 @@ function hydrateSemesterProjectsData(res) {
     if (chkMachEl) chkMachEl.textContent = bchk.engine_type==='prop'
       ? `Liczba Macha końcówki śmigła: ${bchk.propeller_tip_mach}; ${bchk.propeller_tip_mach<=.85?'spełnia roboczy limit 0,85':'przekracza roboczy limit 0,85 — zmień średnicę lub obroty'}.`
       : bchk.engine_type==='jet'?'Wlot silnika: brak geometrii i danych silnika do oceny.':'Śmigło i silnik: nie dotyczy.';
-    if (chkClearEl) chkClearEl.textContent = 'Prześwit: wymaga wymiarów zabudowy i podwozia; nie został zweryfikowany.';
+    const propGround = bchk.prop_ground_clearance_assessment;
+    if (chkClearEl) chkClearEl.textContent = !propGround
+      ? 'Prześwit śmigła: oczekiwanie na aktualne obliczenia.'
+      : !propGround.applicable ? 'Prześwit śmigła: nie dotyczy.'
+      : propGround.clearance_m == null
+        ? `Prześwit śmigła: ${propGround.required_m == null ? '' : `wstępne minimum ${Math.round(propGround.required_m*1000)} mm. `}${propGround.note}`
+        : `Prześwit śmigła w położeniu poziomym: ${Math.round(propGround.clearance_m*1000)} mm; wymagane ${Math.round(propGround.required_m*1000)} mm. `
+          + `${propGround.nominal_passed ? 'Warunek wymiarowy spełniony.' : 'Warunek wymiarowy niespełniony.'} ${propGround.note}`;
     const gearEl = document.getElementById('p3_chk_gear');
     const am = res.engineering_audit?.metrics || {};
     const deg = v => `${Number(v).toLocaleString('pl-PL', { maximumFractionDigits: 1 })}°`;

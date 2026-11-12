@@ -364,8 +364,8 @@ def test_adversarial_multi_engine_power_partitioning():
 def test_adversarial_propeller_ground_clearance_boundaries():
     """
     Verify propeller ground clearances under compressed deflection:
-    - Tricycle gear: >= 230 mm (0.230 m)
-    - Taildragger gear: >= 180 mm (0.180 m)
+    - Nose wheel: >= 180 mm (0.180 m), CS 22.925(a)
+    - Tail wheel: >= 230 mm (0.230 m), CS 22.925(a)
     """
     # Tricycle passing at 240 mm
     res_tri_pass = calculate_propulsion_clearance({
@@ -373,29 +373,29 @@ def test_adversarial_propeller_ground_clearance_boundaries():
         "propeller_diameter_m": 2.00, "prop_shaft_height_m": 1.32,
         "gear_compressed_deflection_m": 0.08
     })
-    # Clearance: 1.32 - 1.00 - 0.08 = 0.240 m >= 0.230 m
-    assert res_tri_pass["ground_clearance_req_m"] == 0.230
+    # Clearance: 1.32 - 1.00 - 0.08 = 0.240 m >= 0.180 m
+    assert res_tri_pass["ground_clearance_req_m"] == 0.180
     assert res_tri_pass["ground_clearance_m"] == 0.240
     assert res_tri_pass["ground_clearance_passed"] is True
 
-    # Tricycle failing at 210 mm
+    # Nose wheel failing at 170 mm
     res_tri_fail = calculate_propulsion_clearance({
         "engine_power_kw": 120.0, "gear_type": "tricycle",
-        "propeller_diameter_m": 2.00, "prop_shaft_height_m": 1.29,
+        "propeller_diameter_m": 2.00, "prop_shaft_height_m": 1.25,
         "gear_compressed_deflection_m": 0.08
     })
-    # Clearance: 1.29 - 1.00 - 0.08 = 0.210 m < 0.230 m
+    # Clearance: 1.25 - 1.00 - 0.08 = 0.170 m < 0.180 m
     assert res_tri_fail["ground_clearance_passed"] is False
 
-    # Taildragger passing with the same 210 mm (req is only 180 mm)
-    res_td_pass = calculate_propulsion_clearance({
+    # Tail wheel failing at 210 mm (requires 230 mm)
+    res_td_fail = calculate_propulsion_clearance({
         "engine_power_kw": 120.0, "gear_type": "taildragger",
         "propeller_diameter_m": 2.00, "prop_shaft_height_m": 1.29,
         "gear_compressed_deflection_m": 0.08
     })
-    assert res_td_pass["ground_clearance_req_m"] == 0.180
-    assert res_td_pass["ground_clearance_m"] == 0.210
-    assert res_td_pass["ground_clearance_passed"] is True
+    assert res_td_fail["ground_clearance_req_m"] == 0.230
+    assert res_td_fail["ground_clearance_m"] == 0.210
+    assert res_td_fail["ground_clearance_passed"] is False
 
 
 def test_adversarial_helical_tip_mach_envelope():

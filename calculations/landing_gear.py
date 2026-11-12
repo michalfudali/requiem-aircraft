@@ -11,6 +11,7 @@ Conforming strictly to MEiL PW BIPOL I:
 
 import math
 from calculations.atmosphere import G0
+from calculations.propeller_clearance import minimum_ground_clearance_m, meets_minimum, REFERENCE
 
 # Standard Cargo Unit Load Devices (ULD) Envelopes (Handout 3, p. 7)
 ULD_CONTAINERS = {
@@ -380,20 +381,24 @@ def calculate_fuselage_and_gear(params: dict) -> dict:
     tail_clearance_deg = round(math.degrees(tail_clearance_rad), 1)
     tail_clearance_compliant = tail_clearance_deg >= 10.0
 
-    # Propeller ground clearance (Handout 7, p. 10: min 0.23m grass / 0.15m paved)
+    # Compare the dimension under the assumed compression. Oleo full stroke plus
+    # tyre deflection is a conservative screen, not a measured static deflection.
     prop_diam = float(params.get("propeller_diameter_m", 0.0))
     prop_shaft_h = float(params.get("prop_shaft_height_m", 1.40))
     ground_clearance_m = round(z_tail, 2)  # Belly clearance baseline
 
-    if prop_diam > 0:
+    prop_applicable = params.get('engine_type', 'prop') not in ('none', 'jet')
+    req_prop_clearance = minimum_ground_clearance_m(params) if prop_applicable and params.get('operating_surface') != 'water' else None
+    if prop_diam > 0 and req_prop_clearance is not None:
         # clearance under compressed gear
         gear_compressed = oleo_stroke + tire_deflection
-        prop_ground_clearance_m = round(prop_shaft_h - (prop_diam / 2.0) - gear_compressed, 3)
-        req_prop_clearance = 0.18 if gear_type == "tailwheel" else 0.23
-        prop_clearance_compliant = prop_ground_clearance_m >= req_prop_clearance
+        prop_ground_clearance_raw = prop_shaft_h - (prop_diam / 2.0) - gear_compressed
+        prop_ground_clearance_m = round(prop_ground_clearance_raw, 3)
+        prop_clearance_compliant = meets_minimum(prop_ground_clearance_raw, req_prop_clearance)
     else:
-        prop_ground_clearance_m = 0.50
-        prop_clearance_compliant = True
+        prop_ground_clearance_m = None
+        prop_ground_clearance_raw = None
+        prop_clearance_compliant = None
 
     return {
         "tipover_angle_deg": tipover_angle_deg,
@@ -405,6 +410,13 @@ def calculate_fuselage_and_gear(params: dict) -> dict:
         "tail_clearance_compliant": tail_clearance_compliant,
         "main_gear_cg_compliant": main_gear_cg_compliant,
         "propeller_clearance_m": prop_ground_clearance_m,
+        "propeller_clearance_applicable": prop_applicable,
+        "propeller_clearance_unrounded_m": prop_ground_clearance_raw,
+        "propeller_clearance_req_m": req_prop_clearance,
+        "propeller_clearance_reference": REFERENCE,
+        "propeller_clearance_deflection_basis": "full_stroke_plus_tyre_deflection",
+        "propeller_clearance_assumed_deflection_m": oleo_stroke+tire_deflection,
+        "propeller_clearance_certification_compliant": None,
         "propeller_clearance_compliant": prop_clearance_compliant,
         "gear_reactions": {
             "max_vertical_reaction_n": round(z_max, 1),
