@@ -167,4 +167,36 @@ Po scaleniu wariantu z domknięciem P3→P2 i ochroną mas sprzętu:
 Zaliczenie testów nie usuwa wskazanych braków danych konstrukcyjnych, profilu,
 masy kompletnej instalacji ani potwierdzeń autora. Szczególnego sprawdzenia
 wymaga rozbieżność między technologią kompozytową a materiałem używanym przez
-obecny moduł aeroelastyczny, opisana w dokumencie wariantu 21 m.
+ówczesny moduł aeroelastyczny, opisana w dokumencie wariantu 21 m.
+
+## Aktualizacja — 12 listopada 2026
+
+Scalono zmiany kursowe z `origin/master`, w tym charakterystyki FX 61-163,
+domknięcie osiągów i momenty bezwładności względem 1/4 ŚCA. Rozwiązano rozbieżność
+materiału w aeroelastyczności: kompozyt nie dostaje już domyślnie aluminium.
+Wprowadzono osobny wybór materiału skrzydła i kompletu parametrów zastępczego
+przekroju ze źródłem. Założenia, wzory i podstawienia są w drzewie i w P3.
+
+Usunięto nieuzasadnione wyznaczanie rewersu lotek jako 0,82 prędkości dywergencji
+oraz uniwersalne przypisywanie 1,20 VD wszystkim kategoriom. Brak rozwiązania
+flatteru daje wynik nierozstrzygający. Kontrola `aeroelastic_substantiation`
+pozostaje otwarta; szczegóły i źródła: [AEROELASTYCZNOSC.md](AEROELASTYCZNOSC.md).
+
+Oba warianty ponownie spełniają 13/13 niezależnych kontroli rachunkowych. Dla
+wariantu 21 m / 115 km/h masa startowa wynosi 655,4 kg, pusta 496,8 kg, paliwo
+48,6 kg. Wszystkie 32 kontrole raportu są zaliczone, ale audyt ma dwie otwarte
+pozycje: kompletna instalacja napędu i potwierdzenie aeroelastyczne. Uzgodnienie
+misji i szkic nadal wymagają danych autora.
+
+Ponownie otwarto offline 12 raportów P1–P6 i raport zbiorczy bez błędów JS/KaTeX.
+Aktualny PDF ma 93 strony i nie zawiera pustych stron. Model OpenVSP wariantu
+21 m ma siedem brył; położenia kół i kontakt z ziemią zweryfikowano względem P3.
+Sumy kontrolne w `work/topic7-projekt/` wiążą bieżące wejścia, raporty i model.
+
+Przegląd spójności katalogu ujawnił osobny otwarty problem: `course_seed.json`
+zawiera nowszy wariant tematu 7 niż dostarczony `projects.sqlite3`. Import pliku
+`topic7_motoszybowiec_21m.json` daje opisany wyżej wariant; wybór tematu ze starszego
+katalogu nadal daje poprzednie parametry. Ujednolicenie katalogu musi zachować
+projekty i świadome zmiany użytkownika. Również OpenVSP odtwarza obecnie profil
+przybliżeniem NACA 4-cyfrowym, zamiast używać pełnych rzędnych FX 61-163; model
+pozostaje geometrią koncepcyjną.

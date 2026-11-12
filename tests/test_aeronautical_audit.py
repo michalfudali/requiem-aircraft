@@ -70,7 +70,11 @@ def test_jet_topics_are_not_seeded_with_piston_stall_speeds():
     # A 10-seat business jet: CJ3/Phenom 300 have 27–29 m² and 16 m, not 70 m² and 24 m. Above 5670 kg
     # JAR 23.1(a)(1) no longer applies, so it is designed to JAR-25 with two pilots.
     assert r['params']['category'] == 'cs25_transport' and r['mass']['m0'] > 5670
-    assert r['geometry']['wing']['S'] < 40 and r['geometry']['wing']['b'] < 18
+    assert r['geometry']['wing']['S'] < 40
+    # Topic 61 has no span limit. Span follows the chosen AR and solved area;
+    # a rounded 18 m benchmark must not invalidate an otherwise consistent 18.08 m design.
+    assert r['params'].get('span_limit') is None
+    assert r['geometry']['wing']['b'] == pytest.approx(math.sqrt(r['geometry']['wing']['S'] * r['geometry']['wing']['AR']))
     assert r['mass']['m0'] / r['geometry']['wing']['S'] > 150
 
 

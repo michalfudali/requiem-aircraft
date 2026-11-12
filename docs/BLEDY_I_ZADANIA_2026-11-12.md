@@ -47,14 +47,16 @@ z katalogu oraz na przeliczeniu wszystkich 110 tematów i 10 przykładów.
 
 Pozycje B1–B5 i B7 z pierwszej wersji tej listy są naprawione (tabela A, wiersze A14–A19).
 
-### B6. Tematy ultralekkie 15–19 przekraczają 600 kg (NAPRAWIONE)
-- **Objaw:** m₀ = 663–725 kg przy limicie 600 kg (`[UL-A] Maksymalna masa startowa`).
-- **Przyczyna:** próba samolotów ≤ 660 kg z bazy ma średni udział masy pustej 0,60; przy dwóch osobach (90 + 115 kg)
-  bilans nie zamyka się w 600 kg nawet dla zasięgu 300 km.
-- **Naprawa:** w `data/projects/course_seed.json` dla tematów 15–19 przyjęto normatywną masę osoby z przepisów
-  UL-A / JAR-23 (`m_crew_person = 77 kg`, `m_pax = 77 kg` zamiast 90/115 kg z klasy `ga_trainer`). Bilans masy
-  zamyka się dla wszystkich tematów 15–19 (1-miejscowe: m₀ = 324,7 kg ≤ 600 kg; 2-miejscowe: m₀ = 569,7 kg ≤ 600 kg).
-- **Test:** `tests/test_topic_configuration.py::test_ultralight_topics_15_to_19_pass_mtom_600kg_limit` — zaliczony.
+### B6. Dwumiejscowe tematy ultralekkie 17–19 przekraczają 600 kg
+- **Stan:** dostarczona baza daje około 726 kg; program wskazuje przekroczenie limitu 600 kg.
+- Zmiana samego `course_seed.json` nie zmienia istniejącego katalogu SQLite.
+- Nie można domknąć projektu, zmniejszając masę pasażera z 115 do 77 kg bez uzgodnienia zmiany założeń.
+  Wytyczne prowadzącego wymagają 115 kg na pasażera z bagażem (`IMG20261021122735`);
+  przywrócono tę wartość i początkową masę załogi 90 kg w źródle seeda.
+- Potrzebne są źródłowe dane współczesnych konstrukcji UL 600 kg i weryfikacja modelu mas,
+  albo uzgodniona zmiana misji. Nie podnosić limitu ani nie zmniejszać mas osób dla zaliczenia kontroli.
+- Test sprawdza niezmienione obciążenie osobami oraz prawidłową ocenę rzeczywistego MTOM;
+  zaliczenie testu nie oznacza, że dany projekt mieści się w kategorii UL.
 
 ### B9. Hałas domyślnego tematu 7 z silnikiem dobranym z wykresu
 - **Objaw:** temat 7 z katalogu (bez wybranego silnika, moc 28,6 kW): szacunek 72,1 dBA przy limicie 70,3 dBA.

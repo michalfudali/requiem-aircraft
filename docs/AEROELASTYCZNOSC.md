@@ -42,6 +42,7 @@ sprzężenia laminatu, luzy i podatność sterowania, drgania napędu i usterzen
   tłumienia. §22.629(b)(1)(i) dotyczy analizy prędkości krytycznych do 1,2 VD,
   w połączeniu z badaniami drgań, a (b)(2) dotyczy prób w locie do VDF.
   [EASA, Easy Access Rules CS-22, s. 82–83](https://www.easa.europa.eu/sites/default/files/dfu/CS-22%20Amendment%201.pdf).
+  Treść §22.629 potwierdzono także w [Amendment 3, s. 63–64](https://www.easa.europa.eu/sites/default/files/dfu/CS-22%20Amendment%203.pdf).
 - **JAR-23 / VLA:** zakres 1,2 VD dotyczy wybranej drogi analizy racjonalnej;
   nie jest uniwersalnym opisem wszystkich metod wykazania zgodności.
   [Materiały WTLK, wyjątki JAR](https://www.meil.pw.edu.pl/zsis/ZSiS/Dydaktyka/Prowadzone-przedmioty/WTLK/Wyjatki-z-przepisow),

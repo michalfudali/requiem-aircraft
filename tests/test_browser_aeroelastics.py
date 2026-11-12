@@ -16,7 +16,7 @@ def test_aeroelastic_section_is_editable_saved_reported_and_resets_between_proje
     expect(page.locator('#aeroelasticStatus')).to_contain_text('zgodność nie została wykazana')
     page.locator('#wing_structure_material').select_option('composite')
     page.locator('#aeroelastic_input_mode').select_option('documented')
-    values = dict(wing_bending_stiffness_nm2='1020000', wing_torsional_stiffness_nm2='1570000',
+    values = dict(wing_bending_stiffness_nm2='1020000.123456', wing_torsional_stiffness_nm2='1570000.654321',
                   wing_mass_per_length_kg_m='15', wing_elastic_axis_ratio='0.4',
                   wing_section_cg_ratio='0.45', wing_radius_gyration_ratio='0.5',
                   aeroelastic_data_source='Test UI: raport sztywności, tabela 2',
@@ -24,7 +24,7 @@ def test_aeroelastic_section_is_editable_saved_reported_and_resets_between_proje
     for key, value in values.items():
         page.locator('#'+key).fill(value)
     page.locator('#applyAeroelasticData').click()
-    page.wait_for_function('currentResults?.aeroelastics.bending_stiffness_ei === 1020000', timeout=60000)
+    page.wait_for_function('currentResults?.aeroelastics.bending_stiffness_ei === 1020000.123456', timeout=60000)
     expect(page.locator('#aeroelasticSource')).to_contain_text(values['aeroelastic_data_source'])
     expect(page.locator('#aeroelasticResults')).to_contain_text('Nieobliczony')
     assert page.evaluate('currentResults.aeroelastics.certification_compliant') is None
@@ -49,7 +49,7 @@ def test_aeroelastic_section_is_editable_saved_reported_and_resets_between_proje
     finally:
         context.close()
     page.reload()
-    page.wait_for_function('currentResults?.params.wing_bending_stiffness_nm2 === 1020000', timeout=60000)
+    page.wait_for_function('currentResults?.params.wing_bending_stiffness_nm2 === 1020000.123456', timeout=60000)
     navigate(page, 'tab-compliance')
     for key, value in values.items():
         assert page.locator('#'+key).input_value() == value

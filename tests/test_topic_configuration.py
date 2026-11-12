@@ -50,10 +50,13 @@ def test_two_crew_are_not_a_single_seat_topic_even_when_there_are_no_passengers(
 
 
 @pytest.mark.parametrize('number', range(15, 20))
-def test_ultralight_topics_15_to_19_pass_mtom_600kg_limit(number):
+def test_ultralight_topics_keep_course_payload_and_report_the_real_600kg_limit(number):
     from calculations import run_bipol_project
-    res = run_bipol_project(dict(topic(number)['parameters']))
-    assert res['mass']['m0'] <= 600.0
+    from calculations.instructor import PASSENGER_WITH_BAG_KG
+    p = dict(topic(number)['parameters'])
+    assert p['m_crew_person'] == 90
+    assert p['m_pax'] == PASSENGER_WITH_BAG_KG
+    res = run_bipol_project(p)
     mtom_check = next(c for c in res['compliance_checks'] if 'Maksymalna masa startowa' in c['parameter'])
-    assert mtom_check['passed'], (number, res['mass']['m0'], mtom_check)
+    assert mtom_check['passed'] == (res['mass']['m0'] <= 600.0), (number, res['mass']['m0'], mtom_check)
 
