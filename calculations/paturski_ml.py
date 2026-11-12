@@ -760,6 +760,12 @@ def paturski_project_3_aircraft_aero(geom_res: dict, params: dict, m0: float = N
     cx0_approx = (sum_y - slope_k * sum_x) / n_fit
     lambda_e_approx = 1.0 / (math.pi * max(0.005, slope_k))
     oswald_e_approx = lambda_e_approx / AR
+    # BIPOL_4: the quality of the approximating function must be checked against the tabulated polar.
+    residuals = [r["cx_total"] - (cx0_approx + slope_k * r["cz_prime"] ** 2) for r in fit_pts]
+    mean_cx = sum_y / n_fit
+    spread = sum((r["cx_total"] - mean_cx) ** 2 for r in fit_pts)
+    fit_r2 = 1.0 - sum(e * e for e in residuals) / spread if spread > 0 else 1.0
+    fit_max_dev = max(abs(e) / r["cx_total"] for e, r in zip(residuals, fit_pts))
 
     cx_wing_c = (cx_min_2 + delta_cx_tech) * (1.0 + k_interf)
     cx_fus_c = ((cx_k_eff * s_k + cx_canopy * s_canopy) / S) * (1.0 + k_interf)
@@ -874,6 +880,7 @@ def paturski_project_3_aircraft_aero(geom_res: dict, params: dict, m0: float = N
         "table_2_2_complete": table_2_2,
         "trim_model": trim_model,
         "analytical_polar_fit": {
+            "r2": fit_r2, "max_relative_deviation": fit_max_dev,
             "n_fit": n_fit, "sum_x": sum_x, "sum_y": sum_y, "sum_xx": sum_xx, "sum_xy": sum_xy,
             "cz_fit_max": 0.85 * cz_max_clean, "slope_raw": slope_k, "cx0_raw": cx0_approx,
             "cx0_approx": cx0_approx,

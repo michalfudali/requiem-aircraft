@@ -186,8 +186,11 @@ def offer_charts(rows, ceilings):
                         y_floor=0)
     climb = line_chart([('w_y,max [m/s]', 0, [(r['wy_max_ms'], r['h_m'], f"H = {_n(r['h_m'], 0)} m: {_n(r['wy_max_ms'])} m/s") for r in ok]),
                         ('γ_max [°]', 1, [(r['gamma_max_deg'], r['h_m'], f"H = {_n(r['h_m'], 0)} m: {_n(r['gamma_max_deg'], 1)}°") for r in ok
-                                          if r.get('gamma_max_deg') is not None])],
-                       'Wykres ofertowy — wznoszenie', 'w_y,max [m/s], γ_max [°]', 'H [m]', hlines=hl, height=330,
+                                          if r.get('gamma_max_deg') is not None]),
+                        # BIPOL_5, rys. 5.1: czas wznoszenia na tym samym wykresie.
+                        ('czas wznoszenia [min]', 2, [(r['time_to_climb_min'], r['h_m'], f"H = {_n(r['h_m'], 0)} m: {_n(r['time_to_climb_min'], 1)} min") for r in ok
+                                                      if r.get('time_to_climb_min') is not None])],
+                       'Wykres ofertowy — wznoszenie', 'w_y,max [m/s], γ_max [°], czas wznoszenia [min]', 'H [m]', hlines=hl, height=330,
                        y_floor=0)
     return speeds, climb
 
