@@ -223,7 +223,7 @@ def test_feature5_propeller_mean_takeoff_speed_conversion():
     ws = 900.0
     cz_max_to = 1.8
     v_mean = takeoff_mean_speed(ws, cz_max_to)
-    expected_v_mean = 1.12 * math.sqrt(2.0 * ws / (RHO0 * cz_max_to)) / math.sqrt(2.0)
+    expected_v_mean = 1.15 * math.sqrt(2.0 * ws / (RHO0 * cz_max_to)) / math.sqrt(2.0)
     assert v_mean == pytest.approx(expected_v_mean, rel=1e-5)
 
 

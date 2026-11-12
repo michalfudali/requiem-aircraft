@@ -61,7 +61,7 @@ def test_propeller_takeoff_power_uses_mean_ground_roll_speed():
     p, sizing = result['params'], result['sizing']
     ws = sizing['ws_values'][10]
     tw = 1.21 * ws / (G0 * RHO0 * p['cz_max_to'] * p['takeoff_run_m']) + .04
-    v_lof = 1.12 * math.sqrt(2 * ws / (RHO0 * p['cz_max_to']))
+    v_lof = 1.15 * math.sqrt(2 * ws / (RHO0 * p['cz_max_to']))
     # Same convention as runway.takeoff_distance(): power at V_LOF/sqrt(2), not at V_LOF.
     assert sizing['curve_takeoff'][10] == pytest.approx(tw * v_lof / math.sqrt(2) / p['prop_eff_to'], abs=.01)
 
