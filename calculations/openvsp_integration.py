@@ -411,7 +411,7 @@ def _build_propulsion(
         _set_parm(vsp, pod_id, "Y_Rel_Location", "XForm", y_pod)
         _set_parm(vsp, pod_id, "Z_Rel_Location", "XForm", z_pod)
 
-    if engine_type in ("piston", "turboprop", "electric"):
+    if engine_type in ("prop", "piston", "turboprop", "electric"):
         prop_id = vsp.AddGeom("PROP", fuselage_id)
         vsp.SetGeomName(prop_id, "Smiglo")
         is_symmetric = n_engines >= 2
@@ -419,7 +419,8 @@ def _build_propulsion(
 
         prop_diam = float(params.get("propeller_diameter_m") or geom_res.get('propeller',{}).get('diameter_m')
                           or max(1.5, 0.17 * b))
-        n_blades = int(params.get("propeller_blades", 3 if engine_type == "turboprop" else 2))
+        n_blades = int(params.get("blade_count") or params.get("propeller_blades")
+                       or (4 if params.get('aircraft_type') == 'turboprop_regional' else 2))
         _set_parm(vsp, prop_id, "Diameter", "Design", prop_diam)
         _set_parm(vsp, prop_id, "NumBlade", "Design", n_blades)
 

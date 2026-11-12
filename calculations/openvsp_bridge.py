@@ -947,7 +947,7 @@ def build_model_from_bipol(payload: dict[str, Any] | None = None) -> dict[str, A
     tail_type = str(params.get("tail_type", "conventional"))
     engine_type = str(params.get("engine_type", "prop"))
     engine_loc = str(params.get("engine_location", "nose"))
-    engine_count = int(params.get("engine_count", 1) or 1)
+    engine_count = int(params.get("n_engines", params.get("engine_count", 1)) or 1)
     camber = float(profile_geom.get("max_camber_ratio", 0.02))
     camber_loc = float(profile_geom.get("max_camber_x", 0.40))
 
@@ -1110,7 +1110,8 @@ def build_model_from_bipol(payload: dict[str, Any] | None = None) -> dict[str, A
         if engine_type != "none":
             prop_diam = float(params.get("propeller_diameter_m") or geom.get('propeller',{}).get('diameter_m')
                               or max(1.3, min(2.4, 0.15 * b)))
-            blade_cnt = int(params.get("blade_count") or 3)
+            blade_cnt = int(params.get("blade_count") or params.get("propeller_blades")
+                            or (4 if params.get('aircraft_type') == 'turboprop_regional' else 2))
             if engine_type == "prop":
                 if engine_loc == "nose" or (engine_count == 1 and engine_loc not in ("rear", "wing", "retractable")):
                     prop_id = vsp.AddGeom("PROP", "")
