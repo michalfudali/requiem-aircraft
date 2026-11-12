@@ -16,11 +16,11 @@
   <link rel="stylesheet" href="/static/css/pilot-loading.css?v=2">
   <link rel="stylesheet" href="/static/css/experience.css?v=3">
   <link rel="stylesheet" href="/static/css/coursework.css?v=8">
-  <link rel="stylesheet" href="/static/css/modern-ui.css?v=1">
   <link rel="stylesheet" href="/static/css/manual-control.css?v=1">
   <link rel="stylesheet" href="/static/css/feasibility.css?v=1">
   <link rel="stylesheet" href="/static/css/openvsp.css?v=1">
   <link rel="stylesheet" href="/static/css/wizard.css?v=3">
+  <link rel="stylesheet" href="/static/css/modern-ui.css?v=2">
   <script>
     (function () {
       try {
@@ -1085,17 +1085,17 @@
         <div id="semesterWorkstation" style="display:none;">
 
           <!-- OBOWIĄZKOWY PANEL DANYCH PROJEKTANTA-STUDENTA + STRONA TYTUŁOWA 1:1 (Rys. 2 i Rys. 1) -->
-          <div class="b-card" style="margin-bottom:1.25rem; border:2px solid #0284c7; background:#ffffff;">
-            <div class="b-card-header" style="background:linear-gradient(90deg, #0f172a 0%, #0284c7 100%); color:#ffffff; padding:0.75rem 1.15rem;">
+          <div class="b-card" style="margin-bottom:1.25rem; border:2px solid var(--accent-cyan) !important; background:var(--card-bg);">
+            <div class="b-card-header" style="background:linear-gradient(90deg, #0f172a 0%, #0284c7 100%) !important; color:#ffffff !important; padding:0.75rem 1.15rem;">
               <div style="display:flex; align-items:center; gap:0.5rem;">
                 <span style="font-size:1.1rem;">🪪</span>
                 <div>
-                  <h3 style="color:#ffffff; margin:0; font-size:0.95rem;">Dane Projektanta-Studenta &amp; Strona Tytułowa Projektu 1:1 (wg Rys. 1 i Rys. 2 MEiL PW)</h3>
+                  <h3 style="color:#ffffff !important; margin:0; font-size:0.95rem;">Dane Projektanta-Studenta &amp; Strona Tytułowa Projektu 1:1 (wg Rys. 1 i Rys. 2 MEiL PW)</h3>
                   <div style="font-size:0.74rem; color:#bae6fd;">Obowiązkowe dane do strony tytułowej wszystkich projektów P1–P6 oraz informacji na teczkę projektową</div>
                 </div>
               </div>
               <div style="display:flex; gap:0.5rem; flex-wrap:wrap;">
-                <button type="button" class="btn btn-outline-sm" style="background:#ffffff; color:#0f172a; font-weight:700;" onclick="const el=document.getElementById('liveTitlePagePreviewBox'); if(el) el.style.display=el.style.display==='none'?'grid':'none';">
+                <button type="button" class="btn btn-outline-sm" onclick="const el=document.getElementById('liveTitlePagePreviewBox'); if(el) el.style.display=el.style.display==='none'?'grid':'none';">
                   👁️ Podgląd 1:1 Strony Tytułowej (Rys. 2) i Teczki (Rys. 1)
                 </button>
                 <button type="button" class="btn btn-warning" style="padding:0.3rem 0.75rem; font-size:0.78rem; font-weight:800; color:#0f172a;" onclick="openFolderCoverReport()">
@@ -1104,30 +1104,30 @@
               </div>
             </div>
             <div class="b-card-body" style="padding:0.9rem 1.15rem;">
-              <div style="font-size:0.8rem;color:#0369a1;font-weight:600;margin-bottom:0.5rem;">🪪 Dane projektanta (automatycznie zsynchronizowane z Modułem 0 w panelu Założeń)</div>
+              <div style="font-size:0.8rem;color:var(--accent-cyan);font-weight:600;margin-bottom:0.5rem;">🪪 Dane projektanta (automatycznie zsynchronizowane z Modułem 0 w panelu Założeń)</div>
               <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(175px, 1fr)); gap:0.65rem;">
                 <div class="input-group" style="margin:0;">
-                  <label for="ws_student_name" style="font-weight:700; color:#0f172a;">Imię i Nazwisko projektanta:</label>
-                  <input type="text" id="ws_student_name" value="{{ designer_defaults.student_name }}" placeholder="np. Jan Kowalski" oninput="syncStudentDesignerFields('workstation')" style="font-weight:700; border-color:#0284c7;">
+                  <label for="ws_student_name" style="font-weight:700; color:var(--text-primary);">Imię i Nazwisko projektanta:</label>
+                  <input type="text" id="ws_student_name" value="{{ designer_defaults.student_name }}" placeholder="np. Jan Kowalski" oninput="syncStudentDesignerFields('workstation')" style="font-weight:700; border-color:var(--accent-cyan);">
                 </div>
                 <div class="input-group" style="margin:0;">
-                  <label for="ws_album_no" style="font-weight:700; color:#0f172a;">Nr Albumu:</label>
-                  <input type="text" id="ws_album_no" value="{{ designer_defaults.album_no }}" placeholder="np. 312456" oninput="syncStudentDesignerFields('workstation')" style="font-weight:700; border-color:#0284c7;">
+                  <label for="ws_album_no" style="font-weight:700; color:var(--text-primary);">Nr Albumu:</label>
+                  <input type="text" id="ws_album_no" value="{{ designer_defaults.album_no }}" placeholder="np. 312456" oninput="syncStudentDesignerFields('workstation')" style="font-weight:700; border-color:var(--accent-cyan);">
                 </div>
                 <div class="input-group" style="margin:0;">
-                  <label for="ws_group_no" style="font-weight:700; color:#0f172a;">Grupa (np. A – czwartek 8:15-9:00):</label>
+                  <label for="ws_group_no" style="font-weight:700; color:var(--text-primary);">Grupa (np. A – czwartek 8:15-9:00):</label>
                   <input type="text" id="ws_group_no" value="{{ designer_defaults.group_no }}" oninput="syncStudentDesignerFields('workstation')">
                 </div>
                 <div class="input-group" style="margin:0;">
-                  <label for="ws_supervisor" style="font-weight:700; color:#0f172a;">Prowadzący (np. M.Figat):</label>
+                  <label for="ws_supervisor" style="font-weight:700; color:var(--text-primary);">Prowadzący (np. M.Figat):</label>
                   <input type="text" id="ws_supervisor" value="{{ designer_defaults.supervisor }}" oninput="syncStudentDesignerFields('workstation')">
                 </div>
                 <div class="input-group" style="margin:0;">
-                  <label for="ws_submission_date" style="font-weight:700; color:#0f172a;">Data oddania projektu:</label>
+                  <label for="ws_submission_date" style="font-weight:700; color:var(--text-primary);">Data oddania projektu:</label>
                   <input type="text" id="ws_submission_date" value="{{ designer_defaults.submission_date }}" oninput="syncStudentDesignerFields('workstation')">
                 </div>
                 <div class="input-group" style="margin:0;">
-                  <label for="ws_academic_year" style="font-weight:700; color:#0f172a;">Rok akademicki (na teczkę):</label>
+                  <label for="ws_academic_year" style="font-weight:700; color:var(--text-primary);">Rok akademicki (na teczkę):</label>
                   <input type="text" id="ws_academic_year" value="{{ designer_defaults.academic_year }}" oninput="syncStudentDesignerFields('workstation')">
                 </div>
               </div>
@@ -1462,7 +1462,7 @@
                 </div>
                 <div class="subpoint-body">
                   <div class="p3-airfoil-layout">
-                    <div style="background:#f8fafc; padding:0.75rem; border-radius:6px; border:1px solid #e2e8f0; font-size:0.84rem;">
+                    <div class="paturski-summary-card" style="margin-bottom:0;">
                       <strong>Wymagania konstrukcyjne rysunku 3-rzutowego:</strong>
                       <ul id="p3_blueprint_checks_list" style="margin:4px 0 0 16px; padding:0;">
                         <li>Widoczność pilota: do sprawdzenia na zwymiarowanym przekroju kabiny.</li>
@@ -1471,7 +1471,7 @@
                         <li id="p3_chk_gear">Stateczność na podwoziu: do sprawdzenia z rzeczywistą wysokością środka masy.</li>
                       </ul>
                     </div>
-                    <div style="background:#f8fafc; padding:0.75rem; border-radius:6px; border:1px solid #e2e8f0; font-size:0.84rem;">
+                    <div class="paturski-summary-card" style="margin-bottom:0;">
                       <strong>Rysunek wybranego profilu skrzydła (c = 200 mm):</strong>
                       <p id="p3_airfoil_desc" style="margin:4px 0;">Profil do wykreślenia na arkuszu z rysunkiem samolotu, w skali 1:1.</p>
                       <div id="p3AirfoilEditorHost"></div>
@@ -1521,7 +1521,7 @@
                       <tbody id="p3_loading_tbody"></tbody>
                     </table>
                   </div>
-                  <div style="margin-top:0.75rem; background:#eff6ff; padding:0.75rem; border-radius:6px; font-size:0.84rem; color:#1e3a8a;">
+                  <div class="paturski-summary-card" style="margin-top:0.75rem; margin-bottom:0;">
                     <strong>Momenty bezwładności i twierdzenie Steinera (do 1/4 ŚDA):</strong><br>
                     Momenty w ŚM: <code>Jx = <span id="p3_jx">---</span> kg&bull;m²</code> &bull; <code>Jy = <span id="p3_jy">---</span> kg&bull;m²</code> &bull; <code>Jz = <span id="p3_jz">---</span> kg&bull;m²</code>.<br>
                     Momenty względem 1/4 ŚDA: <code>Jy(1/4 ŚDA) = <span id="p3_jy_steiner">---</span> kg&bull;m²</code> &bull; <code>Jz(1/4 ŚDA) = <span id="p3_jz_steiner">---</span> kg&bull;m²</code>.
@@ -1633,7 +1633,7 @@
                       <tbody id="p4_drag_tbody"></tbody>
                     </table>
                   </div>
-                  <div id="p4_paturski_aero_summary" style="background:#f8fafc; border:1px solid #cbd5e1; border-radius:6px; padding:0.65rem 0.85rem; font-size:0.82rem; color:#334155; margin-bottom:0.75rem;"></div>
+                  <div id="p4_paturski_aero_summary" class="paturski-summary-card"></div>
 
                   <!-- Tabela C wg Z. Paturskiego: Procentowy wpływ oporów części samolotu na Cx,min -->
                   <div style="margin-bottom:0.85rem;">
@@ -1712,7 +1712,7 @@
                     Prędkość ekonomiczna (minimalnego opadania): <strong>V_ekon = <span id="p4_vekon">---</span> km/h</strong> (opadanie <strong>w_min = <span id="p4_wmin">---</span> m/s</strong>).<br>
                     Prędkość optymalna (maksymalnej doskonałości): <strong>V_opt = <span id="p4_vopt">---</span> km/h</strong> (doskonałość <strong>K_max = <span id="p4_kmax">---</span></strong>).
                   </p>
-                  <div id="p4_glide_comparison_box" style="background:#eff6ff; border:1px solid #bfdbfe; border-radius:6px; padding:0.6rem 0.85rem; font-size:0.82rem; color:#1e3a8a; margin-bottom:0.5rem;"></div>
+                  <div id="p4_glide_comparison_box" class="paturski-summary-card"></div>
                   <div id="p4_paturski_t41_box" style="display:none; overflow-x:auto; margin-top:0.5rem;">
                     <table class="b-table" style="font-size:0.78rem;">
                       <thead>
@@ -1817,7 +1817,7 @@
                   <span class="badge badge-info">Opcjonalne (+5 pkt)</span>
                 </div>
                 <div class="subpoint-body">
-                  <div id="p5_paturski_ceiling_banner" style="background:#f8fafc; border:1px solid #cbd5e1; border-radius:6px; padding:0.6rem 0.85rem; font-size:0.83rem; color:#334155; margin-bottom:0.75rem;"></div>
+                  <div id="p5_paturski_ceiling_banner" class="paturski-summary-card"></div>
                   <div style="overflow-x:auto;">
                     <table class="b-table">
                       <thead>
@@ -1854,7 +1854,7 @@
                     </thead>
                     <tbody id="p5_range_tbody"></tbody>
                   </table>
-                  <div id="p5_paturski_range_summary" style="background:#ecfdf5; border:1px solid #a7f3d0; border-radius:6px; padding:0.6rem 0.85rem; font-size:0.83rem; color:#065f46; margin-bottom:0.5rem;"></div>
+                  <div id="p5_paturski_range_summary" class="paturski-summary-card"></div>
                   <div id="p5_paturski_t63_box" style="display:none; overflow-x:auto; margin-top:0.5rem;">
                     <table class="b-table" style="font-size:0.78rem;">
                       <thead>
@@ -2069,8 +2069,8 @@
             </button>
             <input type="file" id="projectImportFileInput" accept=".json" style="display:none;">
           </div>
-          <div style="font-size:0.8rem; color:#64748b;">
-            Zapisanych projektów: <strong id="hubProjectsTotalCount" style="color:#0f172a;">0</strong>
+          <div style="font-size:0.8rem; color:var(--text-muted);">
+            Zapisanych projektów: <strong id="hubProjectsTotalCount" style="color:var(--text-primary);">0</strong>
           </div>
         </div>
 

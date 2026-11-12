@@ -1,1 +1,453 @@
-:root{font-family:system-ui,sans-serif;color:#172e41;background:#f3f5f7;line-height:1.5;--line:#c7d1da;--blue:#075879}*{box-sizing:border-box}body{margin:0}header,main,nav,footer{max-width:1300px;margin:auto;padding:1.25rem 2rem}header{display:flex;align-items:center;justify-content:space-between;gap:1rem}h1{font-size:2rem;margin:.25rem 0}h2{font-size:1.35rem}header p{margin:0;color:#496277}nav{display:flex;gap:.5rem;border-bottom:1px solid var(--line);flex-wrap:wrap}button,select,input,textarea{font:inherit;color:inherit}button,select,input,textarea{border:1px solid #90a5b5;border-radius:5px;padding:.5rem .65rem;background:white}button{cursor:pointer}button:hover{border-color:var(--blue);background:#eaf5fb}button[aria-pressed=true],button.primary{background:var(--blue);color:white}button:disabled{cursor:wait;opacity:.6}a{color:#075879}section{margin-bottom:2rem}section>p{max-width:950px}label{display:flex;flex-direction:column;gap:.3rem;font-size:.9rem}label>span{font-weight:600}input[type=checkbox]{width:1.15rem;height:1.15rem}input[type=number]{width:100%}textarea{width:100%;min-height:6rem;font-family:ui-monospace,monospace;font-size:.82rem;line-height:1.5;tab-size:2}textarea.data{min-height:11rem}fieldset{min-width:0;border:1px solid var(--line);border-radius:6px;padding:1rem;margin:1rem 0;background:white}legend{font-weight:650;padding:0 .4rem}.field-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,220px),1fr));gap:1rem}.wide{grid-column:1/-1}.field-tools{display:flex;flex-wrap:wrap;gap:.4rem;margin:.3rem 0}.field-tools button{font-size:.8rem}.toolbar{display:flex;align-items:end;flex-wrap:wrap;gap:.6rem;margin:1rem 0}.toolbar h2{margin-right:auto}.notice{background:#fff5d6;border-left:4px solid #b47a14;padding:.8rem}.hint{font-size:.8rem;color:#496277}.error{padding:1rem;background:#ffeded;border-left:4px solid #b91c1c;color:#8e1717}.success{padding:1rem;background:#e7f5ed;border-left:4px solid #257752}.pending{padding:1rem;background:#e6f2fb}.metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:.8rem}.metric{background:white;border:1px solid var(--line);padding:.8rem}.metric strong{display:block;font-size:1.3rem}.metric span{font-size:.85rem;color:#496277}details{margin:1rem 0;border:1px solid var(--line);padding:.7rem;background:white}summary{cursor:pointer;font-weight:600}pre{font-size:.8rem;overflow:auto;max-height:500px;white-space:pre-wrap;overflow-wrap:anywhere}.table-wrap{max-width:100%;overflow:auto}table{border-collapse:collapse;font-size:.8rem;width:100%}th,td{border:1px solid var(--line);padding:.4rem .6rem;text-align:right;white-space:nowrap}th{background:#eaf0f5}td:first-child,th:first-child{text-align:left}.chart{width:100%;height:auto;max-height:460px;display:block;background:white;border:1px solid var(--line);margin:1rem 0}.legend{display:flex;gap:1rem;flex-wrap:wrap;font-size:.85rem}.skip{position:absolute;top:-80px;left:10px}.skip:focus{top:5px;background:white;z-index:5}footer{font-size:.8rem;border-top:1px solid var(--line)}#saveStatus{font-size:.8rem;max-width:250px}.invalid{border-color:#b91c1c!important}:focus-visible{outline:3px solid #e8aa23;outline-offset:2px}[hidden]{display:none!important}@media(max-width:650px){header,main,nav,footer{padding:1rem}header{align-items:start}h1{font-size:1.6rem}.toolbar{align-items:stretch;flex-direction:column}.toolbar h2{margin:0}.toolbar button,.toolbar label{width:100%}fieldset{padding:.7rem}nav button{flex:1}.chart{min-height:230px}}
+/* ==========================================================================
+   Mechanika Lotu I (ML1) — Modern Aerospace Design System
+   Wydział MEiL PW
+   ========================================================================== */
+
+:root {
+  --bg-app: #f3f6fa;
+  --bg-surface: #ffffff;
+  --bg-subtle: #f8fafc;
+  --bg-hover: #eef2f7;
+  --text-primary: #0f172a;
+  --text-secondary: #334155;
+  --text-muted: #64748b;
+  --line: #cbd5e1;
+  --line-subtle: #e2e8f0;
+  --blue: #0d9488;
+  --blue-hover: #0f766e;
+  --blue-soft: #f0fdfa;
+  --accent-cyan: #0284c7;
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --shadow-sm: 0 1px 3px rgba(15, 23, 42, 0.06), 0 1px 2px rgba(15, 23, 42, 0.04);
+  font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, system-ui, sans-serif;
+  color: var(--text-primary);
+  background: var(--bg-app);
+  line-height: 1.55;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg-app: #070b14;
+    --bg-surface: #0f172a;
+    --bg-subtle: #111a2e;
+    --bg-hover: #1e293b;
+    --text-primary: #f1f5f9;
+    --text-secondary: #cbd5e1;
+    --text-muted: #94a3b8;
+    --line: rgba(148, 163, 184, 0.2);
+    --line-subtle: rgba(148, 163, 184, 0.12);
+    --blue: #14b8a6;
+    --blue-hover: #2dd4bf;
+    --blue-soft: rgba(20, 184, 166, 0.14);
+    --accent-cyan: #38bdf8;
+    --shadow-sm: 0 4px 16px rgba(0, 0, 0, 0.45);
+  }
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--bg-app);
+  color: var(--text-primary);
+}
+
+header, main, nav, footer {
+  max-width: 1340px;
+  margin: auto;
+  padding: 1.25rem 2rem;
+}
+
+header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  border-bottom: 1px solid var(--line-subtle);
+  background: var(--bg-surface);
+  box-shadow: var(--shadow-sm);
+}
+
+h1 {
+  font-size: 1.85rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  margin: 0.25rem 0;
+  color: var(--text-primary);
+}
+
+h2 {
+  font-size: 1.35rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--text-primary);
+}
+
+header p {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 0.92rem;
+}
+
+nav {
+  display: flex;
+  gap: 0.5rem;
+  border-bottom: 1px solid var(--line);
+  flex-wrap: wrap;
+  padding-top: 1rem;
+  padding-bottom: 1rem;
+}
+
+button, select, input, textarea {
+  font: inherit;
+  color: var(--text-primary);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  padding: 0.52rem 0.75rem;
+  background: var(--bg-surface);
+  transition: all 0.16s ease;
+}
+
+button {
+  cursor: pointer;
+  font-weight: 600;
+}
+
+button:hover {
+  border-color: var(--blue);
+  background: var(--blue-soft);
+}
+
+button[aria-pressed="true"],
+button.primary {
+  background: var(--blue);
+  border-color: var(--blue);
+  color: #ffffff;
+  box-shadow: 0 2px 6px rgba(13, 148, 136, 0.25);
+}
+
+button[aria-pressed="true"]:hover,
+button.primary:hover {
+  background: var(--blue-hover);
+  border-color: var(--blue-hover);
+}
+
+button:disabled {
+  cursor: wait;
+  opacity: 0.6;
+}
+
+a {
+  color: var(--blue);
+  text-decoration: none;
+  font-weight: 600;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+section {
+  margin-bottom: 2rem;
+}
+
+section > p {
+  max-width: 950px;
+  color: var(--text-secondary);
+}
+
+label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  font-size: 0.88rem;
+  color: var(--text-secondary);
+}
+
+label > span {
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+input[type="checkbox"] {
+  width: 1.15rem;
+  height: 1.15rem;
+  accent-color: var(--blue);
+}
+
+input[type="number"] {
+  width: 100%;
+  font-variant-numeric: tabular-nums;
+}
+
+textarea {
+  width: 100%;
+  min-height: 6rem;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.82rem;
+  line-height: 1.5;
+  tab-size: 2;
+}
+
+textarea.data {
+  min-height: 11rem;
+}
+
+fieldset {
+  min-width: 0;
+  border: 1px solid var(--line-subtle);
+  border-radius: var(--radius-md);
+  padding: 1.15rem;
+  margin: 1rem 0;
+  background: var(--bg-surface);
+  box-shadow: var(--shadow-sm);
+}
+
+legend {
+  font-weight: 700;
+  padding: 0 0.5rem;
+  color: var(--text-primary);
+}
+
+.field-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr));
+  gap: 1rem;
+}
+
+.wide {
+  grid-column: 1 / -1;
+}
+
+.field-tools {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin: 0.3rem 0;
+}
+
+.field-tools button {
+  font-size: 0.8rem;
+}
+
+.toolbar {
+  display: flex;
+  align-items: end;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+  margin: 1rem 0;
+}
+
+.toolbar h2 {
+  margin-right: auto;
+}
+
+.notice {
+  background: rgba(245, 158, 11, 0.12);
+  border: 1px solid rgba(245, 158, 11, 0.3);
+  border-left: 4px solid #d97706;
+  border-radius: var(--radius-sm);
+  padding: 0.85rem 1rem;
+  color: var(--text-primary);
+}
+
+.hint {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.error {
+  padding: 1rem;
+  background: rgba(239, 68, 68, 0.12);
+  border-left: 4px solid #dc2626;
+  border-radius: var(--radius-sm);
+  color: #dc2626;
+}
+
+.success {
+  padding: 1rem;
+  background: rgba(16, 185, 129, 0.12);
+  border-left: 4px solid #10b981;
+  border-radius: var(--radius-sm);
+}
+
+.pending {
+  padding: 1rem;
+  background: var(--blue-soft);
+  border-radius: var(--radius-sm);
+}
+
+.metrics {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 0.85rem;
+}
+
+.metric {
+  background: var(--bg-surface);
+  border: 1px solid var(--line-subtle);
+  border-radius: var(--radius-md);
+  padding: 0.9rem 1rem;
+  box-shadow: var(--shadow-sm);
+}
+
+.metric strong {
+  display: block;
+  font-size: 1.35rem;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-primary);
+}
+
+.metric span {
+  font-size: 0.84rem;
+  color: var(--text-muted);
+}
+
+details {
+  margin: 1rem 0;
+  border: 1px solid var(--line-subtle);
+  border-radius: var(--radius-sm);
+  padding: 0.8rem 1rem;
+  background: var(--bg-surface);
+}
+
+summary {
+  cursor: pointer;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+pre {
+  font-size: 0.8rem;
+  overflow: auto;
+  max-height: 500px;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  background: var(--bg-subtle);
+  padding: 0.75rem;
+  border-radius: var(--radius-sm);
+}
+
+.table-wrap {
+  max-width: 100%;
+  overflow: auto;
+  border: 1px solid var(--line-subtle);
+  border-radius: var(--radius-sm);
+}
+
+table {
+  border-collapse: collapse;
+  font-size: 0.82rem;
+  width: 100%;
+  background: var(--bg-surface);
+}
+
+th, td {
+  border: 1px solid var(--line-subtle);
+  padding: 0.45rem 0.65rem;
+  text-align: right;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+th {
+  background: var(--bg-subtle);
+  color: var(--text-secondary);
+  font-weight: 700;
+}
+
+td:first-child, th:first-child {
+  text-align: left;
+}
+
+.chart {
+  width: 100%;
+  height: auto;
+  max-height: 460px;
+  display: block;
+  background: var(--bg-surface);
+  border: 1px solid var(--line-subtle);
+  border-radius: var(--radius-md);
+  margin: 1rem 0;
+  box-shadow: var(--shadow-sm);
+}
+
+.legend {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+  font-size: 0.85rem;
+}
+
+.skip {
+  position: absolute;
+  top: -80px;
+  left: 10px;
+}
+
+.skip:focus {
+  top: 5px;
+  background: var(--bg-surface);
+  padding: 0.4rem 0.75rem;
+  border-radius: var(--radius-sm);
+  z-index: 5;
+}
+
+footer {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  border-top: 1px solid var(--line-subtle);
+}
+
+#saveStatus {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  max-width: 250px;
+}
+
+.invalid {
+  border-color: #dc2626 !important;
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent-cyan);
+  outline-offset: 2px;
+}
+
+[hidden] {
+  display: none !important;
+}
+
+@media (max-width: 650px) {
+  header, main, nav, footer {
+    padding: 1rem;
+  }
+  header {
+    align-items: start;
+  }
+  h1 {
+    font-size: 1.6rem;
+  }
+  .toolbar {
+    align-items: stretch;
+    flex-direction: column;
+  }
+  .toolbar h2 {
+    margin: 0;
+  }
+  .toolbar button, .toolbar label {
+    width: 100%;
+  }
+  fieldset {
+    padding: 0.75rem;
+  }
+  nav button {
+    flex: 1;
+  }
+  .chart {
+    min-height: 230px;
+  }
+}

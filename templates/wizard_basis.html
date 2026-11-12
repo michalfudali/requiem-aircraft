@@ -6,9 +6,9 @@
 </div>
 {% with prefix='wiz_' %}{% include 'basis_selectors.html' %}{% endwith %}
 
-<div class="wizard-suggest-banner" style="margin: 8px 0; background:#f0f9ff; border:1px solid #bae6fd; padding:6px 12px; border-radius:6px; display:flex; justify-content:space-between; align-items:center; gap:8px; flex-wrap:wrap;">
-  <span style="font-size:0.78rem; color:#0369a1; flex:1 1 260px;">📊 <strong>Analiza trendów (BIPOL_1):</strong> wydłużenie skrzydła z próby podobnych konstrukcji<span id="wizTrendPreviewBasis"></span></span>
-  <button type="button" class="btn btn-outline" id="wizApplyTrendGeometryBtn" style="padding:2px 8px; font-size:0.75rem; background:#ffffff; font-weight:700; color:#0284c7;">
+<div class="wizard-suggest-banner">
+  <span class="wizard-suggest-text">📊 <strong>Analiza trendów (BIPOL_1):</strong> wydłużenie skrzydła z próby podobnych konstrukcji<span id="wizTrendPreviewBasis"></span></span>
+  <button type="button" class="btn btn-outline btn-xs" id="wizApplyTrendGeometryBtn">
     Zastosuj z trendów
   </button>
 </div>
@@ -40,45 +40,45 @@
   <legend>Wielkości narzucone w temacie (Kluczowe założenia projektowe)</legend>
   <div class="basis-requirements-grid" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 10px; margin-top: 6px;">
     
-    <div class="assumption-input-card" style="display:flex; flex-direction:column; gap:4px; padding:8px 10px; background:#f8fafc; border:1px solid #cbd5e1; border-radius:6px;">
+    <div class="assumption-input-card">
       <label style="display:inline-flex; gap:6px; align-items:center; font-weight:700; font-size:0.8rem; margin:0; cursor:pointer;">
         <input type="checkbox" data-wizard-assumption="range_km" id="wiz_lock_range_km">
         <span>Zasięg obliczeniowy R</span>
       </label>
       <div style="display:flex; align-items:center; gap:6px; margin-top:2px;">
-        <input type="number" step="1" id="wiz_basis_range_km" min="0" max="30000" step="1" value="640" style="flex:1; padding:4px 8px; border-radius:4px; border:1px solid #94a3b8; font-weight:700; font-size:0.85rem;" placeholder="np. 640" title="Wpisz własny zasięg obliczeniowy">
-        <span style="font-size:0.75rem; color:#64748b; font-weight:700;">km</span>
+        <input type="number" step="1" id="wiz_basis_range_km" min="0" max="30000" value="640" style="flex:1; padding:4px 8px; border-radius:6px; font-weight:700; font-size:0.85rem;" placeholder="np. 640" title="Wpisz własny zasięg obliczeniowy">
+        <span class="assumption-unit">km</span>
       </div>
     </div>
 
-    <div class="assumption-input-card" style="display:flex; flex-direction:column; gap:4px; padding:8px 10px; background:#f8fafc; border:1px solid #cbd5e1; border-radius:6px;">
+    <div class="assumption-input-card">
       <label style="display:inline-flex; gap:6px; align-items:center; font-weight:700; font-size:0.8rem; margin:0; cursor:pointer;">
         <input type="checkbox" data-wizard-assumption="cruise_speed_kmh" id="wiz_lock_cruise_speed_kmh">
         <span>Prędkość przelotowa Vcr</span>
       </label>
       <div style="display:flex; align-items:center; gap:6px; margin-top:2px;">
-        <input type="number" step="1" id="wiz_basis_cruise_speed_kmh" min="30" max="1200" step="1" value="174" style="flex:1; padding:4px 8px; border-radius:4px; border:1px solid #94a3b8; font-weight:700; font-size:0.85rem;" placeholder="np. 174" title="Wpisz własną prędkość przelotową">
-        <span style="font-size:0.75rem; color:#64748b; font-weight:700;">km/h</span>
+        <input type="number" step="1" id="wiz_basis_cruise_speed_kmh" min="30" max="1200" value="174" style="flex:1; padding:4px 8px; border-radius:6px; font-weight:700; font-size:0.85rem;" placeholder="np. 174" title="Wpisz własną prędkość przelotową">
+        <span class="assumption-unit">km/h</span>
       </div>
     </div>
 
-    <div class="assumption-input-card" style="display:flex; flex-direction:column; gap:4px; padding:8px 10px; background:#f8fafc; border:1px solid #cbd5e1; border-radius:6px;">
+    <div class="assumption-input-card">
       <label style="display:inline-flex; gap:6px; align-items:center; font-weight:700; font-size:0.8rem; margin:0; cursor:pointer;">
         <input type="checkbox" data-wizard-assumption="v_stall_kmh" id="wiz_lock_v_stall_kmh">
         <span>Maks. prędkość VS0</span>
       </label>
       <div style="display:flex; align-items:center; gap:6px; margin-top:2px;">
-        <input type="number" step="1" id="wiz_basis_v_stall_kmh" min="30" max="400" step="1" value="84" style="flex:1; padding:4px 8px; border-radius:4px; border:1px solid #94a3b8; font-weight:700; font-size:0.85rem;" placeholder="np. 84" title="Wpisz limit prędkości przeciągnięcia">
-        <span style="font-size:0.75rem; color:#64748b; font-weight:700;">km/h</span>
+        <input type="number" step="1" id="wiz_basis_v_stall_kmh" min="30" max="400" value="84" style="flex:1; padding:4px 8px; border-radius:6px; font-weight:700; font-size:0.85rem;" placeholder="np. 84" title="Wpisz limit prędkości przeciągnięcia">
+        <span class="assumption-unit">km/h</span>
       </div>
     </div>
 
-    <div class="assumption-input-card" style="display:flex; flex-direction:column; gap:4px; padding:8px 10px; background:#f8fafc; border:1px solid #cbd5e1; border-radius:6px;">
+    <div class="assumption-input-card">
       <label style="display:inline-flex; gap:6px; align-items:center; font-weight:700; font-size:0.8rem; margin:0; cursor:pointer;">
         <input type="checkbox" data-wizard-assumption="n_pax" id="wiz_lock_n_pax">
         <span>Liczba pasażerów [os.]</span>
       </label>
-      <div style="font-size:0.75rem; color:#0369a1; padding-top:4px;">
+      <div class="assumption-pax-note">
         Sterowana polem: <b>liczba pasażerów poniżej</b>
       </div>
     </div>

@@ -1,4 +1,4 @@
-﻿"""
+"""
 Aplikacja Webowa BiPOL Requiem - Wstępne Projektowanie Samolotów
 Wydział Mechaniczny Energetyki i Lotnictwa Politechniki Warszawskiej (MEiL PW)
 Zakład Samolotów i Śmigłowców (ZSiS)
@@ -134,9 +134,12 @@ def user_projects():
 def index_page(**extra):
     """Main page: course data from the projects database, examples from the aircraft database."""
     from calculations.design_controls import controls
-    return render_template('index.html', design_controls=controls(), presets=AIRCRAFT_PRESETS, categories=OFFICIAL_CATEGORIES, topics=ALL_TOPICS,
+    html = render_template('index.html', design_controls=controls(), presets=AIRCRAFT_PRESETS, categories=OFFICIAL_CATEGORIES, topics=ALL_TOPICS,
                            projects=user_projects(), wetted_examples=aircraft_store.wetted_area_examples(),
                            model_examples=aircraft_store.model_examples(), regulations=catalog_for_frontend(), **extra)
+    response = app.make_response(html)
+    response.headers['Cache-Control'] = 'no-store'
+    return response
 
 
 @app.route('/')

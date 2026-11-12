@@ -72,7 +72,7 @@
           {% include 'wizard_basis.html' %}
 
           <details class="wizard-author"><summary>Dane autora do raportu</summary>
-          <div style="background:#f0f9ff; border:1px solid #bae6fd; border-radius:8px; padding:0.75rem; margin-bottom:0.85rem;">
+          <div class="wizard-author-box">
             <div class="input-row">
               <div class="input-group">
                 <label for="wiz_student_name">Imię i Nazwisko projektanta:</label>
@@ -122,7 +122,7 @@
           </div>
 
           <!-- Alert bezzałogowca EASA UAS w kreatorze -->
-          <div id="wiz_uav_easa_banner" style="display:none; background:#eff6ff; border:1px solid #93c5fd; border-radius:6px; padding:6px 10px; margin-bottom:10px; font-size:0.75rem; color:#1e40af;">
+          <div id="wiz_uav_easa_banner" class="uav-easa-banner" style="display:none;">
             🤖 <strong>EASA UAS (UE 2019/947 & 2019/945):</strong> Model bezzałogowy – <strong>0 osób na pokładzie</strong>. Kategoria operacji wymaga oceny ryzyka; nie wynika z masy 600 kg. Sterowanie ze stacji naziemnej (GCS). Masa wyposażenia zadaniowego (sensory, głowica optoelektroniczna, łącze C2).
           </div>
 
@@ -176,8 +176,8 @@
           </div>
 
           <div class="wizard-suggest-banner">
-            <span>💡 Chcesz dopasować prędkości do wybranej klasy samolotu?</span>
-            <button type="button" class="btn btn-outline" id="wizSuggestSpeedsBtn" style="padding:0.25rem 0.65rem; font-size:0.75rem; background:#ffffff;">
+            <span class="wizard-suggest-text">💡 Chcesz dopasować prędkości do wybranej klasy samolotu?</span>
+            <button type="button" class="btn btn-outline btn-xs" id="wizSuggestSpeedsBtn">
               Automatycznie zasugeruj typowe osiągi
             </button>
           </div>
@@ -375,9 +375,9 @@
           <p class="wizard-method-note">To biegunowa wstępna P1/P2. W trybie domknięcia P2–P4 bilans misji jest następnie sprawdzany z oporem obliczonym z geometrii.
             <a href="/static/images/bipol1-raymer.png" target="_blank" rel="noopener">Metoda BIPOL_1</a> · <a href="https://www1.grc.nasa.gov/beginners-guide-to-aeronautics/modern-drag-equation/" target="_blank" rel="noopener">Biegunowa paraboliczna — NASA</a>.</p>
 
-          <div class="wizard-suggest-banner" style="margin-bottom:12px; background:#f0f9ff; border:1px solid #bae6fd; padding:6px 12px; border-radius:6px; display:flex; justify-content:space-between; align-items:center; gap:8px; flex-wrap:wrap;">
-            <span style="font-size:0.78rem; color:#0369a1;">📊 <strong>Analiza trendów (BIPOL_1):</strong> AR z trendu oraz średnie V_H, V_V, lotek, sterów i wzniosu z podobnych samolotów<span id="wizTrendPreviewGeometry"></span></span>
-            <button type="button" class="btn btn-outline" id="wizSuggestTrendsBtn" style="padding:2px 8px; font-size:0.75rem; background:#ffffff; font-weight:700; color:#0284c7;">
+          <div class="wizard-suggest-banner" style="margin-bottom:12px;">
+            <span class="wizard-suggest-text">📊 <strong>Analiza trendów (BIPOL_1):</strong> AR z trendu oraz średnie V_H, V_V, lotek, sterów i wzniosu z podobnych samolotów<span id="wizTrendPreviewGeometry"></span></span>
+            <button type="button" class="btn btn-outline btn-xs" id="wizSuggestTrendsBtn">
               Zastosuj z trendów
             </button>
           </div>

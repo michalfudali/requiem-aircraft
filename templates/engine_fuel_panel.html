@@ -1,14 +1,14 @@
-<section id="engineFuelPanel" class="engine-fuel-box" style="margin:0.75rem 0;padding:0.85rem;background:#f8fafc;border:1px solid #cbd5e1;border-radius:6px;">
+<section id="engineFuelPanel" class="engine-fuel-box" style="margin:0.75rem 0;padding:0.85rem;background:var(--bg-surface-subtle);border:1px solid var(--border-default);border-radius:var(--radius-sm, 6px);">
   <style>
     #engineFuelPanel [hidden]{display:none!important}
     #engineFuelPanel label{display:block;margin:.5rem 0;min-width:0;font-size:0.85rem;}
     #engineFuelPanel input,#engineFuelPanel select{width:100%;min-width:0;max-width:100%;box-sizing:border-box}
     #engineFuelPanel p,#engineFuelPanel td{overflow-wrap:anywhere}
   </style>
-  <div style="font-weight:700;font-size:0.88rem;color:#0f172a;margin-bottom:0.3rem;">
+  <div style="font-weight:700;font-size:0.88rem;color:var(--text-primary);margin-bottom:0.3rem;">
     🛢️ Dobór silnika i udokumentowane SFC
   </div>
-  <p style="font-size:0.8rem;color:#64748b;margin-bottom:0.5rem;line-height:1.35;">
+  <p style="font-size:0.8rem;color:var(--text-muted);margin-bottom:0.5rem;line-height:1.35;">
     Wybierz rzeczywisty silnik z katalogu (z fabryczną dokumentacją) lub wprowadź własne źródło producenta. Moc podaje się na jeden silnik; program uwzględnia ich liczbę.
   </p>
   <label style="font-weight:600;">Podstawa danych
@@ -31,8 +31,8 @@
     <label>Warunki punktu SFC: moc/ciąg, obroty, H i M <input id="engine_fuel_conditions" data-engine-field type="text" maxlength="2000" placeholder="np. 58 kW, 5500 rpm, maximum continuous, ISA"></label>
     <input id="engine_custom_sfc" data-engine-field type="number" min="0.001" max="1000" step="0.01" style="display:none;">
     <details style="margin-top:0.4rem;">
-      <summary style="font-size:0.8rem;cursor:pointer;color:#0f766e;font-weight:600;">Źródło dla dodatkowego zadania na maksymalnym ustawieniu</summary>
-      <p style="font-size:0.78rem;color:#64748b;margin:0.25rem 0;">Uzupełnij, jeśli misja zawiera czas maksymalnej mocy lub ciągu. Wartość SFC tego zadania podaj w jego założeniach.</p>
+      <summary style="font-size:0.8rem;cursor:pointer;color:var(--accent-teal);font-weight:600;">Źródło dla dodatkowego zadania na maksymalnym ustawieniu</summary>
+      <p style="font-size:0.78rem;color:var(--text-muted);margin:0.25rem 0;">Uzupełnij, jeśli misja zawiera czas maksymalnej mocy lub ciągu. Wartość SFC tego zadania podaj w jego założeniach.</p>
       <label>Dokument i strona danych maksymalnego ustawienia <input id="engine_max_fuel_source" data-engine-field type="text" maxlength="2000"></label>
       <label>Warunki maksymalnego ustawienia <input id="engine_max_fuel_conditions" data-engine-field type="text" maxlength="2000"></label>
     </details>
@@ -55,7 +55,7 @@
   </button>
   <div id="engineFuelStatus" role="status" style="margin:0.6rem 0;font-size:0.82rem;line-height:1.35;"></div>
   <details style="margin-top:0.35rem;">
-    <summary style="font-size:0.8rem;cursor:pointer;font-weight:600;color:#0f766e;">Porównaj rzeczywiste propozycje silników</summary>
+    <summary style="font-size:0.8rem;cursor:pointer;font-weight:600;color:var(--accent-teal);">Porównaj rzeczywiste propozycje silników</summary>
     <div class="trend-table-scroll" id="engineFuelCandidates" style="margin-top:0.35rem;"></div>
   </details>
 </section>
