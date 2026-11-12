@@ -73,7 +73,7 @@ def test_jet_topics_are_not_seeded_with_piston_stall_speeds():
     assert r['geometry']['wing']['S'] < 40
     # Topic 61 has no span limit. Span follows the chosen AR and solved area;
     # a rounded 18 m benchmark must not invalidate an otherwise consistent 18.08 m design.
-    assert r['params'].get('span_limit') is None
+    assert not r['params'].get('span_limit')  # normalized zero and omitted/None both mean no limit
     assert r['geometry']['wing']['b'] == pytest.approx(math.sqrt(r['geometry']['wing']['S'] * r['geometry']['wing']['AR']))
     assert r['mass']['m0'] / r['geometry']['wing']['S'] > 150
 

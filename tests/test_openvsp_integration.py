@@ -511,15 +511,30 @@ def test_full_vsp_pipeline_and_error_handling(mock_vsp, sample_project_results, 
 def test_flask_openvsp_endpoints(monkeypatch, mock_vsp):
     import app as flask_app
     import calculations.openvsp_integration as vsp_mod
+    import calculations.openvsp_bridge as bridge
 
     client = flask_app.app.test_client()
 
     # 1. Status endpoint (gdy openvsp jest dostępny przez wstrzyknięcie)
     monkeypatch.setattr(vsp_mod, "_load_vsp", lambda vsp_module=None: mock_vsp)
+    # The HTTP studio requires the native bridge as well as the analysis adapter.
+    # Mocking only the adapter must not advertise an unavailable native studio.
+    with monkeypatch.context() as absent:
+        absent.setattr(bridge, 'vsp', None)
+        response = client.get('/api/openvsp/status')
+        assert response.status_code == 200
+        assert response.json['status'] == 'unavailable'
+        assert response.json['available'] is False
+    monkeypatch.setattr(bridge, 'vsp', mock_vsp)
+    # Full SWIG catalog introspection is covered by native tests, not this adapter fake.
+    monkeypatch.setattr(bridge, 'get_api_catalog', lambda: dict(
+        version=mock_vsp.GetVSPVersion(), vspaero_available=False, vspaero_path='',
+        vspscript_available=False, counts={}))
     resp_status = client.get("/api/openvsp/status")
     assert resp_status.status_code == 200
     data_status = resp_status.get_json()
     assert data_status["status"] == "ok"
+    assert data_status['available'] is True
     assert data_status["openvsp"]["available"] is True
     assert data_status["openvsp"]["version"] == "OpenVSP 3.41.1"
 
