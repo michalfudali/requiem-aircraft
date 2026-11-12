@@ -22,7 +22,7 @@
 {% set flap=env.flap %}
 {% if flap.applicable %}
 <p id="flap-model-basis">Obwiednię z wychyloną mechanizacją wyznaczono według {{ reg(rules.flap) }} dla konfiguracji do lądowania, przy masie startowej, na poziomie morza. Manewr do \(n={{ flap.n_flap|texnum(1) }}\) i podmuchy ±{{ flap.u_flap_ms|reportnum(2) }} m/s rozpatrzono osobno, do prędkości \(V_F={{ flap.v_f_kmh|texnum(1) }}\) km/h EAS. Obwiednię przedstawiono na tle obwiedni samolotu w konfiguracji gładkiej{{ xref('fig-flap-envelope') }}.</p>
-<figure id="fig-flap-envelope"><div id="repFlapEnvelope"></div><figcaption>Obwiednia obciążeń od mechanizacji: manewrowa, podmuchowa i wypadkowa w konfiguracji do lądowania.</figcaption></figure>
+<figure id="fig-flap-envelope"><div id="repFlapEnvelope"></div><figcaption>Obwiednia obciążeń od mechanizacji na tle obwiedni samolotu w konfiguracji gładkiej: manewrowa, podmuchowa i wypadkowa w konfiguracji do lądowania.</figcaption></figure>
 {{ c.section(sheet, 'p6.flaps') }}
 <table id="flap-loads-table"><caption>Obciążenia w konfiguracji do lądowania</caption><thead><tr><th>Przypadek</th><th>n dodatnie</th><th>n ujemne</th></tr></thead><tbody>
 {% for name,p,m in [('Manewr','n_maneuver_pos','n_maneuver_neg'),('Podmuch przy VF','n_gust_max','n_gust_min'),('Dopuszczalne do wymiarowania','n_dimensioning_pos','n_dimensioning_neg'),('Niszczące','n_ult_pos','n_ult_neg')] %}

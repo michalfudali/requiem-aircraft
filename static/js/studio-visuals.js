@@ -22,13 +22,16 @@ function chart({series,xLabel='',yLabel='',width=640,height=270,xMin,xMax,yMin,y
 function aircraft(result, view = 'iso', orientation) {
  return root.BipolAircraftPreview.render(root.BipolAircraftPreview.model(result), view, orientation);
 }
-function flapEnvelope(flap) {
+function flapEnvelope(flap, base) {
  if (!flap?.applicable) return `<p class="empty">${esc(flap?.note || 'Mechanizacja: nie dotyczy.')}</p>`;
  const series=[['Manewry','maneuver_polygon'],['Podmuch dodatni','gust_pos'],['Podmuch ujemny','gust_neg'],['Granica wypadkowa','composite_polygon']]
    .map(([name,key],i)=>({name,dash:i===1||i===2,data:flap[key].map(p=>[p.v_kmh,p.n])}));
+ // Opis projektów, P6: obwiednia od mechanizacji na tle obwiedni obciążeń dopuszczalnych samolotu.
+ if (base?.length) series.unshift({name:'Obwiednia samolotu (konfiguracja gładka)',data:base.map(p=>[p.v_kmh,p.n])});
  const values=series.flatMap(s=>s.data.map(p=>p[1]));
+ const speeds=series.flatMap(s=>s.data.map(p=>p[0]));
  return chart({title:'Mechanizacja do lądowania — manewry i podmuchy',xLabel:'V [km/h EAS]',yLabel:'n [—]',
-   xMin:0,xMax:flap.v_f_kmh*1.05,yMin:Math.min(0,...values)*1.1,yMax:Math.max(...values)*1.1,
+   xMin:0,xMax:Math.max(flap.v_f_kmh,...speeds)*1.05,yMin:Math.min(0,...values)*1.1,yMax:Math.max(...values)*1.1,
    series,vertical:[{x:flap.v_f_kmh,label:'VF'}]});
 }
 root.BipolVisuals = {icon, chart, aircraft, flapEnvelope};

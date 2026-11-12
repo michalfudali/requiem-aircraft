@@ -50,6 +50,6 @@
       {name:'Zewnętrzna granica manewrów i podmuchów',data:e.composite_polygon.map(p=>[p.v_kmh,p.n])},
       {name:'Klapy — manewry',data:e.flap.maneuver_polygon.map(p=>[p.v_kmh,p.n])}]});
   const flapPlot=document.getElementById('repFlapEnvelope');
-  if(flapPlot) flapPlot.innerHTML=BipolVisuals.flapEnvelope(e.flap);
+  if(flapPlot) flapPlot.innerHTML=BipolVisuals.flapEnvelope(e.flap, e.composite_polygon);
 })();
 </script>
