@@ -118,8 +118,6 @@ NON_EDITABLE = {
     'empty_mass_trend_A': 'computed from the selected comparison sample',
     'empty_mass_trend_C': 'computed from the selected comparison sample',
     'engine_static_thrust_kn': 'actual engine proposal, catalog/custom engine panel',
-    'landing_mass_fraction': 'fixed course assumption, not a free design choice',
-    'takeoff_mass_fraction': 'fixed course assumption, not a free design choice',
     'm_bag': 'combined passenger and baggage mass m_pax in UI',
     'mass_initial_guess': 'obsolete sample mode, removed during validation',
     'outbound_range_km': 'derived as total route minus return route',

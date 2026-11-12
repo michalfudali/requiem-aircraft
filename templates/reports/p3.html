@@ -24,7 +24,7 @@
 {% set cm = p_data.get('component_mass_estimation',{}) %}
 {% if cm.get('normalization_factor') is not none %}
 <p>Niezależna suma mas zespołów według korelacji klasy II wynosi <strong>{{ cm.independent_empty_mass_kg|reportnum(1) }} kg</strong>, a masa pusta P1 — <strong>{{ cm.adopted_empty_mass_kg|reportnum(1) }} kg</strong>. Do warunkowego obliczenia wyważenia zastosowano współczynnik \(k_m={{ cm.normalization_factor|reportnum(4) }}\). Skalowanie rozkładu nie potwierdza, że rzeczywiste zespoły zmieszczą się w masie P1. Wymaga to uzgodnienia obu oszacowań {{ cite('grabowski_am') }}.</p>
-<p>Oszacowanie wykorzystuje geometrię tego wariantu, paliwo misji, moc zabudowanego napędu i obciążenie niszczące \(n_u={{ cm.inputs.ultimate_load_factor|reportnum(3) }}\) z jego obwiedni. Ramiona grup względem nosa są przybliżeniem rozmieszczenia konstrukcyjnego{{ xref('tab-mass-components') }}. {% if cm.applicability != 'general_aviation_reference' %}Korelacje GA zastosowano poza klasą odniesienia; ich przydatność dla tej konstrukcji wymaga osobnego uzasadnienia.{% endif %}</p>
+<p>Oszacowanie wykorzystuje geometrię tego wariantu, paliwo misji, moc zabudowanego napędu i obciążenie niszczące \(n_u={{ cm.inputs.ultimate_load_factor|reportnum(3) }}\) z jego obwiedni. Ramiona grup względem nosa są przybliżeniem rozmieszczenia konstrukcyjnego{{ xref('tab-mass-components') }}. {% if params.aircraft_type == 'motoglider' %}W porównaniu z 21 rzeczywistymi motoszybowcami z bazy porównawczej wzory klasy II z korektą kompozytową dają dla płatowca bez silnika medianę stosunku masy obliczonej do rzeczywistej równą 1,00 oraz rozrzut w przedziale 0,86–1,20 (−14%…+20%).{% elif cm.applicability != 'general_aviation_reference' %}Korelacje GA zastosowano poza klasą odniesienia; ich przydatność dla tej konstrukcji wymaga osobnego uzasadnienia.{% endif %}</p>
 {% if cm.get('fixed_mass_total_kg',0)>0 %}
 <p>Znana masa napędu <strong>{{ cm.fixed_mass_total_kg|reportnum(2) }} kg</strong> pozostaje bez skalowania. Rozdział dotyczy wyłącznie części szacowanej: \(m_{i,CG}=m_{i,znane}+k_m(m_{i,II}-m_{i,znane})\). {% set em=cm.engine_mass_evidence %}{% if em.installed_source %}Masa całej zabudowy pochodzi z zestawienia autora: {{ em.installed_source }}; zakres: {{ em.installed_conditions }}.{% elif em.hardware %}Minimum sprzętowe pochodzi z <a href="{{ em.hardware.source_url }}">{{ em.hardware.source_title }}</a>: {{ em.hardware.definition }} Pozostała część instalacji pozostaje szacunkiem.{% endif %}</p>
 {% endif %}
@@ -53,6 +53,17 @@
 {% if res.params.category in ['cs22_glider','cs22_aerobatic','cs22_motoglider'] %}<p>Przepisy JAR-22 {{ cite('reg_jar22_b') }} wymagają rozpatrzenia osób o masie 70–110 kg ze spadochronem bez balastu (JAR 22.23(b)) oraz przypadku 55 kg z dopuszczonym balastem (JAR 22.25(b)). Powyższa analiza zakresu 55–110 kg jest oceną projektową, a nie wykazaniem zgodności z przepisami.</p>{% endif %}
 {% include 'reports/ballast.html' %}
 {% endif %}
+{% set im=p_data.inertia_moments %}
+<h3>Momenty bezwładności</h3>
+<p>Momenty bezwładności \(J_x\), \(J_y\), \(J_z\) oraz moment dewiacji \(J_{xz}\) względem osi przechodzących przez środek masy wyznaczono w przybliżeniu mas skupionych zespołów i przeliczono twierdzeniem Steinera do punktu \(1/4\) ŚCA {{ cite('grabowski_am') }}{{ xref('tab-inertia-moments') }}.</p>
+{{ c.section(sheet, 'p3.inertia') }}
+<table class="compact-table" id="tab-inertia-moments"><caption>Momenty bezwładności i dewiacji względem środka masy oraz punktu 1/4 ŚCA</caption><thead><tr><th>Wielkość</th><th class="number">Względem ŚM [kg·m²]</th><th class="number">Względem 1/4 ŚCA [kg·m²]</th></tr></thead><tbody>
+<tr><td>Moment bezwładności \(J_x\)</td><td class="number">{{ im.jx_cg_kgm2|reportnum(1) }}</td><td class="number">{{ im.jx_cg_kgm2|reportnum(1) }}</td></tr>
+<tr><td>Moment bezwładności \(J_y\)</td><td class="number">{{ im.jy_cg_kgm2|reportnum(1) }}</td><td class="number">{{ im.jy_quarter_mac_kgm2|reportnum(1) }}</td></tr>
+<tr><td>Moment bezwładności \(J_z\)</td><td class="number">{{ im.jz_cg_kgm2|reportnum(1) }}</td><td class="number">{{ im.jz_quarter_mac_kgm2|reportnum(1) }}</td></tr>
+<tr><td>Moment dewiacji \(J_{xz}\)</td><td class="number">{{ im.jxz_cg_kgm2|reportnum(1) }}</td><td class="number">—</td></tr>
+</tbody></table>
+<p class="table-note">{{ im.method }}</p>
 <h3>Rozkład obciążenia płata wg Schrenka</h3>
 <p>Rozkład Schrenka wyznaczono dla \(C_z=1\) jako średnią rozkładu wynikającego z obrysu i rozkładu eliptycznego {{ cite('danilecki') }}{{ xref('fig-schrenk') }}. Przekrój o największym lokalnym współczynniku \(c_z/C_z\) jest miejscem, w którym przeciągnięcie zaczyna się najwcześniej; z tej wartości oszacowano maksymalny współczynnik siły nośnej płata.</p>
 {{ c.section(sheet, 'p3.schrenk') }}
@@ -83,7 +94,7 @@ Sztywności i parametry bezwładności są założeniami modelu zastępczego, a 
 <ul>{% for limitation in ae.limitations %}<li>{{ limitation }}</li>{% endfor %}</ul>
 <h3>Charakterystyki aerodynamiczne płata</h3>
 {% set p2=res.aerodynamics.paturski_p2 %}
-<p>Charakterystyki aerodynamiczne płata \(C_z(\alpha)\), \(C_m(\alpha)\) i \(C_x(C_z)\) wyznaczono metodą klasyczną {{ cite('paturski') }} na podstawie danych tunelowych profilu{{ xref('tab-airfoil-data') }} z uwzględnieniem skończonego wydłużenia i poprawek Glauerta{{ xref('fig-glauert') }}.</p>
+<p>Charakterystyki aerodynamiczne płata \(C_z(\alpha)\), \(C_m(\alpha)\) i \(C_x(C_z)\) wyznaczono metodą klasyczną {{ cite('paturski') }} na podstawie {% if p2w.section_source %}podanych charakterystyk profilu ({{ p2w.section_source }}){% else %}danych tunelowych profilu{% endif %}{{ xref('tab-airfoil-data') }} z uwzględnieniem skończonego wydłużenia i poprawek Glauerta{{ xref('fig-glauert') }}.</p>
 <table class="compact-table" id="tab-airfoil-data"><caption>Charakterystyki profilu przyjęte do obliczeń płata ({% if p2w.section_source %}{{ p2w.section_source }}{% else %}badania tunelowe profilu NACA 23012 {{ cite('paturski') }}{% endif %})</caption><thead><tr><th>Wielkość</th><th>Symbol i wartość</th></tr></thead><tbody>
 <tr><td>Gradient siły nośnej profilu</td><td>\(a_\infty={{ p2w.a_inf_rad|texnum(3) }}\;\mathrm{rad^{-1}}\)</td></tr>
 <tr><td>Kąt zerowej siły nośnej</td><td>\(\alpha_0={{ p2w.alpha_0_deg|texnum(2) }}{}^{\circ}\)</td></tr>
@@ -92,7 +103,7 @@ Sztywności i parametry bezwładności są założeniami modelu zastępczego, a 
 <tr><td>Położenie środka aerodynamicznego</td><td>\(\bar x_{SA}={{ p2w.x_sa_bar|texnum(3) }}\)</td></tr>
 <tr><td>Maksymalny współczynnik siły nośnej</td><td>\(c_{z\,max}={{ p2w.cz_max_clean|texnum(2) }}\)</td></tr>
 </tbody></table>
-{% if af_name != 'NACA 23012' %}<p class="table-note">Obliczenia aerodynamiczne płata korzystają z referencyjnych badań NACA 23012. Nie potwierdzono ich zgodności z wybranym profilem {{ af_name }} przy projektowej liczbie Reynoldsa; wyniki wymagają weryfikacji na podstawie charakterystyk tego profilu.</p>{% endif %}
+{% if p2w.section_source %}<p class="table-note">Obliczenia aerodynamiczne płata korzystają ze wskazanych charakterystyk profilu {{ af_name }} ({{ p2w.section_source }}); jeżeli pochodzą one z obliczeń numerycznych (np. XFOIL), wymagają potwierdzenia badaniami tunelowymi dla projektowej liczby Reynoldsa.</p>{% elif af_name != 'NACA 23012' %}<p class="table-note">Obliczenia aerodynamiczne płata korzystają z referencyjnych badań NACA 23012. Nie potwierdzono ich zgodności z wybranym profilem {{ af_name }} przy projektowej liczbie Reynoldsa; wyniki wymagają weryfikacji na podstawie charakterystyk tego profilu.</p>{% endif %}
 {{ c.section(sheet, 'p3.wing_aero') }}
 {% if p2w.terms.taper is defined %}<figure id="fig-glauert">{{ charts.glauert_charts(p2w.terms) }}<figcaption>Poprawki Glauerta: τ₁ i δ₁ w funkcji u = Λ/a∞ oraz τ₂ i δ₂ w funkcji zbieżności płata (przybliżenie wykresów {{ cite('paturski') }}). Zaznaczono wartości dla projektowanego skrzydła: τ = τ₁τ₂/0,17, δ = δ₁δ₂δ₃/0,048.</figcaption></figure>{% endif %}
 <table class="compact-table" id="tab-wing-aero"><caption>Charakterystyki aerodynamiczne płata</caption><thead><tr><th class="number">α [°]</th><th class="number">C<sub>z</sub> [—]</th><th class="number">C<sub>x</sub> [—]</th><th class="number">C<sub>m</sub> [—]</th></tr></thead><tbody>{% for row in p_data.wing_alpha_table %}<tr><td class="number">{{ row.alpha_deg|reportnum(2) }}</td><td class="number">{{ row.cz|reportnum(3) }}</td><td class="number">{{ row.cx|reportnum(5) }}</td><td class="number">{{ row.cm_le|reportnum(4) }}</td></tr>{% endfor %}</tbody></table>

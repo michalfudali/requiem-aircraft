@@ -16,6 +16,8 @@ GROUPS = [
     ]),
     ('mission', 'Misja i masa załogi', [
         ('loiter_time_min', 'Czas krążenia / oczekiwania [min]'),
+        ('takeoff_mass_fraction', 'Stosunek mas fazy startu m₁/m₀ [0,970–0,975]'),
+        ('landing_mass_fraction', 'Stosunek mas fazy lądowania m_{n+1}/m_n [0,970–0,975]'),
         ('mass_iteration_start_kg', 'Pierwsze przybliżenie masy w iteracji [kg]'),
     ]),
     ('towing', 'Holowanie szybowca', [

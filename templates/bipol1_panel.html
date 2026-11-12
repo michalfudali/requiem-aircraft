@@ -70,6 +70,10 @@
     <div class="trend-controls">
       <label>S<sub>wet</sub>/S — układ z rys. 1<select id="wetted_example" data-bipol1><option value="">Automatycznie: układ najbliższy klasie samolotu</option>{% for key, row in wetted_examples.items() %}<option value="{{ key }}">{{ row.label[:1]|upper }}{{ row.label[1:] }} — {{ row.swet_ratio|reportnum(2) }}</option>{% endfor %}<option value="sketch">Własny pomiar na szkicu</option></select></label>
       <label data-bipol1-sketch>S<sub>wet</sub>/S zmierzony na szkicu<input id="sketch_swet_ratio" data-bipol1 type="number" min="1" max="20" step="0.05" value="4"></label>
+      <div id="bipol1SwetP4Hint" style="grid-column:1/-1;font-size:0.82rem;color:#334155;background:#f8fafc;border:1px solid #cbd5e1;border-radius:6px;padding:0.5rem 0.75rem;display:flex;align-items:center;justify-content:space-between;gap:0.75rem" hidden>
+        <span id="bipol1SwetP4Text"></span>
+        <button type="button" class="btn btn-outline btn-xs" id="bipol1ApplySwetP4Btn">Przyjmij S_wet/S z P4</button>
+      </div>
       <label>Podstawa biegunowej wstępnej<select id="preliminary_polar_mode" data-bipol1><option value="raymer">S_wet/S — odczyt programu z krzywej</option><option value="reading">S_wet/S — własny odczyt z wykresu</option><option value="input">Podany C_D0 całego samolotu</option></select></label>
       <label data-bipol1-raymer-reading>Własny odczyt K<sub>max</sub><input id="raymer_kmax" data-bipol1 type="number" min="1" max="150" step="0.5" value="15"></label>
       <label>Klasa do porównania C<sub>x0</sub><select id="cx0_reference_class" data-bipol1><option value="">Automatycznie wg klasy samolotu</option><option value="single_fixed">Jednosilnikowy, stałe podwozie</option><option value="single_retractable">Jednosilnikowy, chowane podwozie</option><option value="small_twin">Mały dwusilnikowy</option><option value="transport">Duży transportowy</option><option value="military">Bojowy</option><option value="agricultural">Rolniczy</option><option value="motoglider">Motoszybowiec</option></select></label>

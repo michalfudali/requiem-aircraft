@@ -1599,6 +1599,17 @@ def _p3_balance(s, r):
             ('J_xz', 'J_{xz}', r'\sum_i m_i\,(x_i-x_{SM})(z_i-z_{SM})', inertia['jxz_cg_kgm2'], 'Moment dewiacji')):
         s.calc(key, sym, formula, '', value, KGM2, 1, label + '', deps=['z_cg', 'x_cg'],
                check=lambda v, val=sums[key.lower().replace('_', '')]: val, tolerance=.06)
+    s.calc('x_14mac', r'x_{0{,}25\,\bar c}', r'x_{N,\bar c}+0{,}25\,\bar c', r'[[x_LEc]]+0{,}25\cdot[[mac]]',
+           inertia['quarter_mac_x_m'], M, 3, 'Położenie punktu 1/4 ŚCA od nosa kadłuba',
+           check=lambda v: v.x_LEc + .25 * v.mac, tolerance=.002)
+    s.calc('J_y14', r'J_{y,0{,}25\,\bar c}', r'J_y+m_0\left(\left(x_{0{,}25\,\bar c}-x_{SM}\right)^2+z_{SM}^2\right)',
+           r'[[J_y]]+[[m0]]\cdot\left(\left([[x_14mac]]-[[x_cg]]\right)^2+[[z_cg]]^2\right)',
+           inertia['jy_quarter_mac_kgm2'], KGM2, 1, 'Moment bezwładności względem osi poprzecznej w 1/4 ŚCA (tw. Steinera)',
+           check=lambda v: v.J_y + v.m0 * ((v.x_14mac - v.x_cg) ** 2 + v.z_cg ** 2), tolerance=.2)
+    s.calc('J_z14', r'J_{z,0{,}25\,\bar c}', r'J_z+m_0\left(x_{0{,}25\,\bar c}-x_{SM}\right)^2',
+           r'[[J_z]]+[[m0]]\cdot\left([[x_14mac]]-[[x_cg]]\right)^2',
+           inertia['jz_quarter_mac_kgm2'], KGM2, 1, 'Moment bezwładności względem osi pionowej w 1/4 ŚCA (tw. Steinera)',
+           check=lambda v: v.J_z + v.m0 * (v.x_14mac - v.x_cg) ** 2, tolerance=.2)
 
 
 def _p3_pilot_loading(s, r):

@@ -47,13 +47,14 @@ z katalogu oraz na przeliczeniu wszystkich 110 tematów i 10 przykładów.
 
 Pozycje B1–B5 i B7 z pierwszej wersji tej listy są naprawione (tabela A, wiersze A14–A19).
 
-### B6. Tematy ultralekkie 15–19 przekraczają 600 kg
+### B6. Tematy ultralekkie 15–19 przekraczają 600 kg (NAPRAWIONE)
 - **Objaw:** m₀ = 663–725 kg przy limicie 600 kg (`[UL-A] Maksymalna masa startowa`).
 - **Przyczyna:** próba samolotów ≤ 660 kg z bazy ma średni udział masy pustej 0,60; przy dwóch osobach (90 + 115 kg)
   bilans nie zamyka się w 600 kg nawet dla zasięgu 300 km.
-- **Naprawa:** decyzja o temacie, nie o programie: uzupełnić bazę o współczesne konstrukcje UL 600 kg ze źródłami
-  (udział masy pustej około 0,50–0,55) albo zmienić misję/masy osób w seedzie. Limitu nie zmieniać.
-- **Test:** kontrola MTOM zaliczona dla tematów 15–19.
+- **Naprawa:** w `data/projects/course_seed.json` dla tematów 15–19 przyjęto normatywną masę osoby z przepisów
+  UL-A / JAR-23 (`m_crew_person = 77 kg`, `m_pax = 77 kg` zamiast 90/115 kg z klasy `ga_trainer`). Bilans masy
+  zamyka się dla wszystkich tematów 15–19 (1-miejscowe: m₀ = 324,7 kg ≤ 600 kg; 2-miejscowe: m₀ = 569,7 kg ≤ 600 kg).
+- **Test:** `tests/test_topic_configuration.py::test_ultralight_topics_15_to_19_pass_mtom_600kg_limit` — zaliczony.
 
 ### B9. Hałas domyślnego tematu 7 z silnikiem dobranym z wykresu
 - **Objaw:** temat 7 z katalogu (bez wybranego silnika, moc 28,6 kW): szacunek 72,1 dBA przy limicie 70,3 dBA.
@@ -67,12 +68,12 @@ Pozycje B1–B5 i B7 z pierwszej wersji tej listy są naprawione (tabela A, wier
 | Nr | Ograniczenie | Gdzie | Co zrobić |
 |---|---|---|---|
 | C1 | Paliwo wznoszenia ≈ 0 (0,03 kg na 2000 m): wykres Corke’a zaczyna się od M = 0,1 | `bipol1.mission_model`, flaga `below_chart` | Zdanie w P2 dodane (A13); dalej nie zmieniać metody |
-| C2 | Start i lądowanie po 2,5% masy: 32 z 49 kg paliwa motoszybowca | BIPOL_1, s. 6 | Zdanie w P2 dla klas lekkich; pola `takeoff_mass_fraction`, `landing_mass_fraction` pokazać w kreatorze |
-| C3 | Szacunkowa biegunowa P1 z krzywej „szybowce”: K = 48,6 wobec 31,7 z P4 | `bipol1.raymer_family` | Dla motoszybowca ze stałym napędem zaproponować w UI `sketch_swet_ratio` z P4 i przycisk „iteruj biegunową”; nie dodawać własnej krzywej |
+| C2 | Start i lądowanie po 2,5% masy: 32 z 49 kg paliwa motoszybowca | BIPOL_1, s. 6 | Wykonane: zdanie w P2 (`templates/reports/p2.html`) dla klas lekkich i motoszybowców; pola `takeoff_mass_fraction` i `landing_mass_fraction` dodane do kreatora w grupie `mission` (`calculations/design_controls.py`) |
+| C3 | Szacunkowa biegunowa P1 z krzywej „szybowce”: K = 48,6 wobec 31,7 z P4 | `bipol1.raymer_family` | Wykonane: w panelu BIPOL_1 (`templates/bipol1_panel.html`, `static/js/bipol1.js`) dodano wskazówkę z wartością $S_{wet}/S$ z P3/P4 oraz przycisk przepisujący ją do `sketch_swet_ratio` |
 | C4 | Pułap praktyczny 10,3 km silnika wolnossącego | `flight_model.propulsion_lapse` (Gagg–Farrar) | Zdanie w P5 dodane (A13) |
-| C5 | Koszt egzemplarza 1,2 mln USD | BIPOL_2, Corke | Zdanie już dodane dla szybowców i motoszybowców; rozważyć dla UL/VLA |
-| C6 | Masa własna: rozrzut wzorów −14%…+20% | `mass.estimate_component_masses` | Podawać przedział w P3 (dane z testu A3) |
-| C8 | Długotrwałość największa przy dolnej granicy prędkości (blisko przeciągnięcia) | BIPOL_5: zakres prędkości z wykresu ofertowego | Nie zawężać zakresu (próba zawężenia łamie testy zgodności z BIPOL_5); ewentualnie zdanie w P5 |
+| C5 | Koszt egzemplarza 1,2 mln USD | BIPOL_2, Corke | Wykonane: zdanie w P2 (`templates/reports/p2.html`) rozszerzone na klasy ultralekkie, VLA i LSA (`light_sport`, `easa_optout_ul`, `cs_lsa`, `cs_vla`) |
+| C6 | Masa własna: rozrzut wzorów −14%…+20% | `mass.estimate_component_masses` | Wykonane: przedział walidacji empirycznej na 21 motoszybowcach (mediana 1,00; zakres 0,86–1,20, tj. −14%…+20%) podany w P3 (`templates/reports/p3.html`) |
+| C8 | Długotrwałość największa przy dolnej granicy prędkości (blisko przeciągnięcia) | BIPOL_5: zakres prędkości z wykresu ofertowego | Wykonane: zachowano pełny zakres prędkości z wykresu ofertowego (zgodnie z BIPOL_5) i dodano komentarz inżynierski pod tabelą w P5 (`templates/reports/p5.html`) |
 | C7 | Flatter, hałas, właściwości pilotażowe | odpowiednie moduły | Zostają szacunkami wstępnymi; nie opisywać jako wykazanie zgodności |
 
 ## D. Wymaga danych lub decyzji człowieka
@@ -124,3 +125,11 @@ a nie błędy rachunku; do sprawdzenia przez agenta tylko tam, gdzie zaznaczono.
 - **B9 (hałas):** model reaguje na śmigło dopiero powyżej M_tip = 0,65 i na moc dopiero powyżej 20 kW, więc dla
   małych, wolnych śmigieł wynik zależy tylko od wysokości przelotu nad punktem pomiaru. To cecha modelu wstępnego,
   nie błąd rachunku; zostaje jako ostrzeżenie projektowe.
+- **P3 — momenty bezwładności wg twierdzenia Steinera (`BIPOL_3_2010.pdf`, pkt 9–10):** uzupełniono arkusz obliczeń
+  `p3.inertia` (`calculations/calc_sheet.py`) oraz tabelę `#tab-inertia-moments` w raporcie P3 (`templates/reports/p3.html`)
+  o przeliczenie momentów bezwładności $J_y$ i $J_z$ względem osi przechodzących przez $1/4\text{ ŚCA}$.
+- **P3 — opis źródła charakterystyk profilu (`templates/reports/p3.html`):** gdy podano własny `airfoil_model`
+  (np. FX 61-163 w temacie 7), raport P3 jednoznacznie wskazuje użycie dostarczonych charakterystyk profilu zamiast
+  domyślnych danych tunelowych NACA 23012.
+- **Aeroelastyczność — spójność materiału z `technology` (`calculations/aeroelastics.py`):** moduł aeroelastyczny
+  odczytuje `structure_material` lub `technology` (obsługując również `composites` i `advanced_composites`).

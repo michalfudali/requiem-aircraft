@@ -23,7 +23,8 @@ MATERIALS = {
     'wood': (10e9, 1.2e9, 'Drewno — model zastępczy'),
     'steel': (200e9, 77e9, 'Stal — model zastępczy'),
 }
-ALIASES = {'metal': 'metallic', 'aluminum': 'metallic', 'carbon': 'composite'}
+ALIASES = {'metal': 'metallic', 'aluminum': 'metallic', 'carbon': 'composite',
+           'composites': 'composite', 'advanced_composites': 'composite'}
 
 
 def validate_aeroelastic_inputs(params):
@@ -59,7 +60,7 @@ def validate_aeroelastic_inputs(params):
 
 def _material(params):
     explicit = params.get('wing_structure_material', 'auto')
-    technology = params.get('technology')
+    technology = ALIASES.get(params.get('technology'), params.get('technology'))
     legacy = params.get('structure_material', params.get('structural_material'))
     if explicit != 'auto':
         value, source = explicit, 'wing_structure_material'
