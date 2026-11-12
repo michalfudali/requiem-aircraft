@@ -80,19 +80,18 @@ automatycznie dobranej średnicy śmigła. Końcowa geometria publikuje teraz wy
 z tej samej średnicy co P4, wyważenie i model natywny, przed zamrożeniem podpisów
 przeglądu projektu. Dotyczy to również rysunku i podglądu 3D w aplikacji.
 
-Otwarta pozostaje osobna kwestia obrysu eliptycznego: jego obecne przybliżenie
-dwoma segmentami daje w próbie b = 21 m powierzchnię 14,9198 m² wobec 15,75 m²
-z P3. Testy zachowania profilu nie potwierdzają zgodności całego obrysu.
-Wariant tematu 7 opisany w raporcie ma skrzydło trapezowe; dla niego zweryfikowano
-natywne S = 15,75 m² i TotalSpan = 21 m. Definicja rzutu rozpiętości przy wzniosie
-wymaga osobnego ujednolicenia pomiędzy modelem wstępnym i OpenVSP.
+W następnym etapie audytu usunięto również dwie wykryte tutaj rozbieżności:
+zgrubny obrys eliptyczny zaniżający powierzchnię oraz skrócenie rzutu rozpiętości
+przy wzniosie. Oba generatory korzystają teraz ze wspólnego przeliczenia obrysu
+P3 na wymiary sekcji OpenVSP. Elipsa ma 32 segmenty i zachowaną powierzchnię,
+cięciwę u nasady oraz zamkniętą końcówkę. Załamanie skrzydła złożonego zachowuje
+pełną precyzję położenia.
 
-OpenVSP rozróżnia `TotalSpan` i `TotalProjectedSpan`, a `TotalAR` oblicza jako
-kwadrat drugiej z tych wielkości podzielony przez `TotalArea`. Potwierdza to
-[kod wersji 3.55.0, `UpdateTotalParameters`](https://github.com/OpenVSP/OpenVSP/blob/OpenVSP_3.55.0/src/geom_core/WingGeom.cpp#L1322-L1332).
-Dla obecnego przekazania 21 m i wzniosu 3,5° daje to 20,9608 m rzutu i AR = 27,8956
-zamiast AR = 28 w P3. Zapis zgodnych `TotalSpan` i powierzchni nie rozstrzyga tej
-różnicy definicji. Nie zmieniono jej ukradkiem przy poprawce rzędnych profilu.
+Dla obecnego wariantu tematu 7 `TotalProjectedSpan` wynosi 21 m, a powierzchnia
+rzutu 15,75 m². Odpowiada im `TotalSpan` = 21,039242 m i `TotalArea` = 15,779432 m²
+przy wzniosie 3,5°. Parametry SDK mają różne definicje i nie powinny być
+bezpośrednio porównywane z P3 bez przeliczenia. Szczegóły, wzory i niezależne
+kontrole rzeczywistego obrysu: [OBRYS_OPENVSP.md](OBRYS_OPENVSP.md).
 
 ## Weryfikacja tej aktualizacji
 
@@ -125,5 +124,4 @@ Manifesty w katalogach studiów zawierają sumy SHA-256 aktualnych wejść, wyni
 raportów i modeli. Pliki `work/` są pomijane przez Git.
 
 Wyniki dotyczą implementacji oraz wskazanych kontroli spójności. Nie zamykają
-otwartych spraw opisanych w audycie tematu 7 ani rozbieżności obrysu i rzutu
-rozpiętości wskazanych powyżej.
+otwartych spraw dotyczących rzeczywistej konstrukcji opisanych w audycie tematu 7.
