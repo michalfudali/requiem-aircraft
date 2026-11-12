@@ -23,6 +23,16 @@
         <button type="button" class="btn btn-outline" id="wizReviewBtn">Przejrzyj założenia <span aria-hidden="true">↗</span></button>
       </div>
 
+      <div class="wizard-tools">
+        <div class="wizard-field-search" role="search" aria-label="Parametry kreatora">
+          <label for="wizardFieldSearch">Znajdź założenie</label>
+          <div class="wizard-search-input"><span aria-hidden="true">⌕</span><input type="search" id="wizardFieldSearch" placeholder="Np. rozpiętość, paliwo, C_D0…" autocomplete="off" aria-controls="wizardSearchResults" aria-describedby="wizardSearchStatus"><button type="button" id="wizardSearchClear" aria-label="Wyczyść wyszukiwanie" hidden>×</button></div>
+          <span id="wizardSearchStatus" class="wizard-search-status" role="status"></span>
+          <ul id="wizardSearchResults" class="wizard-search-results" aria-label="Znalezione parametry" hidden></ul>
+        </div>
+        <button type="button" id="wizardDragShortcut" class="wizard-drag-shortcut"><span>PUNKT WYJŚCIA AERODYNAMIKI</span><strong id="wizardDragShortcutValue">Stosunek S_wet/S</strong><small>Wybierz metodę w etapie 4 <span aria-hidden="true">↗</span></small></button>
+      </div>
+
       <!-- Stepper Tabs -->
       <aside class="wizard-navigation" aria-label="Etapy projektu">
       <div class="wizard-navigation-sticky">
@@ -321,6 +331,8 @@
             <p>Dobierz układ płata, obrys i mechanizację. Wielkości wynikające z założeń są obliczane automatycznie.</p>
           </div>
 
+          <section class="wizard-design-section" aria-labelledby="wizardDragHeading">
+          <div class="wizard-section-heading"><span aria-hidden="true">01</span><div><h5 id="wizardDragHeading">Podstawa obliczeń oporu</h5><p>Wybierz znaną wielkość. Wyniki i wzory zobaczysz podczas edycji.</p></div></div>
           <fieldset class="wizard-drag-choice">
             <legend>Od czego zaczynasz obliczenia oporu?</legend>
             <label class="wizard-choice-card"><input type="radio" name="wiz_drag_basis" value="raymer" checked>
@@ -346,6 +358,7 @@
                 <option value="sketch">Wpiszę własny stosunek S_wet/S</option>
               </select>
               <small>Całkowita powierzchnia omywana samolotu podzielona przez powierzchnię odniesienia skrzydła. Parametr do wstępnego oszacowania doskonałości z wykresu Raymera (P1).</small>
+              <button type="button" class="wizard-inline-action" id="wizEnterOwnRatio">Wpisz własny stosunek S_wet/S <span aria-hidden="true">↗</span></button>
             </div>
             <div class="input-group" id="wizWettedRatioGroup" hidden>
               <label for="wiz_sketch_swet_ratio">Własny stosunek S<sub>wet</sub>/S [–]</label>
@@ -371,10 +384,14 @@
             <label for="wiz_graph_source">Źródło danych i warunki przyjęcia</label>
             <textarea id="wiz_graph_source" rows="2" maxlength="4000" placeholder="Np. biegunowa samolotu, konfiguracja podwozia, liczba Reynoldsa / Macha; pomiar S_wet/S ze szkicu"></textarea>
           </div>
+          <ol id="wizardDragFlow" class="wizard-drag-flow" aria-label="Przebieg obliczeń biegunowej" aria-live="polite"></ol>
           <div id="wizardPolarPreview" class="wizard-polar-preview" role="status" aria-live="polite"></div>
           <p class="wizard-method-note">To biegunowa wstępna P1/P2. W trybie domknięcia P2–P4 bilans misji jest następnie sprawdzany z oporem obliczonym z geometrii.
             <a href="/static/images/bipol1-raymer.png" target="_blank" rel="noopener">Metoda BIPOL_1</a> · <a href="https://www1.grc.nasa.gov/beginners-guide-to-aeronautics/modern-drag-equation/" target="_blank" rel="noopener">Biegunowa paraboliczna — NASA</a>.</p>
+          </section>
 
+          <section class="wizard-design-section" aria-labelledby="wizardGeometryHeading">
+          <div class="wizard-section-heading"><span aria-hidden="true">02</span><div><h5 id="wizardGeometryHeading">Geometria i zabudowa</h5><p>Ustal obrys, układ skrzydła, podwozie i materiał konstrukcji.</p></div></div>
           <div class="wizard-suggest-banner" style="margin-bottom:12px;">
             <span class="wizard-suggest-text">📊 <strong>Analiza trendów (BIPOL_1):</strong> AR z trendu oraz średnie V_H, V_V, lotek, sterów i wzniosu z podobnych samolotów<span id="wizTrendPreviewGeometry"></span></span>
             <button type="button" class="btn btn-outline btn-xs" id="wizSuggestTrendsBtn">
@@ -422,6 +439,9 @@
             </div>
           </div>
 
+          </section>
+          <section class="wizard-design-section" aria-labelledby="wizardControlsHeading">
+          <div class="wizard-section-heading"><span aria-hidden="true">03</span><div><h5 id="wizardControlsHeading">Mechanizacja i sterowanie</h5><p>Dobierz klapy, lotki i urządzenia na krawędzi natarcia.</p></div></div>
           <div class="input-row">
             <div class="input-group">
               <label for="wiz_flap_type">Mechanizacja spływu (Klapa wewnętrzna):</label>
@@ -457,6 +477,7 @@
           </div>
 
           <div id="wizFlapDidacticCard" class="flap-didactic-card" style="margin-top:0.75rem;"></div>
+          </section>
         </div>
 
         <!-- KROK 5: Podsumowanie, Audyt i Start Obliczeń -->
