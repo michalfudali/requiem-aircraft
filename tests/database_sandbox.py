@@ -43,6 +43,11 @@ class DatabaseSandbox:
     def restore(self, key):
         backup(self.pristine[key], self.paths[key])
 
+    def capture_pristine(self):
+        """Freeze the initialized application state, including safe catalogue upgrades."""
+        for key in STORES:
+            backup(self.paths[key], self.pristine[key])
+
     def close(self):
         for key, value in self.previous.items():
             if value is None:

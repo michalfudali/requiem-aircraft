@@ -18,6 +18,8 @@ from app import app  # noqa: E402
 from calculations.trends import load_aircraft  # noqa: E402
 from calculations.engine_fuel import _catalog  # noqa: E402
 
+SANDBOX.capture_pristine()
+
 
 def pytest_addoption(parser):
     parser.addoption('--browser', action='store_true', help='Include real Chromium acceptance tests')

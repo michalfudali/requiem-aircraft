@@ -112,7 +112,7 @@ def create_database(path, presets, categories, topics):
         con.execute('COMMIT')
 
 
-# --- Read-only course data ------------------------------------------------------------------
+# --- Public course data, with safe updates of recognized defaults -----------------------------
 def _jar_categories(params):
     """Stored CS-23 Amdt 5 level keys are read as the JAR categories of the course regulations."""
     from calculations.polish_law import stored_category
@@ -137,6 +137,8 @@ def load_categories(path=None):
 
 def load_topics(path=None):
     with connect(path) as con:
+        from calculations.course_catalog import refresh_unchanged_topics
+        refresh_unchanged_topics(con)
         rows = con.execute('SELECT * FROM topics ORDER BY num').fetchall()
     return [dict(id=row['id'], num=row['num'], title=row['title'], category=row['category'], defaults=json.loads(row['defaults']),
                  parameters=_jar_categories(json.loads(row['parameters'])), requirements=json.loads(row['requirements']))
