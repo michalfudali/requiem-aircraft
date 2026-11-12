@@ -237,7 +237,33 @@ pełnych rzędnych profilu do obu adapterów OpenVSP i poprawce wysokości podwo
   `.vsp3` z kontrolą po ponownym otwarciu i 13 raportów HTML bez błędów JS/KaTeX.
   Raport zbiorczy PDF nadal ma 93 strony bez pustych stron.
 
-Szczegółowy zakres testów, ochrona zapisanych projektów oraz pozostałe różnice
-obrysu eliptycznego i rzutu rozpiętości: [KATALOG_I_PROFILE_OPENVSP.md](KATALOG_I_PROFILE_OPENVSP.md).
+Szczegółowy zakres testów i ochrona zapisanych projektów:
+[KATALOG_I_PROFILE_OPENVSP.md](KATALOG_I_PROFILE_OPENVSP.md). W kolejnym etapie
+rozbieżności obrysu eliptycznego i rzutu rozpiętości usunięto;
+[opis geometrii i kontroli](OBRYS_OPENVSP.md).
 Sprawdzenie implementacji nie jest zamknięciem wymagań dotyczących rzeczywistej
 struktury, kompletnej zabudowy napędu ani uzgodnień autora.
+
+## Ujednolicenie obrysu OpenVSP — 12 listopada 2026
+
+Oba generatory zachowują teraz rzut rozpiętości, powierzchnię i skos ćwierćcięciw
+P3 przy wzniosie. Zastąpiono różne zgrubne obrysy eliptyczne wspólnymi 32
+segmentami z zachowaniem powierzchni. Natywna kontrola całkuje rzeczywisty
+obrys, a nie tylko odczytuje deklarowane pola sekcji. Macierz testów obejmuje
+pięć obrysów i trzy wzniosy w obu generatorach.
+
+Odświeżono oba modele tematu 7. Dla wariantu 115 km/h po ponownym otwarciu
+`.vsp3` otrzymano rzut b = 21 m i S = 15,75 m², zachowując 98 rzędnych FX
+61-163 oraz położenia kół. Ponowne obliczenie obu oryginalnych plików studiów
+daje identyczny zapis wyników JSON i nadal spełnia 13/13 niezależnych kontroli.
+Raporty liczbowe pozostają aktualne.
+
+Naprawiono również możliwość zawieszenia po błędzie SDK. Opróżnianie kolejki
+używa jej długości; test z natywnym błędem i limitem czasu sprawdza także
+ponowny odczyt pustej kolejki. Dane niezgodnego obrysu nie usuwają istniejącego
+modelu. Szczegóły: [OBRYS_OPENVSP.md](OBRYS_OPENVSP.md).
+
+Końcowy przebieg dla etapu obrysu: **2506 zaliczonych testów backendu, 61
+pominiętych wywołań natywnego SDK w Pythonie 3.11, pokrycie 94,33%**.
+Cała przeglądarka zaliczyła **54 scenariusze**, JavaScript **55**.
+Zestaw środowiska OpenVSP 3.55 / Python 3.13 zaliczył **76 testów Studio i adaptera**.
