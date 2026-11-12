@@ -77,3 +77,8 @@ def test_incomplete_section_cannot_be_applied_and_nonphysical_mass_matrix_is_exp
     page.locator('#applyAeroelasticData').click()
     expect(page.locator('#calculationStatus')).to_contain_text('macierz mas', timeout=60000)
     assert page.evaluate('currentResults.aeroelastics.bending_stiffness_ei') == previous
+    page.locator('#wing_section_cg_ratio').fill('.4')
+    page.locator('#applyAeroelasticData').click()
+    page.wait_for_function('currentResults?.params.wing_section_cg_ratio===.4 && currentResults.aeroelastics.flutter_speed_kmh===null', timeout=60000)
+    expect(page.locator('#aeroelasticResults')).to_contain_text('Nie wyznaczono')
+    assert page.evaluate('currentResults.engineering_audit.checks.find(c=>c.id==="flutter_safety_margin").passed') is False

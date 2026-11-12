@@ -200,3 +200,19 @@ katalogu nadal daje poprzednie parametry. Ujednolicenie katalogu musi zachować
 projekty i świadome zmiany użytkownika. Również OpenVSP odtwarza obecnie profil
 przybliżeniem NACA 4-cyfrowym, zamiast używać pełnych rzędnych FX 61-163; model
 pozostaje geometrią koncepcyjną.
+
+Końcowa weryfikacja implementacji tej aktualizacji:
+
+- Python 3.11: **2472 zaliczone, 12 pominiętych**, bez błędów i niezaliczonych testów
+  (`work/aeroelastic-verified-full.xml`). Pominięto natywne wywołania OpenVSP dla tego interpretera.
+- Pokrycie **94,29%**; pomiar pełnego kodu uzupełniono o poprawione testy adaptera
+  i regresję numeryczną (`work/aeroelastic-final-coverage.xml`).
+- Chromium: **48 scenariuszy**, w tym siedem klas, kreator, zapis i raporty;
+  dodatkowo powtórzono trzy scenariusze panelu aeroelastycznego po poprawce wyróżnika.
+  Weryfikują również zachowanie precyzji wpisanych danych i prezentację wyniku nierozstrzygającego.
+- JavaScript: **55 zaliczonych**. Python 3.13 z OpenVSP 3.55: **13 natywnych + 14 adaptera** zaliczonych.
+- Integralność obu baz SQLite i ich niezmienność po testach potwierdzone.
+
+Pełny zestaw obejmuje także regresję CS-22: podmuch 7,5 m/s przy VD oraz malejące
+granice manewrowe są uwzględnione w obwiedni zbiorczej. Testy nie oznaczają zamknięcia
+otwartych pozycji konstrukcyjnych ani potwierdzeń wymaganych od autora.
