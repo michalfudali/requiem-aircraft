@@ -45,6 +45,7 @@
     $('wizardPolarBasis').textContent = message;
     for (const id of ['wizardPolarChart', 'wizardPolarMetrics', 'wizardPolarEquations']) $(id).replaceChildren();
     $('wizardPolarProbe').hidden = true;
+    $('wizardDragFlow').replaceChildren();
   }
 
   function equation(tex) {
@@ -73,7 +74,62 @@
       String.raw`C_{L,opt}=\sqrt{\frac{C_{D0}}{k}}=${clOpt.toFixed(3)}`
     ];
     $('wizardPolarEquations').innerHTML = formulas.map(tex => `<div>${equation(tex)}</div>`).join('');
+    const flow = p.mode === 'input' ? [
+      ['Podajesz', `C_D0 = ${fmt(p.cx0, 5)}`, 'współczynnik całego samolotu'],
+      ['Obliczamy', `k = ${fmt(k, 5)}`, `Λ = ${fmt(p.aspect_ratio)} · e = ${fmt(p.oswald_e)}`],
+      ['Otrzymujesz', `K_max = ${fmt(p.kmax)}`, 'maksymalna doskonałość modelu']
+    ] : [
+      ['Podajesz', `S_wet/S = ${fmt(p.swet_ratio)}`, 'cały samolot / skrzydło'],
+      ['Wyznaczamy', `Λ_wet = ${fmt(p.wetted_aspect_ratio)}`, p.mode === 'reading' ? `Twój odczyt K_max = ${fmt(p.kmax)}` : `Raymer: K_max = ${fmt(p.kmax)}`],
+      ['Otrzymujesz', `C_D0 = ${fmt(p.cx0, 5)}`, `Λ = ${fmt(p.aspect_ratio)} · e = ${fmt(p.oswald_e)}`]
+    ];
+    $('wizardDragFlow').innerHTML = flow.map(([label, value, note], i) => `<li><span>${i+1}. ${esc(label)}</span><strong>${esc(value)}</strong><small>${esc(note)}</small></li>`).join('');
     renderPolarPoint();
+  }
+
+  const normalize = text => text.toLowerCase().replace(/ł/g, 'l').normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, ' ').trim();
+
+  function searchable(input) {
+    if (input.disabled || input.type === 'hidden') return false;
+    // Inactive stages are searchable; controls hidden by the selected method are not.
+    for (let el = input; el && !el.classList.contains('wizard-form'); el = el.parentElement) {
+      if (el.classList.contains('wizard-pane')) continue;
+      if (el.hidden || getComputedStyle(el).display === 'none') return false;
+    }
+    return true;
+  }
+
+  function searchFields() {
+    const query = normalize($('wizardFieldSearch').value);
+    const list = $('wizardSearchResults');
+    $('wizardSearchClear').hidden = !query;
+    list.hidden = !query;
+    if (!query) { list.replaceChildren(); $('wizardSearchStatus').textContent = ''; return; }
+    const terms = query.split(' ');
+    const matches = [...document.querySelectorAll('.wizard-pane input[id], .wizard-pane select[id], .wizard-pane textarea[id]')].filter(searchable).map(input => {
+      const label = document.querySelector(`label[for="${input.id}"]`);
+      if (!label) return null;
+      const title = label.cloneNode(true);
+      title.querySelectorAll('.param-info-icon, .param-didactic-hint, button').forEach(el => el.remove());
+      const text = title.textContent.trim();
+      const keywords = normalize(`${text} ${input.id} ${input.id === 'wiz_cx0' ? 'CD0 opór zerowy' : ''}`);
+      if (!terms.every(term => keywords.includes(term))) return null;
+      const value = input.tagName === 'SELECT' ? input.selectedOptions[0]?.textContent : input.value;
+      return {id:input.id, text, value:value || 'Nie podano', step:Number(input.closest('.wizard-pane').id.replace('wizardPane', '')), derived:input.readOnly};
+    }).filter(Boolean);
+    $('wizardSearchStatus').textContent = matches.length ? `Znalezione parametry: ${matches.length}. Wybierz, aby przejść do pola.` : 'Brak parametrów dla tej frazy w aktualnej konfiguracji.';
+    list.innerHTML = matches.slice(0, 12).map(item => `<li><button type="button" data-search-field="${esc(item.id)}" data-search-step="${item.step}"><span>${esc(item.text)}</span><small>Etap ${item.step} · ${esc(stageNames[item.step-1])}${item.derived ? ' · wynik zależny' : ''}</small><strong>${esc(item.value)}</strong></button></li>`).join('');
+    if (matches.length > 12) list.insertAdjacentHTML('beforeend', '<li class="wizard-search-more">Pokazano pierwsze 12 wyników. Doprecyzuj wyszukiwanie.</li>');
+  }
+
+  function focusField(id, step) {
+    goToWizardStep(step, {focus:false});
+    const input = $(id);
+    for (let el = input.parentElement; el; el = el.parentElement) {
+      if (el.tagName === 'DETAILS') el.open = true;
+    }
+    input.style.scrollMarginTop = `${(document.querySelector('.bipol-navbar')?.getBoundingClientRect().height || 0) + 30}px`;
+    input.focus({preventScroll:true}); input.scrollIntoView({block:'center', behavior:'instant'});
   }
 
   function renderPolarPoint() {
@@ -99,6 +155,7 @@
   function started() {
     ready = true; owner = getActiveProjectId(); dirty = false;
     requestedPreview = '';
+    $('wizardFieldSearch').value = ''; searchFields();
     $('wizardDraftStatus').textContent = 'Szkic gotowy do edycji';
     refresh();
   }
@@ -156,12 +213,15 @@
     readiness();
     $('wizardDraftName').textContent = p.name;
     const direct = p.preliminary_polar_mode === 'input';
+    $('wizardDragShortcutValue').textContent = direct ? `C_D0 = ${fmt(p.cx0, 4)}` : p.wetted_example === 'sketch' ? `S_wet/S = ${fmt(p.sketch_swet_ratio)}` : 'Stosunek S_wet/S';
+    $('wizEnterOwnRatio').hidden = p.wetted_example === 'sketch';
     $('wizardLiveSummary').innerHTML = [
       ['Misja', `${p.range_km} km · ${p.cruise_speed_kmh} km/h`],
       ['Załoga i pasażerowie', `${Number(p.n_crew) + Number(p.n_pax)} os.`],
       ['Wydłużenie skrzydła', fmt(p.aspect_ratio)],
       ['Podstawa oporu', direct ? `C_D0 = ${fmt(p.cx0, 4)}` : p.wetted_example === 'sketch' ? `S_wet/S = ${fmt(p.sketch_swet_ratio)}` : 'S_wet/S z układu samolotu']
     ].map(([label, value]) => `<div><dt>${esc(label)}</dt><dd>${esc(value)}</dd></div>`).join('');
+    if ($('wizardFieldSearch').value) searchFields();
     const signature = JSON.stringify(p);
     if (signature === requestedPreview) return;
     requestedPreview = signature;
@@ -229,10 +289,40 @@
   document.addEventListener('DOMContentLoaded', () => {
     const root = $('projectWizardBackdrop');
     const changed = event => {
-      if (!ready || !event.target.matches('input, select, textarea') || event.target.closest('.wizard-trend-chart-box') || event.target.id === 'wizPolarCl') return;
+      if (!ready || !event.target.matches('input, select, textarea') || event.target.closest('.wizard-tools, .wizard-trend-chart-box') || event.target.id === 'wizPolarCl') return;
       dirty = true; showWizardError(''); refresh(); persist();
     };
     root.addEventListener('input', changed); root.addEventListener('change', changed);
+    $('wizardFieldSearch').addEventListener('input', searchFields);
+    const clearSearch = () => { $('wizardFieldSearch').value = ''; searchFields(); $('wizardFieldSearch').focus(); };
+    $('wizardSearchClear').addEventListener('click', clearSearch);
+    root.querySelector('.wizard-field-search').addEventListener('keydown', event => {
+      if (event.key === 'Escape') { event.preventDefault(); event.stopPropagation(); clearSearch(); return; }
+      if (!['ArrowDown', 'ArrowUp'].includes(event.key)) return;
+      const buttons = [...$('wizardSearchResults').querySelectorAll('button')];
+      if (!buttons.length) return;
+      const index = buttons.indexOf(document.activeElement);
+      const next = index < 0 ? (event.key === 'ArrowDown' ? 0 : buttons.length-1)
+        : (index + (event.key === 'ArrowDown' ? 1 : -1) + buttons.length)%buttons.length;
+      event.preventDefault(); buttons[next].focus();
+    });
+    $('wizardSearchResults').addEventListener('click', event => {
+      const button = event.target.closest('[data-search-field]');
+      if (!button) return;
+      const {searchField, searchStep} = button.dataset;
+      $('wizardFieldSearch').value = ''; searchFields();
+      focusField(searchField, Number(searchStep));
+    });
+    $('wizardDragShortcut').addEventListener('click', () => {
+      goToWizardStep(4);
+      const input = document.querySelector('[name="wiz_drag_basis"]:checked');
+      input.focus({preventScroll:true});
+    });
+    $('wizEnterOwnRatio').addEventListener('click', () => {
+      $('wiz_wetted_example').value = 'sketch';
+      $('wiz_wetted_example').dispatchEvent(new Event('change', {bubbles:true}));
+      focusField('wiz_sketch_swet_ratio', 4);
+    });
     $('wizPolarCl').addEventListener('input', renderPolarPoint);
     $('wizReviewBtn').addEventListener('click', () => goToWizardStep(5));
     $('wizardReviewIssues').addEventListener('click', event => {
@@ -244,7 +334,7 @@
       input.focus({preventScroll:true}); input.scrollIntoView({block:'center'});
     });
     // Keep the plot beside the form on large displays, beside its inputs on phones.
-    const wide = window.matchMedia('(min-width:1500px)');
+    const wide = window.matchMedia('(min-width:1400px)');
     const insights = root.querySelector('.wizard-insight-panel');
     const positionInsights = () => {
       if (wide.matches) root.querySelector('.wizard-body').append(insights);

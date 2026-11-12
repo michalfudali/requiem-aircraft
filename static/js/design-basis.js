@@ -335,7 +335,7 @@
       $('wizSuggestTrendsBtn'), $('wizTrendProvenanceGeometry'),
       ['ar', 'vh', 'v_v', 'b_ail_ratio', 'c_ail_ratio', 'c_e_ratio', 'c_r_ratio', 'dihedral_deg'], applyWizardTrend));
     document.addEventListener('input',event=>{
-      const input=event.target;if(!input.matches('#designForm input, #projectWizardBackdrop input'))return;
+      const input=event.target;if(!input.matches('#designForm input, #projectWizardBackdrop input[id^="wiz_"]'))return;
       const prefix=input.id.startsWith('wiz_')?'wiz_':'';sync(prefix);if(prefix)window.BipolTrendProvenance?.refreshWizardCharts?.();
     });
     document.addEventListener('change',event=>{
