@@ -267,3 +267,12 @@ Końcowy przebieg dla etapu obrysu: **2506 zaliczonych testów backendu, 61
 pominiętych wywołań natywnego SDK w Pythonie 3.11, pokrycie 94,33%**.
 Cała przeglądarka zaliczyła **54 scenariusze**, JavaScript **55**.
 Zestaw środowiska OpenVSP 3.55 / Python 3.13 zaliczył **76 testów Studio i adaptera**.
+
+Dalsza kontrola przekazywania parametrów napędu wykazała brak śmigła w adapterze
+dla kanonicznego typu `prop` i użycie starszej nazwy pola liczby silników w Studio.
+Oba błędy poprawiono, ujednolicając również liczbę łopat. Siedem klas sprawdzono
+w obu generatorach. Zestaw natywny i adaptera zaliczył 90 testów oraz cztery
+dodatkowe przypadki domyślnej liczby łopat; ponowiono sześć scenariuszy Chromium.
+Zakres i pozostające ograniczenia rozmieszczenia napędu: [NAPED_OPENVSP.md](NAPED_OPENVSP.md).
+Odświeżony model wariantu 21 m ma śmigło o średnicy 1,7 m i dwóch łopatach;
+manifest wiąże go z rewizją kodu oraz wejściami i wynikami projektu.
