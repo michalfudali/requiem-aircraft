@@ -36,65 +36,31 @@ z katalogu oraz na przeliczeniu wszystkich 110 tematów i 10 przykładów.
 | A11 | Dwie prędkości oderwania: 1,12 VS na wykresie doboru i 1,15 VS w modelu startu | Jedna stała `runway.LIFTOFF_FACTOR = 1,15` | pełny pytest |
 | A12 | Wiersze zerowe w tabeli oporów P4 | Pomijane w `reports/p4.html` | raport P4 |
 | A13 | Brak opisu ograniczeń: paliwo wznoszenia poniżej wykresu Corke’a, pułap silnika wolnossącego | Zdania w P2 i P5 | raport |
+| A14 | Największy kąt wznoszenia liczony przy prędkości przeciągnięcia | Prędkość nie mniejsza niż 1,2 VS (`paturski_ml.eval_climb_at_alt`) | pełny pytest |
+| A15 | Opór podwozia motoszybowca stały (0,105 m²) niezależnie od masy i układu | Pole kół z tabeli opon wykładu 4, przednie lub ogonowe trzecie koło | raport P4 |
+| A16 | Kąt ochrony ogona: stała wysokość ogona, 92 projekty niezaliczone | Wymagane podcięcie tyłu kadłuba jako wynik; niezaliczone tylko, gdy przekracza 0,35 d_k nad osią | przeliczenie tematów |
+| A17 | `/report?preset=` liczył przykład inaczej niż aplikacja | Wspólna funkcja `app.example_parameters` | pełny pytest |
+| A18 | Temat 7 w katalogu startował z niewykonalnego punktu (354 kg) | Seed tematu 7 z pliku projektu, bez silnika; istniejąca lokalna baza nie jest nadpisywana (README bazy) | `test_topic_configuration.py`, `test_design_integrity.py` |
 | A10 | Test `test_live_polar_chart…[390]` padał pod obciążeniem (limit 5 s) | Limit 20 s | `--browser` |
 
 ## B. Otwarte — do naprawy
 
-Kolejność według wagi dla poprawności projektu.
+Pozycje B1–B5 i B7 z pierwszej wersji tej listy są naprawione (tabela A, wiersze A14–A19).
 
-### B1. Wznoszenie pod największym kątem i długotrwałość liczone przy prędkości przeciągnięcia
-- **Objaw:** tabela „Osiągi samolotu w funkcji wysokości”: „V przy γmax” = Vmin na każdej wysokości, powyżej 4 km
-  także „V przy wy,max” = Vmin. Tabela zasięgu: Tmax przy dolnej granicy prędkości (76,5 km/h < VS1 = 77,4 km/h).
-- **Przyczyna:** `paturski_ml.py`, `eval_climb_at_alt`: `samples = [flight['stall_ms'] * (1 + i/50) …]`, oraz
-  `flight_model.level_flight_envelope` (dolna granica = VS). Zakres tabeli zasięgu zaczyna się od VS dla masy przelotu.
-- **Naprawa:** dolną granicę prędkości użytkowych przyjąć 1,2 VS1 (wznoszenie; JAR 23.65) i 1,1 VS1 (długotrwałość,
-  jak zapas z BIPOL_2 wzór 10). Vmin w wykresie ofertowym zostaje VS1. W raporcie dopisać, skąd granica.
-- **Test:** dla tematu 7 `V przy γmax ≥ 1,2·VS1` na każdej wysokości; `test_ml1_api.py` i `test_calc_sheet.py` zielone.
+### B6. Tematy ultralekkie 15–19 przekraczają 600 kg
+- **Objaw:** m₀ = 663–725 kg przy limicie 600 kg (`[UL-A] Maksymalna masa startowa`).
+- **Przyczyna:** próba samolotów ≤ 660 kg z bazy ma średni udział masy pustej 0,60; przy dwóch osobach (90 + 115 kg)
+  bilans nie zamyka się w 600 kg nawet dla zasięgu 300 km.
+- **Naprawa:** decyzja o temacie, nie o programie: uzupełnić bazę o współczesne konstrukcje UL 600 kg ze źródłami
+  (udział masy pustej około 0,50–0,55) albo zmienić misję/masy osób w seedzie. Limitu nie zmieniać.
+- **Test:** kontrola MTOM zaliczona dla tematów 15–19.
 
-### B3. Domyślny temat 7 z katalogu nie jest wykonalnym punktem startu
-- **Objaw:** `tools`/kreator → temat 7: m₀ = 354 kg, W/S = 19 kg/m² (poniżej klasy), Cz przelotu = 0,29 Cz,opt,
-  próba 50 konstrukcji z szybowcami z balastem wodnym, surowe C = +0,25 zastąpione wymuszonym −0,05 (R² < 0),
-  suma mas zespołów 406 kg wobec 211 kg z bilansu, `seats_config = side` w samolocie jednomiejscowym,
-  klapolotki na całej rozpiętości.
-- **Naprawa:** w `data/projects/course_seed.json` (temat 7, `parameters` i `defaults`) przyjąć wartości z
-  `data/design_cases/topic7_motoszybowiec_21m.json` bez pól silnika katalogowego i bez `source_notes`.
-  Rozważyć to samo dla tematów 8 i 9 (b > 20 m). Uwaga: istniejąca lokalna baza `projects.sqlite3` nie jest
-  nadpisywana — dodać w `production.initialize_projects` aktualizację wierszy `topics` z nowszego seeda
-  (bez dotykania tabeli `projects`), z testem w `tests/test_project_store.py`.
-- **Test:** `t7sum`-owy przegląd: brak niezaliczonych kontroli poza silnikiem/szkicem/misją;
-  `tests/test_topic_configuration.py`, `tests/test_browser_topic7_propeller.py`, `tests/test_design_integrity.py`.
-
-### B4. Opór podwozia niezależny od wielkości samolotu i układu
-- **Objaw:** P4, tabela oporów: „Podwozie” S = 0,105 m² (`paturski_ml.py:623`, `s_gear = 3 * 0.035`) dla każdego
-  samolotu ze stałym podwoziem, także z kółkiem ogonowym.
-- **Naprawa:** pole czołowe kół z wymiarów opon z wykładu 4 (d = A·W_m^B, w = A·W_m^B, tabela „Samoloty lekkie”),
-  dwa koła główne + przednie albo małe kółko ogonowe (`landing_gear_type`). Pokazać wzór w `calc_sheet.py`.
-- **Test:** S_j rośnie z m₀; dla tematu 7 raport P4 podaje wymiary kół i ich źródło.
-
-### B5. Kąt ochrony ogona nie przechodzi w 92 projektach z kołem przednim
-- **Objaw:** audyt `tailstrike_clearance` niezaliczony (np. temat 17: 10,6° wobec 15,3°).
-- **Przyczyna:** `engineering_audit.py`: punkt ogona na stałej wysokości −0,20 d_k, bez podcięcia tyłu kadłuba;
-  wysokość goleni nie jest dobierana do warunku.
-- **Naprawa:** dobierać `axis_height_m` (geometry.py) tak, żeby spełnić kąt α przy Cz,max (wykład 7), z górnym
-  ograniczeniem długości goleni; gdy to niemożliwe, zostawić ostrzeżenie z wymaganą wysokością. Uwzględnić wynik w
-  masie podwozia (długość goleni we wzorze Raymera) i w rysunku (`drawing_sheet.py`).
-- **Test:** liczba projektów z niezaliczonym `tailstrike_clearance` spada; kąt przewrócenia na bok nadal < 60°.
-
-### B6. Projekty domyślne poza zakresem własnych przepisów
-- **Objaw:** tematy 15–19 (ultralekkie): m₀ = 663–725 kg przy limicie 600 kg; jeden temat tłokowy w JAR-25
-  („Rodzaj napędu: turbinowy” niezaliczone).
-- **Naprawa:** to decyzja o misji w seedzie: zmniejszyć zasięg/oczekiwanie albo masę osoby do wartości z przepisów
-  UL, ewentualnie przenieść temat do JAR-VLA (MTOM 750 kg). Nie zmieniać limitu. Dla tematu tłokowego > 5670 kg
-  sprawdzić `scope_category` (JAR-23 commuter wymaga dwóch silników śmigłowych).
-- **Test:** `[UL-A] Maksymalna masa startowa` zaliczone dla 15–19 albo jawna zmiana kategorii z uzasadnieniem.
-
-### B7. Raport z adresu `/report?preset=…` liczy przykład w trybie wstępnym
-- **Objaw:** przykłady otwarte przez `/api/presets` są domknięte biegunową P4, a `/report?preset=pzl_kos` nie
-  (`app._report_parameters` bierze `AIRCRAFT_PRESETS` bez `design_iteration_mode`); zasięg wychodzi niezaliczony.
-- **Naprawa:** jedna funkcja `example_parameters(key)` użyta w obu miejscach. Wcześniejsza próba zmiany w
-  `project_store.load_presets` psuła `tests/test_calc_sheet.py::test_iterative_method_follows_bipol1_points_1_to_12`
-  (test zakłada tryb wstępny) — test przepisać na jawne `design_iteration_mode='preliminary'`.
-- **Test:** `client.get('/report?preset=pzl_kos')` zawiera „Zasięg … spełnione”.
+### B9. Hałas domyślnego tematu 7 z silnikiem dobranym z wykresu
+- **Objaw:** temat 7 z katalogu (bez wybranego silnika, moc 28,6 kW): szacunek 72,1 dBA przy limicie 70,3 dBA.
+  Z silnikiem 58 kW (plik projektu) zapas wynosi +1,7 dBA, bo samolot przelatuje wyżej nad punktem pomiaru.
+- **Naprawa:** sprawdzić w `acoustics.py`, dlaczego zmiana `propeller_diameter_m` i `propeller_rpm` nie zmienia
+  wyniku dla tego wariantu; jeśli model jest poprawny, zostawić jako ostrzeżenie projektowe.
+- **Test:** `tests/test_acoustics.py`; wynik reaguje na średnicę i obroty.
 
 ## C. Ograniczenia metod z przewodnika — nie „naprawiać” wzoru, tylko opisać w raporcie
 
@@ -106,6 +72,7 @@ Kolejność według wagi dla poprawności projektu.
 | C4 | Pułap praktyczny 10,3 km silnika wolnossącego | `flight_model.propulsion_lapse` (Gagg–Farrar) | Zdanie w P5 dodane (A13) |
 | C5 | Koszt egzemplarza 1,2 mln USD | BIPOL_2, Corke | Zdanie już dodane dla szybowców i motoszybowców; rozważyć dla UL/VLA |
 | C6 | Masa własna: rozrzut wzorów −14%…+20% | `mass.estimate_component_masses` | Podawać przedział w P3 (dane z testu A3) |
+| C8 | Długotrwałość największa przy dolnej granicy prędkości (blisko przeciągnięcia) | BIPOL_5: zakres prędkości z wykresu ofertowego | Nie zawężać zakresu (próba zawężenia łamie testy zgodności z BIPOL_5); ewentualnie zdanie w P5 |
 | C7 | Flatter, hałas, właściwości pilotażowe | odpowiednie moduły | Zostają szacunkami wstępnymi; nie opisywać jako wykazanie zgodności |
 
 ## D. Wymaga danych lub decyzji człowieka
@@ -125,3 +92,24 @@ Kolejność według wagi dla poprawności projektu.
   (jak w temacie 7, gdzie C = −0,128 bez wymuszenia) albo akceptacja założenia.
 - **D6. 119 projektów bez wybranego silnika.** To stan wyjściowy każdego tematu; katalog ma 7 silników.
   Rozszerzenie katalogu wymaga źródeł dla każdej pozycji.
+
+## E. Stan przeliczenia wszystkich 120 projektów (12.11.2026, po poprawkach)
+
+Pozycje niezaliczone w ustawieniach domyślnych tematów. Są to sygnały projektowe do rozstrzygnięcia w danym temacie,
+a nie błędy rachunku; do sprawdzenia przez agenta tylko tam, gdzie zaznaczono.
+
+| Kontrola | Liczba projektów | Uwaga |
+|---|---|---|
+| Brak wybranego silnika ze źródłem zużycia | 119 | Stan wyjściowy; wybiera autor (D6) |
+| Gabaryty ładowni, zabudowa misji specjalnej | 33 / 26 | Wymagają danych ładunku od autora |
+| Zakres biegunowej parabolicznej przy dużej prędkości | 19 + 10 | Odrzutowce; ograniczenie metody |
+| Operacje na wodzie (wyporność, start, lądowanie) | 7 | Model nie obejmuje wodnosamolotów |
+| Cz przelotu daleko od Cz,opt | 86 | Prędkości przelotowe w seedzie; decyzja autora |
+| Malejąca zależność masy pustej bez oparcia w próbie | 84 | D5 |
+| Hałas (szacunek) | 65 | Model wstępny; B9 |
+| Suma mas zespołów ≠ masa pusta z bilansu | 54 | Znika po włączeniu domknięcia `empty_mass_closure=components` |
+| Sterowność z jednym silnikiem | 44 | Wymiarowanie usterzenia pionowego — do sprawdzenia przez agenta |
+| Obciążenie powierzchni poza przedziałem klasy | 40 | Decyzja autora |
+| Kąt ochrony ogona | 22 | Po A16; pozostałe wymagają dłuższej goleni |
+| Zakres ŚC i położenie kół (2 odrzutowce dyspozycyjne) | 2 | **Do sprawdzenia przez agenta** (tematy szturmowe 100, 102) |
+| MTOM tematów UL | 3 | B6 |

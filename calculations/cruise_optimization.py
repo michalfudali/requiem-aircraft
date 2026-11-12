@@ -61,8 +61,6 @@ def optimize_cruise(params, sizing, start_mass, end_mass, area, cd0, k, cl_max, 
                     excess_power_start_w=start['available_w']-start['required_w'])
 
     low, high = envelope['min_ms'], envelope['max_ms']
-    # Lot ustalony z zapasem do przeciągnięcia jak na wykresie doboru (BIPOL_2, wzór 10: Cz = Cz,max/1,1).
-    low = min(max(low, envelope['stall_ms'] * 1.1 ** .5), high)
     result.update(available=True, status='available', min_speed_kmh=low*3.6, max_speed_kmh=high*3.6,
                   max_range=_maximum(evaluate, 'range_km', low, high),
                   max_endurance=_maximum(evaluate, 'endurance_h', low, high))
