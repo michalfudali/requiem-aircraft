@@ -224,9 +224,9 @@ def typical_section_flutter(m_line, chord, GJ, EI, l_semi, lift_slope,
     B0, B1 = -(m_line*ka + ia*kh), m_line*e + sa
     C0, C1 = kh*ka, -kh*e
     qa, qb, qc = B1**2, 2*B0*B1 - 4*A*C1, B0**2 - 4*A*C0
-    disc = qb**2 - 4*qa*qc
+    disc = 16*A*kh*sa*(ka*(m_line*e+sa) - kh*e*(ia+sa*e))  # factored: exactly zero when Sα=0
     roots = []
-    if qa > 0 and disc > 0:
+    if qa > 0 and disc > 64 * math.ulp(1.0) * max(qb**2, abs(4*qa*qc)):
         root = -.5 * (qb + math.copysign(math.sqrt(disc), qb))
         roots = [root/qa, qc/root] if root else []
     elif qa == 0 and qb < 0:

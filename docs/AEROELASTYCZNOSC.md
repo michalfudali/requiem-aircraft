@@ -69,6 +69,17 @@ Flatter szacuje zbiegnięcie częstości przekroju 2DOF z aerodynamiką quasi-st
 Uwzględnia się tylko dodatnie ω² i dodatnio określoną macierz mas. Brak zbiegnięcia
 nie dowodzi braku flatteru: prędkość i wynik porównania mają wtedy wartość `null`.
 
+Wyznacznik równania drgań ma postać
+`(kh − m′ω²)(kα − Le − Iαω²) + Sαω²(L − Sαω²) = 0`, gdzie `L = qca`.
+Wyróżnik równania na ω² jest wielomianem kwadratowym względem L.
+Jego wyróżnik oblicza się po rozłożeniu na czynniki:
+`16A kh Sα [kα(m′e + Sα) − kh e(Iα + Sαe)]`, `A = m′Iα − Sα²`.
+Taki zapis zachowuje dokładne zero przy `Sα = 0`, zamiast odejmować dwie duże,
+niemal równe liczby. Uwzględniono też względną dokładność arytmetyki zmiennoprzecinkowej.
+Regresja sprawdza 250 par EI/GJ dla `xCG = xEA`: trójkątna macierz nie może
+wytworzyć przedziału zespolonych ω². Nie oznacza to braku dywergencji ani potwierdzenia
+stateczności rzeczywistego skrzydła z aerodynamiką niestacjonarną.
+
 **Rewers lotek pozostaje nieobliczony.** Usunięto nieuzasadnione V_rev = 0,82 V_div
 oraz osobny mnożnik „wymagania” 1,15 VD. Potrzebne są pochodne aerodynamiczne,
 położenie i rozpiętość lotki oraz podatność i rozkłady skrzydła.

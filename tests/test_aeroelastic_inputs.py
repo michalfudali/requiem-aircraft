@@ -90,6 +90,20 @@ def test_no_coalescence_is_inconclusive_and_does_not_omit_audit_warning():
     assert result['engineering_audit']['metrics']['flutter_margin'] is None
 
 
+def test_uncoupled_inertias_never_create_flutter_from_discriminant_roundoff():
+    """Sα=0 makes the determinant triangular: both ω² roots stay real for every q.
+
+    Vary stiffness independently: cancellation at the double discriminant root
+    used to invent a narrow flutter interval for 64 of these 250 sections.
+    """
+    import random
+    rng = random.Random(227)
+    for _ in range(250):
+        ei, gj = 10**rng.uniform(4, 7), 10**rng.uniform(4, 7)
+        section = typical_section_flutter(15., 1.5, gj, ei, 5., 5., x_cg=.4)
+        assert math.isinf(section['v_flutter_ms']), (ei, gj, section)
+
+
 def test_very_soft_wing_is_not_artificially_clamped_to_100_pa():
     result = estimate({**DECLARED, 'wing_torsional_stiffness_nm2': .01})
     assert result['divergence_speed_kmh'] < 1
