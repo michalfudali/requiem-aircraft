@@ -619,8 +619,11 @@ def paturski_project_3_aircraft_aero(geom_res: dict, params: dict, m0: float = N
         s_gear = 0.015
         cx_gear_comp = 0.25
     elif ac_type == "motoglider":
-        # Dwa koła główne i trzecie (ogonowe lub przednie) z goleniami i owiewkami.
-        s_gear = 3 * 0.035
+        # Wykład 4 (tabela opon, samoloty lekkie): d = 1,51 Wm^0,349, w = 0,715 Wm^0,312 [cale], Wm = 0,9 W_TO/2 [lb].
+        # Dwa koła główne i trzecie: przednie o połowie pola koła głównego albo ogonowe o ćwierci.
+        wheel_lb = 0.9 * (m0 * 2.2046226) / 2
+        wheel_area = (1.51 * wheel_lb ** 0.349) * (0.715 * wheel_lb ** 0.312) * 0.0254 ** 2
+        s_gear = wheel_area * (2.25 if params.get("landing_gear_type") == "tailwheel" else 2.5)
         cx_gear_comp = 0.25
     else:
         target_gear_cxs = (0.0102 if has_struts else 0.0068) * S
@@ -1169,7 +1172,8 @@ def paturski_project_6_performance(geom_res: dict, sizing_res: dict, params: dic
         flight = envelope_at_alt(h_m)
         v = flight['best_speed_ms']
         # Maximum gradient is distinct from maximum rate of climb.
-        samples = [flight['stall_ms'] * (1 + i / 50) for i in range(101)]
+        # JAR 23.65: wznoszenie przy prędkości nie mniejszej niż 1,2 VS1 — także dla największego kąta.
+        samples = [flight['stall_ms'] * (1.2 + i / 50) for i in range(91)]
         best_gamma_v = max(samples, key=lambda speed: flight_point(params, sizing_res, m0, S,
             cx0_approx, k_ind_clean, h_m, speed)['climb_ms'] / speed)
         gamma = flight_point(params, sizing_res, m0, S, cx0_approx, k_ind_clean, h_m, best_gamma_v)['climb_ms'] / best_gamma_v

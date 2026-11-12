@@ -182,7 +182,17 @@ def perform_engineering_audit(result: dict) -> dict:
     metrics["tailstrike_angle_deg"] = round(tailstrike_angle_deg, 1)
     metrics["tailstrike_required_deg"] = round(tail_required, 1)
 
-    tailstrike_ok = tailstrike_angle_deg >= tail_required
+    # Rysunek (BIPOL_3, krok 11–13): tył kadłuba rysuje się po wyznaczeniu prostej kąta natarcia przy starcie.
+    # Dolny punkt ogona może leżeć najwyżej na górnej linii kadłuba; przyjęto zapas: nie wyżej niż 0,35 d_k nad osią.
+    tail_bottom_required = max(0.5, l_f - x_gear) * math.tan(math.radians(tail_required)) + z_ground
+    upsweep_ok = tailstrike_angle_deg < tail_required and tail_bottom_required <= 0.35 * d_f
+    if upsweep_ok:
+        z_tail_bumper = tail_bottom_required
+        h_tail_clearance = z_tail_bumper - z_ground
+        tailstrike_angle_deg = tail_angle(x_gear)
+        metrics["tailstrike_angle_deg"] = round(tailstrike_angle_deg, 1)
+    metrics["tail_bottom_required_m"] = round(tail_bottom_required, 3)
+    tailstrike_ok = tailstrike_angle_deg >= tail_required - 1e-9
     if tailwheel and not sailplane:
         # Wykład 4 (układ z kółkiem ogonowym): przy trzech punktach podparcia kąt postojowy 10°–15°, czyli
         # kąt natarcia dla Cz ≈ 0,9 Cz,max; przednie ŚC 13° za pionem przez punkt styku koła, tylne o 7° dalej.
@@ -249,7 +259,9 @@ def perform_engineering_audit(result: dict) -> dict:
         "engineering_note": (
             f"Kąt między ziemią a prostą od koła głównego do ogona wynosi {deg(tailstrike_angle_deg)} "
             f"(wysokość ogona nad ziemią oszacowana na {metres(h_tail_clearance)}). "
-            + ("Ogon nie dotknie ziemi przy kącie natarcia Cz_max." if tailstrike_ok else
+            + ((f"Warunek wymaga podcięcia tyłu kadłuba: dolny punkt ogona {metres(tail_bottom_required)} względem osi kadłuba "
+                f"(dopuszczalne do {metres(0.35 * d_f)}). Tak należy narysować tył kadłuba. " if upsweep_ok else "")
+               + "Ogon nie dotknie ziemi przy kącie natarcia Cz_max." if tailstrike_ok else
                f"To mniej niż {deg(tail_required)}: ryzyko uderzenia ogonem w pas przy lądowaniu na dużym kącie natarcia. "
                "Zwiększ podcięcie tyłu kadłuba (upsweep), przesuń podwozie główne ku tyłowi albo wydłuż goleń.")
         )

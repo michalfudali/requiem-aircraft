@@ -103,7 +103,7 @@ def _report_parameters():
     preset_id = request.args.get('preset', 'pzl_kos')
     if preset_id not in AIRCRAFT_PRESETS:
         raise ValueError('Nieznany preset raportu.')
-    return dict(AIRCRAFT_PRESETS[preset_id])
+    return example_parameters(preset_id)
 
 
 @app.errorhandler(ValueError)
@@ -163,11 +163,15 @@ def delete_user_project(project_id):
     aircraft_store.replace_project_supplements(project_id, [])
     return jsonify(status='ok', deleted=project_store.delete_project(project_id))
 
+def example_parameters(key):
+    """An example closes its mass with the P4 polar and moves to the category that covers it, like a course topic."""
+    preset = AIRCRAFT_PRESETS[key]
+    return {'design_iteration_mode': 'coupled', 'topic_origin': 'example', 'category_seed': preset.get('category'), **preset}
+
+
 @app.route('/api/presets', methods=['GET'])
 def get_presets():
-    # An example opened in the studio closes its mass with the P4 polar, like a course topic.
-    return jsonify({key: {'design_iteration_mode': 'coupled', 'topic_origin': 'example', 'category_seed': preset.get('category'),
-                          **preset} for key, preset in AIRCRAFT_PRESETS.items()})
+    return jsonify({key: example_parameters(key) for key in AIRCRAFT_PRESETS})
 
 
 @app.post('/api/preliminary-polar')
