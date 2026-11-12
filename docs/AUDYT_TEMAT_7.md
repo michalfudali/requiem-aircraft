@@ -193,15 +193,18 @@ Aktualny PDF ma 93 strony i nie zawiera pustych stron. Model OpenVSP wariantu
 21 m ma siedem brył; położenia kół i kontakt z ziemią zweryfikowano względem P3.
 Sumy kontrolne w `work/topic7-projekt/` wiążą bieżące wejścia, raporty i model.
 
-Przegląd spójności katalogu ujawnił osobny otwarty problem: `course_seed.json`
-zawiera nowszy wariant tematu 7 niż dostarczony `projects.sqlite3`. Import pliku
-`topic7_motoszybowiec_21m.json` daje opisany wyżej wariant; wybór tematu ze starszego
-katalogu nadal daje poprzednie parametry. Ujednolicenie katalogu musi zachować
-projekty i świadome zmiany użytkownika. Również OpenVSP odtwarza obecnie profil
-przybliżeniem NACA 4-cyfrowym, zamiast używać pełnych rzędnych FX 61-163; model
-pozostaje geometrią koncepcyjną.
+Przegląd spójności katalogu ujawnił starsze parametry w istniejącej lokalnej bazie
+SQLite. Baza ta jest pomijana przez Git; nowe instalacje korzystały już z bieżącego
+`course_seed.json`. Dodano aktualizację wyłącznie dokładnie rozpoznanych dawnych
+wpisów katalogowych. Zachowuje ona zapisane projekty i zmodyfikowane przez autora
+tematy. Nowy temat 7 w kreatorze ma teraz aktualny profil i geometrię.
 
-Końcowa weryfikacja implementacji tej aktualizacji:
+Obie ścieżki budowy OpenVSP korzystają już z pełnych rzędnych FX 61-163, a przycisk
+synchronizacji przekazuje aktywny projekt. Wcześniej błędne odwołanie JavaScript
+mogło powodować budowę samolotu domyślnego. Model nadal pozostaje geometrią
+koncepcyjną; szczegóły i granice testów: [KATALOG_I_PROFILE_OPENVSP.md](KATALOG_I_PROFILE_OPENVSP.md).
+
+Weryfikacja wcześniejszego etapu aeroelastycznego, przed poprawkami katalogu i OpenVSP:
 
 - Python 3.11: **2472 zaliczone, 12 pominiętych**, bez błędów i niezaliczonych testów
   (`work/aeroelastic-verified-full.xml`). Pominięto natywne wywołania OpenVSP dla tego interpretera.
@@ -216,3 +219,25 @@ Końcowa weryfikacja implementacji tej aktualizacji:
 Pełny zestaw obejmuje także regresję CS-22: podmuch 7,5 m/s przy VD oraz malejące
 granice manewrowe są uwzględnione w obwiedni zbiorczej. Testy nie oznaczają zamknięcia
 otwartych pozycji konstrukcyjnych ani potwierdzeń wymaganych od autora.
+
+## Weryfikacja katalogu i zachowania profilu — 12 listopada 2026
+
+Po bezpiecznej aktualizacji rozpoznanych dawnych wpisów katalogu, przekazaniu
+pełnych rzędnych profilu do obu adapterów OpenVSP i poprawce wysokości podwozia:
+
+- Pełny backend: **2491 zaliczonych, 28 pominiętych**, **94,33% pokrycia**,
+  bez błędów (`work/catalog-profile-final-full.xml`,
+  `work/catalog-profile-final-coverage.xml`). Pominięcia dotyczą SDK OpenVSP
+  niedostępnego w interpreterze Python 3.11.
+- Python 3.13 / OpenVSP 3.55: **29 testów Studio, w tym kontrola UI, oraz 14
+  testów adaptera** zaliczonych (`work/catalog-profile-final-native.xml`).
+- Chromium: **52 zaliczone scenariusze**, z dwoma testami rzeczywistego
+  backendu natywnego; JavaScript: **55 zaliczonych**.
+- Oba studia: **13/13 niezależnych kontroli liczbowych**, aktualne modele
+  `.vsp3` z kontrolą po ponownym otwarciu i 13 raportów HTML bez błędów JS/KaTeX.
+  Raport zbiorczy PDF nadal ma 93 strony bez pustych stron.
+
+Szczegółowy zakres testów, ochrona zapisanych projektów oraz pozostałe różnice
+obrysu eliptycznego i rzutu rozpiętości: [KATALOG_I_PROFILE_OPENVSP.md](KATALOG_I_PROFILE_OPENVSP.md).
+Sprawdzenie implementacji nie jest zamknięciem wymagań dotyczących rzeczywistej
+struktury, kompletnej zabudowy napędu ani uzgodnień autora.

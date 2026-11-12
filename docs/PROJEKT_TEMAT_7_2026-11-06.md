@@ -75,6 +75,11 @@ całkowane krokami 1 km, masę skrzydła ze wzoru Raymera, prędkości JAR 22.33
 
 ## Otwarte sprawy
 
+Aktualizacja geometrii 12.11.2026: OpenVSP zachowuje teraz pełne 98 rzędnych
+FX 61-163 we wszystkich przekrojach skrzydła. Testy potwierdzają ich zachowanie
+po zapisie i ponownym otwarciu `.vsp3`. Aktualny katalog kreatora i zapisane
+wcześniej projekty są obsługiwane oddzielnie; [opis aktualizacji](KATALOG_I_PROFILE_OPENVSP.md).
+
 - **Szkic odręczny i uzgodnienie misji.** Wymaga ich BIPOL_1 i może je dostarczyć tylko autor.
   Pola `sketch_reference` i `mission_approval_reference` pozostają puste, więc lista BIPOL_1 ma 11 z 13 pozycji.
 - **Profil.** Wybrano FX 61-163, porównując cztery profile na podstawie biegunowych XFOIL
