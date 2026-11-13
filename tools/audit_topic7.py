@@ -37,6 +37,14 @@ def numerical_invariants(result):
     decreasing=all(v['mass_end_kg']<=v['mass_start_kg']+.001 for v in phases)
     check('Mission mass continuity and fuel burn',continuous and decreasing,
           [dict(phase=v['key'],start_kg=v['mass_start_kg'],end_kg=v['mass_end_kg']) for v in phases])
+    cl=m['mission_assumptions'].get('climb') or {}
+    dh=p['cruise_altitude_m']-p.get('climb_start_altitude_m',0)
+    end_mass=cl.get('end_mass_kg',0)
+    lower=p['sfc']/3.6e9*end_mass*9.80665*dh/p['prop_efficiency']
+    check('Positive climb fuel exceeds the potential-work bound at constant TAS',
+          cl.get('model')=='energy' and cl.get('tas_start_ms')==cl.get('tas_end_ms') and
+          cl.get('fuel_kg',0)>lower>0,
+          dict(climb_fuel_kg=cl.get('fuel_kg'),potential_only_lower_bound_kg=lower))
     cg=result['balance']
     independently=(cg['neutral_point']['x_n_mac_pct']-cg['cg_range']['aft_pct'])
     check('Static margin = neutral point - aft CG',

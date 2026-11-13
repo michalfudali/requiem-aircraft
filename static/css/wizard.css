@@ -56,6 +56,8 @@
 .wizard-drag-flow strong { display:block; font-size:13px; font-variant-numeric:tabular-nums; overflow-wrap:anywhere; }
 .wizard-drag-flow small { display:block; margin-top:7px; font-size:10px; }
 .wizard-inline-action { display:block; margin-top:10px; padding:5px 0; background:transparent; border:0; color:var(--wiz-accent); font-size:12px; text-align:left; cursor:pointer; text-decoration:underline; text-underline-offset:3px; }
+.wizard-climb-profile { padding:18px; margin:20px 0; border:1px solid var(--wiz-line); border-radius:10px; background:var(--wiz-soft); min-width:0; }
+#tab-wizard .wizard-climb-profile h5 { margin:0 0 10px; font-size:16px; color:var(--wiz-ink); }
 .wizard-readiness { flex:1; max-width:360px; margin-left:auto; min-width:0; }
 .wizard-readiness > span { font-size:11px; color:var(--wiz-muted); }
 .wizard-readiness progress { display:block; width:100%; height:5px; appearance:none; border:0; border-radius:5px; overflow:hidden; margin:8px 0 5px; background:var(--wiz-line); }

@@ -50,7 +50,7 @@ NUMERIC_LIMITS = {
     "return_range_km": (0, 30000), "outbound_range_km": (0, 30000), "max_power_time_min": (0, 1440),
     "max_power_kw": (0, 1000000), "max_thrust_kn": (0, 10000), "max_power_sfc": (0.001, 1000),
     "loiter_speed_kmh": (1, 1200), "climb_start_speed_kmh": (1, 1200),
-    "climb_start_altitude_m": (0, 20000),
+    "climb_start_altitude_m": (0, 20000), "mission_climb_rate_ms": (.05, 100),
     "corke_start_ordinate": (0.001, 1), "corke_end_ordinate": (0.001, 1),
     "sketch_swet_ratio": (1, 20), "raymer_kmax": (1, 150),
     "empty_mass_a": (0.000001, 10000), "empty_mass_c": (-2, 2),
@@ -253,7 +253,7 @@ DEFAULTS = {
     "profile_thickness_mode": "auto", "tc_ratio": 0.12,
     "cargo_bay_length_m": 0, "cargo_bay_width_m": 0, "cargo_bay_height_m": 0,
     "max_power_time_min": 0, "preliminary_polar_mode": "raymer",
-    "climb_fraction_mode": "auto", "trend_year_basis": "certification",
+    "climb_fraction_mode": "energy", "mission_climb_rate_ms": 3., "trend_year_basis": "certification",
 }
 
 
@@ -278,6 +278,8 @@ def validate_parameters(data):
         raise ValueError('Uzasadnienie odchylenia Cx₀ musi być tekstem do 2000 znaków.')
     if 'airfoil_source' in p and (not isinstance(p['airfoil_source'], str) or len(p['airfoil_source']) > 4000):
         raise ValueError('Źródło profilu: podaj tekst do 4000 znaków.')
+    if 'climb_source' in p and (not isinstance(p['climb_source'], str) or len(p['climb_source']) > 4000):
+        raise ValueError('Źródło danych wznoszenia: podaj tekst do 4000 znaków.')
     # One comparison sample: the aircraft nearest in MTOW to the design (BIPOL_1, s. 1).
     for key in ('trend_reference_mode', 'mass_initial_guess'):
         p.pop(key, None)

@@ -991,7 +991,11 @@
         "range_km": 600.0,
         "cruise_altitude_m": 2000.0,
         "cruise_speed_kmh": 115.0,
-        "climb_rate_ms": 3.0
+        "climb_rate_ms": 3.0,
+        "climb_fraction_mode": "energy",
+        "mission_climb_rate_ms": 3.0,
+        "climb_start_altitude_m": 0.0,
+        "climb_start_speed_kmh": 115.0
       },
       "parameters": {
         "id": "topic_7",
@@ -1095,7 +1099,12 @@
           "cx_quad": 0.00157,
           "source": "biegunowa XFOIL profilu FX 61-163, Re = 10⁶, Ncrit = 9, airfoiltools.com"
         },
-        "sfc": 255.0
+        "sfc": 255.0,
+        "climb_fraction_mode": "energy",
+        "mission_climb_rate_ms": 3.0,
+        "climb_start_altitude_m": 0.0,
+        "climb_start_speed_kmh": 115.0,
+        "source_notes": "Projekt tematu 7: jedna osoba, b = 21 m (> 20 m), stały napęd ciągnący. BIPOL1_samoloty.pdf nie podaje misji: 600 km, 115 km/h TAS i 2000 m to założenia autora do uzgodnienia z prowadzącym. Prędkość 115 km/h wynika z warunku K_przelot = 0,94 Kmax z notatek prowadzącego. Próba: 17 rodzin motoszybowców bez balastu wodnego, o napędzie w kadłubie. Silnik: Rotax 912 UL, punkt 75% mocy ciągłej z OM-912 Ed.4 Rev.1. Masa własna domknięta sumą mas zespołów P3 (wzory Raymera, kompozyt). Plik nie zawiera potwierdzenia szkicu ani misji. Bilans wznoszenia: założono 3 m/s i stałą TAS 115 km/h od 0 do 2000 m; paliwo z bilansu energii, ze stałym SFC wybranego punktu silnika. Profil misji i przeniesienie SFC poza punkt producenta wymagają potwierdzenia."
       },
       "requirements": {
         "n_pax": 0,

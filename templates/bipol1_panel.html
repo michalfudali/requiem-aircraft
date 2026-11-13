@@ -54,17 +54,21 @@
       <label>SFC etapu maksymalnego (np. start/wznoszenie) <span id="bipol1SfcUnit"></span><input id="max_power_sfc" data-bipol1 type="number" min="0.001" max="1000" step="0.01" placeholder="Domyślnie z SFC przelotowego"></label>
     </div>
   </details>
-  <details><summary>Wznoszenie i rozpędzanie — Corke</summary>
+  <details><summary>Wznoszenie i rozpędzanie — paliwo i profil lotu</summary>
     <div class="trend-controls">
-      <label>Metoda<select id="climb_fraction_mode" data-bipol1><option value="auto">Wykres; poza zakresem oznaczone przybliżenie</option><option value="corke">Tylko wykres — bez ekstrapolacji</option><option value="reading">Własne odczyty rzędnych</option></select></label>
+      <label>Metoda<select id="climb_fraction_mode" data-bipol1><option value="energy">Bilans energii i paliwa</option><option value="corke">Wykres Corke’a — w jego zakresie</option><option value="reading">Własne udokumentowane odczyty rzędnych</option></select></label>
       <label>Wysokość początkowa [m]<input id="climb_start_altitude_m" data-bipol1 type="number" step="10" min="0" max="20000" value="0"></label>
       <label>Początkowa TAS [km/h]<input id="climb_start_speed_kmh" data-bipol1 type="number" step="1" min="1" max="1200" placeholder="Jak przelotowa, jeśli puste"></label>
+      <label data-bipol1-climb-energy>Tempo wznoszenia w profilu misji [m/s]<input id="mission_climb_rate_ms" data-bipol1 type="number" step="0.05" min="0.05" max="100" value="3" required></label>
     </div>
     <div class="trend-controls" data-bipol1-corke-reading>
       <label>Rzędna początkowa Wₚ/W₀,₁<input id="corke_start_ordinate" data-bipol1 type="number" min="0.001" max="1" step="0.005" value="0.99"></label>
       <label>Rzędna końcowa Wₘ/W₀,₁<input id="corke_end_ordinate" data-bipol1 type="number" min="0.001" max="1" step="0.005" value="0.98"></label>
+      <label>Źródło i warunki odczytów wznoszenia<textarea id="climb_source" data-bipol1 maxlength="4000" rows="2"></textarea></label>
     </div>
-    <p>Proporcja masy jest ilorazem rzędnych wykresu. Macha wyznaczamy z TAS i atmosfery ISA na obu wysokościach. <a href="/static/images/bipol1-corke.png" target="_blank" rel="noopener">Wykres źródłowy</a>.</p>
+    <p>Bilans energii uwzględnia pracę przeciw oporowi, zmianę wysokości i prędkości oraz SFC wybranego silnika. Tempo wznoszenia jest założeniem profilu misji; osiągalność jest sprawdzana osobno. TAS zmienia się liniowo z wysokością. Przed domknięciem P4 używana jest wstępna doskonałość. <a href="https://www1.grc.nasa.gov/beginners-guide-to-aeronautics/forces-in-a-climb/" target="_blank" rel="noopener">Bilans sił — NASA</a>.</p>
+    <p>Metoda Corke’a używa ilorazu rzędnych dla Macha z TAS i ISA. Nie przycina punktów poniżej M = 0,1 do fikcyjnego zerowego spalania. <a href="/static/images/bipol1-corke.png" target="_blank" rel="noopener">Wykres źródłowy</a>.</p>
+    <div id="bipol1ClimbResult" aria-live="polite"></div>
   </details>
   <details><summary>Szkic, powierzchnia omywana i biegunowa wstępna</summary>
     <div class="trend-controls">

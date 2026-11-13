@@ -758,10 +758,14 @@ def _p2(s, r):
             s.given('W_k', r'\bar W(M_k)', corke['ordinate_end'], '', 5, 'Stosunek mas z wykresu Corke’a dla M_k', source,
                     note=start if corke['mach_end'] < .1 else '')
         else:
-            s.given('W_p', r'\bar W(M_p)', corke['ordinate_start'], '', 5, 'Stosunek mas z wykresu Corke’a', SOURCES['B1'] + ', rys. 3')
-            s.given('W_k', r'\bar W(M_k)', corke['ordinate_end'], '', 5, 'Stosunek mas z wykresu Corke’a', SOURCES['B1'] + ', rys. 3')
-        s.calc('r_CL', r'\frac{m_2}{m_1}', r'\frac{\bar W(M_k)}{\bar W(M_p)}', r'\frac{[[W_k]]}{[[W_p]]}', corke['fraction'],
-               '', 5, 'Wznoszenie i rozpędzanie', SOURCES['B1'] + ', s. 4–5', check=lambda v: v.W_k / v.W_p)
+            reading_source = p.get('climb_source') or p.get('graph_source') or SOURCES['B1'] + ', rys. 3 — źródło własnego odczytu niepodane'
+            s.given('W_p', r'\bar W(M_p)', corke['ordinate_start'], '', 5, 'Własna rzędna początkowa wznoszenia', reading_source)
+            s.given('W_k', r'\bar W(M_k)', corke['ordinate_end'], '', 5, 'Własna rzędna końcowa wznoszenia', reading_source)
+        energy = ma.get('climb_model') == 'energy'
+        s.calc('r_CL_corke' if energy else 'r_CL', r'\frac{m_2}{m_1}_{Corke}', r'\frac{\bar W(M_k)}{\bar W(M_p)}', r'\frac{[[W_k]]}{[[W_p]]}', corke['fraction'],
+               '', 5, 'Porównawczy odczyt Corke’a' if energy else 'Wznoszenie i rozpędzanie', SOURCES['B1'] + ', s. 4–5', check=lambda v: v.W_k / v.W_p)
+        if energy:
+            _p2_climb_energy(s, r)
         legs = [('r_CR', r'\frac{m_3}{m_2}', 'R_1' if back else 'R_km', phases['cruise']['fraction'],
                  'Przelot do celu' if back else 'Przelot')]
         if back:
@@ -904,6 +908,38 @@ def _p2(s, r):
     _p2_matching(s, r)
     _p2_airfoil(s, r)
     _p2_cost(s, r)
+
+
+def _p2_climb_energy(s, r):
+    cl = r['mass']['mission_assumptions']['climb']
+    source = cl['source'] + '; ' + cl['source_url']
+    s.given('cl_H0', 'H_{CL,0}', cl['altitude_start_m'], M, 0, 'Wysokość początku profilu wznoszenia', 'Profil misji')
+    s.given('cl_H1', 'H_{CL,1}', cl['altitude_end_m'], M, 0, 'Wysokość końca profilu wznoszenia', 'Profil misji')
+    s.given('cl_w', 'w_{CL}', cl['roc_ms'], MS, 3, 'Stałe tempo wznoszenia w bilansie paliwa', 'Profil misji — założenie przebiegu, nie wynik osiągów')
+    s.calc('cl_t', 't_{CL}', r'\frac{H_{CL,1}-H_{CL,0}}{w_{CL}}', r'\frac{[[cl_H1]]-[[cl_H0]]}{[[cl_w]]}',
+           cl['duration_s'], r'\mathrm{s}', 2, 'Czas wznoszenia', check=lambda v: (v.cl_H1-v.cl_H0)/v.cl_w)
+    for key, symbol, field, label in [
+        ('cl_ED', 'E_D', 'drag_work_j', 'Praca przeciw oporowi: ∫ D V dt'),
+        ('cl_EH', 'E_H', 'potential_work_j', 'Praca zmiany wysokości: ∫ m g dH'),
+        ('cl_EV', 'E_V', 'kinetic_work_j', 'Praca zmiany prędkości: ∫ m V dV')]:
+        s.given(key, symbol, cl[field], r'\mathrm{J}', 1, label, source,
+                'Całkowanie RK4 po wysokości; zmienna masa, gęstość ISA i TAS liniowa z wysokością.')
+    s.calc('cl_Euse', 'E_{u,CL}', r'E_D+E_H+E_V', r'[[cl_ED]]+[[cl_EH]]+[[cl_EV]]',
+           cl['drag_work_j']+cl['potential_work_j']+cl['kinetic_work_j'], r'\mathrm{J}', 1,
+           'Praca użyteczna napędu we wznoszeniu', check=lambda v: v.cl_ED+v.cl_EH+v.cl_EV)
+    if r['params']['engine_type'] == 'jet':
+        s.given('cl_IT', 'I_{T,CL}', cl['thrust_impulse_ns'], r'\mathrm{N\,s}', 2, 'Całka ciągu po czasie', source)
+        formula, numeric = r'\frac{c_Tg}{3600g}\int T\,dt', r'\frac{[[TSFC]]\cdot[[cl_IT]]}{3600\cdot[[g]]}'
+        check = lambda v: v.TSFC*v.cl_IT/(3600*v.g)
+    else:
+        s.given('cl_ES', 'E_{wal,CL}', cl['shaft_work_j'], r'\mathrm{J}', 1, 'Całka mocy na wale po czasie, z η(V) z P4', source)
+        formula, numeric = r'\frac{SFC}{3{,}6\cdot10^9}\int P_{wal}\,dt', r'\frac{[[SFC]]\cdot[[cl_ES]]}{3{,}6\cdot10^9}'
+        check = lambda v: v.SFC*v.cl_ES/3.6e9
+    s.calc('cl_mfuel', 'm_{pal,CL}', formula, numeric, cl['fuel_kg'], KG, 5,
+           'Paliwo wznoszenia z przyjętego SFC', note=cl['note'], check=check)
+    s.given('cl_mstart', 'm_{CL,0}', cl['start_mass_kg'], KG, 4, 'Masa po starcie, przed wznoszeniem', 'Wynik bilansu faz poprzedzających')
+    s.calc('r_CL', r'\frac{m_2}{m_1}', r'1-\frac{m_{pal,CL}}{m_{CL,0}}', r'1-\frac{[[cl_mfuel]]}{[[cl_mstart]]}',
+           cl['fraction'], '', 7, 'Stosunek mas w bilansie energii wznoszenia', check=lambda v: 1-v.cl_mfuel/v.cl_mstart)
 
 
 def _p2_empty_law(s, r):

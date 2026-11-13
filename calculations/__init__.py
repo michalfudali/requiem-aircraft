@@ -377,6 +377,17 @@ def run_bipol_project(params: dict):
         prop_ground_clearance_nominal_passed=clearance['nominal_passed'],
         prop_ground_clearance_assessment=clearance)
 
+    climb = mass_res['mission_assumptions'].get('climb')
+    if climb:
+        from calculations.mission_climb import assess_climb
+        climb['assessment'] = (assess_climb(climb, params, sizing_res, aero_res['cz_max_clean'])
+                               if climb['drag_model'] == 'p4_polar' else
+                               dict(passed=None, scope='Wstępna doskonałość; sprawdzenie profilu wymaga domknięcia z biegunową P4.'))
+        profile = climb['assessment']
+        checks.append(dict(parameter='Osiągalność profilu wznoszenia w bilansie paliwa',
+                           required='Dostępny napęd i C_L ≤ C_L,max w węzłach zadanej trajektorii',
+                           actual=f"ROC {climb['roc_ms']:g} m/s; {climb['altitude_start_m']:g}–{climb['altitude_end_m']:g} m",
+                           passed=profile.get('passed') is True, note=profile['scope']))
     result["instructor_review"] = review_coursework(result)
     from calculations.bipol1 import review_bipol1
     result['bipol1_review'] = review_bipol1(result)

@@ -65,6 +65,10 @@
   "engine_fuel_mode": "catalog",
   "engine_model_id": "rotax_912_ul",
   "engine_fuel_point": "continuous",
-  "source_notes": "Studium robocze tematu 7: jedna osoba, b > 20 m, stały napęd ciągnący. Misja 600 km, 140 km/h i 2000 m pozostaje założeniem do konsultacji. Napęd: BRP-Rotax OM-912 Ed.4 Rev.1, 01.01.2023, §2.1 i §5.2 s.5-8: 58 kW mocy ciągłej, SFC 285 g/(kW h) przy 5500 obr/min silnika. Stałe SFC poza punktem źródłowym jest uproszczeniem. Śmigło dobierane wstępnie; brak zweryfikowanej mapy konkretnego śmigła. Nie zatwierdzono profilu ani charakterystyk dla Re projektu. Brak akceptacji misji i szkicu przez prowadzącego. Otwarte kontrole geometrii, flatteru i dynamiki nie są pomijane. Plik nie jest kompletnym projektem wykonawczym. Przekładnia: OM-912 §7.6, nominalnie 2,27:1; obroty obliczeniowe wału śmigła 5500/2,27 ≈ 2423 obr/min dla referencyjnego ustawienia ciągłego. Brak zweryfikowanej mapy silnik–śmigło poza tym punktem.",
-  "propeller_rpm": 2422.9074889867843
+  "source_notes": "Studium robocze tematu 7: jedna osoba, b > 20 m, stały napęd ciągnący. Misja 600 km, 140 km/h i 2000 m pozostaje założeniem do konsultacji. Napęd: BRP-Rotax OM-912 Ed.4 Rev.1, 01.01.2023, §2.1 i §5.2 s.5-8: 58 kW mocy ciągłej, SFC 285 g/(kW h) przy 5500 obr/min silnika. Stałe SFC poza punktem źródłowym jest uproszczeniem. Śmigło dobierane wstępnie; brak zweryfikowanej mapy konkretnego śmigła. Nie zatwierdzono profilu ani charakterystyk dla Re projektu. Brak akceptacji misji i szkicu przez prowadzącego. Otwarte kontrole geometrii, flatteru i dynamiki nie są pomijane. Plik nie jest kompletnym projektem wykonawczym. Przekładnia: OM-912 §7.6, nominalnie 2,27:1; obroty obliczeniowe wału śmigła 5500/2,27 ≈ 2423 obr/min dla referencyjnego ustawienia ciągłego. Brak zweryfikowanej mapy silnik–śmigło poza tym punktem. Bilans wznoszenia: założono 3 m/s i stałą TAS 140 km/h od 0 do 2000 m; paliwo z bilansu energii, ze stałym SFC wybranego punktu silnika. Profil misji i przeniesienie SFC poza punkt producenta wymagają potwierdzenia.",
+  "propeller_rpm": 2422.9074889867843,
+  "climb_fraction_mode": "energy",
+  "mission_climb_rate_ms": 3.0,
+  "climb_start_altitude_m": 0.0,
+  "climb_start_speed_kmh": 140.0
 }

@@ -64,7 +64,7 @@ def validate_bipol1(p):
         'preliminary_polar_mode': ('input','raymer','reading'),
         'raymer_family': tuple(RAYMER), 'cx0_reference_class': ('', *CX0_RANGES),
         'wetted_example': ('', 'sketch', *WETTED_EXAMPLES),
-        'climb_fraction_mode': ('auto','corke','reading'),
+        'climb_fraction_mode': ('auto','energy','corke','reading'),
         'trend_year_basis': ('production','certification'),
         'design_iteration_mode': ('preliminary', 'coupled'),
     }
@@ -269,6 +269,7 @@ def mission_model(p, kmax):
     if method == 'proportions' and drop:
         raise ValueError('Metoda proporcji dotyczy misji bez zrzutu. Wybierz metodę iteracyjną lub automatyczną.')
     corke = {}
+    energy_climb = powered and p.get('climb_fraction_mode', 'auto') in ('auto', 'energy')
     if powered:
         h0, h1 = p.get('climb_start_altitude_m',0), p.get('cruise_altitude_m',3000)
         v0 = p.get('climb_start_speed_kmh',p.get('cruise_speed_kmh',250))/3.6
@@ -282,12 +283,14 @@ def mission_model(p, kmax):
             below = min(mach0, mach1) < CORKE[0][0]
             q0, q1 = (interpolate(CORKE, max(m, CORKE[0][0]), True) for m in (mach0, mach1))
             mode = 'corke'
-        if q1 > q0 + 1e-12:
+        if not energy_climb and mode == 'corke' and below:
+            raise ValueError('Punkt wznoszenia poza zakresem wykresu Corke’a (M < 0,1). Wybierz bilans energii albo udokumentowany własny odczyt.')
+        if not energy_climb and q1 > q0 + 1e-12:
             raise ValueError('Wykres Corke’a daje wzrost masy. Sprawdź prędkości, wysokości i odczyty wznoszenia.')
         climb = q1/q0
         corke = dict(mach_start=mach0,mach_end=mach1,ordinate_start=q0,ordinate_end=q1,
                      fraction=climb,source='BIPOL_1.pdf, s. 4–5, rys. 3 (oś M logarytmiczna)',
-                     mode=mode, below_chart=below, provisional=False)
+                     mode=mode, below_chart=below, provisional=below and mode != 'reading', used_for_balance=not energy_climb)
     else:
         climb = 1.
     scale = (speed/ct if engine == 'jet' else eta/(cp*G0)) * ld if powered else math.inf
@@ -328,7 +331,7 @@ def mission_model(p, kmax):
         factors['taxi'] = float(taxi_frac)
     factors['total_mff'] = math.prod(factors.values())
 
-    def simulate(m0):
+    def simulate(m0, *, detailed=False):
         current, fuel_burn = m0, 0.
         phases = []
         def phase(key,label,fraction=1.,burn=0.,release=0.):
@@ -345,7 +348,17 @@ def mission_model(p, kmax):
         if 'taxi' in factors:
             phase('taxi', 'Kołowanie', factors['taxi'])
         phase('takeoff', 'Start i kołowanie' if 'taxi' not in factors else 'Start (oderwanie i wzniesienie)', factors['takeoff'])
-        phase('climb','Wznoszenie i rozpędzanie',climb)
+        climb_result = None
+        if energy_climb:
+            from calculations.mission_climb import climb_segment
+            climb_polar = dict(p['_mission_polar']) if coupled else None
+            if climb_polar and p.get('wing_input_mode') == 'loading':
+                climb_polar['S'] *= m0/climb_polar['reference_mass_kg']
+            climb_result = climb_segment(current, p, polar=climb_polar, ld=ld, detailed=detailed)
+            factors['climb'] = climb_result['fraction']
+            phase('climb', 'Wznoszenie i rozpędzanie — bilans energii', climb_result['fraction'])
+        else:
+            phase('climb','Wznoszenie i rozpędzanie',climb)
         phase('cruise','Lot do celu' if back or drop else 'Przelot',cruise(distance-back,current,m0))
         if task_time:
             phase('task','Zadanie przy maksymalnym ciągu / mocy',burn=task_fuel)
@@ -356,14 +369,14 @@ def mission_model(p, kmax):
         phase('descent','Zniżanie (bez osobnego narzutu paliwa)')
         phase('loiter','Krążenie / patrol',loiter)
         phase('landing','Lądowanie i kołowanie',factors['landing'])
-        if coupled:
+        if coupled or energy_climb:
             factors['cruise'] = math.prod(s['fuel_fraction'] for s in phases if s['key'] in ('cruise', 'return'))
             keys = ['warmup', 'takeoff', 'climb', 'cruise', 'descent', 'loiter', 'landing']
             if 'taxi' in factors:
                 keys.insert(1, 'taxi')
             factors['total_mff'] = math.prod(factors[key] for key in keys if key in factors)
         return dict(phases=phases,landing_mass=current,burn=fuel_burn,
-                    fuel=reserve*fuel_burn,reserve=(reserve-1)*fuel_burn)
+                    fuel=reserve*fuel_burn,reserve=(reserve-1)*fuel_burn,climb=climb_result)
     return simulate, dict(method=method,corke=corke,factors=factors,range_scale=scale,
                          ld=ld,loiter_ld=.8*mission_kmax,loiter_speed_kmh=loiter_speed*3.6,
                          task_fuel=task_fuel,reserve=reserve,drop=drop)
@@ -431,6 +444,7 @@ def solve_mass(p, payload, crew):
         raise ValueError('Bilans masy nie osiągnął zbieżności; wynik nie został przyjęty.')
     if not 0 < me < m0 or flight['fuel'] < 0 or flight['reserve'] < 0:
         raise ValueError('Niefizyczny bilans masy.')
+    flight = simulate(m0, detailed=True)
     law['extrapolated'] = 'valid_range' in law and not law['valid_range'][0] <= m0 <= law['valid_range'][1]
     # Keep numerical mass precision between modules; round only in UI/reports.
     result = dict(m0=m0,m_empty=me,m_fuel=flight['fuel'],
@@ -440,7 +454,7 @@ def solve_mass(p, payload, crew):
                   payload_fraction=payload/m0,empty_mass_model=law['mode'],empty_mass_law=law,
                   ld_cruise_used=round(mission['ld'],2),iterations=history,mission_phases=flight['phases'],
                   fuel_burn_kg=flight['burn'],reserve_fuel_kg=flight['reserve'],preliminary_polar=polar,
-                  fuel_fractions_detail=mission['factors'],mass_method=mission['method'],
+                  fuel_fractions_detail=dict(mission['factors']),mass_method=mission['method'],
                   mission_assumptions=dict(phase_model='galinski',reserve_factor=mission['reserve'],
                     cruise_model='constant_tas_altitude' if p.get('_mission_polar') else 'preliminary_ld',
                     cruise_route_margin=1.001 if p.get('_mission_polar') else 1.0,
@@ -448,6 +462,8 @@ def solve_mass(p, payload, crew):
                     ld_source='p4_integrated' if p.get('_mission_polar') else 'p4_cruise' if refined_cruise_ld(p) else 'guideline',
                     mass_residual_relative=abs(m0-me-useful-flight['fuel'])/m0,
                     empty_mass_residual_relative=relative,corke=mission['corke'],
+                    climb_model='energy' if flight['climb'] else 'corke' if p['engine_type'] != 'none' else 'unpowered',
+                    climb=flight['climb'],
                     loiter_ld=mission['loiter_ld'],loiter_speed_kmh=mission['loiter_speed_kmh'],
                     source='BIPOL_1.pdf, s. 1–6; notatka IMG20261021122751 (przelot 0,94 Kmax)',
                     note='Metoda iteracyjna: oddzielny bilans paliwa i zrzutu.' if mission['method']=='iterative' else 'Metoda proporcji: bez zrzutu ładunku.'))
@@ -513,11 +529,20 @@ def review_bipol1(result):
         fuel = fuel_check(result['engine_selection'])
         add('engine_fuel', fuel['parameter'], fuel['passed'],
             f"{fuel['actual']}. {fuel['note']}")
-        corke=mass['mission_assumptions']['corke']
-        add('corke','Wznoszenie: iloraz odczytów Corke’a',not corke.get('provisional') and
-            (corke['mode']!='reading' or bool(p.get('graph_source','').strip())),
-            f"Mₚ={corke['mach_start']:.4f}, Mₘ={corke['mach_end']:.4f}, m₂/m₁={corke['fraction']:.6f}. "+
-            corke['source'] + ('; M < 0,1 odczytano na początku wykresu (W/W₀,₁ = 1).' if corke.get('below_chart') else ''))
+        climb=mass['mission_assumptions'].get('climb')
+        if climb:
+            add('climb_energy','Paliwo wznoszenia z bilansu energii',climb['fuel_kg'] > 0 or climb['duration_s'] == 0,
+                f"Paliwo {climb['fuel_kg']:.3f} kg, czas {climb['duration_s']:.1f} s, ROC {climb['roc_ms']:.2f} m/s; "
+                f"model oporu: {climb['drag_model']}. "+climb['note'])
+            assessment=climb.get('assessment', {})
+            add('climb_profile','Profil wznoszenia: moc/ciąg i granica przeciągnięcia',assessment.get('passed') is True,
+                assessment.get('scope','')+ (f" Minimalny zapas: {assessment['minimum_rating_margin']:.1f} {assessment['margin_unit']}."
+                if assessment.get('minimum_rating_margin') is not None else ''))
+        else:
+            corke=mass['mission_assumptions']['corke']
+            add('corke','Wznoszenie: iloraz odczytów Corke’a',not corke.get('provisional') and
+                (corke['mode']!='reading' or bool((p.get('climb_source') or p.get('graph_source','')).strip())),
+                f"Mₚ={corke['mach_start']:.4f}, Mₘ={corke['mach_end']:.4f}, m₂/m₁={corke['fraction']:.6f}. "+corke['source'])
     add('mass','Obie oceny masy pustej zgodne do 0,1%',mass['mission_assumptions']['empty_mass_residual_relative']<=.001,
         f"Metoda: {mass['mass_method']}; {len(mass['iterations'])} iteracji; różnica {100*mass['mission_assumptions']['empty_mass_residual_relative']:.6f}%.")
     add('reserve','Rezerwa i paliwo nieużywalne według wzoru (4)',

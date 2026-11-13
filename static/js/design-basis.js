@@ -5,7 +5,8 @@
   const extraKeys = ['gear_attachment','gear_retraction','landing_gear_type','technology','fuselage_length_m','gear_height_m','wing_input_mode','payload_input_mode','power_input_mode','wingspan_m',
     'takeoff_distance_m','landing_distance_m','wing_area_m2','m_payload','engine_power_kw','n_engines','wing_planform','dihedral_deg','aileron_type',
     'operating_surface','design_iteration_mode','water_displacement_volume_m3',
-    'cargo_bay_length_m','cargo_bay_width_m','cargo_bay_height_m','propeller_diameter_m','propeller_rpm'];
+    'cargo_bay_length_m','cargo_bay_width_m','cargo_bay_height_m','propeller_diameter_m','propeller_rpm',
+    'climb_fraction_mode','mission_climb_rate_ms','climb_start_altitude_m','climb_start_speed_kmh','corke_start_ordinate','corke_end_ordinate','climb_source'];
   const wingSources = {loading:['aspect_ratio'],span_aspect:['wingspan_m','aspect_ratio'],
     span_area:['wingspan_m','wing_area_m2'],area_aspect:['wing_area_m2','aspect_ratio']};
   let wizardBase = {};
@@ -28,6 +29,16 @@
     $('wiz_raymer_kmax').disabled = !reading;
     $('wizWettedRatioGroup').hidden = !own;
     $('wiz_sketch_swet_ratio').disabled = !own;
+    const powered = value('wiz_','engine_type') !== 'none';
+    const climbReading = value('wiz_','climb_fraction_mode') === 'reading';
+    const climbEnergy = value('wiz_','climb_fraction_mode') === 'energy';
+    document.querySelector('.wizard-climb-profile').hidden = !powered;
+    document.querySelector('[data-wizard-climb-energy]').hidden = !climbEnergy;
+    document.querySelector('[data-wizard-climb-reading]').hidden = !climbReading;
+    for (const key of ['climb_fraction_mode','climb_start_altitude_m','climb_start_speed_kmh','mission_climb_rate_ms','corke_start_ordinate','corke_end_ordinate','climb_source']) {
+      $('wiz_'+key).disabled = !powered || (key === 'mission_climb_rate_ms' && !climbEnergy)
+        || ((key.startsWith('corke_') || key === 'climb_source') && !climbReading);
+    }
   }
   function restoreWizardWetted() {
     const mode = wizardBase.preliminary_polar_mode || 'raymer';
@@ -37,6 +48,8 @@
     set('wiz_','cx0',wizardBase.cx0 ?? .025);
     set('wiz_','oswald_e',wizardBase.oswald_e ?? .8);
     set('wiz_','graph_source',wizardBase.graph_source ?? '');
+    set('wiz_','climb_fraction_mode',wizardBase.climb_fraction_mode === 'auto' ? 'energy' : wizardBase.climb_fraction_mode ?? 'energy');
+    for (const [key, fallback] of Object.entries({mission_climb_rate_ms:3,climb_start_altitude_m:0,climb_start_speed_kmh:'',corke_start_ordinate:.99,corke_end_ordinate:.98,climb_source:''})) set('wiz_',key,wizardBase[key] ?? fallback);
     const legacySketch = !wizardBase.wetted_example && ['raymer','reading'].includes(wizardBase.preliminary_polar_mode) && wizardBase.sketch_swet_ratio;
     set('wiz_','wetted_example',wizardBase.wetted_example || (legacySketch ? 'sketch' : ''));
     set('wiz_','sketch_swet_ratio',wizardBase.sketch_swet_ratio ?? 4);
@@ -228,6 +241,8 @@
     for (const key of ['propeller_diameter_m','propeller_rpm']) {
       if (value('wiz_','engine_type') !== 'prop' || !$('wiz_'+key).value.trim()) delete p[key];
     }
+    if (!value('wiz_','climb_start_speed_kmh').trim()) delete p.climb_start_speed_kmh;
+    if (p.climb_fraction_mode !== 'reading') { delete p.corke_start_ordinate; delete p.corke_end_ordinate; }
     delete p.prop_rpm;
     const direct = document.querySelector('[name="wiz_drag_basis"]:checked')?.value === 'input';
     p.preliminary_polar_mode = direct ? 'input' : value('wiz_','raymer_reading');

@@ -239,6 +239,24 @@
             </div>
           </div>
 
+          <section class="wizard-climb-profile" aria-labelledby="wizardClimbHeading">
+            <h5 id="wizardClimbHeading">Profil wznoszenia i zużycie paliwa</h5>
+            <p class="wizard-method-note">Tempo wznoszenia w misji jest odrębnym założeniem od minimalnego wymagania przy ziemi. Program sprawdza je z dostępną mocą i granicą przeciągnięcia.</p>
+            <div class="input-row">
+              <div class="input-group"><label for="wiz_climb_fraction_mode">Metoda paliwa wznoszenia</label><select id="wiz_climb_fraction_mode"><option value="energy">Bilans energii i paliwa</option><option value="corke">Wykres Corke’a — w jego zakresie</option><option value="reading">Własne udokumentowane odczyty rzędnych</option></select></div>
+              <div class="input-group" data-wizard-climb-energy><label for="wiz_mission_climb_rate_ms">Tempo wznoszenia w profilu misji [m/s]</label><input id="wiz_mission_climb_rate_ms" type="number" min="0.05" max="100" step="0.05" value="3" required></div>
+            </div>
+            <div class="input-row">
+              <div class="input-group"><label for="wiz_climb_start_altitude_m">Wysokość początku wznoszenia [m]</label><input id="wiz_climb_start_altitude_m" type="number" min="0" max="20000" step="10" value="0" required></div>
+              <div class="input-group"><label for="wiz_climb_start_speed_kmh">TAS początku wznoszenia [km/h]</label><input id="wiz_climb_start_speed_kmh" type="number" min="1" max="1200" step="1" placeholder="Jak przelotowa, jeśli puste"><small>W bilansie energii TAS zmienia się liniowo z wysokością do wartości przelotowej.</small></div>
+            </div>
+            <div class="input-row" data-wizard-climb-reading hidden>
+              <div class="input-group"><label for="wiz_corke_start_ordinate">Rzędna początkowa Wₚ/W₀,₁</label><input id="wiz_corke_start_ordinate" type="number" min="0.001" max="1" step="0.001" value="0.99" required disabled></div>
+              <div class="input-group"><label for="wiz_corke_end_ordinate">Rzędna końcowa Wₘ/W₀,₁</label><input id="wiz_corke_end_ordinate" type="number" min="0.001" max="1" step="0.001" value="0.98" required disabled></div>
+              <div class="input-group"><label for="wiz_climb_source">Źródło i warunki odczytów wznoszenia</label><textarea id="wiz_climb_source" maxlength="4000" rows="2" placeholder="Dokument, strona, punkty pracy i warunki" disabled></textarea></div>
+            </div>
+          </section>
+
           <div class="formula-box">
             <div class="formula-legend">
               <strong>⚠️ Zasada dopasowania parametrów:</strong> Zbyt mała prędkość lądowania Vs0 przy dużej prędkości przelotowej Vcr wymusza bardzo dużą powierzchnię skrzydła lub zaawansowaną mechanizację spływu (klapy szczelinowe lub Fowlera).

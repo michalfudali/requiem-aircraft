@@ -2,7 +2,7 @@
   'use strict';
   const $=id=>document.getElementById(id);
   const defaults={mass_method:'auto',empty_mass_model:'trend',empty_mass_closure:'trend',cx0_deviation_reason:'',
-    payload_drop_kg:0,return_range_km:0,max_power_time_min:0,climb_fraction_mode:'auto',
+    payload_drop_kg:0,return_range_km:0,max_power_time_min:0,climb_fraction_mode:'energy',mission_climb_rate_ms:3,
     climb_start_altitude_m:0,preliminary_polar_mode:'raymer',wetted_example:'',sketch_swet_ratio:4,
     raymer_kmax:15,cx0_reference_class:'',
     mass_point_x1:1000,mass_point_x2:2000,
@@ -13,6 +13,7 @@
     document.querySelectorAll('[data-bipol1-group]').forEach(el=>el.hidden=el.dataset.bipol1Group!==model);
     document.querySelector('[data-bipol1-task]').hidden=!(Number($('max_power_time_min').value)>0);
     document.querySelector('[data-bipol1-corke-reading]').hidden=$('climb_fraction_mode').value!=='reading';
+    document.querySelector('[data-bipol1-climb-energy]').hidden=$('climb_fraction_mode').value!=='energy';
     document.querySelector('[data-bipol1-raymer-reading]').hidden=$('preliminary_polar_mode').value!=='reading';
     document.querySelector('[data-bipol1-sketch]').hidden=$('wetted_example').value!=='sketch';
     const jet=($('engine_type')?.value||formBaseParams.engine_type)==='jet';
@@ -22,6 +23,7 @@
   }
   function sync(p=formBaseParams) {
     document.querySelectorAll('[data-bipol1]').forEach(el=>el.value=p[el.id]??defaults[el.id]??'');
+    if ($('climb_fraction_mode').value === '' || p.climb_fraction_mode === 'auto') $('climb_fraction_mode').value='energy';
     if(!['raymer','reading','input'].includes($('preliminary_polar_mode').value)) $('preliminary_polar_mode').value='raymer';
     if(!['trend','two_point'].includes($('empty_mass_model').value)) $('empty_mass_model').value='trend';
     if(!p.wetted_example&&['raymer','reading'].includes(p.preliminary_polar_mode)&&p.sketch_swet_ratio) $('wetted_example').value='sketch';
@@ -50,6 +52,8 @@
     const m = res.mass, r = res.bipol1_review;
     if (!r || !m) return;
     sync(res.params);
+    const climb=m.mission_assumptions?.climb, assessment=climb?.assessment;
+    $('bipol1ClimbResult').innerHTML = climb ? `<p><strong>Paliwo wznoszenia: ${fmt(climb.fuel_kg,3)} kg · czas ${fmt(climb.duration_s/60,2)} min.</strong><br>Opór: ${climb.drag_model==='p4_polar'?'biegunowa P4':'wstępna doskonałość'}. Profil: ${assessment?.passed === true?'spełnia kontrolę mocy/ciągu i C_L':assessment?.passed === false?'nie spełnia kontroli mocy/ciągu lub C_L':'wymaga domknięcia P4'}.</p><p>${esc(climb.note)}</p><details><summary>Przebieg wznoszenia — wszystkie punkty całkowania</summary><div class="table-responsive"><table class="b-table"><thead><tr><th>H [m]</th><th>TAS [km/h]</th><th>Masa [kg]</th><th>Ciąg [N]</th><th>${res.params.engine_type==='jet'?'Moc użyteczna':'Moc na wale'} [kW]</th><th>Paliwo fazy [kg]</th></tr></thead><tbody>${climb.nodes.map(n=>`<tr><td>${fmt(n.altitude_m,0)}</td><td>${fmt(n.tas_ms*3.6,1)}</td><td>${fmt(n.mass_kg,3)}</td><td>${fmt(n.thrust_n,1)}</td><td>${fmt((n.shaft_power_w??n.useful_power_w)/1000,2)}</td><td>${fmt(climb.start_mass_kg-n.mass_kg,3)}</td></tr>`).join('')}</tbody></table></div></details>` : '<p>Bilans fazy korzysta z wybranych odczytów Corke’a.</p>';
     const swetP4 = res.geometry?.wetted_area?.swet_over_s;
     const hintBox = $('bipol1SwetP4Hint'), hintText = $('bipol1SwetP4Text'), applyBtn = $('bipol1ApplySwetP4Btn');
     if (hintBox && hintText && applyBtn) {

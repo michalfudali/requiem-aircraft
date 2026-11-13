@@ -104,3 +104,14 @@ def test_already_current_database_is_not_rewritten(tmp_path):
     before = path.read_bytes()
     assert len(project_store.load_topics(path)) == 110
     assert path.read_bytes() == before
+
+
+def test_last_published_topic_gains_the_explicit_energy_profile_and_preserves_personal_projects(legacy):
+    old = HISTORY[-1]
+    assert old['source_commit'].startswith('9de2d2b') and old['topic']['num'] == 7
+    before = personal_document(legacy)
+    with project_store.connect(legacy) as con:
+        replace_record(con, old['topic'])
+    p = next(t for t in project_store.load_topics(legacy) if t['num'] == 7)['parameters']
+    assert (p['climb_fraction_mode'], p['mission_climb_rate_ms'], p['climb_start_speed_kmh']) == ('energy', 3., 115.)
+    assert personal_document(legacy) == before

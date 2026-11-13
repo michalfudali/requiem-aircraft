@@ -24,6 +24,8 @@ from markupsafe import Markup, escape
 # Literatura (kolejność numerów wynika z kolejności cytowania w dokumencie)
 # ---------------------------------------------------------------------------------------------
 LITERATURE = {
+    'nasa_climb': 'NASA Glenn Research Center: <em>Forces in a Climb</em>. '
+                  'https://www1.grc.nasa.gov/beginners-guide-to-aeronautics/forces-in-a-climb/',
     'faa_weight_balance': 'FAA: <em>Aircraft Weight and Balance Handbook</em>, FAA-H-8083-1B, '
                           '2016, rozdz. 2 i 7. https://www.faa.gov/sites/faa.gov/files/2023-09/Weight_Balance_Handbook.pdf',
     'galinski_aw': 'Galiński C.: <em>Analizy wstępne</em>. Materiały pomocnicze do projektowania samolotów, '
@@ -96,6 +98,12 @@ def _load_factor(e):
 
 
 ORIGIN = {
+    'cl_ED': ('calc', 'całkowanie pracy przeciw oporowi w zadanym profilu wznoszenia, metoda RK4'),
+    'cl_EH': ('calc', 'całkowanie pracy zmiany wysokości przy zmiennej masie, metoda RK4'),
+    'cl_EV': ('calc', 'całkowanie pracy rozpędzania przy zmiennej masie, metoda RK4'),
+    'cl_ES': ('calc', 'całkowanie mocy na wale z bilansem sił i sprawnością śmigła η(V), metoda RK4'),
+    'cl_IT': ('calc', 'całkowanie ciągu wymaganego w zadanym profilu, metoda RK4'),
+    'cl_mstart': ('calc', 'masa po zużyciu paliwa faz poprzedzających wznoszenie'),
     'pc_D': ('calc', 'wynik doboru średnicy śmigła lub wartość podana w założeniach jego doboru'),
     'pc_Df': ('calc', 'średnica kadłuba z wymiarowania kabiny i zabudowy'),
     'pc_kbody': ('ass', 'robocza proporcja minimalnej wysokości osi do średnicy kadłuba, model wstępny'),
