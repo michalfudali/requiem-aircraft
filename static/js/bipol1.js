@@ -24,7 +24,7 @@
   }
   function sync(p=formBaseParams) {
     document.querySelectorAll('[data-bipol1]').forEach(el=>el.value=p[el.id]??defaults[el.id]??'');
-    if(p.mission_climb_rate_ms==null) $('mission_climb_rate_ms').value=Number(p.climb_rate_ms)>0?Number(p.climb_rate_ms):3;
+    if(p.mission_climb_rate_ms==null) $('mission_climb_rate_ms').value=Number(p.climb_rate_ms)>0?Math.max(.05,Number(p.climb_rate_ms)):3;
     if ($('climb_fraction_mode').value === '' || p.climb_fraction_mode === 'auto') $('climb_fraction_mode').value='energy';
     if(!['raymer','reading','input'].includes($('preliminary_polar_mode').value)) $('preliminary_polar_mode').value='raymer';
     if(!['trend','two_point'].includes($('empty_mass_model').value)) $('empty_mass_model').value='trend';

@@ -302,3 +302,17 @@ backendem; jeden limit czasu nawigacji z pierwszego przebiegu sprawdzono
 ponownie z wynikiem pozytywnym. Wszystkie 13 odświeżonych raportów HTML
 działa offline, a PDF ma 95 stron bez pustych stron. Szczegółowe ślady i
 rozróżnienie kontroli wymiaru od pełnej oceny zabudowy są w opisie prześwitu.
+
+## Bilans energii wznoszenia — dalsza weryfikacja 13.11.2026
+
+Powyższe wyniki dotyczą etapu poprawy prześwitu. Kolejna rewizja usuwa
+zerowe paliwo wznoszenia wynikające z obcięcia wykresu Corke’a poniżej M=0,1.
+Wariant 21 m / 115 km/h ma po tej zmianie MTOW **658,658 kg**, masę własną
+**498,188 kg** i paliwo **50,469 kg**. Wznoszenie 0–2000 m przy 3 m/s wymaga
+**1,567 kg paliwa** według przyjętego modelu i wybranego punktu SFC silnika.
+Oba studia spełniają **14/14 niezależnych kontroli rachunkowych**. Pozostaje
+odpowiednio 10 i 19 otwartych kontroli projektowych; ich lista nie jest
+zastępowana pozytywnym wynikiem obliczeń ani testów aplikacji.
+
+Wyniki, równania, źródła i ograniczenia:
+[WZNOSZENIE_I_PALIWO.md](WZNOSZENIE_I_PALIWO.md).

@@ -16,7 +16,7 @@ SOURCE_URL = 'https://www1.grc.nasa.gov/beginners-guide-to-aeronautics/forces-in
 
 
 def profile_climb_rate(params):
-    """A commanded profile, inherited from the positive design ROC if omitted.
+    """An inherited commanded profile uses at least the input minimum 0.05 m/s.
 
     The sea-level requirement is only an initial assumption for this prescribed
     profile. The final node assessment must still check its altitude capability.
@@ -27,7 +27,7 @@ def profile_climb_rate(params):
     required = float(params.get('climb_rate_ms', 0))
     if not math.isfinite(required) or required < 0:
         raise ValueError('Wymagane tempo wznoszenia musi być skończone i nieujemne.')
-    return required if required > 0 else 3.
+    return max(.05, required) if required > 0 else 3.
 
 
 @lru_cache(maxsize=64)

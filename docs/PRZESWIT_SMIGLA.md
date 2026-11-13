@@ -129,3 +129,9 @@ Dowody, sumy plików i wynik po połączeniu dwóch przebiegów przeglądarki:
 `work/clearance-verified-summary.json`, `work/clearance-verified-*.xml`,
 `work/topic7-projekt/combined_report_checks.json`. Weryfikowany kod po scaleniu
 z kreatorem: `e6602b6`. Te kontrole nie zamykają pozostałych wymagań konstrukcyjnych.
+
+Kolejna rewizja bilansu paliwa wprowadza całkowanie energii wznoszenia.
+Podane wcześniej masy są zapisem etapu poprawy prześwitu; aktualny wariant
+21 m ma 658,658 kg MTOW. Wysokość osi 1,08 m, średnica śmigła 1,70 m oraz
+nominalny prześwit 0,23 m pozostają zachowane. Szczegóły i nowe wyniki
+w [WZNOSZENIE_I_PALIWO.md](WZNOSZENIE_I_PALIWO.md).

@@ -59,8 +59,9 @@ początkowa oraz dodatniej wymaganej pracy napędu. Rozpędzanie przy zerowym
 przyroście wysokości wymaga osobnego profilu fazy i nie jest zgadywane.
 
 Jeśli nie podano tempa profilu misji, program przyjmuje dodatnie wymaganie
-`climb_rate_ms` z projektu; przy braku dodatniego wymagania przyjmuje roboczo
-3 m/s. Jawne `mission_climb_rate_ms` ma pierwszeństwo. To założenie stałego
+`climb_rate_ms` z projektu, co najmniej 0,05 m/s (dolna granica pola profilu);
+przy braku dodatniego wymagania przyjmuje roboczo 3 m/s. Jawne
+`mission_climb_rate_ms` ma pierwszeństwo i podlega kontroli zakresu. To założenie stałego
 profilu: wymaganie przy ziemi nie dowodzi osiągalności tej wartości na całej
 wysokości. Osiągalność zadanej trajektorii sprawdza się osobno
 w jej węzłach: dostępny napęd według modelu spadku mocy/ciągu P4/P5 oraz
@@ -113,6 +114,20 @@ Weryfikuje również rzeczywisty temat 7 i odrzucenie niepoprawnego odczytu
 Corke’a przez API. `tests/test_browser_mission_climb.py` prowadzi po polach
 kreatora, przelicza i zapisuje dane, otwiera je ponownie oraz renderuje
 raport offline, na komputerze i telefonie.
+
+Katalog 110 tematów sprawdzany jest osobno dla każdego tematu: domknięcie
+numeryczne, zasięg, wspólna próba porównawcza, równanie biegunowej, paliwo
+wznoszenia, dodatnia praca i ciągłość mas między fazami. Umożliwia to wykonanie
+testów równolegle oraz jednoznaczne wskazanie wadliwego tematu.
+
+Test odrzutowca nie zakłada już, że dowolny nowy bilans masy musi zachować
+powierzchnię poniżej 40 m². Weryfikuje wymagane S z aktualnej masy, VS0 i
+C_L,max, z marginesem 1,1 przewodnika BIPOL_2. Porównanie z granicą 40 m²
+wykonuje przy jednakowej masie odniesienia 6291 kg, podanej przez
+[Textron dla CJ3 Gen3](https://cessna.txtav.com/en/citation/cj3).
+Samolot ten pozostaje analogią, a nie definicją poprawności nowego projektu.
+Domyślna stała trajektoria odrzutowca wymaga dalszego doboru: program wykazuje
+niedobór ciągu w części węzłów, zamiast uznawać sam bilans paliwa za dowód osiągalności.
 
 Ślady uruchomień, odświeżone raporty i modele są w katalogu `work/` osobnego
 worktree `bipol-mission-climb-20261113`. Pełne testy wykonywane są na

@@ -118,3 +118,12 @@ def test_omitted_profile_uses_positive_design_rate_but_preserves_explicit_profil
     assert validate_parameters({**jet, 'climb_rate_ms': 0})['mission_climb_rate_ms'] == 3
     with pytest.raises(ValueError, match='mission_climb_rate_ms'):
         validate_parameters({**jet, 'mission_climb_rate_ms': 0})
+
+
+@pytest.mark.parametrize('required', [0, .000001, .01, .049, .05, 12])
+def test_inherited_profile_stays_in_its_input_domain_on_replay(required):
+    from calculations.validation import validate_parameters
+    p = validate_parameters({'climb_rate_ms': required})
+    expected = max(.05, required) if required > 0 else 3.
+    assert p['mission_climb_rate_ms'] == expected
+    assert validate_parameters(p)['mission_climb_rate_ms'] == expected

@@ -23,6 +23,9 @@ def live_server(output):
                 pass
 
         server = make_server('127.0.0.1', 0, app, threaded=True, request_handler=QuietHandler)
+        # server_close must join active requests before the sandbox restores its
+        # environment and removes SQLite files (Windows keeps open files locked).
+        server.daemon_threads = False
         thread = threading.Thread(target=server.serve_forever, daemon=True)
         thread.start()
         try:
