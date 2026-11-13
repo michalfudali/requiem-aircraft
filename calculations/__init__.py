@@ -396,10 +396,10 @@ def run_bipol_project(params: dict):
     result['flying_qualities'] = evaluate_flying_qualities(params, geom_res, aero_res, mass_res, balance_res, perf_res)
     from calculations.engineering_audit import perform_engineering_audit
     result['engineering_audit'] = perform_engineering_audit(result)
-    # Usterzenie pionowe rośnie, gdy nie równoważy asymetrii ciągu z jednym silnikiem niepracującym
-    # (tak jak V_H rośnie do zapasu stateczności), o ile autor nie zablokował V_V.
     from calculations.drawing_checks import drawing_checks
     result['drawing_checks'] = drawing_checks(result)
+    # Usterzenie pionowe rośnie, gdy nie równoważy asymetrii ciągu z jednym silnikiem niepracującym
+    # (tak jak V_H rośnie do zapasu stateczności), o ile autor nie zablokował V_V.
     margin = result['engineering_audit']['metrics'].get('oei_yaw_margin')
     step = int(given.get('_vv_step', 0)) if isinstance(given, dict) else 3
     if margin and margin < 1.05 and step < 3 and 'v_v' not in params.get('locked_params', []):
