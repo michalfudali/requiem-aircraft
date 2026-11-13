@@ -17,6 +17,7 @@
     document.querySelector('[data-bipol1-raymer-reading]').hidden=$('preliminary_polar_mode').value!=='reading';
     document.querySelector('[data-bipol1-sketch]').hidden=$('wetted_example').value!=='sketch';
     const jet=($('engine_type')?.value||formBaseParams.engine_type)==='jet';
+    document.querySelector('[data-bipol1-climb]').hidden=($('engine_type')?.value||formBaseParams.engine_type)==='none';
     document.querySelector('[data-bipol1-prop]').hidden=jet;
     document.querySelector('[data-bipol1-jet]').hidden=!jet;
     $('bipol1SfcUnit').textContent=jet?'[1/h, cT·g]':'[g/(kW·h)]';
@@ -38,6 +39,9 @@
       data[el.id]=el.type==='number'?Number(el.value):el.value;
     }
     if(data.wetted_example!=='sketch') delete data.sketch_swet_ratio;
+    if(data.climb_fraction_mode!=='reading') for(const key of ['corke_start_ordinate','corke_end_ordinate','climb_source']) delete data[key];
+    if(!['energy','auto'].includes(data.climb_fraction_mode)) delete data.mission_climb_rate_ms;
+    if(data.engine_type==='none') for(const key of ['climb_start_altitude_m','climb_start_speed_kmh','mission_climb_rate_ms','corke_start_ordinate','corke_end_ordinate','climb_source']) delete data[key];
     if(data.preliminary_polar_mode==='input') data.preliminary_polar_includes_configuration=true;
     else delete data.preliminary_polar_includes_configuration;
     delete data.raymer_family;

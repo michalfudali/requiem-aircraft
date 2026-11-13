@@ -54,7 +54,7 @@
       <label>SFC etapu maksymalnego (np. start/wznoszenie) <span id="bipol1SfcUnit"></span><input id="max_power_sfc" data-bipol1 type="number" min="0.001" max="1000" step="0.01" placeholder="Domyślnie z SFC przelotowego"></label>
     </div>
   </details>
-  <details><summary>Wznoszenie i rozpędzanie — paliwo i profil lotu</summary>
+  <details data-bipol1-climb><summary>Wznoszenie i rozpędzanie — paliwo i profil lotu</summary>
     <div class="trend-controls">
       <label>Metoda<select id="climb_fraction_mode" data-bipol1><option value="energy">Bilans energii i paliwa</option><option value="corke">Wykres Corke’a — w jego zakresie</option><option value="reading">Własne udokumentowane odczyty rzędnych</option></select></label>
       <label>Wysokość początkowa [m]<input id="climb_start_altitude_m" data-bipol1 type="number" step="10" min="0" max="20000" value="0"></label>

@@ -19,7 +19,7 @@ Temat nie podaje misji. Liczby misji są założeniami autora i wymagają uzgodn
 | Prędkość przelotowa | 115 km/h TAS na 2000 m | Notatki prowadzącego przyjmują K_przelot = 0,94 K_max; przy 140 km/h Cz wynosiłoby około 0,6 Cz,opt i założenie nie byłoby spełnione |
 | Zasięg | 600 km, 60 min oczekiwania | Zachowano założenia wcześniejszego studium |
 | Próba porównawcza | 17 rodzin motoszybowców bez balastu wodnego, z napędem w kadłubie | MTOM konstrukcji z balastem wodnym zawiera balast, a tego samolot jednomiejscowy nie przewozi. Dopasowanie daje C = −0,128 bez wymuszania znaku, R² = 0,25 |
-| Masa własna | Domknięta sumą mas zespołów, K_P3 = 1,103 | BIPOL_3: wynik analizy masowej może wymagać powtórzenia projektu |
+| Masa własna | Domknięta sumą mas zespołów, K_P3 = 1,085 | BIPOL_3: wynik analizy masowej może wymagać powtórzenia projektu |
 | Struktura | Kompozyt (Raymer, tab. 15.4) | Typowa dla klasy |
 | Silnik | Rotax 912 UL, 58 kW, 268 g/(kW h) w punkcie 75% mocy | Wybrana propozycja z dokumentacją; większa moc 912 ULS nie usuwa przewymiarowania |
 | Mechanizacja | Klapy zwykłe, lotki zewnętrzne (η ≥ 0,67) | Przy klapolotkach na całej rozpiętości oderwanie zaczyna się w strefie lotek |
@@ -29,18 +29,22 @@ Temat nie podaje misji. Liczby misji są założeniami autora i wymagają uzgodn
 
 | Wielkość | Wartość |
 |---|---|
-| Masa startowa / własna / paliwo / pilot | 655,4 / 496,8 / 48,6 / 110 kg |
-| W/S, W/b² | 41,6 kg/m², 1,49 kg/m² |
+| Masa startowa / własna / paliwo / pilot | 658,7 / 498,2 / 50,5 / 110 kg |
+| W/S, W/b² | 41,8 kg/m², 1,49 kg/m² |
 | Kadłub, usterzenia | l = 8,5 m, S_H = 1,36 m², S_V = 1,65 m², ramię 5,02 m |
-| Biegunowa P4 | C_x0 = 0,01704, k = 0,01470, K_max = 31,59 |
-| Prędkości | VS1 77,4, VS0 68,5, VA 178,3, VF 137,0, VD 308,5, Vmax 228,5 km/h |
-| Wznoszenie, start, lądowanie | 6,48 m/s, 196 m, 350 m |
+| Biegunowa P4 | C_x0 = 0,01705, k = 0,01470, K_max ≈ 31,58 |
+| Prędkości | VS1 77,6, VS0 68,7, VA 178,7, VF 137,3, VD 308,4, Vmax 228,4 km/h |
+| Wznoszenie, start, lądowanie | 6,44 m/s, 197 m, 350 m |
+| Profil paliwowy wznoszenia | 3 m/s, TAS 115 km/h, 0–2000 m; 1,567 kg paliwa w 11,11 min |
 | Środek masy, zapas stateczności | 25,0–29,5% ŚCA, 12,5% ŚCA |
-| Obciążenia | n = +5,43 / −3,43, niszczące +8,14 / −5,14 (podmuchy) |
+| Obciążenia | n = +5,42 / −3,42, niszczące +8,14 / −5,14 (podmuchy) |
 | Flatter, dywergencja, rewers lotek | 515 km/h (1,67 VD), 605 km/h, rewers nieobliczony; model zastępczy |
 
-Aktualizacja 12.11.2026: program zalicza 32 z 32 kontroli raportu i 10 z 12 kontroli
+Aktualizacja 13.11.2026: program zalicza 33 z 33 kontroli raportu i 10 z 12 kontroli
 audytu inżynierskiego. Otwarte są masa kompletnej zabudowy napędu i potwierdzenie aeroelastyczne konstrukcji.
+Bilans energii zastąpił zerowe paliwo wznoszenia z odczytu poniżej M = 0,1.
+Profil, równania, źródło SFC i pozostające ograniczenia opisano w
+[WZNOSZENIE_I_PALIWO.md](WZNOSZENIE_I_PALIWO.md).
 Samo zaliczenie kontroli modelu wstępnego nie zastępuje analizy wytrzymałościowej
 ani wykazania zgodności. Poniżej wskazano także ograniczenia materiałowe aeroelastyczności.
 

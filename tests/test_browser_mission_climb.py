@@ -4,7 +4,7 @@ from pathlib import Path
 
 import pytest
 from playwright.sync_api import expect
-from browser_helpers import navigate
+from browser_helpers import navigate, reveal_details
 
 pytestmark = pytest.mark.browser
 CASE = Path(__file__).parents[1]/'data/design_cases/topic7_motoszybowiec_21m.json'
@@ -22,6 +22,8 @@ def topic7(page):
 def finish(page):
     page.locator('.wizard-step-tab[data-step="5"]').click()
     page.locator('#wizFinishBtn').click()
+    page.wait_for_function('document.querySelector("#tab-overview").classList.contains("active") || document.querySelector("#wizardValidationStatus").textContent.trim()',timeout=60000)
+    assert not page.locator('#wizardValidationStatus').inner_text().strip()
     expect(page.locator('#tab-overview')).to_be_visible(timeout=60000)
 
 
@@ -66,6 +68,7 @@ def test_out_of_chart_corke_is_rejected_and_documented_own_reading_is_preserved(
     page, _, _ = studio
     topic7(page)
     old_mass = page.evaluate('currentResults.mass.m0')
+    page.locator('#wiz_mission_climb_rate_ms').fill('0')
     page.locator('#wiz_climb_fraction_mode').select_option('corke')
     assert page.locator('#wiz_mission_climb_rate_ms').is_disabled()
     page.locator('.wizard-step-tab[data-step="5"]').click()
@@ -85,8 +88,32 @@ def test_out_of_chart_corke_is_rejected_and_documented_own_reading_is_preserved(
 
 def test_glider_does_not_require_or_claim_an_engine_climb_profile(studio):
     page, _, _ = studio
+    page.locator('.wizard-step-tab[data-step="2"]').click()
+    page.locator('#wiz_mission_climb_rate_ms').fill('0')
     page.locator('.wizard-step-tab[data-step="3"]').click()
     page.locator('#wiz_engine_type').select_option('none')
+    page.locator('.wizard-step-tab[data-step="1"]').click()
+    page.locator('#wiz_m_crew_person').fill('110')
     page.locator('.wizard-step-tab[data-step="2"]').click()
     expect(page.locator('.wizard-climb-profile')).to_be_hidden()
+    page.locator('#wiz_v_stall_kmh').fill('72')
     assert page.locator('#wiz_mission_climb_rate_ms').is_disabled()
+    finish(page)
+    assert page.evaluate('currentResults.params.engine_type') == 'none'
+    assert page.evaluate('currentResults.mass.mission_assumptions.climb') is None
+
+
+def test_advanced_panel_ignores_invalid_energy_input_when_own_readings_are_selected(studio):
+    page, _, _ = studio
+    topic7(page)
+    navigate(page, 'tab-trends')
+    field = page.locator('#mission_climb_rate_ms')
+    reveal_details(field)
+    field.fill('0')
+    page.locator('#climb_fraction_mode').select_option('reading')
+    page.locator('#corke_start_ordinate').fill('0.999')
+    page.locator('#corke_end_ordinate').fill('0.996')
+    page.locator('#climb_source').fill('Źródło własnego odczytu w panelu założeń.')
+    page.locator('#bipol1Calculate').click()
+    page.wait_for_function('currentResults?.params.climb_fraction_mode==="reading"',timeout=60000)
+    assert page.evaluate('currentResults.mass.fuel_fractions_detail.climb') == pytest.approx(.996/.999)

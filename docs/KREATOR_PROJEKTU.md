@@ -4,6 +4,13 @@ Kreator jest domyślną zakładką pracowni. Pięć etapów prowadzi od tematu
 i wymagań, przez misję oraz napęd, do aerodynamiki i przeglądu założeń.
 Można wracać do dowolnego etapu bez zamykania formularza.
 
+W etapie **Misja i osiągi** wybierzesz także metodę paliwa wznoszenia,
+tempo profilu misji, wysokość początkową i TAS. Tempo profilu jest odrębne od
+minimalnego wymagania wznoszenia przy ziemi. Domyślny bilans energii uwzględnia
+opór, zmianę wysokości i prędkości oraz SFC silnika; metoda Corke’a i własne
+udokumentowane odczyty pozostają dostępne. Szczegóły i ograniczenia:
+[Wznoszenie i paliwo](WZNOSZENIE_I_PALIWO.md).
+
 Pole **Znajdź założenie** przeszukuje wszystkie etapy aktualnej konfiguracji.
 Rozpoznaje nazwy parametrów i ich identyfikatory, również bez polskich znaków.
 Wynik pokazuje wartość, etap i oznaczenie wielkości zależnej. Wybór wyniku

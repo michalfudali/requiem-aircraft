@@ -242,7 +242,9 @@
       if (value('wiz_','engine_type') !== 'prop' || !$('wiz_'+key).value.trim()) delete p[key];
     }
     if (!value('wiz_','climb_start_speed_kmh').trim()) delete p.climb_start_speed_kmh;
-    if (p.climb_fraction_mode !== 'reading') { delete p.corke_start_ordinate; delete p.corke_end_ordinate; }
+    if (p.climb_fraction_mode !== 'reading') { delete p.corke_start_ordinate; delete p.corke_end_ordinate; delete p.climb_source; }
+    if (p.climb_fraction_mode !== 'energy') delete p.mission_climb_rate_ms;
+    if (p.engine_type === 'none') for (const key of ['climb_start_altitude_m','climb_start_speed_kmh','mission_climb_rate_ms','corke_start_ordinate','corke_end_ordinate','climb_source']) delete p[key];
     delete p.prop_rpm;
     const direct = document.querySelector('[name="wiz_drag_basis"]:checked')?.value === 'input';
     p.preliminary_polar_mode = direct ? 'input' : value('wiz_','raymer_reading');
