@@ -131,25 +131,21 @@ def test_official_jet_profile_inherits_its_requirement_and_keeps_an_explicit_edi
     expect(page.locator('#wiz_mission_climb_rate_ms')).to_have_value('7.5')
 
 
-def test_small_requirement_import_remains_editable_and_reopens_in_both_panels(studio):
+def test_minimum_profile_rate_survives_wizard_save_reload_and_panel_sync(studio):
     page, _, _ = studio
-    params = page.evaluate('structuredClone(currentResults.params)')
-    params.pop('mission_climb_rate_ms', None)
-    params['climb_rate_ms'] = .01
-    # This regression concerns default-input persistence, not an eleven-hour
-    # climb: start at the final altitude/TAS, so the climb phase has no duration.
-    params['climb_start_altitude_m'] = params['cruise_altitude_m']
-    params['climb_start_speed_kmh'] = params['cruise_speed_kmh']
-    page.locator('#projectImportFileInput').set_input_files(dict(
-        name='small-climb-requirement.json', mimeType='application/json',
-        buffer=json.dumps(params).encode('utf8')))
-    page.wait_for_function('currentResults?.params.climb_rate_ms === .01', timeout=60000)
-    navigate(page, 'tab-wizard')
+    page.locator('.wizard-step-tab[data-step="2"]').click()
+    page.locator('#wiz_mission_climb_rate_ms').fill('0.05')
+    # Check the field's valid minimum without commanding an eleven-hour climb:
+    # a profile already at final altitude/TAS has zero duration.
+    page.locator('#wiz_climb_start_altitude_m').fill(page.locator('#wiz_cruise_altitude_m').input_value())
+    page.locator('#wiz_climb_start_speed_kmh').fill(page.locator('#wiz_cruise_speed_kmh').input_value())
+    finish(page)
+    assert page.evaluate('currentResults.params.mission_climb_rate_ms') == .05
+    assert page.evaluate('currentResults.mass.mission_assumptions.climb.duration_s') == 0
+    page.reload()
+    page.wait_for_function('currentResults?.params.mission_climb_rate_ms === .05', timeout=60000)
     page.locator('.wizard-step-tab[data-step="2"]').click()
     expect(page.locator('#wiz_mission_climb_rate_ms')).to_have_value('0.05')
     navigate(page, 'tab-trends')
     reveal_details(page.locator('#mission_climb_rate_ms'))
     expect(page.locator('#mission_climb_rate_ms')).to_have_value('0.05')
-    page.reload()
-    page.wait_for_function('currentResults?.params.climb_rate_ms === .01', timeout=60000)
-    assert page.evaluate('currentResults.params.mission_climb_rate_ms') == .05

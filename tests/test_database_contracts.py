@@ -115,7 +115,11 @@ def test_next_case_sees_pristine_state():
 ''', encoding='utf-8')
     env = dict(os.environ, PYTHONPATH=os.pathsep.join((str(ROOT), str(ROOT / 'tests'))),
                PYTHONUTF8='1', PYTEST_ADDOPTS='')
+    # Keep collection and caches inside the private probe directory. With a
+    # repository root and an external test file, pytest otherwise walks shared
+    # temporary ancestors that concurrent Playwright runs create and remove.
     result = subprocess.run([sys.executable, '-m', 'pytest', '-q', '-c', str(ROOT / 'pytest.ini'),
+                             '--rootdir=' + str(tmp_path), '--confcutdir=' + str(tmp_path),
                              str(tmp_path / 'test_isolation_probe.py'), '--junitxml=' + str(tmp_path / 'probe.xml')],
                             cwd=tmp_path, env=env, capture_output=True, text=True, encoding='utf-8')
     assert result.returncode == 1, result.stdout + result.stderr
