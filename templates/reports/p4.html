@@ -22,7 +22,7 @@
 <figure id="fig-k"><div class="figure-pair"><div id="repKAlpha"></div><div id="repKCz"></div></div><figcaption>Doskonałość aerodynamiczna \(K=C_z/C_x\) w funkcji kąta natarcia i współczynnika siły nośnej.</figcaption></figure>
 <figure id="fig-e"><div class="figure-pair"><div id="repEAlpha"></div><div id="repECz"></div></div><figcaption>Funkcja energetyczna \(E=C_z^3/C_x^2\) w funkcji kąta natarcia i współczynnika siły nośnej.</figcaption></figure>
 <h3>Biegunowa analityczna samolotu</h3>
-<p>W zakresie \(0 \le C_{z\infty} \le 0{,}85\,C_{z\,max}\) biegunową stabelaryzowaną{{ xref('tab-aircraft-aero') }} przybliżono analityczną zależnością paraboliczną \(C_x = C_{x0} + k\,C_z^2\) metodą najmniejszych kwadratów {{ cite('paturski') }}. Wyznaczony współczynnik Oswalda \(e\) mieści się w typowym zakresie konstrukcyjnym.</p>
+<p>W zakresie \(0 \le C_{z\infty} \le 0{,}85\,C_{z\,max}\) biegunową stabelaryzowaną{{ xref('tab-aircraft-aero') }} przybliżono analityczną zależnością paraboliczną \(C_x = C_{x0} + k\,C_z^2\) metodą najmniejszych kwadratów {{ cite('paturski') }}. Wyznaczony współczynnik Oswalda \(e\) mieści się w typowym zakresie konstrukcyjnym.{% set fit = p3a.analytical_polar_fit %}{% if fit.r2 is defined %} Jakość dopasowania: \(R^2={{ fit.r2|texnum(4) }}\), największe odchylenie paraboli od punktów tabeli wynosi {{ (100 * fit.max_relative_deviation)|reportnum(1) }}% wartości \(C_x\){{ '' if fit.max_relative_deviation <= 0.05 else '; przy odchyleniu powyżej 5% wyniki osiągów w pobliżu tego zakresu należy traktować ostrożnie' }}.{% endif %}</p>
 {{ c.section(sheet, 'p4.fit') }}
 <h3>Punkty charakterystyczne biegunowej</h3>
 {{ c.section(sheet, 'p4.optimum') }}

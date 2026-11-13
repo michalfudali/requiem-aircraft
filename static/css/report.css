@@ -123,8 +123,10 @@ tr.highlight td { background: #f1f5f9; font-weight: 600; }
 }
 @media print {
   body.print-drawing .document { display:none; }
-  body.print-drawing .drawing-page { display:block; width:190mm; height:270mm; }
+  body.print-drawing:not(.a2-drawing) .drawing-page:not(.drawing-a2) { display:block; width:190mm; height:270mm; }
+  body.a2-drawing .drawing-page.drawing-a2 { display:block; width:380mm; height:540mm; }
   .drawing-page svg { width:190mm; height:270mm; max-height:none; print-color-adjust:exact; -webkit-print-color-adjust:exact; }
+  .drawing-page.drawing-a2 svg { width:380mm; height:540mm; }
   body.plain-drawing .drawing-grid { display:none; }
   html, body { background: white; padding: 0; margin: 0; }
   .no-print { display: none !important; }

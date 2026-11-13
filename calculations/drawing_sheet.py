@@ -1,19 +1,23 @@
-"""A4 reference sheet for the required hand drawing, in one physical scale."""
+"""A4 or A2 reference sheet for the required hand drawing, in one physical scale."""
 import html
 import math
 from markupsafe import Markup
 
 
-def drawing_sheet(result):
+def drawing_sheet(result, a2=False):
+    """Three views in one scale. A2 (Opis projektów, P3) is the A4 layout printed twice as large:
+    one drawing unit is then 2 mm, so the scale denominator halves and the grid stays millimetric."""
+    factor = 2 if a2 else 1
     g, p = result['geometry'], result['params']
     w, f, ht, vt = g['wing'], g['fuselage'], g['horizontal_tail'], g['vertical_tail']
     length, span, diameter = f['length'], w['b'], f['diameter']
-    minimum = max(span * 1000 / 166, length * 1000 / 113, (vt['h_v'] + diameter) * 1000 / 42)
+    minimum = max(span * 1000 / 166, length * 1000 / 113, (vt['h_v'] + diameter) * 1000 / 42) / factor
     denominator = next((d for d in (20, 25, 50, 75, 100, 150, 200, 250, 500, 1000) if d >= minimum), math.ceil(minimum / 100) * 100)
-    s = 1000 / denominator
-    out = ['<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 190 270" role="img" aria-label="Arkusz A4: trzy rzuty w jednej skali">',
-           '<defs><pattern id="millimeter" width="1" height="1" patternUnits="userSpaceOnUse"><path d="M1 0H0V1" fill="none" stroke="#ddd" stroke-width=".08"/></pattern><pattern id="centimeter" width="10" height="10" patternUnits="userSpaceOnUse"><path d="M10 0H0V10" fill="none" stroke="#bbb" stroke-width=".15"/></pattern></defs>',
-           '<rect width="190" height="270" fill="white"/><g class="drawing-grid"><rect width="190" height="248" fill="url(#millimeter)"/><rect width="190" height="248" fill="url(#centimeter)"/></g>']
+    s = 1000 / denominator / factor
+    suffix, unit, ten = ('A2' if a2 else ''), f'{1 / factor:g}', f'{10 / factor:g}'
+    out = ['<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 190 270" role="img" aria-label="Arkusz: trzy rzuty w jednej skali">',
+           '<defs><pattern id="millimeter' + suffix + '" width="' + unit + '" height="' + unit + '" patternUnits="userSpaceOnUse"><path d="M' + unit + ' 0H0V' + unit + '" fill="none" stroke="#ddd" stroke-width=".08"/></pattern><pattern id="centimeter' + suffix + '" width="' + ten + '" height="' + ten + '" patternUnits="userSpaceOnUse"><path d="M' + ten + ' 0H0V' + ten + '" fill="none" stroke="#bbb" stroke-width=".15"/></pattern></defs>',
+           '<rect width="190" height="270" fill="white"/><g class="drawing-grid"><rect width="190" height="248" fill="url(#millimeter' + suffix + ')"/><rect width="190" height="248" fill="url(#centimeter' + suffix + ')"/></g>']
     def path(points, close=False, dash=False):
         d = ' '.join(f'{"M" if i == 0 else "L"}{x:.3f},{y:.3f}' for i, (x, y) in enumerate(points))
         out.append(f'<path d="{d}{"Z" if close else ""}" fill="none" stroke="#222" stroke-width=".35"' + (' stroke-dasharray="2 1"' if dash else '') + '/>')
@@ -97,7 +101,7 @@ def drawing_sheet(result):
     label(8, 246, '○ Mocowanie podwozia: ' + ('skrzydło' if p.get('gear_attachment') == 'wing' else 'kadłub'))
     path([(0, 250), (190, 250), (190, 270), (0, 270)], True)
     label(3, 256, str(p.get('name', 'Projekt BIPOL I'))[:75])
-    label(3, 262, f'A4 • skala 1:{denominator} przy wydruku 100% • wymiary w mm')
+    label(3, 262, f'{"A2" if a2 else "A4"} • skala 1:{denominator} przy wydruku 100% • wymiary w mm')
     label(3, 267, 'Wzór do rysunku odręcznego; mocowania pokazano koncepcyjnie.', 2.6)
     out.append('</svg>')
     return Markup(''.join(out))

@@ -312,6 +312,12 @@ def run_bipol_project(params: dict):
         mass_res, sizing_res, geom_res, aero_res, perf_res, envelope_res, balance_res, params, profile_context
     )
 
+    blueprint = bipol_projects_res['p3']['blueprint_checks']
+    if blueprint.get('propeller_diameter_m') and params.get('engine_location', 'nose') == 'nose':
+        # The gear is as tall as the propeller chosen in P4 needs (drawing procedure, step 10).
+        geom_res['gear']['axis_height_m'] = axis_height_m(params, geom_res['fuselage']['diameter'], blueprint['propeller_diameter_m'])
+        blueprint['prop_ground_clearance_m'] = geom_res['gear']['axis_height_m'] - blueprint['propeller_diameter_m'] / 2
+
     # Zgodność z klasyfikacją statków powietrznych (t.j. Dz. U. z 2025 r. poz. 1137, Tabele nr 1–3)
     law_res = check_compliance(params, mass_res, geom_res, perf_res, envelope_res)
     for c in law_res["checks"]:
@@ -401,6 +407,8 @@ def run_bipol_project(params: dict):
     result['flying_qualities'] = evaluate_flying_qualities(params, geom_res, aero_res, mass_res, balance_res, perf_res)
     from calculations.engineering_audit import perform_engineering_audit
     result['engineering_audit'] = perform_engineering_audit(result)
+    from calculations.drawing_checks import drawing_checks
+    result['drawing_checks'] = drawing_checks(result)
     # Usterzenie pionowe rośnie, gdy nie równoważy asymetrii ciągu z jednym silnikiem niepracującym
     # (tak jak V_H rośnie do zapasu stateczności), o ile autor nie zablokował V_V.
     margin = result['engineering_audit']['metrics'].get('oei_yaw_margin')

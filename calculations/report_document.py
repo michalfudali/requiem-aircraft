@@ -444,6 +444,48 @@ def _performance_actions(results):
     return out
 
 
+def _critical_review(results):
+    """Krytyczna ocena projektu z punktu widzenia osiągów (Opis projektów, P5): co poprawić w następnej iteracji."""
+    p, mass, perf = results['params'], results['mass'], results['performance']
+    wing, number, out = results['geometry']['wing'], report_number, []
+    if p['engine_type'] == 'none':
+        return out
+    dp, review = results['sizing']['design_point'], results['bipol_projects']['p5']['polar_review']
+    selection = results.get('engine_selection') or {}
+    needed, installed = selection.get('required_total'), selection.get('installed_total')
+    if needed and installed and installed > 1.3 * needed:
+        unit = selection.get('rating_unit', 'kW')
+        out.append(f'Zespół napędowy jest przewymiarowany: potrzeba {number(needed, 1)} {unit}, zabudowano {number(installed, 1)} {unit}. '
+                   'Lżejszy silnik zmniejszyłby masę własną i prędkości obliczeniowe obwiedni; wymaga to silnika z udokumentowanym zużyciem paliwa.')
+    if not review.get('consistent'):
+        out.append(f'Doskonałość z projektu koncepcyjnego ({number(review["k_p1"], 1)}) różni się od obliczonej ({number(review["k_p4"], 1)}) '
+                   f'o {number(abs(review["deviation"]) * 100, 0)}%. Opór szkodliwy należy zmniejszyć (owiewki podwozia, osłona silnika, '
+                   'połączenie skrzydło–kadłub) albo przyjąć realistyczną biegunową już w projekcie koncepcyjnym.')
+    audit = results['engineering_audit']['metrics']
+    ratio = audit.get('cruise_matching_ratio')
+    if ratio is not None and not .65 <= ratio <= 1.35 and p['engine_type'] == 'prop':
+        out.append(f'Przelot odbywa się przy Cz równym {number(ratio, 2)} wartości optymalnej. Prędkość przelotową lub obciążenie '
+                   'powierzchni należy dobrać bliżej punktu największej doskonałości.')
+    climb, wanted = perf['climb']['wy_max_ms'], float(p.get('climb_rate_ms') or 0)
+    if wanted and climb > 1.5 * wanted:
+        out.append(f'Prędkość wznoszenia {number(climb, 1)} m/s przekracza wymaganie {number(wanted, 1)} m/s o '
+                   f'{number((climb / wanted - 1) * 100, 0)}%; nadmiar wynika z mocy zespołu napędowego.')
+    takeoff, limit = perf['takeoff'].get('distance_to_15m'), float(p.get('takeoff_distance_m') or 0)
+    if takeoff and limit and takeoff < .6 * limit:
+        out.append(f'Długość startu {number(takeoff, 0)} m wykorzystuje {number(100 * takeoff / limit, 0)}% dopuszczalnej; '
+                   'można zmniejszyć powierzchnię nośną lub uprościć mechanizację, o ile pozwala na to prędkość przeciągnięcia.')
+    closure = mass.get('component_closure') or {}
+    if closure.get('sum_kg') and abs(closure['sum_kg'] / closure['m_empty_kg'] - 1) > .1:
+        out.append(f'Suma mas zespołów ({number(closure["sum_kg"], 0)} kg) różni się od masy własnej z bilansu '
+                   f'({number(closure["m_empty_kg"], 0)} kg) o ponad 10%; bilans masy należy powtórzyć z masą z analizy masowej.')
+    failed = [c['title'] for c in results['engineering_audit']['checks'] if not c['passed']]
+    if failed:
+        out.append('Kontrole projektu wstępnego wymagające poprawy: ' + '; '.join(failed) + '.')
+    if not out:
+        out.append('Analiza osiągów nie wskazuje elementów wymagających zmiany; zapasy względem wymagań są umiarkowane.')
+    return out
+
+
 def _limitation(text):
     """Ograniczenie zakresu obliczeń opisane bez odwołań do elementów programu."""
     if 'ΔCx,wave' in text or 'M_kr' in text:
@@ -477,7 +519,7 @@ def report_document(results, sections, overrides=None, folder_cover=False, sheet
             'payload_label': payload_label(results), 'features': _features(results),
             'checks': checks, 'failed': failed, 'pending': pending, 'summary': summary,
             'summaries': _summaries(results), 'predecessors': _predecessors(results),
-            'performance_actions': _performance_actions(results),
+            'performance_actions': _performance_actions(results), 'critical_review': _critical_review(results),
             'trend_workings': report_trend_workings(results['bipol_projects']['p1']['trend_analysis']),
             'concept': _concept(results),
             'assumptions': assumption_rows(sheet, sections), 'constants': constant_rows(sheet),

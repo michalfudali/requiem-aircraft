@@ -4230,7 +4230,7 @@ function hydrateSemesterProjectsData(res) {
     const flap = p6.high_lift_envelope;
     for (const id of ['p6_flap_plot', 'highLiftEnvelopePlot']) {
       const plot = document.getElementById(id);
-      if (plot) plot.innerHTML = BipolVisuals.flapEnvelope(flap);
+      if (plot) plot.innerHTML = BipolVisuals.flapEnvelope(flap, currentResults?.envelope?.composite_polygon);
     }
     for (const id of ['p6_flap_status', 'highLiftEnvelopeNote']) {
       const flapStatus = document.getElementById(id);

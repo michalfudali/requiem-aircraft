@@ -24,9 +24,9 @@
       <div class="metadata-grid">{% for field in doc.metadata %}<label>{{ field.label }}<input data-report-meta-input="{{ field.key }}" data-label="{{ field.label }}" value="{{ field.value }}" maxlength="160"></label>{% endfor %}</div>
     </details>
     <p class="metadata-status" id="metadata-status" role="status"></p>
-    {% if 'p1' in selected_sections or 'p3' in selected_sections %}<details><summary>Arkusze do rysunku samolotu</summary><p>Szkic koncepcyjny wykonuje się na gładkim arkuszu A4, rysunek projektu wstępnego na papierze milimetrowym: trzy rzuty, dziób w lewo w widoku z boku i do góry w widoku z góry, z zaznaczonym mocowaniem podwozia.</p><div class="toolbar-row"><button id="print-drawing-plain">Arkusz A4 gładki</button><button id="print-drawing-grid">Arkusz A4 z siatką</button></div><p>Drukuj w skali 100%, bez dopasowania do strony.</p></details>{% endif %}
+    {% if 'p1' in selected_sections or 'p3' in selected_sections %}<details><summary>Arkusze do rysunku samolotu</summary><p>Szkic koncepcyjny wykonuje się na gładkim arkuszu A4, rysunek projektu wstępnego na papierze milimetrowym: trzy rzuty, dziób w lewo w widoku z boku i do góry w widoku z góry, z zaznaczonym mocowaniem podwozia.</p><div class="toolbar-row"><button id="print-drawing-plain">Arkusz A4 gładki</button><button id="print-drawing-grid">Arkusz A4 z siatką</button><button id="print-drawing-a2">Arkusz A2 z siatką (rysunek P3)</button></div><p>Drukuj w skali 100%, bez dopasowania do strony.</p></details>{% endif %}
   </aside>
-  {% if 'p1' in selected_sections or 'p3' in selected_sections %}<div class="drawing-page">{{ drawing_sheet(res) }}</div>{% endif %}
+  {% if 'p1' in selected_sections or 'p3' in selected_sections %}<div class="drawing-page">{{ drawing_sheet(res) }}</div><div class="drawing-page drawing-a2">{{ drawing_sheet(res, True) }}</div>{% endif %}
   <main class="document">
     <header class="cover">
       <div class="cover-frame">
@@ -62,6 +62,17 @@
       </tbody></table>
       {% endif %}
       {% if law.corrections %}<p>Dane projektu skorygowano zgodnie z przepisami: {% for c in law.corrections %}{{ c }}{% if not loop.last %} {% endif %}{% endfor %}</p>{% endif %}
+      <table class="compact-table" id="tab-symbols"><caption>Spis ważniejszych oznaczeń</caption><thead><tr><th>Oznaczenie</th><th>Wielkość</th><th>Jednostka</th></tr></thead><tbody>
+      {% for sym, name, unit in [('m_0', 'masa startowa', 'kg'), ('m_e', 'masa własna (pustego samolotu)', 'kg'), ('m_f', 'masa paliwa', 'kg'),
+        ('S', 'pole powierzchni nośnej', 'm²'), ('b', 'rozpiętość', 'm'), ('\\Lambda', 'wydłużenie płata', '—'), ('\\lambda', 'zbieżność płata', '—'),
+        ('\\bar c', 'średnia cięciwa aerodynamiczna (ŚCA)', 'm'), ('C_z,\\;C_x,\\;C_m', 'współczynniki siły nośnej, oporu i momentu pochylającego', '—'),
+        ('C_{x0},\\;k', 'opór zerowy i współczynnik oporu indukowanego biegunowej', '—'), ('K', 'doskonałość aerodynamiczna', '—'),
+        ('E', 'funkcja energetyczna', '—'), ('e', 'współczynnik Oswalda', '—'), ('W/S', 'obciążenie powierzchni', 'N/m²'),
+        ('N,\\;T', 'moc na wale i ciąg zespołu napędowego', 'kW, kN'), ('\\eta', 'sprawność śmigła', '—'), ('V', 'prędkość lotu', 'm/s, km/h'),
+        ('w', 'prędkość wznoszenia lub opadania', 'm/s'), ('n', 'współczynnik obciążenia', '—'), ('\\rho,\\;\\sigma', 'gęstość powietrza i gęstość względna', 'kg/m³, —'),
+        ('V_H,\\;V_V', 'cechy objętościowe usterzenia poziomego i pionowego', '—'), ('\\bar x_{SM}', 'położenie środka masy w ŚCA', '%'),
+        ('g', 'przyspieszenie ziemskie', 'm/s²')] %}<tr><td>\({{ sym }}\)</td><td>{{ name }}</td><td>{{ unit }}</td></tr>{% endfor %}
+      </tbody></table>
       {% if doc.constants %}
       <table class="compact-table" id="tab-constants"><caption>Stałe fizyczne i parametry atmosfery wzorcowej na poziomie morza</caption><thead><tr><th>Wielkość</th><th>Symbol i wartość</th></tr></thead><tbody>
       {% for e in doc.constants %}<tr><td>{{ e.label|subs }}</td><td>\({{ e.sym }} = {{ e.value_tex }}\)</td></tr>{% endfor %}
