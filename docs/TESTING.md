@@ -120,6 +120,22 @@ z `vspscript.exe` (Windows) lub `vspscript` (Linux). Pliki wynikowe nadal
 powstają w `work/openvsp` bieżącego worktree.
 Wersja Pythona musi odpowiadać kompilacji OpenVSP:
 [oficjalne instrukcje API](https://openvsp.org/pyapi_docs/latest/).
+Kompilacja OpenVSP 3.55.0 dla Windows w `OpenVSP-3.55.0/python` wymaga CPython 3.13.
+Najprostsza konfiguracja (13.11.2026):
+
+1. Utwórz osobne środowisko `py -3.13 -m venv`.
+2. Zainstaluj w nim `requirements.txt`, `requirements-dev.txt` oraz `numpy` i `six`.
+3. W `site-packages` środowiska dopisz plik `.pth` z katalogami `openvsp`, `degen_geom`,
+   `openvsp_config` i `utilities` z `OpenVSP-3.55.0/python`.
+
+Ścieżek tych nie podaje się w `PYTHONPATH`, bo przejąłby je też interpreter 3.11.
+
+Uruchomienie:
+
+- Testy natywne: `python -m pytest tests/test_openvsp.py tests/test_vsp_planforms.py tests/test_vsp_propulsion_inputs.py`,
+  uruchomione Pythonem z tego środowiska.
+- Scenariusze przeglądarkowe z natywnym zapleczem: zostają w interpreterze z Playwright. Ustaw `BIPOL_OPENVSP_PYTHON`
+  na `python.exe` środowiska 3.13 i dodaj `--browser`.
 Skrypty AngelScript powinny używać `int main()` i jawnego `return 0` przy sukcesie,
 jak [oficjalne przykłady OpenVSP](https://github.com/OpenVSP/OpenVSP/blob/main/examples/scripts/TestSaveLoad.vspscript).
 Adapter zachowuje rzeczywisty kod procesu, zamiast maskować błędy kodem zero.
