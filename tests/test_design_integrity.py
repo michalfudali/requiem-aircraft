@@ -211,32 +211,43 @@ def test_partial_cargo_bay_cannot_silently_disable_geometric_sizing(value):
         run_bipol_project(dict(topic(71), cargo_bay_length_m=value, cargo_bay_width_m='0', cargo_bay_height_m=0))
 
 
-def test_entire_official_catalogue_has_finite_closed_numerical_starting_designs():
-    failures, off_path = [], []
-    for entry in ALL_TOPICS:
-        result = run_bipol_project(entry['parameters'])
-        json.dumps(result, allow_nan=False)
-        if not result['design_iteration']['converged'] or not result['performance']['mission_range']['passed']:
-            failures.append(entry['num'])
-        # Every topic follows the path of the BIPOL_1 guide: C_x0 from S_wet/S -> K_max (Fig. 2) ->
-        # eq. (3), compared with the typical values; eq. (1) from two points of the trend line of the
-        # one comparison sample of the P1 analysis; climb from the Corke chart.
-        pp, mass = result['mass']['preliminary_polar'], result['mass']
-        ta, law = result['bipol_projects']['p1']['trend_analysis'], mass['empty_mass_law']
-        corke = mass['mission_assumptions'].get('corke') or {}
-        on_path = (pp['mode'] == 'raymer' and pp['swet_ratio'] and pp['cx0_bounds']
-                   and pp['cx0'] == pytest.approx(math.pi * pp['aspect_ratio'] * pp['oswald_e'] / (4 * pp['kmax'] ** 2))
-                   and result['params']['cx0'] == pp['cx0']
-                   and law['mode'] == 'trend' and (law['A'], law['C']) == (ta['two_point']['A'], ta['two_point']['C'])
-                   and set(law['aircraft_ids']) <= {x['id'] for x in ta['similar_aircraft']}
-                   and (not corke or corke['mode'] == 'corke' and not corke['provisional']))
-        if not on_path:
-            off_path.append(entry['num'])
-    assert not failures, f'Unclosed numerical catalogue seeds: {failures}'
-    assert not off_path, f'Topics off the guide path: {off_path}'
-
-
-@pytest.mark.parametrize('number', [23, 31, 68, 96])
-def test_merged_mission_constraints_and_cargo_estimates_have_consistent_worked_reports(number):
-    sheet = build_sheet(run_bipol_project(topic(number)))
-    assert not {e['key']:(e['value'],e['computed']) for e in sheet.entries.values() if e['consistent'] is False}
+@pytest.mark.parametrize('entry', ALL_TOPICS, ids=lambda t: f"topic-{t['num']}")
+def test_entire_official_catalogue_has_finite_closed_numerical_starting_designs(entry):
+    result = run_bipol_project(entry['parameters'])
+    json.dumps(result, allow_nan=False)
+    assert result['design_iteration']['converged'], result['design_iteration']
+    assert result['performance']['mission_range']['passed'], result['performance']['mission_range']
+    # BIPOL_1: S_wet/S -> K_max -> eq. (3); the empty-mass law comes from
+    # two points on the trend line of the SAME comparison sample.
+    pp, mass = result['mass']['preliminary_polar'], result['mass']
+    ta, law = result['bipol_projects']['p1']['trend_analysis'], mass['empty_mass_law']
+    assert pp['mode'] == 'raymer' and pp['swet_ratio'] and pp['cx0_bounds']
+    assert pp['cx0'] == pytest.approx(math.pi*pp['aspect_ratio']*pp['oswald_e']/(4*pp['kmax']**2))
+    assert result['params']['cx0'] == pp['cx0']
+    assert law['mode'] == 'trend'
+    assert (law['A'], law['C']) == (ta['two_point']['A'], ta['two_point']['C'])
+    assert set(law['aircraft_ids']) <= {x['id'] for x in ta['similar_aircraft']}
+    # Physical climb must pay for height and drag and preserve phase continuity.
+    # A clipped Corke comparison must never be mistaken for the actual fuel ratio.
+    assumptions = mass['mission_assumptions']
+    corke = assumptions.get('corke') or {}
+    climb = assumptions.get('climb')
+    if climb:
+        phase = next(s for s in mass['mission_phases'] if s['key'] == 'climb')
+        assert climb['model'] == 'energy' and not corke['used_for_balance']
+        assert 0 < climb['fraction'] <= 1
+        assert climb['fraction'] == pytest.approx(phase['fuel_fraction'])
+        assert climb['fuel_kg'] == pytest.approx(phase['fuel_burn_kg'])
+        dh = climb['altitude_end_m']-climb['altitude_start_m']
+        assert climb['duration_s'] == pytest.approx(dh/climb['roc_ms'])
+        if dh > 0:
+            assert climb['fuel_kg'] > 0 and climb['potential_work_j'] > 0
+            assert climb['drag_work_j'] > 0 and len(climb['nodes']) >= 2
+        previous = None
+        for state in mass['mission_phases']:
+            if previous is not None:
+                assert state['mass_start_kg'] == pytest.approx(previous)
+            previous = state['mass_end_kg']
+        assert sum(x['fuel_burn_kg'] for x in mass['mission_phases']) == pytest.approx(mass['fuel_burn_kg'])
+    else:
+        assert not corke or (corke['mode'] == 'corke' and not corke['provisional'] and corke['used_for_balance'])

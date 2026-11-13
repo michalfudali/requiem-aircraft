@@ -102,3 +102,19 @@ def test_explicit_corke_cannot_turn_a_below_chart_point_into_a_zero_fuel_pass(cl
     response = client.post('/api/calculate', json=dict(inputs(), cruise_speed_kmh=115., climb_fraction_mode='corke'))
     assert response.status_code == 400
     assert 'zakresem wykresu Corke' in response.get_data(as_text=True)
+
+
+def test_omitted_profile_uses_positive_design_rate_but_preserves_explicit_profile():
+    from calculations.validation import validate_parameters
+    from calculations.official_topics import ALL_TOPICS
+    from calculations.mass import calculate_mass_sizing
+    jet = next(t['parameters'] for t in ALL_TOPICS if t['num'] == 61)
+    assert jet['climb_rate_ms'] == 12
+    normalized = validate_parameters(jet)
+    assert normalized['mission_climb_rate_ms'] == 12
+    assert validate_parameters({**jet, 'mission_climb_rate_ms': 7.5})['mission_climb_rate_ms'] == 7.5
+    legacy = calculate_mass_sizing(jet)
+    assert legacy['mission_assumptions']['climb']['duration_s'] == pytest.approx(11000/12)
+    assert validate_parameters({**jet, 'climb_rate_ms': 0})['mission_climb_rate_ms'] == 3
+    with pytest.raises(ValueError, match='mission_climb_rate_ms'):
+        validate_parameters({**jet, 'mission_climb_rate_ms': 0})

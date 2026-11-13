@@ -117,3 +117,15 @@ def test_advanced_panel_ignores_invalid_energy_input_when_own_readings_are_selec
     page.locator('#bipol1Calculate').click()
     page.wait_for_function('currentResults?.params.climb_fraction_mode==="reading"',timeout=60000)
     assert page.evaluate('currentResults.mass.fuel_fractions_detail.climb') == pytest.approx(.996/.999)
+
+
+def test_official_jet_profile_inherits_its_requirement_and_keeps_an_explicit_edit(studio):
+    page, _, _ = studio
+    topic_id = page.evaluate('topicsData.find(t=>t.num===61).id')
+    page.locator('#wiz_topic').select_option(topic_id)
+    page.locator('.wizard-step-tab[data-step="2"]').click()
+    expect(page.locator('#wiz_mission_climb_rate_ms')).to_have_value('12')
+    page.locator('#wiz_mission_climb_rate_ms').fill('7.5')
+    page.reload()
+    page.wait_for_function('currentResults !== null')
+    expect(page.locator('#wiz_mission_climb_rate_ms')).to_have_value('7.5')

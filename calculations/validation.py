@@ -124,6 +124,7 @@ NUMERIC_STEPS = {
     "span_limit": 0.05,
     "wing_area_m2": 0.05,
     "climb_rate_ms": 0.1,
+    "mission_climb_rate_ms": 0.05,
     "ceiling_climb_rate_ms": 0.1,
     "tow_climb_rate_ms": 0.1,
     "cargo_bay_length_m": 0.05,
@@ -253,7 +254,7 @@ DEFAULTS = {
     "profile_thickness_mode": "auto", "tc_ratio": 0.12,
     "cargo_bay_length_m": 0, "cargo_bay_width_m": 0, "cargo_bay_height_m": 0,
     "max_power_time_min": 0, "preliminary_polar_mode": "raymer",
-    "climb_fraction_mode": "energy", "mission_climb_rate_ms": 3., "trend_year_basis": "certification",
+    "climb_fraction_mode": "energy", "trend_year_basis": "certification",
 }
 
 
@@ -346,6 +347,9 @@ def validate_parameters(data):
         if key in COUNT_KEYS and not number.is_integer():
             raise ValueError(f"Pole {key}: wymagana liczba całkowita.")
         p[key] = number
+    if 'mission_climb_rate_ms' not in p:
+        from calculations.mission_climb import profile_climb_rate
+        p['mission_climb_rate_ms'] = profile_climb_rate(p)
     if p.get('cost_n_amortization', 0) > p.get('cost_n_production', math.inf):
         raise ValueError('Koszty: liczba egzemplarzy amortyzujących koszty rozwoju N_am nie może przekraczać serii N_P.')
     dimensions = [p[key] for key in ('cargo_bay_length_m', 'cargo_bay_width_m', 'cargo_bay_height_m')]

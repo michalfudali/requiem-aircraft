@@ -49,7 +49,7 @@
     set('wiz_','oswald_e',wizardBase.oswald_e ?? .8);
     set('wiz_','graph_source',wizardBase.graph_source ?? '');
     set('wiz_','climb_fraction_mode',wizardBase.climb_fraction_mode === 'auto' ? 'energy' : wizardBase.climb_fraction_mode ?? 'energy');
-    for (const [key, fallback] of Object.entries({mission_climb_rate_ms:3,climb_start_altitude_m:0,climb_start_speed_kmh:'',corke_start_ordinate:.99,corke_end_ordinate:.98,climb_source:''})) set('wiz_',key,wizardBase[key] ?? fallback);
+    for (const [key, fallback] of Object.entries({mission_climb_rate_ms:Number(wizardBase.climb_rate_ms)>0?Number(wizardBase.climb_rate_ms):3,climb_start_altitude_m:0,climb_start_speed_kmh:'',corke_start_ordinate:.99,corke_end_ordinate:.98,climb_source:''})) set('wiz_',key,wizardBase[key] ?? fallback);
     const legacySketch = !wizardBase.wetted_example && ['raymer','reading'].includes(wizardBase.preliminary_polar_mode) && wizardBase.sketch_swet_ratio;
     set('wiz_','wetted_example',wizardBase.wetted_example || (legacySketch ? 'sketch' : ''));
     set('wiz_','sketch_swet_ratio',wizardBase.sketch_swet_ratio ?? 4);

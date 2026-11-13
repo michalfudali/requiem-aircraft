@@ -67,10 +67,15 @@ def test_jet_topics_are_not_seeded_with_piston_stall_speeds():
         p = topic(num)
         assert low <= p['v_stall_kmh'] <= high, num
     r = run_bipol_project(topic(61))
-    # A 10-seat business jet: CJ3/Phenom 300 have 27–29 m² and 16 m, not 70 m² and 24 m. Above 5670 kg
-    # JAR 23.1(a)(1) no longer applies, so it is designed to JAR-25 with two pilots.
+    # Above 5670 kg the selected historical JAR-23 category no longer applies.
     assert r['params']['category'] == 'cs25_transport' and r['mass']['m0'] > 5670
-    assert r['geometry']['wing']['S'] < 40
+    # Check area at the ACTUAL solved mass using BIPOL_2 eq. (10), including
+    # its 1.1 CL margin. Added physical climb fuel must not be hidden to keep an
+    # old absolute-area snapshot green. Keep the analogy check at a fixed mass:
+    # CJ3 Gen3 MTOW 6291 kg (https://cessna.txtav.com/en/citation/cj3).
+    minimum_area = 2.2*r['mass']['m0']*G0/(isa_atmosphere(0)['rho']*(r['params']['v_stall_kmh']/3.6)**2*r['aerodynamics']['cz_max_lnd'])
+    assert r['geometry']['wing']['S'] == pytest.approx(minimum_area, rel=.003)
+    assert r['geometry']['wing']['S']*6291/r['mass']['m0'] < 40
     # Topic 61 has no span limit. Span follows the chosen AR and solved area;
     # a rounded 18 m benchmark must not invalidate an otherwise consistent 18.08 m design.
     assert not r['params'].get('span_limit')  # normalized zero and omitted/None both mean no limit

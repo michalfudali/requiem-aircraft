@@ -15,6 +15,21 @@ SOURCE = 'Bilans sił i energii wznoszenia; NASA Glenn, Forces in a Climb'
 SOURCE_URL = 'https://www1.grc.nasa.gov/beginners-guide-to-aeronautics/forces-in-a-climb/'
 
 
+def profile_climb_rate(params):
+    """A commanded profile, inherited from the positive design ROC if omitted.
+
+    The sea-level requirement is only an initial assumption for this prescribed
+    profile. The final node assessment must still check its altitude capability.
+    Explicit zero/invalid profile values are never replaced by a default.
+    """
+    if 'mission_climb_rate_ms' in params:
+        return float(params['mission_climb_rate_ms'])
+    required = float(params.get('climb_rate_ms', 0))
+    if not math.isfinite(required) or required < 0:
+        raise ValueError('Wymagane tempo wznoszenia musi być skończone i nieujemne.')
+    return required if required > 0 else 3.
+
+
 @lru_cache(maxsize=64)
 def _grid(h0, h1, v0, v1, roc, eta_max, jet, max_step):
     steps = math.ceil((h1-h0)/max_step) if h1 > h0 else 0
@@ -44,7 +59,7 @@ def climb_segment(start_mass, params, polar=None, ld=None, max_step_m=100., *, d
     h1 = float(params.get('cruise_altitude_m', 3000))
     v1 = float(params['cruise_speed_kmh'])/3.6
     v0 = float(params.get('climb_start_speed_kmh') or params['cruise_speed_kmh'])/3.6
-    roc = float(params.get('mission_climb_rate_ms', 3.))
+    roc = profile_climb_rate(params)
     sfc = float(params['sfc'])
     if not all(math.isfinite(v) for v in (h0, h1, v0, v1, roc, start_mass, sfc, max_step_m)):
         raise ValueError('Wznoszenie wymaga skończonych danych wejściowych.')

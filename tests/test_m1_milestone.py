@@ -99,7 +99,8 @@ def test_feature1_corke_interpolation_and_fallback():
     res = calculate_mass_sizing(p)
     assert res['fuel_fractions_detail']['climb'] == pytest.approx(0.975 / 0.984, abs=1e-4)
 
-    # Below M = 0,1 (start of Fig. 3) the chart is read at its start, W/W(0,1) = 1: no non-Corke fallback.
+    # Below M=0.1 the clipped chart is only a provisional comparison. The
+    # automatic physical model still pays for gaining height and overcoming drag.
     p_slow = base_params(
         cruise_speed_kmh=90,  # ~25 m/s -> M ~ 0.07 < 0.10
         v_stall_kmh=70,
@@ -107,9 +108,16 @@ def test_feature1_corke_interpolation_and_fallback():
     )
     res_slow = calculate_mass_sizing(p_slow)
     corke_meta = res_slow['mission_assumptions']['corke']
-    assert corke_meta['provisional'] is False and corke_meta['below_chart'] is True
+    assert corke_meta['provisional'] is True and corke_meta['below_chart'] is True
+    assert not corke_meta['used_for_balance']
     assert corke_meta['ordinate_start'] == corke_meta['ordinate_end'] == pytest.approx(1.0)
     assert corke_meta['fraction'] == pytest.approx(1.0)
+    physical = res_slow['mission_assumptions']['climb']
+    assert physical['model'] == 'energy'
+    assert physical['fuel_kg'] > 0 and physical['duration_s'] > 0
+    assert 0 < res_slow['fuel_fractions_detail']['climb'] < 1
+    phase = next(s for s in res_slow['mission_phases'] if s['key'] == 'climb')
+    assert phase['fuel_burn_kg'] == pytest.approx(physical['fuel_kg'])
 
 
 @pytest.mark.parametrize("ac_type", ['glider', 'motoglider', 'piston_ga', 'turboprop_regional',

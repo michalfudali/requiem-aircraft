@@ -270,6 +270,9 @@ def mission_model(p, kmax):
         raise ValueError('Metoda proporcji dotyczy misji bez zrzutu. Wybierz metodę iteracyjną lub automatyczną.')
     corke = {}
     energy_climb = powered and p.get('climb_fraction_mode', 'auto') in ('auto', 'energy')
+    # The legacy mass-sizing API accepts raw parameters. Give the new kernel the
+    # same resolved mission defaults as cruise rather than requiring validation.
+    climb_params = {**p, 'sfc':sfc, 'cruise_speed_kmh':speed*3.6}
     if powered:
         h0, h1 = p.get('climb_start_altitude_m',0), p.get('cruise_altitude_m',3000)
         v0 = p.get('climb_start_speed_kmh',p.get('cruise_speed_kmh',250))/3.6
@@ -354,7 +357,7 @@ def mission_model(p, kmax):
             climb_polar = dict(p['_mission_polar']) if coupled else None
             if climb_polar and p.get('wing_input_mode') == 'loading':
                 climb_polar['S'] *= m0/climb_polar['reference_mass_kg']
-            climb_result = climb_segment(current, p, polar=climb_polar, ld=ld, detailed=detailed)
+            climb_result = climb_segment(current, climb_params, polar=climb_polar, ld=ld, detailed=detailed)
             factors['climb'] = climb_result['fraction']
             phase('climb', 'Wznoszenie i rozpędzanie — bilans energii', climb_result['fraction'])
         else:

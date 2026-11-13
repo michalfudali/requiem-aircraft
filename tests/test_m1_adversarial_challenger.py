@@ -94,7 +94,7 @@ def test_adversarial_mass_spiral_divergence_extreme_range():
     ({'return_range_km': 1500.0, 'range_km': 1000.0},
      "Odcinek powrotny nie może być dłuższy niż całkowity zasięg misji"),
     ({'climb_start_altitude_m': 4000.0, 'cruise_altitude_m': 2000.0},
-     "Wykres Corke’a daje wzrost masy"),
+     "wysokość końcowa nie może być mniejsza od początkowej"),
 ])
 def test_adversarial_negative_and_invalid_inputs(invalid_kwargs, expected_match):
     """Input validation must reject non-physical coordinates and ranges."""

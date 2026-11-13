@@ -58,8 +58,11 @@ tempa wznoszenia mniejszego od TAS, wysokości końcowej nie mniejszej niż
 początkowa oraz dodatniej wymaganej pracy napędu. Rozpędzanie przy zerowym
 przyroście wysokości wymaga osobnego profilu fazy i nie jest zgadywane.
 
-Domyślne tempo 3 m/s jest jawnym założeniem profilu, odrębnym od minimalnego
-wznoszenia przy ziemi. Osiągalność zadanej trajektorii sprawdza się osobno
+Jeśli nie podano tempa profilu misji, program przyjmuje dodatnie wymaganie
+`climb_rate_ms` z projektu; przy braku dodatniego wymagania przyjmuje roboczo
+3 m/s. Jawne `mission_climb_rate_ms` ma pierwszeństwo. To założenie stałego
+profilu: wymaganie przy ziemi nie dowodzi osiągalności tej wartości na całej
+wysokości. Osiągalność zadanej trajektorii sprawdza się osobno
 w jej węzłach: dostępny napęd według modelu spadku mocy/ciągu P4/P5 oraz
 `C_L ≤ C_L,max`. Wynik obliczenia paliwa nie jest potwierdzeniem osiągalności.
 Bez domknięcia z P4 ocena profilu pozostaje nierozstrzygnięta.
