@@ -27,6 +27,12 @@ Warunki szczególne tego wydania CS-23, w tym resor płaski oraz śmigło z tył
 wymagają osobnego sprawdzenia. Przywołanie wymiarów nie jest potwierdzeniem
 zastosowania tej podstawy certyfikacji do każdej kategorii projektu.
 
+W rejestrze źródeł ujęto również [CS-25 Amendment 15, CS 25.925(a), strona
+125 PDF](https://www.easa.europa.eu/sites/default/files/dfu/CS-25%20Amendment%2015.pdf).
+Wartości 18/23 cm są takie same, lecz jego dodatkowy przypadek dotyczy opony
+bez ciśnienia i dobitej goleni jednocześnie. P3 wybiera odpowiedni paragraf
+według kategorii; raport zapisuje go jako źródło przepisu, wraz z dokumentem.
+
 ## Obliczenia i dane autora
 
 `calculations/propeller_clearance.py` jest wspólnym źródłem reguły dla geometrii,
@@ -54,6 +60,10 @@ h_P=H_{osi}-D_P/2,\qquad \Delta h_P=h_P-h_{min}.
 P3, raport oraz drzewo obliczeń pokazują dane, odejmowanie promienia śmigła
 i porównanie z odpowiednim minimum. Wynik `nominal_passed` dotyczy tego
 warunku wymiarowego, a `certification_compliant` pozostaje `null`.
+Arkusz rozwija również maksimum wyznaczające wysokość osi, pokazując średnicę
+kadłuba, roboczą proporcję 0,8, średnicę śmigła i dodatkowe minimum autora.
+Każda wielkość wejściowa ma opis pochodzenia. Kontrola niezależnego
+podstawienia obejmuje także tę wysokość, a nie tylko końcowe odejmowanie.
 
 Kalkulator napędu odejmuje zadane ugięcie od podanej wysokości osi. Kalkulator
 podwozia zachowuje konserwatywne oszacowanie skoku goleni wraz z ugięciem opony;
@@ -96,3 +106,26 @@ Chromium, następnie rozszerzony zestaw 25 kontroli reguły i braku fałszywych
 wyników; środowisko OpenVSP zaliczyło 96 testów. Ślady wykonania i aktualne
 studia są lokalnie w `work/clearance-*.xml`, `work/topic7-audit/`
 i `work/topic7-projekt/` worktree tej poprawki.
+
+## Końcowa weryfikacja — 13.11.2026
+
+- Pełny backend: **2534 zaliczone, 81 pominiętych** z powodu braku SDK w
+  Pythonie 3.11; pokrycie **94,44%** (`clearance-verified-full.xml`).
+- Python 3.13 / OpenVSP 3.55: **96 zaliczonych**, obejmujących pominięte
+  przypadki SDK oraz oba generatory (`clearance-verified-native.xml`).
+- Chromium: **63 różne scenariusze zaliczone**. Pierwszy pełny przebieg miał
+  58 zaliczeń, limit czasu podczas kliknięcia nawigacji w jednym scenariuszu
+  i cztery pominięcia wymagające natywnego backendu. Ponowiony scenariusz
+  nawigacji oraz wszystkie przypadki katalogu i natywnego backendu zaliczyły
+  siedem testów; wynik zbiorczy nie dubluje powtórzonych przypadków.
+- JavaScript: **55 zaliczonych**; obie bazy SQLite mają poprawną integralność.
+- Oba studia nadal spełniają **13/13 niezależnych kontroli**. Zapisane modele
+  otwarto ponownie i porównano tarczę śmigła z rzeczywistą dolną granicą kół.
+- Odświeżono 13 raportów HTML, sprawdzonych offline bez błędów JS i KaTeX.
+  Zbiorczy PDF ma **95 stron**, bez pustych stron; wzory obejmują pełny dobór
+  wysokości osi i przypisy do odpowiedniego dokumentu.
+
+Dowody, sumy plików i wynik po połączeniu dwóch przebiegów przeglądarki:
+`work/clearance-verified-summary.json`, `work/clearance-verified-*.xml`,
+`work/topic7-projekt/combined_report_checks.json`. Weryfikowany kod po scaleniu
+z kreatorem: `e6602b6`. Te kontrole nie zamykają pozostałych wymagań konstrukcyjnych.

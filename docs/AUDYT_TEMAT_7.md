@@ -293,3 +293,12 @@ Oba studia ponownie spełniają 13/13 niezależnych kontroli rachunkowych.
 Średnica śmigła i rzędne profilu pozostają zachowane, a aktualny model `.vsp3`
 sprawdzono po ponownym otwarciu. Źródła i szczegółowy zakres:
 [PRZESWIT_SMIGLA.md](PRZESWIT_SMIGLA.md).
+
+Weryfikacja końcowa 13.11.2026 po scaleniu z nowym kreatorem: **2534 testy
+backendu zaliczone, 81 pominiętych wywołań SDK w Pythonie 3.11, pokrycie
+94,44%**. Środowisko natywne zaliczyło **96 testów**, JavaScript **55**.
+Zbiorczo zaliczono **63 różne scenariusze Chromium**, w tym cztery z natywnym
+backendem; jeden limit czasu nawigacji z pierwszego przebiegu sprawdzono
+ponownie z wynikiem pozytywnym. Wszystkie 13 odświeżonych raportów HTML
+działa offline, a PDF ma 95 stron bez pustych stron. Szczegółowe ślady i
+rozróżnienie kontroli wymiaru od pełnej oceny zabudowy są w opisie prześwitu.
