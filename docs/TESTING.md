@@ -152,3 +152,14 @@ Limit czasu pozostaje zabezpieczeniem przed zakleszczeniem, nie kryterium liczby
 Przed push sprawdź `git status --short`; bazy z danymi użytkownika nie powinny
 zmieniać się wskutek testowania. Nie rozwiązuj konfliktu binarnego przez
 zastąpienie całej bazy starszym plikiem: zachowaj nowe rekordy i zmigruj schemat.
+
+Serwer akceptacyjny czeka na zakończenie aktywnych żądań przed usunięciem
+kopii baz. Zapobiega to błędowi `WinError 32`, gdy strona kończy test, a
+żądanie nadal korzysta z SQLite. Nie wyłącza sprawdzania błędów przeglądarki.
+
+Zagnieżdżony pytest sprawdzający odtwarzanie baz po celowo nieudanym teście
+ma własne `--rootdir` i `--confcutdir` w katalogu próby. Dzięki temu nie
+przeszukuje współdzielonych katalogów tymczasowych Playwright i nie zapisuje
+wyniku celowo nieudanego testu do głównego cache projektu. Próba nadal wymaga
+rzeczywistej awarii pierwszego przypadku, przywrócenia obu baz i konfiguracji
+Flask oraz powodzenia drugiego przypadku.

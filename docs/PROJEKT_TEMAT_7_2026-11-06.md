@@ -95,8 +95,8 @@ wcześniej projekty są obsługiwane oddzielnie; [opis aktualizacji](KATALOG_I_P
 - **Profil.** Wybrano FX 61-163, porównując cztery profile na podstawie biegunowych XFOIL
   przy Re = 10⁶. To dane obliczeniowe; potrzebne są dane doświadczalne dla warunków projektu
   i ocena przejścia laminarnego, zabrudzenia oraz rozkładu Re po rozpiętości.
-- **Dobór silnika.** Dostępne 58 kW daje Vmax = 228,5 km/h, a warunek
-  VD ≥ 1,35 VH podnosi VD do 308,5 km/h. Lżejszy silnik wymaga danych zużycia i mocy ciągłej.
+- **Dobór silnika.** Dostępne 58 kW daje Vmax = 228,4 km/h, a warunek
+  VD ≥ 1,35 VH podnosi VD do 308,4 km/h. Lżejszy silnik wymaga danych zużycia i mocy ciągłej.
   [Hirth publikuje](https://hirthengines.com/2301-air-cooled-two-stroke-boxer-engine-for-light-aviation-devices/)
   dla F23E punkt 660 g/(kW h) przy 6500 obr/min oraz moce opisane jako zmierzone.
   Ten zapis nie potwierdza mocy ciągłej potrzebnej do doboru w tym projekcie.

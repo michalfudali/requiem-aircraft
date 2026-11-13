@@ -130,5 +130,41 @@ Domyślna stała trajektoria odrzutowca wymaga dalszego doboru: program wykazuje
 niedobór ciągu w części węzłów, zamiast uznawać sam bilans paliwa za dowód osiągalności.
 
 Ślady uruchomień, odświeżone raporty i modele są w katalogu `work/` osobnego
-worktree `bipol-mission-climb-20261113`. Pełne testy wykonywane są na
-niezmienianym kodzie rewizji `1d06cf3`.
+worktree `bipol-mission-climb-20261113`.
+
+### Weryfikacja końcowa 13.11.2026
+
+- Zbiorczo **2668 różnych testów backendu zaliczonych**, 81 pominięć SDK
+  niezgodnego z Pythonem 3.11. Każdy ze **110 tematów** ma osobny zaliczony
+  test domknięcia, zasięgu i spójności bilansu.
+- Pełny przebieg z pokryciem na `82963e1`: 2662 zaliczenia, 81 pominięć.
+  Po poprawce dolnej granicy profilu zaliczono dodatkowy zestaw 25 testów,
+  w tym sześć nowych przypadków odtwarzania danych; łączne pokrycie **94,49%**.
+- Końcowy pełny przebieg na `d213ce6`: 2667 zaliczeń i jeden błąd izolacji
+  zagnieżdżonego pytest. Jego kolekcję ograniczono do własnego katalogu
+  tymczasowego, po czym cały zestaw baz i wznoszenia zaliczył **35/35**.
+  Żaden błąd tego przebiegu nie pozostał bez poprawki i ponownego sprawdzenia.
+- Zbiorczo **84 różne scenariusze Chromium** zaliczone. W przebiegu 83
+  scenariuszy wystąpił jeden błąd sprzątania SQLite w Windows po zakończeniu
+  testu. Serwer czeka teraz na aktywne żądania przed usunięciem bazy;
+  końcowy zestaw wznoszenia zaliczył **7/7**, w tym dodatkowy scenariusz
+  minimalnego tempa, zapisu, odświeżenia i synchronizacji obu paneli.
+- **96/96 testów natywnego OpenVSP**, **55/55 testów JavaScript** oraz
+  poprawna integralność obu baz SQLite.
+- **13 raportów HTML** sprawdzonych offline bez błędów JS i KaTeX; zbiorczy
+  PDF ma **96 stron bez pustych stron**. Oba modele `.vsp3` otwarto ponownie;
+  wariant 21 m zachowuje 98 rzędnych FX 61-163, pole 15,75 m² i prześwit 0,23 m.
+
+Raporty i modele odtworzono na `82963e1`. Na końcowym kodzie `caa7963`
+ponownie obliczono oba studia: pełne sekcje masy, geometrii, aerodynamiki,
+osiągów i doboru są identyczne z danymi użytymi do renderowania artefaktów;
+obie serie 14 kontroli pozostają zaliczone. Późniejsze scalanie dotyczyło
+wyłącznie dokumentacji innych agentów.
+
+`work/climb-verified-summary.json` zachowuje wyniki poszczególnych przebiegów
+i liczy przypadki według identyfikatora, bez dublowania powtórek.
+Źródła: `climb-release-backend.xml`, `climb-release-isolation.xml`,
+`climb-final-browser.xml`, `climb-release-ui-final.xml`,
+`climb-final-native.xml`, `climb-final-native-integration.xml` oraz
+`climb-final-coverage.xml`. Nie są to dowody certyfikacji ani zamknięcia
+otwartych zagadnień konstrukcyjnych opisanych powyżej.
