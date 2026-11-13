@@ -46,6 +46,7 @@
     for (const id of ['wizardPolarChart', 'wizardPolarMetrics', 'wizardPolarEquations']) $(id).replaceChildren();
     $('wizardPolarProbe').hidden = true;
     $('wizardDragFlow').replaceChildren();
+    if (ready) renderReview(BipolDesignBasis.snapshot());
   }
 
   function equation(tex) {
@@ -85,6 +86,40 @@
     ];
     $('wizardDragFlow').innerHTML = flow.map(([label, value, note], i) => `<li><span>${i+1}. ${esc(label)}</span><strong>${esc(value)}</strong><small>${esc(note)}</small></li>`).join('');
     renderPolarPoint();
+    renderReview(BipolDesignBasis.snapshot());
+  }
+
+  function modelScope(p) {
+    return p.design_iteration_mode === 'preliminary'
+      ? ['Bilans P1/P2 z wybraną biegunową', 'Bilans misji korzysta z biegunowej wstępnej wyznaczonej z podanego C_D0 albo S_wet/S.']
+      : ['Domknięcie P2–P4 z oporem z geometrii', 'Wybrana metoda wyznacza biegunową wstępną. W bilansie misji P2–P4 opór jest następnie uściślany z geometrii; końcowy C_D0 może różnić się od podglądu.'];
+  }
+
+  function renderReview(p) {
+    const direct = p.preliminary_polar_mode === 'input';
+    const geometry = {
+      loading:[`Λ = ${fmt(p.aspect_ratio)}`, 'Powierzchnia i rozpiętość zostaną wyznaczone z bilansu masy i ograniczenia VS0.'],
+      span_aspect:[`b = ${fmt(p.wingspan_m)} m · Λ = ${fmt(p.aspect_ratio)}`, `Zależna powierzchnia S = ${fmt(p.wing_area_m2)} m²`],
+      span_area:[`b = ${fmt(p.wingspan_m)} m · S = ${fmt(p.wing_area_m2)} m²`, `Zależne wydłużenie Λ = ${fmt(p.aspect_ratio)}`],
+      area_aspect:[`S = ${fmt(p.wing_area_m2)} m² · Λ = ${fmt(p.aspect_ratio)}`, `Zależna rozpiętość b = ${fmt(p.wingspan_m)} m`]
+    }[p.wing_input_mode || 'loading'];
+    const propulsion = p.engine_type === 'none' ? ['Bez napędu', 'Szybowiec · bez bilansu paliwa silnikowego']
+      : [p.engine_type === 'jet' ? 'Napęd odrzutowy' : 'Napęd śmigłowy',
+        `${p.n_engines} siln. · ${p.engine_type === 'jet' ? 'Ciąg z diagramu doboru po obliczeniu' : $('wiz_power_input_mode').selectedOptions[0].textContent}`];
+    const drag = direct ? `C_D0 = ${$('wiz_cx0').value.trim() ? fmt(p.cx0, 5) : '—'}`
+      : p.wetted_example === 'sketch' ? `S_wet/S = ${$('wiz_sketch_swet_ratio').value.trim() ? fmt(p.sketch_swet_ratio) : '—'}`
+      : 'S_wet/S z analogii';
+    const cards = [
+      [1, 'Skrzydło', ...geometry],
+      [2, 'Misja', `${fmt(p.range_km, 0)} km · ${fmt(p.cruise_speed_kmh, 0)} km/h`, `Wysokość przelotu ${fmt(p.cruise_altitude_m, 0)} m`],
+      [3, 'Napęd', ...propulsion],
+      [4, 'Aerodynamika', drag, polar ? `Biegunowa wstępna: C_D0 = ${fmt(polar.cx0, 5)} · K_max = ${fmt(polar.kmax)}` : 'Podgląd biegunowej oczekuje na poprawne dane i odpowiedź obliczeń.']
+    ];
+    $('wizardReviewCards').innerHTML = cards.map(([step, title, value, note]) => `<button type="button" data-review-step="${step}" aria-controls="wizardPane${step}"><span class="wizard-review-card-title">0${step} · ${esc(title)} <span aria-hidden="true">↗</span></span><strong>${esc(value)}</strong><small>${esc(note)}</small></button>`).join('');
+    const [title, text] = modelScope(p);
+    $('wizardModelScopeTitle').textContent = title;
+    $('wizardModelScopeText').textContent = text;
+    $('wizardReviewScope').textContent = `${title}. ${text}`;
   }
 
   const normalize = text => text.toLowerCase().replace(/ł/g, 'l').normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, ' ').trim();
@@ -213,14 +248,16 @@
     readiness();
     $('wizardDraftName').textContent = p.name;
     const direct = p.preliminary_polar_mode === 'input';
-    $('wizardDragShortcutValue').textContent = direct ? `C_D0 = ${fmt(p.cx0, 4)}` : p.wetted_example === 'sketch' ? `S_wet/S = ${fmt(p.sketch_swet_ratio)}` : 'Stosunek S_wet/S';
+    $('wizardDragShortcutValue').textContent = direct ? `C_D0 = ${$('wiz_cx0').value.trim() ? fmt(p.cx0, 5) : '—'}` : p.wetted_example === 'sketch' ? `S_wet/S = ${$('wiz_sketch_swet_ratio').value.trim() ? fmt(p.sketch_swet_ratio) : '—'}` : 'Stosunek S_wet/S';
+    document.querySelectorAll('[data-wizard-start]').forEach(button => button.setAttribute('aria-pressed', String(button.dataset.wizardStart === (direct ? 'input' : 'raymer'))));
     $('wizEnterOwnRatio').hidden = p.wetted_example === 'sketch';
     $('wizardLiveSummary').innerHTML = [
       ['Misja', `${p.range_km} km · ${p.cruise_speed_kmh} km/h`],
       ['Załoga i pasażerowie', `${Number(p.n_crew) + Number(p.n_pax)} os.`],
       ['Wydłużenie skrzydła', fmt(p.aspect_ratio)],
-      ['Podstawa oporu', direct ? `C_D0 = ${fmt(p.cx0, 4)}` : p.wetted_example === 'sketch' ? `S_wet/S = ${fmt(p.sketch_swet_ratio)}` : 'S_wet/S z układu samolotu']
+      ['Podstawa oporu', $('wizardDragShortcutValue').textContent]
     ].map(([label, value]) => `<div><dt>${esc(label)}</dt><dd>${esc(value)}</dd></div>`).join('');
+    renderReview(p);
     if ($('wizardFieldSearch').value) searchFields();
     const signature = JSON.stringify(p);
     if (signature === requestedPreview) return;
@@ -318,6 +355,19 @@
       const input = document.querySelector('[name="wiz_drag_basis"]:checked');
       input.focus({preventScroll:true});
     });
+    root.querySelectorAll('[data-wizard-start]').forEach(button => button.addEventListener('click', () => {
+      const mode = button.dataset.wizardStart;
+      if (mode === 'raymer') $('wiz_wetted_example').value = 'sketch';
+      const input = root.querySelector(`[name="wiz_drag_basis"][value="${mode}"]`);
+      input.checked = true;
+      input.dispatchEvent(new Event('change', {bubbles:true}));
+      focusField(mode === 'input' ? 'wiz_cx0' : 'wiz_sketch_swet_ratio', 4);
+    }));
+    $('wizardReviewCards').addEventListener('click', event => {
+      const button = event.target.closest('[data-review-step]');
+      if (button) goToWizardStep(Number(button.dataset.reviewStep));
+    });
+    $('wizardEditMissionModel').addEventListener('click', () => focusField('wiz_design_iteration_mode', 1));
     $('wizEnterOwnRatio').addEventListener('click', () => {
       $('wiz_wetted_example').value = 'sketch';
       $('wiz_wetted_example').dispatchEvent(new Event('change', {bubbles:true}));

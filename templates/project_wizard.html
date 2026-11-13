@@ -30,7 +30,13 @@
           <span id="wizardSearchStatus" class="wizard-search-status" role="status"></span>
           <ul id="wizardSearchResults" class="wizard-search-results" aria-label="Znalezione parametry" hidden></ul>
         </div>
-        <button type="button" id="wizardDragShortcut" class="wizard-drag-shortcut"><span>PUNKT WYJŚCIA AERODYNAMIKI</span><strong id="wizardDragShortcutValue">Stosunek S_wet/S</strong><small>Wybierz metodę w etapie 4 <span aria-hidden="true">↗</span></small></button>
+        <div class="wizard-start" role="group" aria-labelledby="wizardStartTitle">
+          <div class="wizard-start-heading"><span id="wizardStartTitle">Od czego zaczynasz aerodynamikę?</span><button type="button" id="wizardDragShortcut" class="wizard-drag-shortcut" title="Otwórz ustawienia bieżącej metody"><span id="wizardDragShortcutValue">Stosunek S_wet/S</span><span aria-hidden="true">↗</span></button></div>
+          <div class="wizard-start-options">
+            <button type="button" class="wizard-start-option" data-wizard-start="input" aria-pressed="false" aria-controls="wizardPane4"><span class="wizard-start-symbol" aria-hidden="true">C<sub>D0</sub></span><span><strong>Znam opór zerowy</strong><small>Wpisz współczynnik całego samolotu</small></span><span class="wizard-start-check" aria-hidden="true">✓</span></button>
+            <button type="button" class="wizard-start-option" data-wizard-start="raymer" aria-pressed="true" aria-controls="wizardPane4"><span class="wizard-start-symbol" aria-hidden="true">S<sub>wet</sub>/S</span><span><strong>Znam stosunek powierzchni</strong><small>Wpisz S<sub>wet</sub>/S ze swojego szkicu</small></span><span class="wizard-start-check" aria-hidden="true">✓</span></button>
+          </div>
+        </div>
       </div>
 
       <!-- Stepper Tabs -->
@@ -363,7 +369,7 @@
           <div id="wizDragCd0Fields" class="wizard-drag-fields" hidden>
             <div class="input-group">
               <label for="wiz_cx0">Opór zerowy C<sub>D0</sub> = C<sub>x0</sub> [–]</label>
-              <input id="wiz_cx0" type="number" min="0.001" max="0.3" step="0.001" value="0.025" required disabled>
+              <input id="wiz_cx0" type="number" inputmode="decimal" min="0.001" max="0.3" step="0.00001" value="0.025" required disabled>
               <small>Dla całego samolotu, względem powierzchni skrzydła S. Uwzględnij zabudowę, zastrzały i stałe podwozie. Opór profilu 2D nie jest oporem całego samolotu.</small>
             </div>
           </div>
@@ -380,7 +386,7 @@
             </div>
             <div class="input-group" id="wizWettedRatioGroup" hidden>
               <label for="wiz_sketch_swet_ratio">Własny stosunek S<sub>wet</sub>/S [–]</label>
-              <input id="wiz_sketch_swet_ratio" type="number" min="1" max="20" step="0.05" value="4" required disabled>
+              <input id="wiz_sketch_swet_ratio" type="number" inputmode="decimal" min="1" max="20" step="0.01" value="4" required disabled>
               <small>Wartość bezwymiarowa, np. 4,2. Podaj pomiar ze szkicu lub udokumentowane oszacowanie.</small>
             </div>
           </div>
@@ -404,6 +410,7 @@
           </div>
           <ol id="wizardDragFlow" class="wizard-drag-flow" aria-label="Przebieg obliczeń biegunowej" aria-live="polite"></ol>
           <div id="wizardPolarPreview" class="wizard-polar-preview" role="status" aria-live="polite"></div>
+          <div class="wizard-model-scope"><div><strong id="wizardModelScopeTitle"></strong><p id="wizardModelScopeText"></p></div><button type="button" class="wizard-inline-action" id="wizardEditMissionModel">Zmień sposób bilansu <span aria-hidden="true">↗</span></button></div>
           <p class="wizard-method-note">To biegunowa wstępna P1/P2. W trybie domknięcia P2–P4 bilans misji jest następnie sprawdzany z oporem obliczonym z geometrii.
             <a href="/static/images/bipol1-raymer.png" target="_blank" rel="noopener">Metoda BIPOL_1</a> · <a href="https://www1.grc.nasa.gov/beginners-guide-to-aeronautics/modern-drag-equation/" target="_blank" rel="noopener">Biegunowa paraboliczna — NASA</a>.</p>
           </section>
@@ -501,14 +508,17 @@
         <!-- KROK 5: Podsumowanie, Audyt i Start Obliczeń -->
         <div class="wizard-pane" id="wizardPane5">
           <div class="wizard-pane-header">
-            <h4>Krok 5: Weryfikacja Spójności i Podsumowanie Konfiguracji</h4>
+            <h4>Krok 5: Sprawdź i oblicz projekt</h4>
             <p>Sprawdź wprowadzone założenia projektowe przed uruchomieniem pełnego ciągu obliczeń BIPOL I.</p>
           </div>
 
           <section id="wizardReviewIssues" class="wizard-review-issues" aria-label="Pola wymagające poprawy" hidden></section>
 
+          <div id="wizardReviewCards" class="wizard-review-cards" role="group" aria-label="Założenia projektu — wybierz obszar do edycji"></div>
+          <p id="wizardReviewScope" class="wizard-method-note"></p>
+
           <div class="table-responsive">
-            <table class="b-table">
+            <table class="b-table wizard-summary-table">
               <thead>
                 <tr><th>Zespół / Obszar</th><th>Parametr</th><th>Skonfigurowana wartość</th><th>Status merytoryczny</th></tr>
               </thead>
