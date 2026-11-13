@@ -112,6 +112,28 @@ wcześniej projekty są obsługiwane oddzielnie; [opis aktualizacji](KATALOG_I_P
   ta masa jest chroniona w P3. Wydech, śmigło, chłodzenie, mocowanie, osprzęt i płyny muszą
   zostać objęte zestawieniem konkretnej zabudowy. Pole takiej masy i jej źródła jest dostępne
   w panelu silnika; nie wpisano przykładowej masy jako rzekomych danych producenta.
+  Kontrola krzyżowa 13.11.2026. Masa grupy napędu w projekcie wynosi 98,1 kg. Pochodzi ze wzoru Raymera
+  na zabudowany silnik (Analiza masowa: 2,575·W_en^0,922, W_en = 122,1 lb) i obejmuje śmigło.
+  Dane, z którymi ją porównano:
+
+  | Składnik | Masa | Źródło |
+  |---|---|---|
+  | Silnik z przekładnią | 55,4 kg | [Rotax 912 UL, Engine Data](https://www.flyrotax.com/products/912-ul-a-f) |
+  | Wydech | 4,0 kg | jw. |
+  | Osłona kierująca powietrze | 0,4 kg | jw. |
+  | Rama zawieszenia | 2,0 kg | jw. |
+  | Olej 3,0 l i płyn chłodzący ok. 1,5 l | ok. 4,3 kg | MML-912, 12-10-00 |
+
+  Pozycje wymienione przez producenta wraz z płynami dają ok. 66 kg bez chłodnic, przewodów, akumulatora,
+  śmigła i kołpaka. Chłodnic producent nie wymienia: TCDS EASA E.121 (wyd. 17, rozdz. 5) podaje dla 912 A/F
+  57,1 kg „bez tłumika i chłodnicy”. Ważenie 912 ULS z zestawem zabudowy (Zenith CH750, relacja użytkownika
+  [na forum](https://zenith.aero/forum/topics/rotax-912-uls-installed-weight)) dało ok. 86 kg bez osłony
+  silnika, śmigła i kołpaka. Ze śmigłem kompozytowym 1,5–3,4 kg daje to ok. 88–90 kg.
+
+  Wniosek: 98,1 kg z przewodnika przewyższa szacunek z rzeczywistej zabudowy o ok. 10% i jest zachowawcze.
+  Kontrola `engine_installation_mass` pozostaje otwarta do czasu zważenia lub zestawienia konkretnej zabudowy.
+  Zastąpienie wartości z przewodnika sumą samych pozycji producenta zaniżyłoby masę napędu o ok. 30 kg
+  i przesunęło ŚC do tyłu.
 - **Aeroelastyczność.** Moduł uwzględnia teraz `technology=composite`; materiał skrzydła można
   określić osobno. EI = 271 324 N·m² i GJ = 438 710 N·m² pozostają szacunkiem umownego kesonu.
   W zakładce Weryfikacja można podać źródłowe EI/GJ, masę liniową, osie i promień bezwładności.

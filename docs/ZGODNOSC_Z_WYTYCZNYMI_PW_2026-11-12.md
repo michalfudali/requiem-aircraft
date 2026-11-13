@@ -74,6 +74,26 @@ Od 12.11 raport P3 zawiera tabelę „Kontrola rysunku według schematu postępo
 | Zasięg i długotrwałość trzema metodami, zakres prędkości z wykresu ofertowego | jest |
 | Obwiednia wg rozdziałów C przepisów JAR | jest |
 
+## Pozycje „autor” wynikają z samych wytycznych
+
+Pozycje oznaczone „autor” nie są brakami programu, które dałoby się usunąć. Wytyczne przypisują je studentowi:
+
+- Opis projektów, P1: „szkice ręczne”.
+- Opis projektów, P3: rysunek „na papierze milimetrowym”.
+- BIPOL_1: uzgodnienie misji z prowadzącym.
+- BIPOL_3: dobór profilu z katalogu.
+- Wymagania, pkt 6: samodzielność pracy.
+
+Program, który wykonałby te czynności za studenta, naruszyłby wytyczne. Zgodność polega na tym, że program
+dostarcza dane, wzory arkuszy i miejsca na odniesienia (`sketch_reference`, `mission_approval_reference`,
+`airfoil_comparison`).
+
+Stan 13.11.2026: dwie kontrole audytu inżynierskiego tematu 7 pozostają otwarte. Żadna z nich nie jest wymaganiem przewodników PW:
+
+- `aeroelastic_substantiation` jest zawsze otwarta, bo potwierdzenie wymaga modelu konstrukcji, badań drgań i prób w locie.
+- `engine_installation_mass` czeka na zważenie konkretnej zabudowy. Masa napędu jest liczona metodą z przewodnika (Analiza masowa, wzór Raymera)
+  i zgadza się z ważeniem rzeczywistej zabudowy Rotax 912 z dokładnością ok. 10%. Szczegóły: `PROJEKT_TEMAT_7_2026-11-06.md`, „Otwarte sprawy”.
+
 ## Luki i sprawy poza programem
 
 - **Rysunek A2 na papierze milimetrowym** wykonuje autor; program daje od 12.11 wzór A2 z siatką w skali dwukrotnie większej niż A4.
