@@ -20,7 +20,7 @@
 .wizard-dashboard { grid-column:1/-1; display:flex; align-items:center; gap:28px; padding:20px 30px; border-bottom:1px solid var(--wiz-line); background:var(--wiz-soft); }
 .wizard-dashboard .wizard-eyebrow { margin-bottom:6px; }
 .wizard-dashboard strong { font-size:13px; }
-.wizard-tools { grid-column:1/-1; display:grid; grid-template-columns:minmax(0,1fr) minmax(220px, .55fr); gap:24px; padding:18px 30px; border-bottom:1px solid var(--wiz-line); background:var(--wiz-card); }
+.wizard-tools { grid-column:1/-1; display:grid; grid-template-columns:minmax(180px,.7fr) minmax(0,1.3fr); align-items:center; gap:24px; padding:18px 30px; border-bottom:1px solid var(--wiz-line); background:var(--wiz-card); }
 .wizard-field-search { min-width:0; }
 .wizard-field-search > label { display:block; font-size:11px; font-weight:650; margin-bottom:7px; color:var(--wiz-muted); }
 .wizard-search-input { display:flex; align-items:center; position:relative; }
@@ -38,11 +38,31 @@
 .wizard-search-results button small { grid-column:1; font-size:10px; }
 .wizard-search-results button strong { grid-column:2; grid-row:1/3; align-self:center; font-size:12px; max-width:180px; overflow-wrap:anywhere; }
 .wizard-search-more { padding:12px; font-size:11px; color:var(--wiz-muted); }
-.wizard-drag-shortcut { display:flex; flex-direction:column; align-items:flex-start; justify-content:center; gap:5px; padding:10px 18px; border:1px solid var(--wiz-line); border-radius:9px; background:var(--wiz-soft); color:var(--wiz-ink); text-align:left; cursor:pointer; min-width:0; }
-.wizard-drag-shortcut:hover { border-color:var(--wiz-accent); }
-.wizard-drag-shortcut > span { font-size:9px; letter-spacing:.08em; color:var(--wiz-muted); }
-.wizard-drag-shortcut strong { font-size:15px; font-variant-numeric:tabular-nums; }
-.wizard-drag-shortcut small { font-size:10px; }
+.wizard-start { min-width:0; }
+.wizard-start-heading { display:flex; flex-wrap:wrap; align-items:baseline; justify-content:space-between; gap:6px 14px; margin-bottom:8px; font-size:11px; color:var(--wiz-muted); }
+.wizard-start-heading > span { font-weight:650; }
+.wizard-drag-shortcut { display:inline-flex; gap:6px; padding:2px 0; border:0; background:transparent; color:var(--wiz-accent); font:inherit; font-variant-numeric:tabular-nums; text-align:left; cursor:pointer; }
+.wizard-drag-shortcut:hover { text-decoration:underline; text-underline-offset:3px; }
+.wizard-start-options { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; }
+.wizard-start-option { display:flex; align-items:center; gap:10px; min-width:0; padding:13px; border:1px solid var(--wiz-line); border-radius:10px; color:var(--wiz-ink); background:var(--wiz-card); text-align:left; cursor:pointer; font:inherit; }
+.wizard-start-option:hover { border-color:var(--wiz-accent); }
+.wizard-start-option[aria-pressed=true] { background:var(--wiz-soft); border-color:var(--wiz-accent); box-shadow:inset 0 0 0 1px var(--wiz-accent); }
+.wizard-start-symbol { font-size:15px; color:var(--wiz-accent); white-space:nowrap; }
+.wizard-start-option strong { display:block; font-size:12px; line-height:1.4; }
+.wizard-start-option small { display:block; font-size:10px; margin-top:5px; line-height:1.5; }
+.wizard-start-check { margin-left:auto; color:var(--wiz-accent); visibility:hidden; }
+.wizard-start-option[aria-pressed=true] .wizard-start-check { visibility:visible; }
+.wizard-model-scope { display:flex; flex-wrap:wrap; align-items:center; gap:8px 16px; padding:15px 16px; border:1px solid var(--wiz-line); border-radius:9px; background:var(--wiz-soft); margin:18px 0; }
+.wizard-model-scope > div { flex:1 1 240px; }
+.wizard-model-scope strong { font-size:12px; }
+.wizard-model-scope p { margin:7px 0 0; font-size:11px; line-height:1.7; color:var(--wiz-muted); }
+.wizard-model-scope .wizard-inline-action { margin:0; }
+.wizard-review-cards { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; margin:0 0 16px; }
+.wizard-review-cards button { display:flex; flex-direction:column; gap:10px; text-align:left; padding:18px; border:1px solid var(--wiz-line); border-radius:10px; background:var(--wiz-card); color:var(--wiz-ink); font:inherit; min-width:0; cursor:pointer; overflow-wrap:anywhere; }
+.wizard-review-cards button:hover { background:var(--wiz-soft); border-color:var(--wiz-accent); }
+.wizard-review-card-title { display:flex; justify-content:space-between; gap:10px; font-size:11px; color:var(--wiz-accent); }
+.wizard-review-cards strong { font-size:15px; font-weight:600; font-variant-numeric:tabular-nums; }
+.wizard-review-cards small { font-size:11px; line-height:1.6; }
 #tab-wizard .wizard-design-section { padding:0; margin:0 0 28px; border:0; border-radius:0; background:transparent; box-shadow:none; }
 .wizard-section-heading { display:flex; align-items:flex-start; gap:12px; padding:20px 0 16px; border-top:1px solid var(--wiz-line); }
 .wizard-section-heading > span { display:grid; place-items:center; border:1px solid var(--wiz-line); border-radius:7px; width:30px; height:30px; flex:0 0 30px; font-size:11px; color:var(--wiz-accent); background:var(--wiz-soft); }
@@ -147,8 +167,10 @@ body #tab-wizard[data-explanations=true] .param-didactic-hint { display:block !i
   .wizard-polar-chart { grid-column:2; grid-row:1/5; align-self:center; width:100%; max-width:340px; justify-self:center; }
   .wizard-polar-probe, .wizard-polar-equations, .wizard-insight-sticky > .wizard-method-note { grid-column:1/-1; }
 }
-@media (max-width:1100px) { .wizard-workspace-shell { grid-template-columns:180px minmax(0,1fr); } #tab-wizard .wizard-body { padding:22px; } }
+@media (max-width:1100px) { .wizard-workspace-shell { grid-template-columns:180px minmax(0,1fr); } #tab-wizard .wizard-body { padding:22px; } .wizard-tools { grid-template-columns:1fr; gap:16px; } }
 @media (max-width:720px) {
+  .studio-layout[data-workspace-view=tab-wizard] .work-mode-switch { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); max-width:100%; flex-shrink:1; }
+  .studio-layout[data-workspace-view=tab-wizard] .work-mode-switch button { min-width:0; white-space:normal; padding:8px 6px; }
   .studio-layout[data-workspace-view=tab-wizard] .studio-save-line { display:none; }
   .studio-layout[data-workspace-view=tab-wizard] .navbar-inner { gap:8px; }
   .studio-layout[data-workspace-view=tab-wizard] .navbar-actions { flex-wrap:nowrap; gap:6px; margin-left:auto; }
@@ -176,8 +198,18 @@ body #tab-wizard[data-explanations=true] .param-didactic-hint { display:block !i
   .wizard-readiness { margin:0; max-width:none; flex:1 1 160px; }
   .wizard-dashboard .btn { font-size:10px; padding:10px; }
   .wizard-tools { grid-template-columns:minmax(0,1fr); gap:12px; padding:16px; }
-  .wizard-drag-shortcut { padding:12px; }
-  .wizard-drag-shortcut > span { font-size:8px; }
+  .wizard-start-option { align-items:flex-start; flex-direction:column; position:relative; padding:12px; gap:8px; }
+  .wizard-start-option .wizard-start-check { position:absolute; right:12px; top:12px; }
+  .wizard-review-cards { grid-template-columns:1fr; }
+  #wizardPane5 .wizard-summary-table { display:block; min-width:0; width:100%; }
+  #wizardPane5 .wizard-summary-table thead { position:absolute; width:1px; height:1px; padding:0; overflow:hidden; clip-path:inset(50%); white-space:nowrap; }
+  #wizardPane5 .wizard-summary-table tbody { display:grid; gap:12px; }
+  #wizardPane5 .wizard-summary-table tr { display:block; border:1px solid var(--wiz-line); border-radius:10px; overflow:hidden; }
+  #wizardPane5 .wizard-summary-table td { display:block; min-width:0; text-align:left; white-space:normal; overflow-wrap:anywhere; border:0; padding:10px 14px; }
+  #wizardPane5 .wizard-summary-table td:first-child { background:var(--wiz-soft); font-weight:700; }
+  #wizardPane5 .wizard-summary-table td:nth-child(3)::before { content:'Wartość'; }
+  #wizardPane5 .wizard-summary-table td:nth-child(4)::before { content:'Sprawdzenie założenia'; }
+  #wizardPane5 .wizard-summary-table td::before { display:block; font:500 10px/1.5 var(--font-sans, sans-serif); color:var(--wiz-muted); margin-bottom:5px; }
   .wizard-search-results button { grid-template-columns:minmax(0,1fr); }
   .wizard-search-results button strong { grid-column:1; grid-row:auto; max-width:none; }
   .wizard-drag-flow { grid-template-columns:1fr; }
