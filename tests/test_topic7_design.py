@@ -97,14 +97,26 @@ def test_centre_of_gravity_from_the_mass_table(design):
     assert 25 - 1e-6 <= balance['cg_range']['forward_pct'] and balance['cg_range']['aft_pct'] <= 35
 
 
-def test_design_retains_the_missing_installation_mass_and_authors_confirmations(design):
+def test_design_documents_the_installation_mass_and_keeps_authors_confirmations(design):
     assert all(c['passed'] for c in design['compliance_checks'])
-    assert {c['id'] for c in design['engineering_audit']['checks'] if not c['passed']} == {'engine_installation_mass', 'aeroelastic_substantiation'}
+    assert {c['id'] for c in design['engineering_audit']['checks'] if not c['passed']} == {'aeroelastic_substantiation'}
     assert {c['key'] for c in design['bipol1_review']['checks'] if not c['passed']} == {'sketch', 'mission'}
+
+
+def test_installed_engine_mass_is_the_documented_build_up_kept_unscaled(design):
+    """Rotax 55,4 kg + zważona zabudowa CH750 (48,4 + 5,95 + 3,3 lb) + śmigło E-Props 1,6 kg."""
+    hand = 55.4 + (48.4 + 5.95 + 3.3) * .45359237 + 1.6
+    evidence = design['engine_selection']['mass']
+    assert evidence['basis'] == 'documented_installed_assembly'
+    assert evidence['installed_mass_total_kg'] == pytest.approx(hand, abs=.01)
+    assert design['mass']['component_allocation']['assigned_masses_kg']['propulsion'] == pytest.approx(evidence['installed_mass_total_kg'])
+    assert 'zenith.aero' in evidence['installed_source'] and 'Nie obejmuje' in evidence['installed_conditions']
 
 
 def test_engine_is_never_weightless_in_sized_mode():
     topic = json.loads(CASE.read_text(encoding='utf-8'))
+    for key in ('engine_installed_mass_kg', 'engine_mass_source', 'engine_mass_conditions'):
+        topic.pop(key)  # the documented installation belongs to the Rotax 912 UL, not to an unselected engine
     topic.update(engine_fuel_mode='unselected', power_input_mode='sized', engine_power_kw=0, locked_params=['n_pax', 'range_km', 'wingspan_m'])
     result = run_bipol_project(topic)
     power = result['sizing']['design_point']['power_kw']

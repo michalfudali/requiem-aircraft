@@ -111,5 +111,8 @@
   "climb_fraction_mode": "energy",
   "mission_climb_rate_ms": 3.0,
   "climb_start_altitude_m": 0.0,
-  "climb_start_speed_kmh": 115.0
+  "climb_start_speed_kmh": 115.0,
+  "engine_installed_mass_kg": 83.15,
+  "engine_mass_source": "BRP-Rotax, 912 UL/A/F Engine Data – Weight (https://www.flyrotax.com/products/912-ul-a-f): silnik z przekładnią 55,4 kg; O. Reik, „Rotax 912 ULS Installed Weight”, Rotax Engine Forum, zenith.aero, 23.09.2018, korekta 04.10.2018 (https://zenith.aero/forum/topics/rotax-912-uls-installed-weight): zważona zabudowa CH750; E-Props, „New 2-blade propeller for Rotax 912 & 912S”, 08.05.2020 (https://blogen.e-props.fr/archives/10044/new-2-blade-propeller-for-rotax-912-912s/): 1,6 kg",
+  "engine_mass_conditions": "55,4 kg silnik 912 UL z przekładnią, gaźnikami, zapłonem, generatorem wewnętrznym i rozrusznikiem (Rotax). 26,15 kg elementy zabudowy zważone w CH750: łoże 12,2 lb, tłumik 6,2 lb, rury wydechowe 3,8 lb, chłodnica 2,4 lb, przewody i cięgna 4,8 lb, osprzęt, chłodnica i zbiornik oleju, filtr powietrza 19,0 lb, olej 5,95 lb, płyn chłodzący 1,5 l 3,3 lb. 1,6 kg śmigło dwułopatowe E-Props V20, średnica 170–190 cm (P4: 1,70 m). Nie obejmuje: osłony silnika (masa kadłuba), kołpaka, akumulatora (instalacja elektryczna), paliwa zużywalnego, alternatora zewnętrznego 3,0 kg (zbędny przy generatorze wewnętrznym)."
 }

@@ -1,7 +1,7 @@
 # Błędy programu wykryte przy projektowaniu motoszybowca (temat 7) — zadania dla agentów
 
 Stan: 12.11.2026, gałąź `master` po scaleniu tej listy. Przegląd wykonano na projekcie
-`data/design_cases/topic7_motoszybowiec_21m.json` (b = 21 m, Rotax 912 UL, m₀ ≈ 655 kg), na domyślnym temacie 7
+`data/design_cases/topic7_motoszybowiec_21m.json` (b = 21 m, Rotax 912 UL, m₀ ≈ 655 kg; od 13.11 z udokumentowaną zabudową napędu m₀ ≈ 635 kg), na domyślnym temacie 7
 z katalogu oraz na przeliczeniu wszystkich 110 tematów i 10 przykładów.
 
 ## Zasady pracy (obowiązują każdego agenta)
@@ -18,7 +18,7 @@ z katalogu oraz na przeliczeniu wszystkich 110 tematów i 10 przykładów.
     (raporty P1–P6, niezmienniki liczbowe, otwarte kontrole);
   - test `tests/test_topic7_design.py` (rachunek ręczny niezależny od modułów).
 - Projekt tematu 7 po każdej zmianie ma dalej spełniać: wszystkie `compliance_checks`, audyt inżynierski bez
-  pozycji innych niż `engine_installation_mass` i `aeroelastic_substantiation`, lista BIPOL_1 bez pozycji innych niż `sketch` i `mission`.
+  pozycji innych niż `aeroelastic_substantiation` (od 13.11 masa zabudowy napędu jest udokumentowana), lista BIPOL_1 bez pozycji innych niż `sketch` i `mission`.
 
 ## A. Naprawione w tej serii (do wiedzy; testy już są)
 
@@ -82,8 +82,13 @@ Pozycje B1–B5 i B7 z pierwszej wersji tej listy są naprawione (tabela A, wier
 
 - **D1. Szkic odręczny i uzgodnienie misji** (BIPOL_1): pola `sketch_reference`, `mission_approval_reference`
   wypełnia autor. Agent nie wpisuje ich sam.
-- **D2. Masa kompletnej zabudowy silnika** (audyt `engine_installation_mass`): udokumentowane 55,4 kg sprzętu
-  Rotax 912 UL, brak źródła dla śmigła, łoża, chłodnic i wydechu. Potrzebne dane producenta.
+- **D2. Masa kompletnej zabudowy silnika** (audyt `engine_installation_mass`) — **zamknięte 13.11.2026.**
+  W przypadku projektowym tematu 7 wpisano 83,15 kg:
+  - 55,4 kg — silnik według Rotaxa;
+  - 26,15 kg — zważone elementy zabudowy CH750;
+  - 1,6 kg — śmigło E-Props.
+
+  Źródła i zakres podaje `docs/PROJEKT_TEMAT_7_2026-11-06.md`. Na zbudowanym motoszybowcu masę należy potwierdzić ważeniem.
 - **D3. Lżejszy silnik.** Potrzeba 32 kW, jest 58 kW. W katalogu (`data/aircraft/aircraft.sqlite3`, tabela
   `engines`) brak silnika 30–45 kW z udokumentowanym zużyciem. Sprawdzony Hirth 3503 (51,7 kW; 33,5 kg;
   436 g/(kW h); producent: „not a certificated aircraft engine”) — odrzucony. Do dodania tylko z dokumentem

@@ -29,19 +29,20 @@ Temat nie podaje misji. Liczby misji są założeniami autora i wymagają uzgodn
 
 | Wielkość | Wartość |
 |---|---|
-| Masa startowa / własna / paliwo / pilot | 658,7 / 498,2 / 50,5 / 110 kg |
-| W/S, W/b² | 41,8 kg/m², 1,49 kg/m² |
-| Kadłub, usterzenia | l = 8,5 m, S_H = 1,36 m², S_V = 1,65 m², ramię 5,02 m |
-| Biegunowa P4 | C_x0 = 0,01705, k = 0,01470, K_max ≈ 31,58 |
-| Prędkości | VS1 77,6, VS0 68,7, VA 178,7, VF 137,3, VD 308,4, Vmax 228,4 km/h |
-| Wznoszenie, start, lądowanie | 6,44 m/s, 197 m, 350 m |
-| Profil paliwowy wznoszenia | 3 m/s, TAS 115 km/h, 0–2000 m; 1,567 kg paliwa w 11,11 min |
-| Środek masy, zapas stateczności | 25,0–29,5% ŚCA, 12,5% ŚCA |
-| Obciążenia | n = +5,42 / −3,42, niszczące +8,14 / −5,14 (podmuchy) |
-| Flatter, dywergencja, rewers lotek | 515 km/h (1,67 VD), 605 km/h, rewers nieobliczony; model zastępczy |
+| Masa startowa / własna / paliwo / pilot | 635,2 / 476,4 / 48,8 / 110 kg |
+| W/S, W/b² | 40,3 kg/m², 1,44 kg/m² |
+| Kadłub, usterzenia | l = 8,5 m, S_H = 1,39 m², S_V = 1,68 m², ramię 4,92 m |
+| Biegunowa P4 | C_x0 = 0,01703, k = 0,01472, K_max ≈ 31,58 |
+| Prędkości | VS1 76,2, VS0 67,4, VA 175,5, VF 134,8, VD 308,6, Vmax 228,6 km/h |
+| Wznoszenie, start, lądowanie | 6,71 m/s, 187 m, 347 m |
+| Profil paliwowy wznoszenia | 3 m/s, TAS 115 km/h, 0–2000 m; 1,518 kg paliwa w 11,11 min |
+| Środek masy, zapas stateczności | 25,0–29,7% ŚCA, 12,3% ŚCA |
+| Obciążenia | n = +5,46 / −3,46, niszczące +8,19 / −5,19 (podmuchy) |
+| Flatter, dywergencja, rewers lotek | 513 km/h (1,66 VD), 603 km/h, rewers nieobliczony; model zastępczy |
 
-Aktualizacja 13.11.2026: program zalicza 33 z 33 kontroli raportu i 10 z 12 kontroli
-audytu inżynierskiego. Otwarte są masa kompletnej zabudowy napędu i potwierdzenie aeroelastyczne konstrukcji.
+Aktualizacja 13.11.2026: program zalicza 33 z 33 kontroli raportu i 11 z 12 kontroli audytu inżynierskiego.
+Masa napędu pochodzi z udokumentowanej zabudowy (83,15 kg, opis w „Otwartych sprawach”). Otwarte pozostaje
+potwierdzenie aeroelastyczne konstrukcji, które z założenia wymaga badań.
 Bilans energii zastąpił zerowe paliwo wznoszenia z odczytu poniżej M = 0,1.
 Profil, równania, źródło SFC i pozostające ograniczenia opisano w
 [WZNOSZENIE_I_PALIWO.md](WZNOSZENIE_I_PALIWO.md).
@@ -108,32 +109,50 @@ wcześniej projekty są obsługiwane oddzielnie; [opis aktualizacji](KATALOG_I_P
 - **Ułamki startu i lądowania.** Po 2,5% masy daje około 32 kg paliwa, dwie trzecie całości. To wartość z przewodnika,
   a nie pomiar zużycia motoszybowca.
 
-- **Masa kompletnej instalacji silnika.** Producent Rotax podaje 55,4 kg dla silnika z przekładnią;
-  ta masa jest chroniona w P3. Wydech, śmigło, chłodzenie, mocowanie, osprzęt i płyny muszą
-  zostać objęte zestawieniem konkretnej zabudowy. Pole takiej masy i jej źródła jest dostępne
-  w panelu silnika; nie wpisano przykładowej masy jako rzekomych danych producenta.
-  Kontrola krzyżowa 13.11.2026. Masa grupy napędu w projekcie wynosi 98,1 kg. Pochodzi ze wzoru Raymera
-  na zabudowany silnik (Analiza masowa: 2,575·W_en^0,922, W_en = 122,1 lb) i obejmuje śmigło.
-  Dane, z którymi ją porównano:
+- **Masa kompletnej instalacji silnika — zamknięte 13.11.2026.** Przedtem program liczył grupę napędu wzorem Raymera
+  na zabudowany silnik (Analiza masowa: 2,575·W_en^0,922 przy W_en = 122,1 lb) i otrzymywał 98,1 kg.
+  Teraz wpisano masę zabudowy zestawioną ze źródeł:
 
   | Składnik | Masa | Źródło |
   |---|---|---|
-  | Silnik z przekładnią | 55,4 kg | [Rotax 912 UL, Engine Data](https://www.flyrotax.com/products/912-ul-a-f) |
-  | Wydech | 4,0 kg | jw. |
-  | Osłona kierująca powietrze | 0,4 kg | jw. |
-  | Rama zawieszenia | 2,0 kg | jw. |
-  | Olej 3,0 l i płyn chłodzący ok. 1,5 l | ok. 4,3 kg | MML-912, 12-10-00 |
+  | Silnik 912 UL z przekładnią | 55,4 kg | [BRP-Rotax, Engine Data](https://www.flyrotax.com/products/912-ul-a-f) |
+  | Łoże, wydech, chłodnice, przewody, osprzęt, olej, płyn chłodzący | 26,15 kg | zob. niżej |
+  | Śmigło E-Props V20, 170–190 cm | 1,6 kg | [E-Props, 08.05.2020](https://blogen.e-props.fr/archives/10044/new-2-blade-propeller-for-rotax-912-912s/) |
+  | **Razem** | **83,15 kg** | |
 
-  Pozycje wymienione przez producenta wraz z płynami dają ok. 66 kg bez chłodnic, przewodów, akumulatora,
-  śmigła i kołpaka. Chłodnic producent nie wymienia: TCDS EASA E.121 (wyd. 17, rozdz. 5) podaje dla 912 A/F
-  57,1 kg „bez tłumika i chłodnicy”. Ważenie 912 ULS z zestawem zabudowy (Zenith CH750, relacja użytkownika
-  [na forum](https://zenith.aero/forum/topics/rotax-912-uls-installed-weight)) dało ok. 86 kg bez osłony
-  silnika, śmigła i kołpaka. Ze śmigłem kompozytowym 1,5–3,4 kg daje to ok. 88–90 kg.
+  Pozycja 26,15 kg to zważone elementy zabudowy 912 ULS w Zenith CH750. Opisał je O. Reik na forum
+  [Rotax Engine Forum](https://zenith.aero/forum/topics/rotax-912-uls-installed-weight) (23.09.2018, korekta 04.10.2018):
 
-  Wniosek: 98,1 kg z przewodnika przewyższa szacunek z rzeczywistej zabudowy o ok. 10% i jest zachowawcze.
-  Kontrola `engine_installation_mass` pozostaje otwarta do czasu zważenia lub zestawienia konkretnej zabudowy.
-  Zastąpienie wartości z przewodnika sumą samych pozycji producenta zaniżyłoby masę napędu o ok. 30 kg
-  i przesunęło ŚC do tyłu.
+  | Element | Masa |
+  |---|---|
+  | Łoże | 12,2 lb |
+  | Tłumik | 6,2 lb |
+  | Rury wydechowe | 3,8 lb |
+  | Chłodnica | 2,4 lb |
+  | Przewody i cięgna | 4,8 lb |
+  | Osprzęt, chłodnica i zbiornik oleju, filtr | 19,0 lb |
+  | Olej | 5,95 lb |
+  | Płyn chłodzący 1,5 l | 3,3 lb |
+
+  „Silnik suchy” z tego ważenia, 131,6 lb, to 56,6 kg wersji ULS według Rotaxa plus alternator zewnętrzny 3,0 kg.
+  Dlatego masy silnika z ważenia nie użyto, tylko masy elementów zabudowy.
+
+  Zestawienie nie obejmuje:
+  - osłony silnika — jest w masie kadłuba;
+  - kołpaka;
+  - akumulatora — jest w instalacji elektrycznej;
+  - paliwa;
+  - alternatora zewnętrznego — wystarcza generator wewnętrzny.
+
+  Ważenie dotyczy 912 ULS w innym płatowcu i wymaga potwierdzenia na zbudowanym motoszybowcu.
+  TCDS EASA E.121 (wyd. 17, rozdz. 5) podaje masę 912 A/F „bez tłumika i chłodnicy”, więc chłodnic nie da się wziąć z danych producenta.
+
+  Skutki zmiany:
+  - Wzór z przewodnika zawyżał masę napędu o 15 kg.
+  - Projekt zamknął się przy m0 = 635,2 kg zamiast 658,7 kg (oba wyniki z bilansem energii wznoszenia).
+  - ŚC pozostaje w zakresie 25,0–29,7% ŚCA.
+  - Kontrola `engine_installation_mass` jest zaliczona.
+  - Po zmianie silnika na inny model masę zabudowy trzeba zestawić od nowa; program odrzuca masę przypisaną innemu silnikowi.
 - **Aeroelastyczność.** Moduł uwzględnia teraz `technology=composite`; materiał skrzydła można
   określić osobno. EI = 271 324 N·m² i GJ = 438 710 N·m² pozostają szacunkiem umownego kesonu.
   W zakładce Weryfikacja można podać źródłowe EI/GJ, masę liniową, osie i promień bezwładności.

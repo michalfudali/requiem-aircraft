@@ -88,11 +88,12 @@ Program, który wykonałby te czynności za studenta, naruszyłby wytyczne. Zgod
 dostarcza dane, wzory arkuszy i miejsca na odniesienia (`sketch_reference`, `mission_approval_reference`,
 `airfoil_comparison`).
 
-Stan 13.11.2026: dwie kontrole audytu inżynierskiego tematu 7 pozostają otwarte. Żadna z nich nie jest wymaganiem przewodników PW:
+Stan 13.11.2026 dla tematu 7:
 
-- `aeroelastic_substantiation` jest zawsze otwarta, bo potwierdzenie wymaga modelu konstrukcji, badań drgań i prób w locie.
-- `engine_installation_mass` czeka na zważenie konkretnej zabudowy. Masa napędu jest liczona metodą z przewodnika (Analiza masowa, wzór Raymera)
-  i zgadza się z ważeniem rzeczywistej zabudowy Rotax 912 z dokładnością ok. 10%. Szczegóły: `PROJEKT_TEMAT_7_2026-11-06.md`, „Otwarte sprawy”.
+- `engine_installation_mass` jest zaliczona. Masę zabudowy Rotax 912 UL (83,15 kg) zestawiono z danych producenta,
+  zważonej zabudowy i masy śmigła. Szczegóły: `PROJEKT_TEMAT_7_2026-11-06.md`, „Otwarte sprawy”.
+- Jedyna otwarta kontrola audytu to `aeroelastic_substantiation`. Przewodniki PW jej nie wymagają.
+  Jest zawsze otwarta, bo potwierdzenie wymaga modelu konstrukcji, badań drgań i prób w locie.
 
 ## Luki i sprawy poza programem
 
